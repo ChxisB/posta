@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💻 Installation help
+    url: https://github.com/ChxisB/posta/discussions/new?category=Installation-help
+    about: If you have questions about running Posta on your servers, use GitHub Discussions.
+
+  - name: 🙏 Help with using Posta
+    url: https://github.com/ChxisB/posta/discussions/new?category=Help-with-using-Posta
+    about: If you need help using Posta's features, use GitHub Discussions.
+
+  - name: 🦊 Feature Suggestions
+    url: https://github.com/ChxisB/posta/discussions/new?category=Feature-Suggestions
+    about: Suggest a new feature that should be added to Posta.
