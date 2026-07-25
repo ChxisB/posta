@@ -1,0 +1,12 @@
+.cache
+.git/*
+.github/*
+.vscode/*
+config/posta/*
+doc/*
+Dockerfile
+log/*
+node_modules
+Procfile.local
+Procfile*
+tmp/*

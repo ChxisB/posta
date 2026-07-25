@@ -1,0 +1,61 @@
+# Posta configuration
+# This is a v2 config file
+version: 2
+
+posta:
+  web_hostname: "localhost"
+  web_protocol: "http"
+  smtp_hostname: "localhost"
+  use_ip_pools: false
+  default_maximum_delivery_attempts: 18
+  signing_key_path: "config/posta/signing.key"
+
+web_server:
+  default_port: 5001
+  default_bind_address: "127.0.0.1"
+  max_threads: 5
+
+worker:
+  default_health_server_port: 9090
+  threads: 2
+
+main_db:
+  path: "data/posta-main.db"
+
+message_db:
+  directory: "data/message-db"
+  database_name_prefix: "posta"
+
+logging:
+  enabled: true
+  level: "info"
+
+smtp_server:
+  default_port: 25
+  default_bind_address: "127.0.0.1"
+  tls_enabled: false
+  proxy_protocol: false
+  max_message_size: 14
+
+dns:
+  mx_records:
+    - "mx1.posta.example.com"
+    - "mx2.posta.example.com"
+  spf_include: "spf.posta.example.com"
+  return_path_domain: "rp.posta.example.com"
+  route_domain: "routes.posta.example.com"
+  track_domain: "track.posta.example.com"
+  dkim_identifier: "posta"
+  domain_verify_prefix: "posta-verification"
+  custom_return_path_prefix: "psrp"
+  timeout: 5
+
+smtp:
+  host: "127.0.0.1"
+  port: 25
+  from_name: "Posta"
+  from_address: "posta@example.com"
+
+smtp_client:
+  open_timeout: 30
+  read_timeout: 30
