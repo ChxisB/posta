@@ -7,18 +7,20 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const pools = db.query(`SELECT * FROM ip_pools`).all() as any[];
+    const db = await getDb();
+    const pools = await db.query(`SELECT * FROM ip_pools`) as any[];
     c.set.status = 200;
     return { ip_pools: pools };
   }, { detail: { tags: ['IP Pools'], summary: 'List IP pools' } })
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, default_pool } = c.body;
-    const stmt = db.prepare(`INSERT INTO ip_pools (name, default_pool, created_at, updated_at) VALUES (?, ?, datetime('now'), datetime('now'))`);
-    const result = stmt.run(name, default_pool ?? false);
+    const result = await db.run(
+      `INSERT INTO ip_pools (name, default_pool, created_at, updated_at) VALUES ($1, $2, NOW(), NOW()) RETURNING id`,
+      [name, default_pool ?? false],
+    );
     c.set.status = 201;
     return { ip_pool: { id: Number(result.lastInsertRowid), name, default_pool: default_pool ?? false } };
   }, {
@@ -28,8 +30,8 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .get('/:poolId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const pool = db.query(`SELECT * FROM ip_pools WHERE id = ?`).get(c.params.poolId) as any;
+    const db = await getDb();
+    const pool = await db.get(`SELECT * FROM ip_pools WHERE id = $1`, [c.params.poolId]) as any;
     if (!pool) { c.set.status = 404; return { error: 'PoolNotFound' }; }
     c.set.status = 200;
     return { ip_pool: pool };
@@ -37,12 +39,13 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .patch('/:poolId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { ip_pool: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.poolId);
-    db.prepare(`UPDATE ip_pools SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE ip_pools SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { ip_pool: { id: parseInt(c.params.poolId), ...c.body } };
   }, {
@@ -52,8 +55,8 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .delete('/:poolId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    db.run(`DELETE FROM ip_pools WHERE id = ?`, [c.params.poolId]);
+    const db = await getDb();
+    await db.run(`DELETE FROM ip_pools WHERE id = $1`, [c.params.poolId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['IP Pools'], summary: 'Delete an IP pool' } })
@@ -62,26 +65,28 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .get('/:poolId/ip_addresses', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = db.query(`SELECT admin FROM users WHERE oidc_uid = ?`).get(c.clerk.userId) as any;
+    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
     if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
-    const addresses = db.query(`SELECT * FROM ip_addresses WHERE ip_pool_id = ? ORDER BY priority`).all(c.params.poolId) as any[];
+    const addresses = await db.query(`SELECT * FROM ip_addresses WHERE ip_pool_id = $1 ORDER BY priority`, [c.params.poolId]) as any[];
     c.set.status = 200;
     return { ip_addresses: addresses };
   }, { detail: { tags: ['IP Addresses'], summary: 'List IP addresses in pool' } })
 
   .post('/:poolId/ip_addresses', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = db.query(`SELECT admin FROM users WHERE oidc_uid = ?`).get(c.clerk.userId) as any;
+    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
     if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
-    const pool = db.query(`SELECT id FROM ip_pools WHERE id = ?`).get(c.params.poolId) as any;
+    const pool = await db.get(`SELECT id FROM ip_pools WHERE id = $1`, [c.params.poolId]) as any;
     if (!pool) { c.set.status = 404; return { error: 'PoolNotFound' }; }
     const { ipv4, ipv6, hostname, priority } = c.body;
-    const stmt = db.prepare(`INSERT INTO ip_addresses (ip_pool_id, ipv4, ipv6, hostname, priority, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`);
-    const result = stmt.run(c.params.poolId, ipv4 ?? null, ipv6 ?? null, hostname ?? null, priority ?? null);
+    const result = await db.run(
+      `INSERT INTO ip_addresses (ip_pool_id, ipv4, ipv6, hostname, priority, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id`,
+      [c.params.poolId, ipv4 ?? null, ipv6 ?? null, hostname ?? null, priority ?? null],
+    );
     c.set.status = 201;
     return { ip_address: { id: Number(result.lastInsertRowid), ip_pool_id: parseInt(c.params.poolId), ipv4: ipv4 ?? null, ipv6: ipv6 ?? null, hostname: hostname ?? null, priority: priority ?? null } };
   }, {
@@ -91,15 +96,16 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .patch('/:poolId/ip_addresses/:addressId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = db.query(`SELECT admin FROM users WHERE oidc_uid = ?`).get(c.clerk.userId) as any;
+    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
     if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { ip_address: { id: parseInt(c.params.addressId) } }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.addressId);
-    db.prepare(`UPDATE ip_addresses SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE ip_addresses SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { ip_address: { id: parseInt(c.params.addressId), ...c.body } };
   }, {
@@ -109,11 +115,11 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
   .delete('/:poolId/ip_addresses/:addressId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = db.query(`SELECT admin FROM users WHERE oidc_uid = ?`).get(c.clerk.userId) as any;
+    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
     if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
-    db.run(`DELETE FROM ip_addresses WHERE id = ?`, [c.params.addressId]);
+    await db.run(`DELETE FROM ip_addresses WHERE id = $1`, [c.params.addressId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['IP Addresses'], summary: 'Delete an IP address' } });

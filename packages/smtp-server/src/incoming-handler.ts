@@ -45,12 +45,13 @@ export class IncomingMessageHandler {
 
     // 1. Find which server owns this domain
     const recipientDomain = msg.rcptTo.split('@')[1] ?? '';
-    const domain = mainDb.query(
+    const domain = await mainDb.get<{ domain_id: number; server_id: number; name: string; verified_at: string }>(
       `SELECT d.id as domain_id, d.server_id, d.name, d.verified_at
        FROM domains d
-       WHERE d.name = ? AND d.verified_at IS NOT NULL
+       WHERE d.name = $1 AND d.verified_at IS NOT NULL
        LIMIT 1`,
-    ).get(recipientDomain) as any;
+      [recipientDomain],
+    );
 
     if (!domain) {
       console.log(`[incoming] no domain found for ${recipientDomain}, bouncing`);
@@ -60,17 +61,17 @@ export class IncomingMessageHandler {
     const serverId = domain.server_id;
 
     // 2. Open the server's MessageDB
-    const msgDb = this.provisioner.openServerDb(serverId);
+    const msgDb = await this.provisioner.openServerDb(serverId, getMainDb(this.config));
     const store = new MessageStore(msgDb);
 
     // 3. Store the raw message
-    const raw = store.insertRawMessage(msg.rawMessage);
+    const raw = await store.insertRawMessage(msg.rawMessage);
 
     // 4. Create the message record
     const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
     const messageId = msg.rawMessage.match(/^Message-ID:\s*(\S+)/im)?.[1] ?? `<${crypto.randomUUID()}@posta>`;
 
-    const msgRecordId = store.create({
+    const msgRecordId = await store.create({
       scope: 'incoming',
       rcpt_to: msg.rcptTo,
       mail_from: msg.mailFrom,
@@ -90,8 +91,8 @@ export class IncomingMessageHandler {
     const routes = await this.findMatchingRoutes(serverId, recipientDomain, msgDb);
     if (routes.length === 0) {
       console.log(`[incoming] no routes match ${recipientDomain}, marking as Sent`);
-      msgDb.update('messages', { status: 'Sent' }, { where: { id: msgRecordId } });
-      msgDb.insert('deliveries', {
+      await msgDb.update('messages', { status: 'Sent' }, { where: { id: msgRecordId } });
+      await msgDb.insert('deliveries', {
         message_id: msgRecordId,
         status: 'Sent',
         details: 'No routes configured — accepted without delivery',
@@ -105,16 +106,16 @@ export class IncomingMessageHandler {
     const success = await this.dispatchToEndpoint(match, msg, msgRecordId, msgDb);
 
     if (success) {
-      msgDb.update('messages', { status: 'Sent' }, { where: { id: msgRecordId } });
-      msgDb.insert('deliveries', {
+      await msgDb.update('messages', { status: 'Sent' }, { where: { id: msgRecordId } });
+      await msgDb.insert('deliveries', {
         message_id: msgRecordId,
         status: 'Sent',
         details: `Delivered via ${match.endpointType}`,
         timestamp: Date.now() / 1000,
       });
     } else {
-      msgDb.update('messages', { status: 'SoftFail' }, { where: { id: msgRecordId } });
-      msgDb.insert('deliveries', {
+      await msgDb.update('messages', { status: 'SoftFail' }, { where: { id: msgRecordId } });
+      await msgDb.insert('deliveries', {
         message_id: msgRecordId,
         status: 'SoftFail',
         details: 'Endpoint delivery failed',
@@ -133,11 +134,12 @@ export class IncomingMessageHandler {
   ): Promise<RouteMatch[]> {
     const mainDb = getMainDb(this.config);
 
-    const routes = mainDb.query(
+    const routes = await mainDb.query(
       `SELECT r.* FROM routes r
        JOIN domains d ON d.id = r.domain_id
-       WHERE d.name = ? AND r.server_id = ?`,
-    ).all(domain, serverId) as any[];
+       WHERE d.name = $1 AND r.server_id = $2`,
+      [domain, serverId],
+    ) as any[];
 
     const matches: RouteMatch[] = [];
 
@@ -146,11 +148,11 @@ export class IncomingMessageHandler {
       let endpointType = route.endpoint_type ?? '';
 
       if (endpointType === 'HTTP' && route.endpoint_id) {
-        endpoint = mainDb.query(`SELECT * FROM http_endpoints WHERE id = ?`).get(route.endpoint_id) as any;
+        endpoint = await mainDb.get(`SELECT * FROM http_endpoints WHERE id = $1`, [route.endpoint_id]) as any;
       } else if (endpointType === 'SMTP' && route.endpoint_id) {
-        endpoint = mainDb.query(`SELECT * FROM smtp_endpoints WHERE id = ?`).get(route.endpoint_id) as any;
+        endpoint = await mainDb.get(`SELECT * FROM smtp_endpoints WHERE id = $1`, [route.endpoint_id]) as any;
       } else if (endpointType === 'Address' && route.endpoint_id) {
-        endpoint = mainDb.query(`SELECT * FROM address_endpoints WHERE id = ?`).get(route.endpoint_id) as any;
+        endpoint = await mainDb.get(`SELECT * FROM address_endpoints WHERE id = $1`, [route.endpoint_id]) as any;
       }
 
       matches.push({ route, endpoint, endpointType });

@@ -7,10 +7,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const servers = db.query(
-      `SELECT * FROM servers WHERE organization_id = (SELECT id FROM organizations WHERE permalink = ?) AND deleted_at IS NULL`,
-    ).all(c.params.orgPermalink) as any[];
+    const db = await getDb();
+    const servers = await db.query(
+      `SELECT * FROM servers WHERE organization_id = (SELECT id FROM organizations WHERE permalink = $1) AND deleted_at IS NULL`,
+      [c.params.orgPermalink],
+    ) as any[];
     c.set.status = 200;
     return { servers };
   }, {
@@ -20,17 +21,17 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
   .post('/', async (c: any) => {
     const { name, mode, ip_pool_id } = c.body;
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
 
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(c.params.orgPermalink) as any;
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [c.params.orgPermalink]) as any;
     if (!org) { c.set.status = 404; return { error: 'OrgNotFound' }; }
 
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO servers (organization_id, uuid, name, mode, ip_pool_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(org.id, uuid, name, mode ?? 'Live', ip_pool_id ?? null);
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id
+    `, [org.id, uuid, name, mode ?? 'Live', ip_pool_id ?? null]);
     c.set.status = 201;
     return { server: { id: Number(result.lastInsertRowid), uuid, name, mode: mode ?? 'Live', ip_pool_id: ip_pool_id ?? null } };
   }, {
@@ -44,10 +45,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const server = db.query(
-      `SELECT * FROM servers WHERE id = ? AND organization_id = (SELECT id FROM organizations WHERE permalink = ?) AND deleted_at IS NULL`,
-    ).get(c.params.serverId, c.params.orgPermalink) as any;
+    const db = await getDb();
+    const server = await db.get(
+      `SELECT * FROM servers WHERE id = $1 AND organization_id = (SELECT id FROM organizations WHERE permalink = $2) AND deleted_at IS NULL`,
+      [c.params.serverId, c.params.orgPermalink],
+    ) as any;
     if (!server) { c.set.status = 404; return { error: 'ServerNotFound' }; }
     c.set.status = 200;
     return { server };
@@ -58,13 +60,13 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .patch('/:serverId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { server: { id: parseInt(c.params.serverId) } }; }
-    const setClauses = fields.map(([k]) => `${k} = ?`);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.serverId);
-    db.prepare(`UPDATE servers SET ${setClauses.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    await db.run(`UPDATE servers SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { server: { id: parseInt(c.params.serverId), ...c.body } };
   }, {
@@ -89,12 +91,12 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .delete('/:serverId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     if (!c.body.confirm_text) {
       c.set.status = 400;
       return { error: 'ConfirmationRequired', message: 'confirm_text is required to delete a server' };
     }
-    db.run(`UPDATE servers SET deleted_at = datetime('now') WHERE id = ?`, [c.params.serverId]);
+    await db.run(`UPDATE servers SET deleted_at = NOW() WHERE id = $1`, [c.params.serverId]);
     c.set.status = 200;
     return { deleted: true };
   }, {
@@ -105,14 +107,14 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .post('/:serverId/suspend', async (c: any) => {
     const { getDb, getConfig } = await import('../../index');
-    const db = getDb();
-    const config = getConfig();
-    const server = db.query(`SELECT name FROM servers WHERE id = ?`).get(c.params.serverId) as any;
-    db.run(`UPDATE servers SET suspended_at = datetime('now'), suspension_reason = ? WHERE id = ?`, [c.body.reason ?? null, c.params.serverId]);
+    const db = await getDb();
+    const config = await getConfig();
+    const server = await db.get(`SELECT name FROM servers WHERE id = $1`, [c.params.serverId]) as any;
+    await db.run(`UPDATE servers SET suspended_at = NOW(), suspension_reason = $1 WHERE id = $2`, [c.body.reason ?? null, c.params.serverId]);
     if (server) {
       const { sendServerSuspendedEmail } = await import('@posta/message-db');
       try {
-        sendServerSuspendedEmail(config, parseInt(c.params.serverId), server.name, c.body.reason ?? 'No reason provided');
+        await sendServerSuspendedEmail(config, parseInt(c.params.serverId), server.name, c.body.reason ?? 'No reason provided');
       } catch (err: any) {
         console.error(`[web] failed to send suspension notification for server ${c.params.serverId}:`, err.message);
       }
@@ -127,8 +129,8 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .post('/:serverId/unsuspend', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    db.run(`UPDATE servers SET suspended_at = NULL, suspension_reason = NULL WHERE id = ?`, [c.params.serverId]);
+    const db = await getDb();
+    await db.run(`UPDATE servers SET suspended_at = NULL, suspension_reason = NULL WHERE id = $1`, [c.params.serverId]);
     c.set.status = 200;
     return { unsuspended: true };
   }, {
@@ -138,14 +140,15 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/queue', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const page = parseInt(c.query.page ?? '1');
     const limit = 20;
     const offset = (page - 1) * limit;
-    const messages = db.query(
+    const messages = await db.query(
       `SELECT q.* FROM queued_messages q
-       WHERE q.server_id = ? ORDER BY q.created_at DESC LIMIT ? OFFSET ?`,
-    ).all(c.params.serverId, limit, offset) as any[];
+       WHERE q.server_id = $1 ORDER BY q.created_at DESC LIMIT $2 OFFSET $3`,
+      [c.params.serverId, limit, offset],
+    ) as any[];
     c.set.status = 200;
     return { messages, page };
   }, {
@@ -156,15 +159,17 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/limits', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const server = db.query(
-      `SELECT send_limit, send_limit_approaching_at, send_limit_exceeded_at FROM servers WHERE id = ?`,
-    ).get(c.params.serverId) as any;
+    const db = await getDb();
+    const server = await db.get(
+      `SELECT send_limit, send_limit_approaching_at, send_limit_exceeded_at FROM servers WHERE id = $1`,
+      [c.params.serverId],
+    ) as any;
     const today = new Date(); today.setUTCHours(0, 0, 0, 0);
     const todayTs = today.getTime() / 1000;
-    const count = db.query(
-      `SELECT COUNT(*) as c FROM queued_messages WHERE server_id = ? AND created_at >= ?`,
-    ).get(c.params.serverId, today.toISOString()) as any;
+    const count = await db.get(
+      `SELECT COUNT(*) as c FROM queued_messages WHERE server_id = $1 AND created_at >= $2`,
+      [c.params.serverId, today.toISOString()],
+    ) as any;
     const sentToday = count?.c ?? 0;
     c.set.status = 200;
     return {
@@ -180,10 +185,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/spam', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const server = db.query(
-      `SELECT spam_threshold, spam_failure_threshold, outbound_spam_threshold FROM servers WHERE id = ?`,
-    ).get(c.params.serverId) as any;
+    const db = await getDb();
+    const server = await db.get(
+      `SELECT spam_threshold, spam_failure_threshold, outbound_spam_threshold FROM servers WHERE id = $1`,
+      [c.params.serverId],
+    ) as any;
     c.set.status = 200;
     return {
       spam_threshold: server?.spam_threshold ?? 5,
@@ -197,10 +203,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/retention', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const server = db.query(
-      `SELECT message_retention_days, raw_message_retention_days, raw_message_retention_size FROM servers WHERE id = ?`,
-    ).get(c.params.serverId) as any;
+    const db = await getDb();
+    const server = await db.get(
+      `SELECT message_retention_days, raw_message_retention_days, raw_message_retention_size FROM servers WHERE id = $1`,
+      [c.params.serverId],
+    ) as any;
     c.set.status = 200;
     return {
       message_retention_days: server?.message_retention_days ?? 60,
@@ -214,10 +221,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/help/outgoing', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const all = db.query(
-      `SELECT key, type, name FROM credentials WHERE server_id = ? AND (hold IS NULL OR hold = 0) ORDER BY type`,
-    ).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const all = await db.query(
+      `SELECT key, type, name FROM credentials WHERE server_id = $1 AND (hold IS NULL OR hold = 0) ORDER BY type`,
+      [c.params.serverId],
+    ) as any[];
     const grouped: Record<string, any[]> = {};
     for (const cred of all) {
       const t = cred.type ?? 'Unknown';
@@ -232,12 +240,13 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/help/incoming', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const routes = db.query(
+    const db = await getDb();
+    const routes = await db.query(
       `SELECT r.id, r.name, r.mode, r.endpoint_type, r.domain_id, d.name as domain_name
        FROM routes r LEFT JOIN domains d ON d.id = r.domain_id
-       WHERE r.server_id = ? ORDER BY r.name`,
-    ).all(c.params.serverId) as any[];
+       WHERE r.server_id = $1 ORDER BY r.name`,
+      [c.params.serverId],
+    ) as any[];
     c.set.status = 200;
     return { routes };
   }, {
@@ -246,10 +255,11 @@ export const serverRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers' })
 
   .get('/:serverId/advanced', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const server = db.query(
-      `SELECT log_smtp_data, privacy_mode, allow_sender, postmaster_address FROM servers WHERE id = ?`,
-    ).get(c.params.serverId) as any;
+    const db = await getDb();
+    const server = await db.get(
+      `SELECT log_smtp_data, privacy_mode, allow_sender, postmaster_address FROM servers WHERE id = $1`,
+      [c.params.serverId],
+    ) as any;
     c.set.status = 200;
     return {
       log_smtp_data: server?.log_smtp_data ?? false,
@@ -268,25 +278,26 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const credentials = db.query(
-      `SELECT * FROM credentials WHERE server_id = ?`,
-    ).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const credentials = await db.query(
+      `SELECT * FROM credentials WHERE server_id = $1`,
+      [c.params.serverId],
+    ) as any[];
     c.set.status = 200;
     return { credentials };
   }, { detail: { tags: ['Credentials'], summary: 'List credentials for a server' } })
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { type, name, key, hold } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
     const keyToStore = key ?? crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO credentials (server_id, uuid, type, name, key, hold, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, uuid, type, name, keyToStore, hold ?? false);
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, uuid, type, name, keyToStore, hold ?? false]);
     c.set.status = 201;
     return { credential: { id: Number(result.lastInsertRowid), uuid, type, name, key: keyToStore, hold: hold ?? false } };
   }, {
@@ -301,10 +312,11 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
 
   .get('/:credId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const credential = db.query(
-      `SELECT * FROM credentials WHERE id = ? AND server_id = ?`,
-    ).get(c.params.credId, c.params.serverId) as any;
+    const db = await getDb();
+    const credential = await db.get(
+      `SELECT * FROM credentials WHERE id = $1 AND server_id = $2`,
+      [c.params.credId, c.params.serverId],
+    ) as any;
     if (!credential) { c.set.status = 404; return { error: 'CredentialNotFound' }; }
     return { credential };
   }, {
@@ -314,13 +326,13 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
 
   .patch('/:credId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { credential: {} }; }
-    const setClauses = fields.map(([k]) => `${k} = ?`);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
     const values = fields.map(([_, v]) => v);
     values.push(c.params.credId);
-    db.prepare(`UPDATE credentials SET ${setClauses.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    await db.run(`UPDATE credentials SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { credential: { id: parseInt(c.params.credId), ...c.body } };
   }, {
@@ -335,8 +347,8 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
 
   .delete('/:credId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    db.run(`DELETE FROM credentials WHERE id = ?`, [c.params.credId]);
+    const db = await getDb();
+    await db.run(`DELETE FROM credentials WHERE id = $1`, [c.params.credId]);
     c.set.status = 200;
     return { deleted: true };
   }, {

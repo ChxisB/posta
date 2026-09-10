@@ -7,16 +7,16 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const organizations = db.query(`SELECT * FROM organizations WHERE deleted_at IS NULL`).all() as any[];
+    const db = await getDb();
+    const organizations = await db.query(`SELECT * FROM organizations WHERE deleted_at IS NULL`) as any[];
     c.set.status = 200;
     return { organizations };
   }, { detail: { tags: ['Organizations'], summary: 'List organizations' } })
 
   .get('/stats', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const rows = db.query(`
+    const db = await getDb();
+    const rows = await db.query(`
       SELECT
         o.id,
         o.permalink,
@@ -55,21 +55,21 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
       WHERE o.deleted_at IS NULL
       GROUP BY o.id
       ORDER BY o.name
-    `).all() as any[];
+    `) as any[];
     c.set.status = 200;
     return { organizations: rows };
   }, { detail: { tags: ['Organizations'], summary: 'Get per-org aggregate stats' } })
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, permalink } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO organizations (name, permalink, uuid, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(name, permalink, uuid);
+      VALUES ($1, $2, $3, NOW(), NOW())
+      RETURNING id
+    `, [name, permalink, uuid]);
     c.set.status = 201;
     return { organization: { id: Number(result.lastInsertRowid), uuid, name, permalink } };
   }, {
@@ -79,8 +79,8 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
 
   .get('/:orgId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const org = db.query(`SELECT * FROM organizations WHERE id = ? OR permalink = ?`).get(c.params.orgId, c.params.orgId) as any;
+    const db = await getDb();
+    const org = await db.get(`SELECT * FROM organizations WHERE id = $1 OR permalink = $2`, [c.params.orgId, c.params.orgId]) as any;
     if (!org) { c.set.status = 404; return { error: 'OrgNotFound' }; }
     c.set.status = 200;
     return { organization: org };
@@ -88,12 +88,13 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
 
   .patch('/:orgId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { organization: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.orgId);
-    db.prepare(`UPDATE organizations SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE organizations SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { organization: { id: parseInt(c.params.orgId), ...c.body } };
   }, {
@@ -103,8 +104,8 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
 
   .delete('/:orgId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    db.run(`UPDATE organizations SET deleted_at = datetime('now') WHERE id = ?`, [c.params.orgId]);
+    const db = await getDb();
+    await db.run(`UPDATE organizations SET deleted_at = NOW() WHERE id = $1`, [c.params.orgId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['Organizations'], summary: 'Delete an organization' } });

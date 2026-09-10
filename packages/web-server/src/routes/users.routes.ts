@@ -7,22 +7,22 @@ export const userRoutes = new Elysia({ prefix: '/users' })
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const users = db.query(`SELECT * FROM users`).all() as any[];
+    const db = await getDb();
+    const users = await db.query(`SELECT * FROM users`) as any[];
     c.set.status = 200;
     return { users };
   }, { detail: { tags: ['Users'], summary: 'List users' } })
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const { first_name, last_name, email_address, admin } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO users (uuid, first_name, last_name, email_address, admin, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(uuid, first_name ?? null, last_name ?? null, email_address, admin ?? false);
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id
+    `, [uuid, first_name ?? null, last_name ?? null, email_address, admin ?? false]);
     c.set.status = 201;
     return { user: { id: Number(result.lastInsertRowid), uuid, first_name, last_name, email_address } };
   }, {
@@ -37,8 +37,8 @@ export const userRoutes = new Elysia({ prefix: '/users' })
 
   .get('/:userId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const user = db.query(`SELECT * FROM users WHERE id = ?`).get(c.params.userId) as any;
+    const db = await getDb();
+    const user = await db.get(`SELECT * FROM users WHERE id = $1`, [c.params.userId]) as any;
     if (!user) { c.set.status = 404; return { error: 'UserNotFound' }; }
     c.set.status = 200;
     return { user };
@@ -46,12 +46,13 @@ export const userRoutes = new Elysia({ prefix: '/users' })
 
   .patch('/:userId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { user: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.userId);
-    db.prepare(`UPDATE users SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { user: { id: parseInt(c.params.userId), ...c.body } };
   }, {
@@ -61,8 +62,8 @@ export const userRoutes = new Elysia({ prefix: '/users' })
 
   .delete('/:userId', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    db.run(`DELETE FROM users WHERE id = ?`, [c.params.userId]);
+    const db = await getDb();
+    await db.run(`DELETE FROM users WHERE id = $1`, [c.params.userId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['Users'], summary: 'Delete a user' } });

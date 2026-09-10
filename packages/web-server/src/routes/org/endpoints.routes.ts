@@ -7,23 +7,23 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const http_endpoints = db.query(`SELECT * FROM http_endpoints WHERE server_id = ?`).all(c.params.serverId) as any[];
-    const smtp_endpoints = db.query(`SELECT * FROM smtp_endpoints WHERE server_id = ?`).all(c.params.serverId) as any[];
-    const address_endpoints = db.query(`SELECT * FROM address_endpoints WHERE server_id = ?`).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const http_endpoints = await db.query(`SELECT * FROM http_endpoints WHERE server_id = $1`, [c.params.serverId]) as any[];
+    const smtp_endpoints = await db.query(`SELECT * FROM smtp_endpoints WHERE server_id = $1`, [c.params.serverId]) as any[];
+    const address_endpoints = await db.query(`SELECT * FROM address_endpoints WHERE server_id = $1`, [c.params.serverId]) as any[];
     c.set.status = 200;
     return { http_endpoints, smtp_endpoints, address_endpoints };
   }, { detail: { tags: ['Endpoints'], summary: 'List endpoints for a server' } })
 
   .post('/http', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, url, format, strip_replies, encoding } = c.body;
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO http_endpoints (server_id, name, url, format, strip_replies, encoding, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, name, url, format ?? 'JSON', strip_replies ?? false, encoding ?? 'Base64');
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, name, url, format ?? 'JSON', strip_replies ?? false, encoding ?? 'Base64']);
     c.set.status = 201;
     return { endpoint: { id: Number(result.lastInsertRowid), name, url, type: 'HTTP' } };
   }, {
@@ -36,13 +36,13 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .post('/smtp', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, hostname, port, ssl_mode } = c.body;
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO smtp_endpoints (server_id, name, hostname, port, ssl_mode, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, name, hostname, port ?? 25, ssl_mode ?? 'Auto');
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, name, hostname, port ?? 25, ssl_mode ?? 'Auto']);
     c.set.status = 201;
     return { endpoint: { id: Number(result.lastInsertRowid), name, hostname, type: 'SMTP' } };
   }, {
@@ -55,13 +55,13 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .post('/address', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, email } = c.body;
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO address_endpoints (server_id, name, email, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, name, email);
+      VALUES ($1, $2, $3, NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, name, email]);
     c.set.status = 201;
     return { endpoint: { id: Number(result.lastInsertRowid), name, email, type: 'Address' } };
   }, {
@@ -71,20 +71,21 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .get('/http/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const endpoint = db.query(`SELECT * FROM http_endpoints WHERE id = ? AND server_id = ?`).get(c.params.endpointId, c.params.serverId) as any;
+    const db = await getDb();
+    const endpoint = await db.get(`SELECT * FROM http_endpoints WHERE id = $1 AND server_id = $2`, [c.params.endpointId, c.params.serverId]) as any;
     if (!endpoint) { c.set.status = 404; return { error: 'EndpointNotFound' }; }
     return { endpoint: { ...endpoint, type: 'HTTP' } };
   }, { detail: { tags: ['Endpoints'], summary: 'Get an HTTP endpoint' } })
 
   .patch('/http/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { endpoint: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.endpointId, c.params.serverId);
-    db.prepare(`UPDATE http_endpoints SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ? AND server_id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE http_endpoints SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length - 1} AND server_id = $${values.length}`, values);
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'HTTP' } };
   }, {
@@ -99,20 +100,21 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .get('/smtp/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const endpoint = db.query(`SELECT * FROM smtp_endpoints WHERE id = ? AND server_id = ?`).get(c.params.endpointId, c.params.serverId) as any;
+    const db = await getDb();
+    const endpoint = await db.get(`SELECT * FROM smtp_endpoints WHERE id = $1 AND server_id = $2`, [c.params.endpointId, c.params.serverId]) as any;
     if (!endpoint) { c.set.status = 404; return { error: 'EndpointNotFound' }; }
     return { endpoint: { ...endpoint, type: 'SMTP' } };
   }, { detail: { tags: ['Endpoints'], summary: 'Get an SMTP endpoint' } })
 
   .patch('/smtp/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { endpoint: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.endpointId, c.params.serverId);
-    db.prepare(`UPDATE smtp_endpoints SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ? AND server_id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE smtp_endpoints SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length - 1} AND server_id = $${values.length}`, values);
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'SMTP' } };
   }, {
@@ -126,20 +128,21 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .get('/address/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const endpoint = db.query(`SELECT * FROM address_endpoints WHERE id = ? AND server_id = ?`).get(c.params.endpointId, c.params.serverId) as any;
+    const db = await getDb();
+    const endpoint = await db.get(`SELECT * FROM address_endpoints WHERE id = $1 AND server_id = $2`, [c.params.endpointId, c.params.serverId]) as any;
     if (!endpoint) { c.set.status = 404; return { error: 'EndpointNotFound' }; }
     return { endpoint: { ...endpoint, type: 'Address' } };
   }, { detail: { tags: ['Endpoints'], summary: 'Get an Address endpoint' } })
 
   .patch('/address/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { endpoint: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.endpointId, c.params.serverId);
-    db.prepare(`UPDATE address_endpoints SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ? AND server_id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE address_endpoints SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length - 1} AND server_id = $${values.length}`, values);
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'Address' } };
   }, {
@@ -152,9 +155,9 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
 
   .delete('/:endpointType/:endpointId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const table = c.params.endpointType === 'http' ? 'http_endpoints' : c.params.endpointType === 'smtp' ? 'smtp_endpoints' : 'address_endpoints';
-    db.run(`DELETE FROM ${table} WHERE id = ?`, [c.params.endpointId]);
+    await db.run(`DELETE FROM ${table} WHERE id = $1`, [c.params.endpointId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['Endpoints'], summary: 'Delete an endpoint' } });

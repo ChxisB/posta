@@ -20,5 +20,7 @@
   "devDependencies": {
     "typescript": "^5.9.3",
     "@types/bun": "latest"
-  }
+  },
+  "author": "Chris Beckett <chrisssyyyb@gmail.com>",
+  "license": "MIT"
 }

@@ -1,5 +1,5 @@
 import type { PostaConfig } from '@posta/core';
-import { getMainDb, HttpClient, Signer } from '@posta/core';
+import { getMainDb, getServerDb, HttpClient, Signer } from '@posta/core';
 import { FailureReason, computeRetryDelay, BackoffStrategy } from '@posta/core';
 import type { FailureReasonType } from '@posta/core';
 import { readFileSync } from 'node:fs';
@@ -18,22 +18,23 @@ export async function processWebhookRequestsJob(config: PostaConfig): Promise<bo
   const locker = `webhook-${process.pid}-${Date.now().toString(36)}`;
   const lockTime = new Date().toISOString();
 
-  mainDb.run(`
+  await mainDb.run(`
     UPDATE webhook_requests
-    SET locked_by = ?, locked_at = ?, attempts = COALESCE(attempts, 0) + 1
+    SET locked_by = $1, locked_at = $2, attempts = COALESCE(attempts, 0) + 1
     WHERE id IN (
       SELECT id FROM webhook_requests
       WHERE locked_by IS NULL
         AND locked_at IS NULL
-        AND (retry_after IS NULL OR retry_after <= datetime('now'))
+        AND (retry_after IS NULL OR retry_after <= NOW())
       ORDER BY created_at ASC
-      LIMIT ?
+      LIMIT $3
     )
   `, [locker, lockTime, BATCH_SIZE]);
 
-  const requests = mainDb.query(
-    `SELECT * FROM webhook_requests WHERE locked_by = ? AND locked_at = ?`,
-  ).all(locker, lockTime) as any[];
+  const requests = await mainDb.query(
+    `SELECT * FROM webhook_requests WHERE locked_by = $1 AND locked_at = $2`,
+    [locker, lockTime],
+  ) as any[];
 
   if (requests.length === 0) return false;
 
@@ -73,7 +74,7 @@ async function deliverWebhook(
     const url = request.url;
 
     if (!url) {
-      mainDb.run(`DELETE FROM webhook_requests WHERE id = ?`, [request.id]);
+      await mainDb.run(`DELETE FROM webhook_requests WHERE id = $1`, [request.id]);
       console.log(`[worker] webhook ${request.id}: no URL, removing`);
       return;
     }
@@ -110,12 +111,13 @@ async function deliverWebhook(
 
     // ── Record attempt in per-server MessageDB ──────────────
     try {
-      const webhook = mainDb.query(`SELECT server_id FROM webhooks WHERE id = ?`).get(request.webhook_id) as any;
+      const webhook = await mainDb.get(`SELECT server_id FROM webhooks WHERE id = $1`, [request.webhook_id]) as any;
       if (webhook?.server_id) {
         const { MessageDbProvisioner, WebhookStore } = await import('@posta/message-db');
         const provisioner = new MessageDbProvisioner(config);
-        const msgDb = provisioner.openServerDb(webhook.server_id);
-        new WebhookStore(msgDb).record({
+        const msgClient = getServerDb(config, webhook.server_id);
+        const msgDb = await provisioner.openServerDb(webhook.server_id, msgClient);
+        await new WebhookStore(msgDb).record({
           uuid: request.uuid,
           event: request.event,
           attempt: attemptNum,
@@ -134,12 +136,12 @@ async function deliverWebhook(
 
     // ── Record result in main DB ────────────────────────────
     if (success) {
-      mainDb.run(`DELETE FROM webhook_requests WHERE id = ?`, [request.id]);
+      await mainDb.run(`DELETE FROM webhook_requests WHERE id = $1`, [request.id]);
       console.log(`[worker] webhook ${request.id} delivered to ${url} (${response.code})`);
     } else {
       const error = `HTTP ${response.code}: ${response.body.slice(0, 200)}`;
-      mainDb.run(
-        `UPDATE webhook_requests SET error = ? WHERE id = ?`,
+      await mainDb.run(
+        `UPDATE webhook_requests SET error = $1 WHERE id = $2`,
         [error, request.id],
       );
       await retryWebhook(mainDb, request, FailureReason.SoftFail,
@@ -162,15 +164,15 @@ async function retryWebhook(
   locker: string,
 ): Promise<void> {
   if (attempt >= MAX_ATTEMPTS) {
-    db.run(`DELETE FROM webhook_requests WHERE id = ?`, [req.id]);
+    await db.run(`DELETE FROM webhook_requests WHERE id = $1`, [req.id]);
     console.log(`[worker] webhook ${req.id}: final failure after ${MAX_ATTEMPTS} attempts (${reason}): ${error}`);
     return;
   }
 
   // Jitter backoff prevents thundering herd on webhook server restarts
   const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 60, 600) / 1000);
-  db.run(
-    `UPDATE webhook_requests SET retry_after = datetime('now', '+${delaySec} seconds'), locked_by = NULL, locked_at = NULL WHERE id = ?`,
+  await db.run(
+    `UPDATE webhook_requests SET retry_after = NOW() + interval '${delaySec} seconds', locked_by = NULL, locked_at = NULL WHERE id = $1`,
     [req.id],
   );
   console.log(`[worker] webhook ${req.id}: retry ${attempt}/${MAX_ATTEMPTS} in ${delaySec}s (${reason})`);

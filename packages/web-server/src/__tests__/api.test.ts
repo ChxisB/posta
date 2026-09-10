@@ -11,17 +11,17 @@ function unwrap(body: any): any {
 
 describe('REST API — POST /api/v1/send', () => {
   beforeAll(async () => {
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-main-${TEST_RUN_ID}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-msg-${TEST_RUN_ID}`;
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_api_${TEST_RUN_ID}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_api_${TEST_RUN_ID}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
 
     // Seed a server + API credential
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     testApiKey = 'test-api-key-' + TEST_RUN_ID;
-    db.run(`INSERT OR IGNORE INTO organizations (id, uuid, name, permalink) VALUES (1, 'org-uuid', 'Test Org', 'test-org')`);
-    db.run(`INSERT OR IGNORE INTO servers (id, organization_id, uuid, name, permalink) VALUES (1, 1, 'srv-uuid', 'Test Server', 'test-server')`);
-    db.run(`INSERT OR IGNORE INTO credentials (id, server_id, key, type, name) VALUES (1, 1, '${testApiKey}', 'API', 'Test API Key')`);
+    await db.run(`INSERT INTO organizations (id, uuid, name, permalink) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`, [1, 'org-uuid', 'Test Org', 'test-org']);
+    await db.run(`INSERT INTO servers (id, organization_id, uuid, name, permalink) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`, [1, 1, 'srv-uuid', 'Test Server', 'test-server']);
+    await db.run(`INSERT INTO credentials (id, server_id, key, type, name) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`, [1, 1, testApiKey, 'API', 'Test API Key']);
     testServerId = 1;
   });
 

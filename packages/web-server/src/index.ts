@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import type { PostaConfig } from '@posta/core';
+import type { PostaConfig, PgClient } from '@posta/core';
 import { loadConfig, initializeMainDb } from '@posta/core';
 import type { MessageDbProvisioner } from '@posta/message-db';
 import { MessageStore } from '@posta/message-db';
@@ -28,19 +28,25 @@ import { clerkWebhookRoutes } from './routes/clerk-webhooks.routes';
 // Lazy initialization — config is loaded when init() is called
 let config: PostaConfig;
 let provisioner: MessageDbProvisioner;
-let db: ReturnType<typeof initializeMainDb>;
+let db: PgClient;
+let initPromise: Promise<void> | null = null;
 
-function init(): void {
+async function initAsync(): Promise<void> {
   if (config) return;
   config = loadConfig();
-  db = initializeMainDb(config);
-  const { MessageDbProvisioner: MDP } = require('@posta/message-db');
+  db = await initializeMainDb(config);
+  const { MessageDbProvisioner: MDP } = await import('@posta/message-db');
   provisioner = new MDP(config);
 }
 
-export function getDb() { init(); return db; }
-export function getConfig() { init(); return config; }
-export function getProvisioner() { init(); return provisioner; }
+function init(): Promise<void> {
+  if (!initPromise) initPromise = initAsync();
+  return initPromise;
+}
+
+export async function getDb() { await init(); return db; }
+export async function getConfig() { await init(); return config; }
+export async function getProvisioner() { await init(); return provisioner; }
 export { MessageStore };
 
 const PORT = parseInt(process.env.PORT ?? '5001', 10);
@@ -101,7 +107,7 @@ export const app = new Elysia()
 export type App = typeof app;
 
 if (import.meta.main) {
-  init();
+  await init();
   app.listen(PORT);
   console.log(`[web-server] listening on :${PORT}`);
 }

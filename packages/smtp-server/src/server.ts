@@ -239,17 +239,26 @@ export class SmtpServer {
 
     // Intercept auth/rcpt signals BEFORE sending lines to client
     if (firstLine === '__AUTH_PLAIN_LOGIN__' && result.lines.length >= 2) {
-      this.authenticatePlainLogin(socket, conn, result.lines[1]);
+      this.authenticatePlainLogin(socket, conn, result.lines[1]).catch((err: any) => {
+        console.error('[smtp] plain login error:', err.message);
+        this.sendAuthFailure(socket, conn, '535 Invalid credential');
+      });
       return;
     }
 
     if (firstLine === '__AUTH_CRAM_MD5__' && result.lines.length >= 4) {
-      this.authenticateCramMd5(socket, conn, result.lines[1], result.lines[2], result.lines[3]);
+      this.authenticateCramMd5(socket, conn, result.lines[1], result.lines[2], result.lines[3]).catch((err: any) => {
+        console.error('[smtp] cram-md5 error:', err.message);
+        this.sendAuthFailure(socket, conn, '535 Denied');
+      });
       return;
     }
 
     if (firstLine === '__RCPT_TO_VERIFY__' && result.lines.length >= 2) {
-      this.verifyRcptTo(socket, conn, result.lines[1]);
+      this.verifyRcptTo(socket, conn, result.lines[1]).catch((err: any) => {
+        console.error('[smtp] rcpt verify error:', err.message);
+        this.sendLine(socket, '250 OK');
+      });
       return;
     }
 
@@ -299,17 +308,18 @@ export class SmtpServer {
     conn.stateMachine.passwordExpected = false;
   }
 
-  private authenticatePlainLogin(socket: Socket, conn: SmtpConnection, password: string): void {
+  private async authenticatePlainLogin(socket: Socket, conn: SmtpConnection, password: string): Promise<void> {
     try {
       const db = getMainDb(this.config);
 
-      const row = db.query(
+      const row = await db.get<{ id: number; server_id: number; server_permalink: string; org_permalink: string }>(
         `SELECT c.id, c.server_id, s.permalink as server_permalink, o.permalink as org_permalink
          FROM credentials c
          JOIN servers s ON s.id = c.server_id
          JOIN organizations o ON o.id = s.organization_id
-         WHERE c.type = 'SMTP' AND c.key = ? LIMIT 1`,
-      ).get(password) as any;
+         WHERE c.type = 'SMTP' AND c.key = $1 LIMIT 1`,
+        [password],
+      );
 
       if (!row) {
         this.sendAuthFailure(socket, conn, '535 Invalid credential');
@@ -317,7 +327,7 @@ export class SmtpServer {
       }
 
       conn.stateMachine.credential = { id: row.id, server_id: row.server_id };
-      db.run(`UPDATE credentials SET last_used_at = datetime('now') WHERE id = ?`, [row.id]);
+      await db.run(`UPDATE credentials SET last_used_at = NOW() WHERE id = $1`, [row.id]);
       this.sendLine(socket, `235 Granted for ${row.org_permalink}/${row.server_permalink}`);
       conn.stateMachine.passwordExpected = false;
     } catch (err: any) {
@@ -326,7 +336,7 @@ export class SmtpServer {
     }
   }
 
-  private authenticateCramMd5(socket: Socket, conn: SmtpConnection, username: string, challenge: string, password: string): void {
+  private async authenticateCramMd5(socket: Socket, conn: SmtpConnection, username: string, challenge: string, password: string): Promise<void> {
     try {
       const db = getMainDb(this.config);
 
@@ -338,24 +348,26 @@ export class SmtpServer {
       const orgPermalink = parsed[1];
       const serverPermalink = parsed[2];
 
-      const server = db.query(
-        `SELECT s.id FROM servers s JOIN organizations o ON o.id = s.organization_id WHERE o.permalink = ? AND s.permalink = ?`,
-      ).get(orgPermalink, serverPermalink) as any;
+      const server = await db.get<{ id: number }>(
+        `SELECT s.id FROM servers s JOIN organizations o ON o.id = s.organization_id WHERE o.permalink = $1 AND s.permalink = $2`,
+        [orgPermalink, serverPermalink],
+      );
 
       if (!server) {
         this.sendAuthFailure(socket, conn, '535 Denied');
         return;
       }
 
-      const credentials = db.query(
-        `SELECT id, key FROM credentials WHERE type = 'SMTP' AND server_id = ?`,
-      ).all(server.id) as any[];
+      const credentials = await db.query<{ id: number; key: string }>(
+        `SELECT id, key FROM credentials WHERE type = 'SMTP' AND server_id = $1`,
+        [server.id],
+      );
 
       for (const cred of credentials) {
         const expected = createHmac('md5', cred.key).update(challenge).digest('hex');
         if (password === expected) {
           conn.stateMachine.credential = { id: cred.id, server_id: server.id };
-          db.run(`UPDATE credentials SET last_used_at = datetime('now') WHERE id = ?`, [cred.id]);
+          await db.run(`UPDATE credentials SET last_used_at = NOW() WHERE id = $1`, [cred.id]);
           this.sendLine(socket, `235 Granted for ${orgPermalink}/${serverPermalink}`);
           conn.stateMachine.passwordExpected = false;
           return;
@@ -369,16 +381,17 @@ export class SmtpServer {
     }
   }
 
-  private verifyRcptTo(socket: Socket, conn: SmtpConnection, rcptTo: string): void {
+  private async verifyRcptTo(socket: Socket, conn: SmtpConnection, rcptTo: string): Promise<void> {
     try {
       // Check server suspension (if authenticated)
       if (conn.stateMachine.credential) {
         const db = getMainDb(this.config);
-        const server = db.query(
+        const server = await db.get<{ suspended_at: string | null; org_suspended_at: string | null }>(
           `SELECT s.suspended_at, o.suspended_at as org_suspended_at
            FROM servers s JOIN organizations o ON o.id = s.organization_id
-           WHERE s.id = ?`,
-        ).get(conn.stateMachine.credential.server_id) as any;
+           WHERE s.id = $1`,
+          [conn.stateMachine.credential.server_id],
+        );
 
         if (server?.suspended_at || server?.org_suspended_at) {
           this.sendLine(socket, '535 Mail server has been suspended');
@@ -387,9 +400,9 @@ export class SmtpServer {
       } else {
         // No auth — check SMTP-IP allowlist
         const db = getMainDb(this.config);
-        const ipCredentials = db.query(
+        const ipCredentials = await db.query<{ key: string }>(
           `SELECT c.key FROM credentials c WHERE c.type = 'SMTP-IP'`,
-        ).all() as any[];
+        );
 
         const clientIp = conn.stateMachine.ipAddress ?? '';
         let ipMatch = false;

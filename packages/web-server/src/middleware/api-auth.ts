@@ -51,11 +51,12 @@ async function authenticateRequest(c: any): Promise<ApiAuthResult> {
 
   try {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
 
-    const credential = db.query(
-      `SELECT * FROM credentials WHERE type = 'API' AND key = ? LIMIT 1`,
-    ).get(apiKey) as any;
+    const credential = await db.get(
+      `SELECT * FROM credentials WHERE type = 'API' AND key = $1 LIMIT 1`,
+      [apiKey],
+    ) as any;
 
     if (!credential) {
       return {
@@ -65,7 +66,7 @@ async function authenticateRequest(c: any): Promise<ApiAuthResult> {
       };
     }
 
-    const server = db.query(`SELECT * FROM servers WHERE id = ?`).get(credential.server_id) as any;
+    const server = await db.get(`SELECT * FROM servers WHERE id = $1`, [credential.server_id]) as any;
     if (!server) {
       return {
         authenticated: false,
@@ -82,7 +83,7 @@ async function authenticateRequest(c: any): Promise<ApiAuthResult> {
       };
     }
 
-    const org = db.query(`SELECT suspended_at FROM organizations WHERE id = ?`).get(server.organization_id) as any;
+    const org = await db.get(`SELECT suspended_at FROM organizations WHERE id = $1`, [server.organization_id]) as any;
     if (org?.suspended_at) {
       return {
         authenticated: false,
@@ -91,7 +92,7 @@ async function authenticateRequest(c: any): Promise<ApiAuthResult> {
       };
     }
 
-    db.run(`UPDATE credentials SET last_used_at = datetime('now') WHERE id = ?`, [credential.id]);
+    await db.run(`UPDATE credentials SET last_used_at = NOW() WHERE id = $1`, [credential.id]);
 
     return {
       authenticated: true,

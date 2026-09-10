@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { PostaConfig } from '@posta/core';
-import { getMainDb, createQueuedMessage } from '@posta/core';
+import { getMainDb, getServerDb, createQueuedMessage } from '@posta/core';
 import { MessageDbProvisioner, MessageStore } from '@posta/message-db';
 
 /**
@@ -57,7 +57,8 @@ export class BounceProcessor {
     const returnPathDomain = this.config.dns.return_path_domain;
 
     // Open the server's MessageDB
-    const msgDb = this.provisioner.openServerDb(options.serverId);
+    const client = getServerDb(this.config, options.serverId);
+    const msgDb = await this.provisioner.openServerDb(options.serverId, client);
     const msgStore = new MessageStore(msgDb);
 
     // Build the bounce DSN MIME message
@@ -65,10 +66,10 @@ export class BounceProcessor {
 
     // Store the raw bounce message in the partitioned raw tables
     const { tableName, headersId, bodyId } =
-      msgStore.insertRawMessage(rawBounceMsg);
+      await msgStore.insertRawMessage(rawBounceMsg);
 
     // Create the bounce message record
-    const msgId = msgDb.insert('messages', {
+    const msgId = await msgDb.insert('messages', {
       token: options.token,
       scope: 'outgoing',
       rcpt_to: options.mailFrom,
@@ -87,7 +88,7 @@ export class BounceProcessor {
 
     // Queue the bounce in the main DB so the worker picks it up for delivery
     const mainDb = getMainDb(this.config);
-    createQueuedMessage(mainDb, {
+    await createQueuedMessage(mainDb, {
       serverId: options.serverId,
       messageId: msgId,
     });

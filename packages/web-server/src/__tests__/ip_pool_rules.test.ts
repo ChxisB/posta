@@ -10,16 +10,18 @@ const testApp = new Elysia()
 describe('IP Pool Rules — server-scoped', () => {
   let serverRuleUuid: string;
 
-  beforeAll(() => {
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-ip-pool-rules-${Date.now()}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-ip-pool-rules-msg-${Date.now()}`;
+  beforeAll(async () => {
+    const testId = Date.now();
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_pool_rules_${testId}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_pool_rules_${testId}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
 
     // Seed a test organization so org-permalink lookups succeed.
-    const db = getDb();
-    db.run(
+    const db = await getDb();
+    await db.run(
       `INSERT INTO organizations (uuid, name, permalink, created_at, updated_at)
-       VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
+       VALUES ($1, $2, $3, NOW(), NOW())
+       ON CONFLICT (permalink) DO NOTHING`,
       [
         crypto.randomUUID().replace(/-/g, ''),
         'Test Org',
