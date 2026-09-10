@@ -1,9 +1,36 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
-import { getRoutes, createRoute, deleteRoute } from '@/lib/api';
+import { useState, useEffect, useCallback, use } from 'react';
+import { Code2, Plus, Trash2 } from 'lucide-react';
+import { getRoutes, createRoute, deleteRoute, getDomains } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, ButtonLink, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { KindTag } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface Route {
+  id: number;
+  name?: string;
+  domain_id?: number;
+  mode?: string;
+  spam_mode?: string;
+  endpoint_type?: string;
+}
+
+interface Domain {
+  id: number;
+  name?: string;
+}
 
 export default function RoutesPage({
   params: paramsPromise,
@@ -11,152 +38,278 @@ export default function RoutesPage({
   params: Promise<{ permalink: string; serverId: string }>;
 }) {
   const { permalink, serverId } = use(paramsPromise);
-  const [routes, setRoutes] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
+  const base = `/organizations/${permalink}/servers/${serverId}`;
+
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ name: '', domain_id: '', endpoint_type: 'HTTPEndpoint', endpoint_host: '' });
+  const [loadError, setLoadError] = useState<unknown>(null);
 
-  async function load() {
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    name: '',
+    domain_id: '',
+    endpoint_type: 'HTTPEndpoint',
+    endpoint_host: '',
+  });
+
+  const [pendingDelete, setPendingDelete] = useState<Route | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const d = await getRoutes(permalink, serverId);
-      setRoutes(d.routes ?? []);
-    } catch {}
-    setLoading(false);
-  }
+      const [routeData, domainData] = await Promise.all([
+        getRoutes(permalink, serverId),
+        getDomains(permalink, serverId),
+      ]);
+      setRoutes(routeData.routes ?? []);
+      setDomains(domainData.domains ?? []);
+    } catch (err) {
+      setLoadError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [permalink, serverId]);
 
-  useEffect(() => { load(); }, [permalink, serverId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    setCreating(true);
+    setFormError(null);
     try {
-      await createRoute(permalink, serverId, formData);
+      await createRoute(permalink, serverId, form);
       setShowForm(false);
-      setFormData({ name: '', domain_id: '', endpoint_type: 'HTTP', endpoint_host: '' });
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      setForm({ name: '', domain_id: '', endpoint_type: 'HTTPEndpoint', endpoint_host: '' });
+      toast('success', 'Route created.');
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not create the route.');
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this route?')) return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteRoute(permalink, serverId, id);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      await deleteRoute(permalink, serverId, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', `${pendingDelete.name} deleted.`);
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete the route.');
+    } finally {
+      setDeleting(false);
     }
   }
+
+  // The API returns a domain id; an operator thinks in domain names.
+  const domainName = (id?: number) => domains.find((d) => d.id === id)?.name ?? '—';
+
+  const columns: Column<Route>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      primary: true,
+      cell: (r) => <span className="font-medium">{r.name}</span>,
+    },
+    {
+      key: 'domain',
+      header: 'Domain',
+      cell: (r) => <span className="text-muted">{domainName(r.domain_id)}</span>,
+    },
+    { key: 'mode', header: 'Mode', cell: (r) => <KindTag>{r.mode ?? 'Normal'}</KindTag> },
+    {
+      key: 'spam',
+      header: 'Spam mode',
+      cell: (r) => <span className="text-muted">{r.spam_mode ?? '—'}</span>,
+    },
+    {
+      key: 'endpoint',
+      header: 'Endpoint',
+      cell: (r) => <span className="text-muted">{r.endpoint_type ?? '—'}</span>,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (r) => (
+        <IconButton
+          label={`Delete ${r.name}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(r)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
 
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Routes</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'New Route'}
-        </button>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={base}>Server</BackLink>}
+        title="Routes"
+        description="What happens to incoming mail. A route matches an address on one of your domains and hands the message to an endpoint."
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => setShowForm((v) => !v)}
+            disabled={domains.length === 0}
+          >
+            <Plus size={15} aria-hidden /> New route
+          </Button>
+        }
+      />
 
-      {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ marginBottom: 24, maxWidth: 400 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>New Route</h3>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Name
-            </label>
-            <input
-              className="input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="My Route"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Domain ID
-            </label>
-            <input
-              className="input"
-              value={formData.domain_id}
-              onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
-              placeholder="domain-id"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Endpoint Type
-            </label>
-            <select
-              className="input"
-              value={formData.endpoint_type}
-              onChange={(e) => setFormData({ ...formData, endpoint_type: e.target.value })}
-            >
-              <option value="HTTPEndpoint">HTTP</option>
-              <option value="SMTPEndpoint">SMTP</option>
-              <option value="AddressEndpoint">Address</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Endpoint Host
-            </label>
-            <input
-              className="input"
-              value={formData.endpoint_host}
-              onChange={(e) => setFormData({ ...formData, endpoint_host: e.target.value })}
-              placeholder="endpoint-host"
-              required
-            />
-          </div>
-          <button className="btn btn-primary" type="submit">Create Route</button>
-        </form>
+      {/* A route needs a domain to match against, so say so rather than
+          offering a form whose domain picker would be empty. */}
+      {!loading && !loadError && domains.length === 0 && (
+        <Callout
+          tone="warning"
+          title="Add a domain first"
+          action={
+            <ButtonLink href={`${base}/domains`} variant="secondary" size="sm">
+              Domains
+            </ButtonLink>
+          }
+        >
+          A route matches addresses on one of this server&apos;s domains, so there is nothing to
+          route until at least one exists.
+        </Callout>
       )}
 
-      <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Domain</th>
-              <th>Mode</th>
-              <th>Spam Mode</th>
-              <th>Endpoint</th>
-              <th style={{ width: 80 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {routes.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                  {loading ? 'Loading...' : 'No routes yet.'}
-                </td>
-              </tr>
-            ) : (
-              routes.map((r: any) => (
-                <tr key={r.id}>
-                  <td>{r.name}</td>
-                  <td style={{ color: 'var(--color-text-muted)' }}>{r.domain_id ?? '-'}</td>
-                  <td><span className="tag tag-gray">{r.mode ?? 'Normal'}</span></td>
-                  <td><span className="tag tag-gray">{r.spam_mode ?? 'None'}</span></td>
-                  <td style={{ color: 'var(--color-text-muted)' }}>{r.endpoint_type ?? '-'}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '2px 8px', fontSize: 12 }}
-                      onClick={() => handleDelete(r.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </OrgLayout>
+      {showForm && domains.length > 0 && (
+        <Card className="max-w-xl">
+          <CardHeader title="New route" />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field label="Name" required hint="The local part to match, or a wildcard.">
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="support"
+                  required
+                />
+              </Field>
+              <Field label="Domain" required>
+                <Select
+                  value={form.domain_id}
+                  onChange={(e) => setForm({ ...form, domain_id: e.target.value })}
+                  required
+                >
+                  <option value="">Choose a domain</option>
+                  {domains.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Endpoint type">
+                <Select
+                  value={form.endpoint_type}
+                  onChange={(e) => setForm({ ...form, endpoint_type: e.target.value })}
+                >
+                  <option value="HTTPEndpoint">HTTP endpoint</option>
+                  <option value="SMTPEndpoint">SMTP endpoint</option>
+                  <option value="AddressEndpoint">Forward to address</option>
+                </Select>
+              </Field>
+              <Field label="Endpoint" required hint="Where matching mail is delivered.">
+                <Input
+                  value={form.endpoint_host}
+                  onChange={(e) => setForm({ ...form, endpoint_host: e.target.value })}
+                  placeholder="https://example.com/inbound"
+                  required
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={creating}
+                  disabled={!form.name.trim() || !form.domain_id}
+                >
+                  Create route
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
+      )}
+
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={routes}
+            columns={columns}
+            getRowKey={(r) => String(r.id)}
+            rowHref={(r) => `${base}/routes/${r.id}`}
+            getRowLabel={(r) => `Edit route ${r.name}`}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState error={loadError} what="these routes" retryHref={`${base}/routes`} />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={Code2}
+                title="No routes yet"
+                description="Incoming mail for this server's domains has nowhere to go until a route exists."
+                action={
+                  domains.length > 0 ? (
+                    <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                      <Plus size={14} aria-hidden /> New route
+                    </Button>
+                  ) : undefined
+                }
+              />
+            }
+          />
+        </div>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete route"
+          description={
+            <>
+              Mail matching <strong className="text-foreground">{pendingDelete.name}</strong> on{' '}
+              {domainName(pendingDelete.domain_id)} will stop being forwarded, and will be rejected
+              instead.
+            </>
+          }
+          confirmLabel="Delete route"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

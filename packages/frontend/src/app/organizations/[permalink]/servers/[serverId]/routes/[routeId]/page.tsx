@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import OrgLayout from '@/components/org-layout';
 import { getRoute, updateRoute, deleteRoute } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 export default function RouteEditPage() {
   const params = useParams<{ permalink: string; serverId: string; routeId: string }>();
@@ -46,7 +48,9 @@ export default function RouteEditPage() {
       setMessage({ type: 'success', text: 'Route updated successfully.' });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -59,55 +63,73 @@ export default function RouteEditPage() {
     }
   };
 
-  if (loading) return <OrgLayout orgPermalink={params?.permalink ?? ''}><p>Loading...</p></OrgLayout>;
+  if (loading)
+    return (
+      <>
+        <p>Loading...</p>
+      </>
+    );
 
   return (
-    <OrgLayout orgPermalink={params.permalink}>
-      <Link href={`/organizations/${params.permalink}/servers/${params.serverId}/routes`}
-        style={{ fontSize: 13, color: 'var(--color-text-muted)', textDecoration: 'none' }}>
+    <>
+      <Link
+        href={`/organizations/${params.permalink}/servers/${params.serverId}/routes`}
+        style={{ fontSize: 13, color: 'var(--color-text-muted)', textDecoration: 'none' }}
+      >
         &larr; Back to Routes
       </Link>
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '16px 0' }}>Edit Route</h1>
-      {message && <div className={`tag tag-${message.type === 'success' ? 'green' : 'red'}`}>{message.text}</div>}
-      <div className="card" style={{ maxWidth: 500 }}>
+      {message && (
+        <div className={`tag tag-${message.type === 'success' ? 'green' : 'red'}`}>
+          {message.text}
+        </div>
+      )}
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 500 }}
+      >
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', marginBottom: 4 }}>Name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 4 }}>Mode</label>
-            <select className="input" value={mode} onChange={(e) => setMode(e.target.value)}>
+            <Select value={mode} onChange={(e) => setMode(e.target.value)}>
               <option value="Accept">Accept</option>
               <option value="Hold">Hold</option>
               <option value="Bounce">Bounce</option>
               <option value="Reject">Reject</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 4 }}>Spam Mode</label>
-            <select className="input" value={spamMode} onChange={(e) => setSpamMode(e.target.value)}>
+            <Select value={spamMode} onChange={(e) => setSpamMode(e.target.value)}>
               <option value="">Default</option>
               <option value="Mark">Mark</option>
               <option value="Quarantine">Quarantine</option>
               <option value="Fail">Fail</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 4 }}>Endpoint Type</label>
-            <select className="input" value={endpointType} onChange={(e) => setEndpointType(e.target.value)}>
+            <Select value={endpointType} onChange={(e) => setEndpointType(e.target.value)}>
               <option value="">None</option>
               <option value="HTTPEndpoint">HTTP</option>
               <option value="SMTPEndpoint">SMTP</option>
               <option value="AddressEndpoint">Address</option>
-            </select>
+            </Select>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-            <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+            <Button variant="primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button variant="danger" type="button" onClick={handleDelete}>
+              Delete
+            </Button>
           </div>
         </form>
       </div>
-    </OrgLayout>
+    </>
   );
 }

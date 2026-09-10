@@ -1,9 +1,32 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
+import { useState, useEffect, useCallback, use } from 'react';
+import { Plus, Trash2, Webhook as WebhookIcon } from 'lucide-react';
 import { getWebhooks, createWebhook, deleteWebhook } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { FlagPill, KindTag } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface WebhookRecord {
+  id: number;
+  name?: string;
+  url?: string;
+  enabled?: boolean;
+  events?: string[];
+}
+
+/** The events the delivery pipeline actually emits, per message-db/delivery.ts. */
+const KNOWN_EVENTS = ['MessageSent', 'MessageDelayed', 'MessageDeliveryFailed', 'MessageHeld'];
 
 export default function WebhooksPage({
   params: paramsPromise,
@@ -11,155 +34,256 @@ export default function WebhooksPage({
   params: Promise<{ permalink: string; serverId: string }>;
 }) {
   const { permalink, serverId } = use(paramsPromise);
-  const [webhooks, setWebhooks] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
+  const base = `/organizations/${permalink}/servers/${serverId}`;
+
+  const [webhooks, setWebhooks] = useState<WebhookRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ url: '', name: '', events: '' });
+  const [loadError, setLoadError] = useState<unknown>(null);
 
-  async function load() {
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: '', url: '', events: '' });
+
+  const [pendingDelete, setPendingDelete] = useState<WebhookRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const d = await getWebhooks(permalink, serverId);
-      setWebhooks(d.webhooks ?? []);
-    } catch {}
-    setLoading(false);
-  }
+      setWebhooks((await getWebhooks(permalink, serverId)).webhooks ?? []);
+    } catch (err) {
+      setLoadError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [permalink, serverId]);
 
-  useEffect(() => { load(); }, [permalink, serverId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    setCreating(true);
+    setFormError(null);
     try {
-      const payload = {
-        url: formData.url,
-        name: formData.name,
-        events: formData.events ? formData.events.split(',').map((s) => s.trim()).filter(Boolean) : [],
-      };
-      await createWebhook(permalink, serverId, payload);
+      await createWebhook(permalink, serverId, {
+        name: form.name,
+        url: form.url,
+        events: form.events
+          ? form.events
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [],
+      });
       setShowForm(false);
-      setFormData({ url: '', name: '', events: '' });
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      setForm({ name: '', url: '', events: '' });
+      toast('success', 'Webhook created.');
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not create the webhook.');
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this webhook?')) return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteWebhook(permalink, serverId, id);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      await deleteWebhook(permalink, serverId, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', `${pendingDelete.name} deleted.`);
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete the webhook.');
+    } finally {
+      setDeleting(false);
     }
   }
+
+  const columns: Column<WebhookRecord>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      primary: true,
+      cell: (w) => <span className="font-medium">{w.name}</span>,
+    },
+    {
+      key: 'url',
+      header: 'URL',
+      className: 'max-w-xs truncate',
+      cell: (w) => <span className="font-mono text-xs text-muted">{w.url}</span>,
+    },
+    {
+      key: 'events',
+      header: 'Events',
+      cell: (w) =>
+        w.events?.length ? (
+          <span className="flex flex-wrap gap-1">
+            {w.events.map((e) => (
+              <KindTag key={e}>{e}</KindTag>
+            ))}
+          </span>
+        ) : (
+          // No events means the webhook fires for all of them, which is very
+          // different from "not configured" and used to render as a dash.
+          <span className="text-xs text-muted">All events</span>
+        ),
+    },
+    {
+      key: 'enabled',
+      header: 'Enabled',
+      cell: (w) => <FlagPill on={!!w.enabled} onLabel="Enabled" offLabel="Disabled" />,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (w) => (
+        <IconButton
+          label={`Delete ${w.name}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(w)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
 
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Webhooks</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'New Webhook'}
-        </button>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={base}>Server</BackLink>}
+        title="Webhooks"
+        description="Posta posts delivery events to these URLs, with retries. Use them to keep your own records in step with what actually happened to each message."
+        actions={
+          <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={15} aria-hidden /> New webhook
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ marginBottom: 24, maxWidth: 400 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>New Webhook</h3>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Name
-            </label>
-            <input
-              className="input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="My Webhook"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              URL
-            </label>
-            <input
-              className="input"
-              value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              placeholder="https://example.com/webhook"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Events (comma-separated)
-            </label>
-            <input
-              className="input"
-              value={formData.events}
-              onChange={(e) => setFormData({ ...formData, events: e.target.value })}
-              placeholder="MessageSent,MessageDelivered"
-            />
-          </div>
-          <button className="btn btn-primary" type="submit">Create Webhook</button>
-        </form>
+        <Card className="max-w-xl">
+          <CardHeader title="New webhook" />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field label="Name" required>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Delivery notifications"
+                  required
+                />
+              </Field>
+              <Field
+                label="URL"
+                required
+                hint="Posta POSTs a JSON body here and retries on failure."
+              >
+                <Input
+                  type="url"
+                  value={form.url}
+                  onChange={(e) => setForm({ ...form, url: e.target.value })}
+                  placeholder="https://example.com/hooks/posta"
+                  required
+                />
+              </Field>
+              <Field
+                label="Events"
+                hint={`Comma-separated. Leave empty for all. Available: ${KNOWN_EVENTS.join(', ')}.`}
+              >
+                <Input
+                  value={form.events}
+                  onChange={(e) => setForm({ ...form, events: e.target.value })}
+                  placeholder="MessageSent, MessageDeliveryFailed"
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={creating}
+                  disabled={!form.name.trim() || !form.url.trim()}
+                >
+                  Create webhook
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>URL</th>
-              <th>Events</th>
-              <th>Enabled</th>
-              <th>Last Used</th>
-              <th style={{ width: 80 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {webhooks.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                  {loading ? 'Loading...' : 'No webhooks yet.'}
-                </td>
-              </tr>
-            ) : (
-              webhooks.map((w: any) => (
-                <tr key={w.id}>
-                  <td>
-                    <Link
-                      href={`/organizations/${permalink}/servers/${serverId}/webhooks/${w.id}`}
-                      style={{ color: 'var(--color-accent)' }}
-                    >
-                      {w.name}
-                    </Link>
-                  </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-muted)' }}>{w.url}</td>
-                  <td><span className="tag tag-gray">{w.all_events ? 'All' : 'Selective'}</span></td>
-                  <td>
-                    {w.enabled ? (
-                      <span className="tag tag-green">Enabled</span>
-                    ) : (
-                      <span className="tag tag-red">Disabled</span>
-                    )}
-                  </td>
-                  <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{w.last_used_at ?? 'Never'}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '2px 8px', fontSize: 12 }}
-                      onClick={() => handleDelete(w.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </OrgLayout>
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={webhooks}
+            columns={columns}
+            getRowKey={(w) => String(w.id)}
+            rowHref={(w) => `${base}/webhooks/${w.id}`}
+            getRowLabel={(w) => `Edit webhook ${w.name}`}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState
+                  error={loadError}
+                  what="these webhooks"
+                  retryHref={`${base}/webhooks`}
+                />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={WebhookIcon}
+                title="No webhooks yet"
+                description="Without one, delivery outcomes are only visible in this dashboard."
+                action={
+                  <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                    <Plus size={14} aria-hidden /> New webhook
+                  </Button>
+                }
+              />
+            }
+          />
+        </div>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete webhook"
+          description={
+            <>
+              This stops delivery events being sent to{' '}
+              <strong className="text-foreground">{pendingDelete.url}</strong>. Anything relying on
+              those callbacks will stop being notified.
+            </>
+          }
+          confirmLabel="Delete webhook"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

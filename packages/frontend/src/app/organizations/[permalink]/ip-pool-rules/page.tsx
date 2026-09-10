@@ -1,167 +1,304 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
-import {
-  getOrgIpPoolRules,
-  createOrgIpPoolRule,
-  deleteOrgIpPoolRule,
-  getIpPools,
-} from '@/lib/api';
+import { Network, Plus, Trash2 } from 'lucide-react';
+import { getOrgIpPoolRules, createOrgIpPoolRule, deleteOrgIpPoolRule, getIpPools } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, ButtonLink, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { KindTag } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface Rule {
+  id: number;
+  ip_pool_id: number;
+  from_text?: string | null;
+  to_text?: string | null;
+}
+
+interface Pool {
+  id: number;
+  name?: string;
+}
 
 export default function IpPoolRulesPage() {
   const { permalink } = useParams<{ permalink: string }>();
-  const [rules, setRules] = useState<any[]>([]);
-  const [pools, setPools] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ ip_pool_id: '', from_text: '', to_text: '' });
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
-  async function load() {
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [pools, setPools] = useState<Pool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
+
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [form, setForm] = useState({ ip_pool_id: '', from_text: '', to_text: '' });
+
+  const [pendingDelete, setPendingDelete] = useState<Rule | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const [rData, pData] = await Promise.all([getOrgIpPoolRules(permalink), getIpPools()]);
-      setRules(rData.ip_pool_rules ?? []);
-      setPools(pData.ip_pools ?? []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load IP pool rules');
+      const [ruleData, poolData] = await Promise.all([getOrgIpPoolRules(permalink), getIpPools()]);
+      setRules(ruleData.ip_pool_rules ?? []);
+      setPools(poolData.ip_pools ?? []);
+    } catch (err) {
+      setLoadError(err);
     } finally {
       setLoading(false);
     }
-  }
+  }, [permalink]);
 
   useEffect(() => {
     load();
-  }, [permalink]);
+  }, [load]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setCreating(true);
+    setFormError(null);
     try {
       await createOrgIpPoolRule(permalink, {
-        ip_pool_id: Number(formData.ip_pool_id),
-        from_text: formData.from_text || undefined,
-        to_text: formData.to_text || undefined,
+        ip_pool_id: Number(form.ip_pool_id),
+        from_text: form.from_text || undefined,
+        to_text: form.to_text || undefined,
       });
       setShowForm(false);
-      setFormData({ ip_pool_id: '', from_text: '', to_text: '' });
-      load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create rule');
+      setForm({ ip_pool_id: '', from_text: '', to_text: '' });
+      toast('success', 'Rule created.');
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not create the rule.');
+    } finally {
+      setCreating(false);
     }
   };
 
-  const handleDelete = async (ruleId: string) => {
-    if (!confirm('Delete this IP pool rule?')) return;
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteOrgIpPoolRule(permalink, ruleId);
-      load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete rule');
+      await deleteOrgIpPoolRule(permalink, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', 'Rule deleted.');
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete the rule.');
+    } finally {
+      setDeleting(false);
     }
   };
 
   const poolName = (id: number) => pools.find((p) => p.id === id)?.name ?? `Pool ${id}`;
 
+  const columns: Column<Rule>[] = [
+    {
+      key: 'pool',
+      header: 'Sends from',
+      primary: true,
+      cell: (r) => <span className="font-medium">{poolName(r.ip_pool_id)}</span>,
+    },
+    {
+      key: 'from',
+      header: 'When from matches',
+      // An empty matcher means "any", which is the opposite of "nothing".
+      cell: (r) =>
+        r.from_text ? (
+          <KindTag>{r.from_text}</KindTag>
+        ) : (
+          <span className="text-xs text-muted">Any sender</span>
+        ),
+    },
+    {
+      key: 'to',
+      header: 'When to matches',
+      cell: (r) =>
+        r.to_text ? (
+          <KindTag>{r.to_text}</KindTag>
+        ) : (
+          <span className="text-xs text-muted">Any recipient</span>
+        ),
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (r) => (
+        <IconButton
+          label={`Delete rule for ${poolName(r.ip_pool_id)}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(r)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
+
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div style={{ marginBottom: 24 }}>
-        <Link href={`/organizations/${permalink}`} style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-          &larr; Back to Organization
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={`/organizations/${permalink}`}>Organization</BackLink>}
+        title="IP pool rules"
+        description="Choose which outbound addresses a message sends from, based on who it is from and who it is going to. Mail matching no rule uses the default pool."
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => setShowForm((v) => !v)}
+            disabled={pools.length === 0}
+          >
+            <Plus size={15} aria-hidden /> New rule
+          </Button>
+        }
+      />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>IP Pool Rules</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'New Rule'}
-        </button>
-      </div>
-
-      {error && (
-        <div className="tag tag-red" style={{ marginBottom: 16 }}>{error}</div>
+      {!loading && !loadError && pools.length === 0 && (
+        <Callout
+          tone="warning"
+          title="No IP pools exist yet"
+          action={
+            <ButtonLink href="/admin/ip-pools" variant="secondary" size="sm">
+              IP pools
+            </ButtonLink>
+          }
+        >
+          A rule assigns mail to a pool, so there is nothing to assign until an administrator
+          creates one.
+        </Callout>
       )}
 
-      {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ marginBottom: 24, maxWidth: 500 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>New IP Pool Rule</h3>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>IP Pool</label>
-            <select
-              className="input"
-              value={formData.ip_pool_id}
-              onChange={(e) => setFormData({ ...formData, ip_pool_id: e.target.value })}
-              required
-            >
-              <option value="">Select a pool</option>
-              {pools.map((pool: any) => (
-                <option key={pool.id} value={pool.id}>{pool.name}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>From Text</label>
-            <input
-              className="input"
-              value={formData.from_text}
-              onChange={(e) => setFormData({ ...formData, from_text: e.target.value })}
-              placeholder="example.com"
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>To Text</label>
-            <input
-              className="input"
-              value={formData.to_text}
-              onChange={(e) => setFormData({ ...formData, to_text: e.target.value })}
-              placeholder="recipient@example.com"
-            />
-          </div>
-          <button className="btn btn-primary" type="submit">Create Rule</button>
-        </form>
+      {showForm && pools.length > 0 && (
+        <Card className="max-w-xl">
+          <CardHeader
+            title="New rule"
+            description="Leave a matcher empty to match anything in that position."
+          />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field label="Send from pool" required>
+                <Select
+                  value={form.ip_pool_id}
+                  onChange={(e) => setForm({ ...form, ip_pool_id: e.target.value })}
+                  required
+                >
+                  <option value="">Choose a pool</option>
+                  {pools.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                label="From matches"
+                hint="Matched against the envelope sender. Empty means any."
+              >
+                <Input
+                  value={form.from_text}
+                  onChange={(e) => setForm({ ...form, from_text: e.target.value })}
+                  placeholder="billing@example.com"
+                />
+              </Field>
+              <Field label="To matches" hint="Matched against the recipient. Empty means any.">
+                <Input
+                  value={form.to_text}
+                  onChange={(e) => setForm({ ...form, to_text: e.target.value })}
+                  placeholder="@partner.example"
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={creating}
+                  disabled={!form.ip_pool_id}
+                >
+                  Create rule
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>IP Pool</th>
-              <th>From</th>
-              <th>To</th>
-              <th style={{ width: 80 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rules.length === 0 ? (
-              <tr>
-                <td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                  {loading ? 'Loading...' : 'No IP pool rules yet.'}
-                </td>
-              </tr>
-            ) : (
-              rules.map((rule: any) => (
-                <tr key={rule.id}>
-                  <td>{poolName(rule.ip_pool_id)}</td>
-                  <td style={{ color: 'var(--color-text-muted)' }}>{rule.from_text ?? '-'}</td>
-                  <td style={{ color: 'var(--color-text-muted)' }}>{rule.to_text ?? '-'}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '2px 8px', fontSize: 12 }}
-                      onClick={() => handleDelete(rule.uuid)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </OrgLayout>
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={rules}
+            columns={columns}
+            getRowKey={(r) => String(r.id)}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState
+                  error={loadError}
+                  what="these rules"
+                  retryHref={`/organizations/${permalink}/ip-pool-rules`}
+                />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={Network}
+                title="No rules yet"
+                description="All mail from this organisation sends from the default pool."
+                action={
+                  pools.length > 0 ? (
+                    <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                      <Plus size={14} aria-hidden /> New rule
+                    </Button>
+                  ) : undefined
+                }
+              />
+            }
+          />
+        </div>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete IP pool rule"
+          description={
+            <>
+              Mail that matched this rule will fall through to the next matching rule, or to the
+              default pool. It will start sending from{' '}
+              <strong className="text-foreground">different IP addresses</strong>, which can affect
+              deliverability while those addresses build reputation.
+            </>
+          }
+          confirmLabel="Delete rule"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

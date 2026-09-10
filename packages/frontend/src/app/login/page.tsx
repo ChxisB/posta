@@ -2,19 +2,21 @@ import { SignIn } from '@clerk/nextjs';
 
 export default function LoginPage() {
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--color-bg-primary)',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--color-bg-accent)',
+      }}
+    >
       <SignIn
         appearance={{
           elements: {
             rootBox: { width: '100%', maxWidth: 400 },
             card: {
-              background: 'var(--color-bg-card)',
+              background: 'var(--color-bg-panel)',
               border: '1px solid var(--color-border)',
               boxShadow: 'none',
             },
@@ -22,7 +24,7 @@ export default function LoginPage() {
             headerSubtitle: { color: 'var(--color-text-muted)' },
             formFieldLabel: { color: 'var(--color-text-muted)' },
             formFieldInput: {
-              background: 'var(--color-bg-primary)',
+              background: 'var(--color-bg-accent)',
               border: '1px solid var(--color-border)',
               color: 'var(--color-text)',
             },
@@ -34,7 +36,7 @@ export default function LoginPage() {
             footerActionText: { color: 'var(--color-text-muted)' },
             footerActionLink: { color: 'var(--color-accent)' },
             socialButtonsBlockButton: {
-              background: 'var(--color-bg-card)',
+              background: 'var(--color-bg-panel)',
               border: '1px solid var(--color-border)',
               color: 'var(--color-text)',
             },

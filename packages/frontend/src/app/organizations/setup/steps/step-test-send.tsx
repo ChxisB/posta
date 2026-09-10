@@ -5,6 +5,8 @@ import type { WizardState } from '../wizard-client';
 import { sendTestMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, XCircle, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { StepIntro } from './step-intro';
 
 interface Props {
   state: WizardState;
@@ -45,30 +47,36 @@ export default function StepTestSend({ state, updateState, onNext, onBack }: Pro
 
   return (
     <div className="space-y-5 max-w-lg">
-      <p className="text-sm text-muted-foreground">
-        Send a test email to make sure everything is working end-to-end.
-      </p>
-
+      <StepIntro
+        title="Send a test message"
+        optional
+        needs="a mailbox you can check — use your own address."
+        next="The message appears under Messages with its full delivery history."
+      >
+        The only way to know the whole chain works. If DNS has not propagated yet this may fail or
+        land in spam, which is expected — you can skip it and come back once the previous step is
+        green.
+      </StepIntro>
       {!result ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1.5">Send Test To</label>
-            <input
-              className="input w-full"
+            <Input
+              className="w-full"
               type="email"
               value={to}
               onChange={(e) => setTo(e.target.value)}
               placeholder="you@example.com"
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted mt-1">
               Enter an email address to receive the test message.
             </p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">From (optional)</label>
-            <input
-              className="input w-full"
+            <Input
+              className="w-full"
               type="email"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
@@ -76,7 +84,7 @@ export default function StepTestSend({ state, updateState, onNext, onBack }: Pro
             />
           </div>
           {error && (
-            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 text-sm text-red bg-red/10 rounded-lg px-3 py-2">
               <XCircle className="h-4 w-4 shrink-0" />
               {error}
             </div>
@@ -90,20 +98,24 @@ export default function StepTestSend({ state, updateState, onNext, onBack }: Pro
               )}
               {loading ? 'Sending...' : 'Send Test Email'}
             </Button>
-            <Button type="button" variant="outline" onClick={onBack}>Back</Button>
+            <Button type="button" variant="secondary" onClick={onBack}>
+              Back
+            </Button>
           </div>
         </form>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+          <div className="flex items-center gap-3 rounded-lg border border-green/30 bg-green/5 p-4">
+            <CheckCircle2 className="h-5 w-5 text-green shrink-0" />
             <div>
               <p className="text-sm font-medium">Test message sent</p>
-              <p className="text-sm text-muted-foreground">{result.message}</p>
+              <p className="text-sm text-muted">{result.message}</p>
             </div>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={onBack}>Back</Button>
+            <Button variant="secondary" onClick={onBack}>
+              Back
+            </Button>
             <Button onClick={onNext}>View Summary</Button>
           </div>
         </div>

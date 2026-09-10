@@ -5,6 +5,9 @@ import type { WizardState } from '../wizard-client';
 import { createServer, updateServer, getServers, getIpPools } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { StepIntro } from './step-intro';
 
 interface Props {
   state: WizardState;
@@ -54,21 +57,27 @@ export default function StepServer({ state, updateState, onNext, onBack }: Props
     };
   }, []);
 
-  const checkName = useCallback((val: string) => {
-    if (!val.trim()) return;
-    const trimmed = val.trim().toLowerCase();
-    const match = allServers.find(
-      (s) => s.name?.toLowerCase() === trimmed && s.id !== state.serverId
-    );
-    setNameTaken(!!match);
-  }, [allServers, state.serverId]);
+  const checkName = useCallback(
+    (val: string) => {
+      if (!val.trim()) return;
+      const trimmed = val.trim().toLowerCase();
+      const match = allServers.find(
+        (s) => s.name?.toLowerCase() === trimmed && s.id !== state.serverId,
+      );
+      setNameTaken(!!match);
+    },
+    [allServers, state.serverId],
+  );
 
-  const handleNameChange = useCallback((val: string) => {
-    setName(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setNameTaken(false);
-    debounceRef.current = setTimeout(() => checkName(val), 400);
-  }, [checkName]);
+  const handleNameChange = useCallback(
+    (val: string) => {
+      setName(val);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setNameTaken(false);
+      debounceRef.current = setTimeout(() => checkName(val), 400);
+    },
+    [checkName],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,16 +121,24 @@ export default function StepServer({ state, updateState, onNext, onBack }: Props
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+      <StepIntro
+        title="Add a mail server"
+        next="Posta creates the server, then you'll attach a domain to it."
+      >
+        The server is what actually sends and receives. Everything after this — domains,
+        credentials, routes — belongs to it. Pick Development mode if you are just trying Posta out:
+        it records messages without delivering them, so it cannot affect your sending reputation.
+      </StepIntro>
       {isExisting && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-          <p className="text-sm text-muted-foreground">
+        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+          <p className="text-sm text-muted">
             Editing server &quot;{state.serverName}&quot;. Changes are saved when you continue.
           </p>
         </div>
       )}
 
       {!isExisting && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           Create your first mail server. You can add more servers later.
         </p>
       )}
@@ -129,59 +146,67 @@ export default function StepServer({ state, updateState, onNext, onBack }: Props
       <div>
         <label className="block text-sm font-medium mb-1.5">Server Name</label>
         <div className="relative">
-          <input
-            className="input w-full pr-10"
+          <Input
+            className="w-full pr-10"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="My Server"
             required
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-            {nameTaken && <AlertTriangle className="h-4 w-4 text-destructive" />}
-            {!nameTaken && name.trim() && (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            )}
+            {nameTaken && <AlertTriangle className="h-4 w-4 text-red" />}
+            {!nameTaken && name.trim() && <CheckCircle2 className="h-4 w-4 text-green" />}
           </div>
         </div>
         {nameTaken && (
-          <p className="text-xs text-destructive mt-1">A server with this name already exists in this organization.</p>
+          <p className="text-xs text-red mt-1">
+            A server with this name already exists in this organization.
+          </p>
         )}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1.5">Mode</label>
-        <select className="input w-full" value={mode} onChange={(e) => setMode(e.target.value as any)}>
+        <Select className="w-full" value={mode} onChange={(e) => setMode(e.target.value as any)}>
           <option value="Live">Live</option>
           <option value="Development">Development</option>
-        </select>
-        <p className="text-xs text-muted-foreground mt-1">
+        </Select>
+        <p className="text-xs text-muted mt-1">
           Use Development mode for testing — messages are not actually sent.
         </p>
       </div>
       {pools.length > 0 && (
         <div>
           <label className="block text-sm font-medium mb-1.5">IP Pool</label>
-          <select className="input w-full" value={ipPoolId} onChange={(e) => setIpPoolId(e.target.value)}>
+          <Select className="w-full" value={ipPoolId} onChange={(e) => setIpPoolId(e.target.value)}>
             <option value="">Default / None</option>
             {pools.map((pool: any) => (
-              <option key={pool.id} value={pool.id}>{pool.name}</option>
+              <option key={pool.id} value={pool.id}>
+                {pool.name}
+              </option>
             ))}
-          </select>
+          </Select>
         </div>
       )}
-      {error && (
-        <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</div>
-      )}
+      {error && <div className="text-sm text-red bg-red/10 rounded-lg px-3 py-2">{error}</div>}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading || saving || !canSubmit}>
           {(loading || saving) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? 'Creating...' : saving ? 'Saving...' : isExisting ? 'Save & Continue' : 'Create & Continue'}
+          {loading
+            ? 'Creating...'
+            : saving
+              ? 'Saving...'
+              : isExisting
+                ? 'Save & Continue'
+                : 'Create & Continue'}
         </Button>
         {isExisting && (
           <Button type="button" variant="ghost" onClick={onNext}>
             Skip (unchanged)
           </Button>
         )}
-        <Button type="button" variant="outline" onClick={onBack}>Back</Button>
+        <Button type="button" variant="secondary" onClick={onBack}>
+          Back
+        </Button>
       </div>
     </form>
   );

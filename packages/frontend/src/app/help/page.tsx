@@ -1,35 +1,48 @@
-import OrgLayout from '@/components/org-layout';
+import { KeyRound, Inbox, Send, Terminal } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
+
+const TOPICS = [
+  {
+    icon: Send,
+    title: 'Outgoing email',
+    body: 'Add a domain to your server, verify it, and publish the SPF, DKIM and MX records Posta generates for it. Once the domain verifies, send through the server with SMTP credentials or the REST API.',
+  },
+  {
+    icon: Inbox,
+    title: 'Incoming email',
+    body: 'Add a domain, then add a route that forwards incoming messages to an HTTP or SMTP endpoint. Routes decide what happens to mail addressed to that domain.',
+  },
+  {
+    icon: KeyRound,
+    title: 'SMTP credentials',
+    body: "Create SMTP credentials to authenticate mail clients — email apps, marketing platforms, application servers — against your Posta server. Use them in the client's SMTP settings.",
+  },
+  {
+    icon: Terminal,
+    title: 'API keys',
+    body: 'API keys give programmatic access to send and query messages. Pass one in the X-API-Key header on every request to the REST API.',
+  },
+];
 
 export default function HelpPage() {
   return (
-    <OrgLayout>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Help</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-        <div className="card">
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Outgoing Email</h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-            To send outgoing email, add a domain to your server, verify it, and configure your DNS records (SPF, DKIM, MX). Then use SMTP credentials or the REST API to send messages through the server.
-          </p>
-        </div>
-        <div className="card">
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Incoming Email</h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-            To receive email, add a domain and configure a route to forward incoming messages to an HTTP or SMTP endpoint. Routes determine how incoming mail is processed.
-          </p>
-        </div>
-        <div className="card">
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>SMTP Credentials</h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-            Create SMTP credentials to authenticate your email clients (email apps, marketing platforms, etc.) with your Posta server. Use these in your email client&apos;s SMTP settings.
-          </p>
-        </div>
-        <div className="card">
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>API Keys</h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-            API keys allow programmatic access to send and query messages. Use the X-API-Key header with your API key to authenticate requests to the REST API.
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title="Help"
+        description="The four things most setups need. Each one starts from a verified domain."
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        {TOPICS.map(({ icon: Icon, title, body }) => (
+          <Card key={title} padded>
+            <div className="mb-3 grid h-9 w-9 place-items-center rounded-lg bg-accent/10 text-accent">
+              <Icon size={17} strokeWidth={2} aria-hidden />
+            </div>
+            <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
+          </Card>
+        ))}
       </div>
-    </OrgLayout>
+    </>
   );
 }

@@ -2,9 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import { createUser } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/select';
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -27,75 +33,70 @@ export default function NewUserPage() {
         admin,
       });
       router.push('/admin/users');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create user');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create user');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <OrgLayout>
-      <div style={{ marginBottom: 24 }}>
-        <Link href="/admin/users" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-          &larr; Back to Users
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href="/admin/users">Users</BackLink>}
+        title="New user"
+        description="The address you enter here is what they sign in with."
+      />
+      <Card className="max-w-xl" padded>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* A Callout, not the `tag tag-red` pill this used to be: API
+              validation messages are sentences, and a pill truncated them. */}
+          {error && <Callout tone="danger">{error}</Callout>}
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>New User</h1>
-      <div className="card" style={{ maxWidth: 500 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && (
-            <div className="tag tag-red">{error}</div>
-          )}
-          <div>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>First Name</label>
-            <input
-              className="input"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Jane"
-            />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="First name">
+              <Input
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Jane"
+              />
+            </Field>
+            <Field label="Last name">
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+              />
+            </Field>
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Last Name</label>
-            <input
-              className="input"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Doe"
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Email Address</label>
-            <input
-              className="input"
+
+          <Field label="Email address" required>
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="jane@example.com"
               required
             />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              id="admin"
-              type="checkbox"
-              checked={admin}
-              onChange={(e) => setAdmin(e.target.checked)}
-            />
-            <label htmlFor="admin" style={{ fontSize: 14, cursor: 'pointer' }}>Admin</label>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Creating...' : 'Create User'}
-            </button>
-            <button type="button" className="btn" onClick={() => router.back()}>
+          </Field>
+
+          <Checkbox
+            label="Administrator"
+            hint="Admins can manage every organisation, IP pool and user on this installation."
+            checked={admin}
+            onChange={(e) => setAdmin(e.target.checked)}
+          />
+
+          <div className="flex gap-2">
+            <Button type="submit" variant="primary" loading={loading}>
+              Create user
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </OrgLayout>
+      </Card>
+    </>
   );
 }

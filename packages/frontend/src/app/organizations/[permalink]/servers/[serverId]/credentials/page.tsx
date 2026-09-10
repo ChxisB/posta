@@ -1,9 +1,30 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
+import { useState, useEffect, useCallback, use } from 'react';
+import { KeyRound, Plus, Trash2 } from 'lucide-react';
 import { getCredentials, createCredential, deleteCredential } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { FlagPill, KindTag } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface Credential {
+  id: number;
+  name?: string;
+  type?: string;
+  key?: string;
+  hold?: boolean;
+}
 
 export default function CredentialsPage({
   params: paramsPromise,
@@ -11,139 +32,230 @@ export default function CredentialsPage({
   params: Promise<{ permalink: string; serverId: string }>;
 }) {
   const { permalink, serverId } = use(paramsPromise);
-  const [credentials, setCredentials] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
+  const base = `/organizations/${permalink}/servers/${serverId}`;
+
+  const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ type: 'SMTP', name: '', key: '' });
+  const [loadError, setLoadError] = useState<unknown>(null);
 
-  async function load() {
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [form, setForm] = useState({ type: 'SMTP', name: '', key: '' });
+
+  const [pendingDelete, setPendingDelete] = useState<Credential | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const d = await getCredentials(permalink, serverId);
-      setCredentials(d.credentials ?? []);
-    } catch {}
-    setLoading(false);
-  }
+      setCredentials((await getCredentials(permalink, serverId)).credentials ?? []);
+    } catch (err) {
+      setLoadError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [permalink, serverId]);
 
-  useEffect(() => { load(); }, [permalink, serverId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    setCreating(true);
+    setFormError(null);
     try {
-      await createCredential(permalink, serverId, formData);
+      await createCredential(permalink, serverId, form);
       setShowForm(false);
-      setFormData({ type: 'SMTP', name: '', key: '' });
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      setForm({ type: 'SMTP', name: '', key: '' });
+      toast('success', 'Credential created.');
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not create the credential.');
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this credential?')) return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteCredential(permalink, serverId, id);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      await deleteCredential(permalink, serverId, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', `${pendingDelete.name} deleted.`);
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete the credential.');
+    } finally {
+      setDeleting(false);
     }
   }
+
+  const columns: Column<Credential>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      primary: true,
+      cell: (c) => <span className="font-medium">{c.name}</span>,
+    },
+    { key: 'type', header: 'Type', cell: (c) => <KindTag>{c.type}</KindTag> },
+    {
+      key: 'key',
+      header: 'Key',
+      // Truncated on purpose: the full secret belongs on the credential's own
+      // page, not in a list that may be on screen during a screen-share.
+      cell: (c) => (
+        <span className="font-mono text-xs text-faint">
+          {c.key ? `${c.key.slice(0, 12)}…` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'hold',
+      header: 'Hold',
+      cell: (c) => <FlagPill on={!!c.hold} onLabel="Holding" offLabel="Sending" />,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (c) => (
+        <IconButton
+          label={`Delete ${c.name}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(c)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
 
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Credentials</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'New Credential'}
-        </button>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={base}>Server</BackLink>}
+        title="Credentials"
+        description="How applications authenticate to this server. SMTP credentials go in a mail client; API keys go in the X-API-Key header."
+        actions={
+          <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={15} aria-hidden /> New credential
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ marginBottom: 24, maxWidth: 400 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>New Credential</h3>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Type
-            </label>
-            <select
-              className="input"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            >
-              <option value="SMTP">SMTP</option>
-              <option value="API">API</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Name
-            </label>
-            <input
-              className="input"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="My credential"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Key
-            </label>
-            <input
-              className="input"
-              value={formData.key}
-              onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-              placeholder="credential-key"
-              required
-            />
-          </div>
-          <button className="btn btn-primary" type="submit">Create Credential</button>
-        </form>
+        <Card className="max-w-xl">
+          <CardHeader title="New credential" />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field label="Type">
+                <Select
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                >
+                  <option value="SMTP">SMTP</option>
+                  <option value="API">API</option>
+                </Select>
+              </Field>
+              <Field label="Name" required hint="Name it after the application that will use it.">
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Billing service"
+                  required
+                />
+              </Field>
+              <Field label="Key" hint="Leave blank and Posta generates one for you.">
+                <Input
+                  value={form.key}
+                  onChange={(e) => setForm({ ...form, key: e.target.value })}
+                  placeholder="Generated automatically"
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={creating}
+                  disabled={!form.name.trim()}
+                >
+                  Create credential
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Key</th>
-              <th>Hold</th>
-              <th>Last Used</th>
-              <th style={{ width: 80 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {credentials.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                  {loading ? 'Loading...' : 'No credentials yet.'}
-                </td>
-              </tr>
-            ) : (
-              credentials.map((c: any) => (
-                <tr key={c.id}>
-                  <td>{c.name}</td>
-                  <td><span className="tag tag-gray">{c.type}</span></td>
-                  <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{c.key?.slice(0, 20)}...</td>
-                  <td>{c.hold ? <span className="tag tag-yellow">Yes</span> : 'No'}</td>
-                  <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{c.last_used_at ?? 'Never'}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '2px 8px', fontSize: 12 }}
-                      onClick={() => handleDelete(c.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </OrgLayout>
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={credentials}
+            columns={columns}
+            getRowKey={(c) => String(c.id)}
+            rowHref={(c) => `${base}/credentials/${c.id}`}
+            getRowLabel={(c) => `Edit credential ${c.name}`}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState
+                  error={loadError}
+                  what="these credentials"
+                  retryHref={`${base}/credentials`}
+                />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={KeyRound}
+                title="No credentials yet"
+                description="Nothing can authenticate to this server until you create one."
+                action={
+                  <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                    <Plus size={14} aria-hidden /> New credential
+                  </Button>
+                }
+              />
+            }
+          />
+        </div>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete credential"
+          description={
+            <>
+              Anything still authenticating as{' '}
+              <strong className="text-foreground">{pendingDelete.name}</strong> will start failing
+              immediately. Check nothing is using it before deleting.
+            </>
+          }
+          confirmLabel="Delete credential"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

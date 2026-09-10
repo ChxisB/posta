@@ -1,48 +1,58 @@
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
-import { getServer, getServerLimits, getServerQueue, getMessageCounts, getMessages } from '@/lib/api';
-import ServerSettingsForm from './server-settings-form';
+import { Inbox, Mail, Zap } from 'lucide-react';
 import {
-  ArrowLeft,
-  Inbox,
-  Send,
-  PauseCircle,
-  Ban,
-  Mail,
-  ArrowRight,
-  Zap,
-  Server,
-  Settings,
-  Activity,
-  ShieldAlert,
-} from 'lucide-react';
-import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+  getServer,
+  getServerLimits,
+  getServerQueue,
+  getMessageCounts,
+  getMessages,
+} from '@/lib/api';
+import ServerSettingsForm from './server-settings-form';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody, StatCard } from '@/components/ui/card';
+import { ButtonLink } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { FlagPill, KindTag, MessageStatusPill } from '@/components/ui/pill';
+import { TabNav } from '@/components/ui/tab-nav';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-interface Tab {
-  key: string;
-  label: string;
-  icon: React.ReactNode;
+interface QueueMessage {
+  id: number;
+  message_id?: number;
+  domain?: string;
+  attempts?: number;
+  locked_by?: string | null;
 }
 
-const tabs: Tab[] = [
-  { key: '', label: 'Overview', icon: <Activity className="h-4 w-4" /> },
-  { key: 'queue', label: 'Queue', icon: <Zap className="h-4 w-4" /> },
-  { key: 'limits', label: 'Limits', icon: <Inbox className="h-4 w-4" /> },
-  { key: 'spam', label: 'Spam', icon: <ShieldAlert className="h-4 w-4" /> },
-  { key: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
-];
+interface Message {
+  id: number;
+  status?: string;
+  mail_from?: string;
+  rcpt_to?: string;
+  subject?: string;
+  /** Unix seconds, not milliseconds. */
+  timestamp?: number;
+}
 
-const accentMap = {
-  cyan: 'from-cyan-500/15 to-cyan-500/5 text-cyan-600 dark:text-cyan-400 ring-cyan-500/20',
-  green: 'from-emerald-500/15 to-emerald-500/5 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20',
-  orange: 'from-amber-500/15 to-amber-500/5 text-amber-600 dark:text-amber-400 ring-amber-500/20',
-  red: 'from-rose-500/15 to-rose-500/5 text-rose-600 dark:text-rose-400 ring-rose-500/20',
-};
+interface Limits {
+  send_limit: number;
+  sent_today: number;
+  approaching: boolean;
+  exceeded: boolean;
+}
+
+const TAB_KEYS = ['', 'queue', 'limits', 'spam', 'settings'] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+
+function formatTime(seconds?: number): string {
+  if (!seconds) return '—';
+  return new Date(seconds * 1000).toLocaleString();
+}
 
 export default async function ServerDetailPage({
   params: paramsPromise,
@@ -54,413 +64,408 @@ export default async function ServerDetailPage({
   const { permalink, serverId } = await paramsPromise;
   const { tab } = await searchParamsPromise;
 
-  let server: any = {};
-  let counts = { incoming: 0, outgoing: 0, held: 0, bounced: 0 };
-  let queueMessages: any[] = [];
-  let recentMessages: any[] = [];
-  let limits: { send_limit: number; sent_today: number; approaching: boolean; exceeded: boolean } | null = null;
-  const activeTab = tab ?? '';
+  const base = `/organizations/${permalink}/servers/${serverId}`;
+  const activeTab: TabKey = (TAB_KEYS as readonly string[]).includes(tab ?? '')
+    ? ((tab ?? '') as TabKey)
+    : '';
+
+  // The server record is the page: without it there is nothing to render a
+  // tab for, so it is awaited separately from the panel data.
+  let server: Record<string, unknown> = {};
   try {
-    const data = await getServer(permalink, serverId);
-    server = data.server;
-    const [countsData, queueData, recentData] = await Promise.allSettled([
-      getMessageCounts(permalink, serverId),
-      getServerQueue(permalink, serverId),
-      getMessages(permalink, serverId, '', 1),
-    ]);
-    if (countsData.status === 'fulfilled') counts = countsData.value;
-    if (queueData.status === 'fulfilled') queueMessages = queueData.value.messages ?? [];
-    if (recentData.status === 'fulfilled') recentMessages = recentData.value.messages ?? [];
-    if (tab === 'limits') {
-      const limitsData = await getServerLimits(permalink, serverId);
-      limits = limitsData;
-    }
-  } catch {}
+    server = (await getServer(permalink, serverId)).server;
+  } catch (err) {
+    return (
+      <>
+        <PageHeader
+          breadcrumb={<BackLink href={`/organizations/${permalink}`}>{permalink}</BackLink>}
+          title="Server"
+        />
+        <Card>
+          <ErrorState error={err} what="this server" retryHref={base} />
+        </Card>
+      </>
+    );
+  }
 
-  const usedPercent = limits
-    ? Math.round((limits.sent_today / Math.max(limits.send_limit, 1)) * 100)
-    : 0;
+  const [countsResult, queueResult, recentResult, limitsResult] = await Promise.allSettled([
+    getMessageCounts(permalink, serverId),
+    getServerQueue(permalink, serverId),
+    getMessages(permalink, serverId, '', 1),
+    // Only fetched for the tab that shows it: the endpoint is comparatively
+    // expensive and no other tab reads the result.
+    activeTab === 'limits' ? getServerLimits(permalink, serverId) : Promise.resolve(null),
+  ]);
 
-  const stats = [
-    { value: String(counts.incoming), label: 'Incoming', accent: 'cyan' as const, icon: Inbox },
-    { value: String(counts.outgoing), label: 'Outgoing', accent: 'green' as const, icon: Send },
-    { value: String(counts.held), label: 'Held', accent: 'orange' as const, icon: PauseCircle },
-    { value: String(counts.bounced), label: 'Bounces', accent: 'red' as const, icon: Ban },
+  const counts =
+    countsResult.status === 'fulfilled'
+      ? countsResult.value
+      : { incoming: 0, outgoing: 0, held: 0, bounced: 0 };
+  const queueMessages: QueueMessage[] =
+    queueResult.status === 'fulfilled' ? (queueResult.value.messages ?? []) : [];
+  const recentMessages: Message[] =
+    recentResult.status === 'fulfilled' ? (recentResult.value.messages ?? []) : [];
+  const limits: Limits | null =
+    limitsResult.status === 'fulfilled' ? (limitsResult.value as Limits | null) : null;
+
+  const mode = (server.mode as string) ?? 'Live';
+
+  const queueColumns: Column<QueueMessage>[] = [
+    {
+      key: 'id',
+      header: 'Message',
+      primary: true,
+      cell: (m) => <KindTag>{m.message_id ?? m.id}</KindTag>,
+    },
+    {
+      key: 'domain',
+      header: 'Domain',
+      cell: (m) => <span className="text-muted">{m.domain ?? '—'}</span>,
+    },
+    {
+      key: 'attempts',
+      header: 'Attempts',
+      cell: (m) => <span className="tabular-nums text-muted">{m.attempts ?? 0}</span>,
+    },
+    {
+      key: 'status',
+      header: 'State',
+      cell: (m) => <FlagPill on={!!m.locked_by} onLabel="Processing" offLabel="Queued" />,
+    },
+  ];
+
+  const messageColumns: Column<Message>[] = [
+    { key: 'id', header: 'ID', primary: true, cell: (m) => <KindTag>{m.id}</KindTag> },
+    { key: 'status', header: 'Status', cell: (m) => <MessageStatusPill status={m.status ?? ''} /> },
+    {
+      key: 'from',
+      header: 'From',
+      cell: (m) => <span className="text-muted">{m.mail_from ?? '—'}</span>,
+    },
+    {
+      key: 'to',
+      header: 'To',
+      cell: (m) => <span className="text-muted">{m.rcpt_to ?? '—'}</span>,
+    },
+    {
+      key: 'subject',
+      header: 'Subject',
+      className: 'max-w-xs truncate',
+      cell: (m) => <span className="text-muted">{m.subject ?? '—'}</span>,
+    },
+    {
+      key: 'time',
+      header: 'Time',
+      cell: (m) => <span className="text-xs text-faint">{formatTime(m.timestamp)}</span>,
+    },
   ];
 
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div className="animate-fade-in space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <Link
-              href={`/organizations/${permalink}`}
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors mb-1"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to {permalink}
-            </Link>
-            <h1 className="text-3xl font-bold tracking-tight gradient-text glow-text">{server.name ?? 'Server'}</h1>
-            <div className="page-subtle mt-1">
-              <span>ID {server.id}</span>
-              <span className="subtle-dot">·</span>
-              <Badge variant="outline">{server.mode ?? 'Live'}</Badge>
-            </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={`/organizations/${permalink}`}>{permalink}</BackLink>}
+        title={(server.name as string) ?? 'Server'}
+        description={
+          mode === 'Development'
+            ? 'In development mode: messages are accepted and recorded but never delivered.'
+            : 'Live: messages sent through this server are delivered to real recipients.'
+        }
+        actions={
+          <>
+            <FlagPill on={mode === 'Live'} onLabel="Live" offLabel={mode} />
+            <ButtonLink href={`${base}/messages`} variant="secondary">
+              <Mail size={15} aria-hidden /> Messages
+            </ButtonLink>
+          </>
+        }
+      />
+
+      <TabNav
+        ariaLabel="Server sections"
+        tabs={TAB_KEYS.map((key) => ({
+          href: key ? `${base}?tab=${key}` : base,
+          label: key ? key[0].toUpperCase() + key.slice(1) : 'Overview',
+        }))}
+      />
+
+      {countsResult.status === 'rejected' && activeTab === '' && (
+        <Callout tone="warning" title="Message counts unavailable">
+          The server loaded, but its message-count endpoint did not respond.
+        </Callout>
+      )}
+
+      {activeTab === '' && (
+        <div className="flex flex-col gap-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Incoming" value={counts.incoming} />
+            <StatCard
+              label="Outgoing"
+              value={counts.outgoing}
+              tone={counts.outgoing > 0 ? 'green' : 'default'}
+            />
+            <StatCard
+              label="Held"
+              value={counts.held}
+              tone={counts.held > 0 ? 'orange' : 'default'}
+            />
+            <StatCard
+              label="Bounced"
+              value={counts.bounced}
+              tone={counts.bounced > 0 ? 'red' : 'default'}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/organizations/${permalink}/servers/${serverId}/messages/send-test-form`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              <Mail className="mr-2 h-4 w-4" /> Send Test
-            </Link>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <nav className="flex gap-1 border-b pb-0 overflow-x-auto scrollbar-hide">
-          {tabs.map((t) => (
-            <Link
-              key={t.key}
-              href={`/organizations/${permalink}/servers/${serverId}${t.key ? `?tab=${t.key}` : ''}`}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-                activeTab === t.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
-              )}
-            >
-              {t.icon}
-              {t.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* ── Overview ── */}
-        {!activeTab && (
-          <div className="animate-slide-in-up space-y-6">
-            <div className="metric-grid">
-              {stats.map((stat) => (
-                <Card
-                  key={stat.label}
-                  className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/95 transition-all hover:shadow-md hover:border-primary/20"
-                >
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-                    <div className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ring-1',
-                      accentMap[stat.accent]
-                    )}>
-                      <stat.icon className="h-4 w-4" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {queueMessages.length > 0 && (
-              <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base font-semibold">Message Queue</CardTitle>
-                    <CardDescription>{queueMessages.length} pending messages</CardDescription>
-                  </div>
-                  <Link
-                    href={`/organizations/${permalink}/servers/${serverId}?tab=queue`}
-                    className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1')}
-                  >
-                    View all <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  <MessageQueueTable messages={queueMessages} permalink={permalink} serverId={serverId} />
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-base font-semibold">Recent Messages</CardTitle>
-                  <CardDescription>Latest activity across this server</CardDescription>
-                </div>
-                <Link
-                  href={`/organizations/${permalink}/servers/${serverId}/messages`}
-                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1')}
-                >
-                  View all <ArrowRight className="h-4 w-4" />
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {recentMessages.length > 0 ? (
-                  <RecentMessagesTable messages={recentMessages} permalink={permalink} serverId={serverId} />
-                ) : (
-                  <EmptyState
-                    icon={<Mail className="h-8 w-8" />}
-                    title="No messages yet"
-                    description="When your server starts processing messages, they will appear here."
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* ── Queue ── */}
-        {activeTab === 'queue' && (
-          <Card className="animate-slide-in-up border-border/60 bg-gradient-to-br from-card to-card/95">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Message Queue</CardTitle>
-                <CardDescription>Messages waiting to be delivered</CardDescription>
-              </div>
-              {queueMessages.length > 0 && <Badge variant="secondary">{queueMessages.length} pending</Badge>}
-            </CardHeader>
-            <CardContent>
-              {queueMessages.length > 0 ? (
-                <MessageQueueTable messages={queueMessages} permalink={permalink} serverId={serverId} />
-              ) : (
-                <EmptyState
-                  icon={<Zap className="h-8 w-8" />}
-                  title="Queue is empty"
-                  description="All messages have been processed."
+          {queueMessages.length > 0 && (
+            <Card>
+              <CardHeader
+                title="Queue"
+                description={`${queueMessages.length} message${queueMessages.length === 1 ? '' : 's'} waiting to be delivered.`}
+                action={
+                  <ButtonLink href={`${base}?tab=queue`} variant="ghost" size="sm">
+                    View all
+                  </ButtonLink>
+                }
+              />
+              <div className="px-6 pb-1">
+                <DataTable
+                  rows={queueMessages.slice(0, 5)}
+                  columns={queueColumns}
+                  getRowKey={(m) => String(m.id)}
                 />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Limits tab ── */}
-        {activeTab === 'limits' && (
-          <div className="animate-slide-in-up space-y-6 max-w-3xl">
-            <div className="metric-grid">
-              <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Sent Today</CardTitle>
-                  <div className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ring-1',
-                    limits?.exceeded ? accentMap.red : accentMap.green
-                  )}>
-                    <Send className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold tracking-tight">{limits?.sent_today ?? 0}</div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Daily Limit</CardTitle>
-                  <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ring-1', accentMap.cyan)}>
-                    <Inbox className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold tracking-tight">{limits?.send_limit ?? 0}</div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Used</CardTitle>
-                  <div className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ring-1',
-                    usedPercent > 90 ? accentMap.red : usedPercent > 75 ? accentMap.orange : accentMap.green
-                  )}>
-                    <Activity className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold tracking-tight">{usedPercent}%</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {limits && (
-              <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">Daily Usage</CardTitle>
-                  <CardDescription>
-                    {limits.sent_today} of {limits.send_limit} messages sent today
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${Math.min(usedPercent, 100)}%`,
-                        background: usedPercent > 90
-                          ? 'linear-gradient(90deg, var(--color-accent-red), var(--color-accent-orange))'
-                          : usedPercent > 75
-                            ? 'linear-gradient(90deg, var(--color-accent-orange), var(--color-accent-green))'
-                            : 'linear-gradient(90deg, var(--color-accent-green), var(--color-accent-cyan))',
-                      }}
-                    />
-                  </div>
-                  {limits.exceeded && <div className="alert alert-error">Daily send limit has been exceeded.</div>}
-                  {limits.approaching && !limits.exceeded && <div className="alert alert-info">Approaching daily send limit.</div>}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {/* ── Spam tab ── */}
-        {activeTab === 'spam' && (
-          <Card className="animate-slide-in-up border-border/60 bg-gradient-to-br from-card to-card/95 max-w-xl">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Spam Settings</CardTitle>
-              <CardDescription>Current spam detection thresholds for this server</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                  <div className="text-sm text-muted-foreground mb-1">Spam Threshold</div>
-                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                    {server.spam_threshold != null ? server.spam_threshold : 'Not set'}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">Messages above this are flagged as spam.</p>
-                </div>
-                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                  <div className="text-sm text-muted-foreground mb-1">Spam Failure Threshold</div>
-                  <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">
-                    {server.spam_failure_threshold != null ? server.spam_failure_threshold : 'Not set'}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">Messages above this are rejected entirely.</p>
-                </div>
               </div>
-              <Link
-                href={`/organizations/${permalink}/servers/${serverId}?tab=settings`}
-                className={buttonVariants({ variant: 'outline' })}
-              >
-                Edit thresholds <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </CardContent>
-          </Card>
-        )}
+            </Card>
+          )}
 
-        {/* ── Settings tab ── */}
-        {activeTab === 'settings' && (
-          <Card className="animate-slide-in-up border-border/60 bg-gradient-to-br from-card to-card/95 max-w-2xl">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Server Settings</CardTitle>
-              <CardDescription>Update delivery, spam, and retention settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ServerSettingsForm orgPermalink={permalink} serverId={serverId} server={server} />
-            </CardContent>
+          <Card>
+            <CardHeader
+              title="Recent messages"
+              description="The latest activity through this server."
+              action={
+                <ButtonLink href={`${base}/messages`} variant="ghost" size="sm">
+                  View all
+                </ButtonLink>
+              }
+            />
+            <div className="px-6 pb-1">
+              <DataTable
+                rows={recentMessages}
+                columns={messageColumns}
+                getRowKey={(m) => String(m.id)}
+                rowHref={(m) => `${base}/messages/${m.id}`}
+                getRowLabel={(m) => `Message ${m.id} to ${m.rcpt_to ?? 'unknown recipient'}`}
+                error={
+                  recentResult.status === 'rejected' ? (
+                    <ErrorState
+                      error={recentResult.reason}
+                      what="recent messages"
+                      retryHref={base}
+                    />
+                  ) : undefined
+                }
+                empty={
+                  <EmptyState
+                    icon={Mail}
+                    title="No messages yet"
+                    description="Once this server processes its first message it will appear here."
+                  />
+                }
+              />
+            </div>
           </Card>
-        )}
-      </div>
-    </OrgLayout>
+        </div>
+      )}
+
+      {activeTab === 'queue' && (
+        <Card>
+          <CardHeader
+            title="Queue"
+            description="Messages accepted but not yet delivered. Posta retries these on a backoff."
+          />
+          <div className="px-6 pb-1">
+            <DataTable
+              rows={queueMessages}
+              columns={queueColumns}
+              getRowKey={(m) => String(m.id)}
+              error={
+                queueResult.status === 'rejected' ? (
+                  <ErrorState
+                    error={queueResult.reason}
+                    what="the queue"
+                    retryHref={`${base}?tab=queue`}
+                  />
+                ) : undefined
+              }
+              empty={
+                <EmptyState
+                  icon={Zap}
+                  title="Queue is empty"
+                  description="Everything accepted so far has been delivered or has stopped retrying."
+                />
+              }
+            />
+          </div>
+        </Card>
+      )}
+
+      {activeTab === 'limits' && <LimitsPanel limits={limits} base={base} result={limitsResult} />}
+
+      {activeTab === 'spam' && (
+        <Card className="max-w-2xl">
+          <CardHeader
+            title="Spam thresholds"
+            description="Scores come from the spam checker. A higher score means more spam-like."
+          />
+          <CardBody className="flex flex-col gap-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Threshold
+                label="Flag threshold"
+                value={server.spam_threshold as number | null}
+                hint="Messages at or above this score are marked as spam but still delivered."
+                tone="amber"
+              />
+              <Threshold
+                label="Reject threshold"
+                value={server.spam_failure_threshold as number | null}
+                hint="Messages at or above this score are rejected outright and never delivered."
+                tone="red"
+              />
+            </div>
+            <div>
+              <ButtonLink href={`${base}?tab=settings`} variant="secondary" size="sm">
+                Edit thresholds
+              </ButtonLink>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {activeTab === 'settings' && (
+        <Card className="max-w-2xl">
+          <CardHeader
+            title="Server settings"
+            description="Delivery, spam and retention behaviour."
+          />
+          <CardBody>
+            <ServerSettingsForm orgPermalink={permalink} serverId={serverId} server={server} />
+          </CardBody>
+        </Card>
+      )}
+    </>
   );
 }
 
-function MessageQueueTable({ messages, permalink, serverId }: { messages: any[]; permalink: string; serverId: string }) {
+function Threshold({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: number | null | undefined;
+  hint: string;
+  tone: 'amber' | 'red';
+}) {
   return (
-    <div className="overflow-x-auto -mx-6 px-6">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-            <th className="pb-3 font-medium">ID</th>
-            <th className="pb-3 font-medium">Domain</th>
-            <th className="pb-3 font-medium">Attempts</th>
-            <th className="pb-3 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {messages.map((msg: any) => (
-            <tr key={msg.id} className="group">
-              <td className="py-3">
-                {msg.message_id ? (
-                  <Link
-                    href={`/organizations/${permalink}/servers/${serverId}/messages/${msg.message_id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {msg.message_id}
-                  </Link>
-                ) : (
-                  msg.id
-                )}
-              </td>
-              <td className="py-3 text-muted-foreground">{msg.domain ?? '-'}</td>
-              <td className="py-3 text-muted-foreground">{msg.attempts ?? '-'}</td>
-              <td className="py-3">
-                <Badge variant={msg.locked_by ? 'secondary' : 'outline'}>
-                  {msg.locked_by ? 'Processing' : 'Queued'}
-                </Badge>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="rounded-xl border border-line bg-panel-2 p-4">
+      <p className="text-2xs font-semibold tracking-wide text-faint uppercase">{label}</p>
+      <p
+        className={cn(
+          'mt-1.5 text-3xl font-semibold tabular-nums',
+          value == null ? 'text-faint' : tone === 'amber' ? 'text-amber' : 'text-red',
+        )}
+      >
+        {value ?? 'Not set'}
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-muted">{hint}</p>
     </div>
   );
 }
 
-function RecentMessagesTable({ messages, permalink, serverId }: { messages: any[]; permalink: string; serverId: string }) {
-  return (
-    <div className="overflow-x-auto -mx-6 px-6">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-            <th className="pb-3 font-medium">ID</th>
-            <th className="pb-3 font-medium">Status</th>
-            <th className="pb-3 font-medium">From</th>
-            <th className="pb-3 font-medium">To</th>
-            <th className="pb-3 font-medium">Subject</th>
-            <th className="pb-3 font-medium">Time</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {messages.map((msg: any) => (
-            <tr key={msg.id}>
-              <td className="py-3">
-                <Link
-                  href={`/organizations/${permalink}/servers/${serverId}/messages/${msg.id}`}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {msg.id}
-                </Link>
-              </td>
-              <td className="py-3">
-                <Badge
-                  variant={
-                    msg.status === 'Sent'
-                      ? 'default'
-                      : msg.status === 'Held'
-                        ? 'secondary'
-                        : 'destructive'
-                  }
-                >
-                  {msg.status ?? '-'}
-                </Badge>
-              </td>
-              <td className="py-3 text-muted-foreground">{msg.mail_from ?? '-'}</td>
-              <td className="py-3 text-muted-foreground">{msg.rcpt_to ?? '-'}</td>
-              <td className="py-3 text-muted-foreground">{msg.subject ?? '-'}</td>
-              <td className="py-3 text-muted-foreground text-xs">
-                {msg.timestamp ? new Date(msg.timestamp * 1000).toLocaleString() : '-'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+function LimitsPanel({
+  limits,
+  base,
+  result,
+}: {
+  limits: Limits | null;
+  base: string;
+  result: PromiseSettledResult<unknown>;
+}) {
+  if (result.status === 'rejected') {
+    return (
+      <Card>
+        <ErrorState
+          error={result.reason}
+          what="this server's send limits"
+          retryHref={`${base}?tab=limits`}
+        />
+      </Card>
+    );
+  }
 
-function EmptyState({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  if (!limits) {
+    return (
+      <Card>
+        <EmptyState
+          icon={Inbox}
+          title="No send limit configured"
+          description="This server sends without a daily cap. Set one in Settings if you want a ceiling."
+        />
+      </Card>
+    );
+  }
+
+  const usedPercent = Math.round((limits.sent_today / Math.max(limits.send_limit, 1)) * 100);
+  const tone = limits.exceeded ? 'red' : usedPercent > 75 ? 'amber' : 'green';
+
   return (
-    <div className="flex flex-col items-center justify-center py-14 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/20 mb-4">
-        {icon}
+    <div className="flex max-w-3xl flex-col gap-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Sent today"
+          value={limits.sent_today}
+          tone={limits.exceeded ? 'red' : 'green'}
+        />
+        <StatCard label="Daily limit" value={limits.send_limit} />
+        <StatCard label="Used" value={`${usedPercent}%`} tone={tone} />
       </div>
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mt-1">{description}</p>
+
+      <Card>
+        <CardHeader
+          title="Daily usage"
+          description={`${limits.sent_today} of ${limits.send_limit} messages sent today.`}
+        />
+        <CardBody className="flex flex-col gap-4">
+          <div
+            className="h-2.5 w-full overflow-hidden rounded-full bg-panel-2"
+            role="progressbar"
+            aria-valuenow={limits.sent_today}
+            aria-valuemin={0}
+            aria-valuemax={limits.send_limit}
+            aria-label="Daily send limit used"
+          >
+            <div
+              className={cn(
+                'h-full rounded-full',
+                tone === 'red' ? 'bg-red' : tone === 'amber' ? 'bg-amber' : 'bg-green',
+              )}
+              style={{ width: `${Math.min(usedPercent, 100)}%` }}
+            />
+          </div>
+
+          {limits.exceeded && (
+            <Callout tone="danger" title="Daily send limit exceeded">
+              Further messages are being rejected until the counter resets. Raise the limit in
+              Settings if this server legitimately needs to send more.
+            </Callout>
+          )}
+          {limits.approaching && !limits.exceeded && (
+            <Callout tone="warning" title="Approaching the daily send limit">
+              At {usedPercent}% of the daily allowance. Messages will be rejected once it is
+              reached.
+            </Callout>
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 }

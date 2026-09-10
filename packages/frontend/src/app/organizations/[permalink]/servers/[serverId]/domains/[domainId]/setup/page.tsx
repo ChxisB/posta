@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import { getDomain, getDomainSetup } from '@/lib/api';
 export const dynamic = 'force-dynamic';
 
@@ -22,9 +21,12 @@ export default async function DomainSetupPage({
   } catch {}
 
   return (
-    <OrgLayout orgPermalink={permalink}>
+    <>
       <div style={{ marginBottom: 24 }}>
-        <Link href={`/organizations/${permalink}/servers/${serverId}/domains`} style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+        <Link
+          href={`/organizations/${permalink}/servers/${serverId}/domains`}
+          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+        >
           &larr; Back to Domains
         </Link>
       </div>
@@ -34,14 +36,17 @@ export default async function DomainSetupPage({
         {domain.name ?? setup.domain ?? 'Unknown domain'}
       </div>
 
-      <div className="card" style={{ maxWidth: 700, marginBottom: 24 }}>
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 700, marginBottom: 24 }}
+      >
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Verification Token</h3>
         <div
           style={{
             fontFamily: 'monospace',
             fontSize: 14,
             padding: 12,
-            background: 'var(--color-bg-primary)',
+            background: 'var(--color-bg-accent)',
             border: '1px solid var(--color-border)',
             borderRadius: 6,
             wordBreak: 'break-all',
@@ -51,9 +56,12 @@ export default async function DomainSetupPage({
         </div>
       </div>
 
-      <div className="card" style={{ maxWidth: 700 }}>
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 700 }}
+      >
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>DNS Records</h3>
-        <table className="table">
+        <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-line-soft [&_td]:py-3 [&_td]:pr-3 [&_th]:py-2.5 [&_th]:pr-3 [&_th]:text-left [&_th]:text-2xs [&_th]:font-medium [&_th]:tracking-wide [&_th]:text-faint [&_th]:uppercase [&_tr:last-child_td]:border-0">
           <thead>
             <tr>
               <th>Type</th>
@@ -80,6 +88,6 @@ export default async function DomainSetupPage({
           </tbody>
         </table>
       </div>
-    </OrgLayout>
+    </>
   );
 }

@@ -1,111 +1,134 @@
 'use client';
 
+import { Check, ExternalLink, Minus, Sparkles } from 'lucide-react';
 import type { WizardState } from '../wizard-client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Sparkles, ExternalLink } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface Props {
   state: WizardState;
   onFinish: () => void;
 }
 
+const NEXT_STEPS = [
+  {
+    title: 'Confirm DNS has propagated',
+    body: 'SPF, DKIM and MX can take up to 48 hours. Until they resolve, receiving servers may treat your mail as unauthenticated.',
+  },
+  {
+    title: 'Add a tracking domain',
+    body: 'Click and open tracking served from your own domain rather than a shared one, which receiving servers trust more.',
+  },
+  {
+    title: 'Add more servers',
+    body: 'A separate server per environment keeps development sending away from your production reputation.',
+  },
+];
+
 export default function StepSummary({ state, onFinish }: Props) {
+  /**
+   * `done` is what the wizard actually recorded. The DNS step is the one
+   * exception: publishing records happens outside Posta, so the wizard can
+   * only confirm it generated them, not that they resolve. Marking it "Done"
+   * would claim something the wizard has not verified.
+   */
   const steps = [
     { label: 'Organization', done: !!state.orgPermalink, value: state.orgName },
     { label: 'Server', done: !!state.serverId, value: state.serverName },
     { label: 'Domain', done: !!state.domainId, value: state.domainName },
-    { label: 'DNS', done: true, value: 'Configured in DNS records' },
+    {
+      label: 'DNS records',
+      done: !!state.domainId,
+      value: 'Generated — verify they have propagated',
+    },
     { label: 'Credentials', done: !!state.credentialId, value: state.credentialName },
-    { label: 'Test Send', done: state.testSent, value: state.testSent ? 'Sent successfully' : 'Skipped' },
+    {
+      label: 'Test send',
+      done: state.testSent,
+      value: state.testSent ? 'Message accepted' : 'Skipped',
+    },
   ];
 
   const doneCount = steps.filter((s) => s.done).length;
+  const allDone = doneCount === steps.length;
 
   return (
-    <div className="space-y-6">
-      {/* Completion badge */}
-      <div className="flex items-center gap-4 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent p-5">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
-          <Sparkles className="h-7 w-7" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold">Setup Complete</h3>
-          <p className="text-sm text-muted-foreground">
-            {doneCount} of {steps.length} steps completed. You finished {doneCount} setup {doneCount === 1 ? 'step' : 'steps'}.
+    <div className="flex flex-col gap-6">
+      <div
+        className={cn(
+          'flex items-center gap-4 rounded-2xl border p-5',
+          allDone ? 'border-green/30 bg-green/6' : 'border-amber/30 bg-amber/6',
+        )}
+      >
+        <span
+          className={cn(
+            'grid h-12 w-12 shrink-0 place-items-center rounded-xl',
+            allDone ? 'bg-green/15 text-green' : 'bg-amber/15 text-amber',
+          )}
+        >
+          <Sparkles size={22} aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-foreground">
+            {allDone ? 'Ready to send' : 'Almost there'}
+          </h3>
+          <p className="mt-0.5 text-sm leading-relaxed text-muted">
+            {allDone
+              ? 'Every step is complete. Mail sent through this server will authenticate once DNS has propagated.'
+              : `${doneCount} of ${steps.length} steps done. The skipped ones can be finished any time from the organisation page.`}
           </p>
         </div>
       </div>
 
-      {/* Step checklist */}
-      <div className="space-y-2">
+      <ul className="flex flex-col gap-2">
         {steps.map((s) => (
-          <div
+          <li
             key={s.label}
-            className="flex items-center gap-3 rounded-lg border border-border/60 p-3"
+            className="flex items-center gap-3 rounded-lg border border-line-soft px-3.5 py-3"
           >
-            <CheckCircle2
-              className={`h-5 w-5 shrink-0 ${
-                s.done ? 'text-emerald-500' : 'text-muted-foreground/30'
-              }`}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{s.label}</p>
-              {s.value && (
-                <p className="text-xs text-muted-foreground truncate">{s.value}</p>
+            <span
+              aria-hidden
+              className={cn(
+                'grid h-5 w-5 shrink-0 place-items-center rounded-full',
+                s.done ? 'bg-green/15 text-green' : 'bg-panel-2 text-faint',
               )}
+            >
+              {s.done ? <Check size={12} strokeWidth={3} /> : <Minus size={12} strokeWidth={3} />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">{s.label}</p>
+              {s.value && <p className="truncate text-xs text-muted">{s.value}</p>}
             </div>
-            <Badge variant={s.done ? 'default' : 'secondary'}>
+            <span className="text-2xs font-semibold tracking-wide text-faint uppercase">
               {s.done ? 'Done' : 'Skipped'}
-            </Badge>
-          </div>
+            </span>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Next steps */}
-      <Card className="border-border/60 bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold">What&apos;s next?</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="text-sm space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">&bull;</span>
-              <span className="text-muted-foreground">
-                <strong>Verify DNS</strong> — Ensure your SPF, DKIM, and MX records are fully propagated.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">&bull;</span>
-              <span className="text-muted-foreground">
-                <strong>Add more servers</strong> — Create separate servers for different use cases or environments.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">&bull;</span>
-              <span className="text-muted-foreground">
-                <strong>Set up tracking domains</strong> — Improve deliverability with custom click and open tracking.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">&bull;</span>
-              <span className="text-muted-foreground">
-                <strong>Invite team members</strong> — Grant access to your organization.
-              </span>
-            </li>
+      <Card>
+        <CardHeader title="What to do next" />
+        <CardBody>
+          <ul className="flex flex-col gap-3">
+            {NEXT_STEPS.map((item) => (
+              <li key={item.title}>
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted">{item.body}</p>
+              </li>
+            ))}
           </ul>
-        </CardContent>
+        </CardBody>
       </Card>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-2">
         {state.orgPermalink && (
-          <Button variant="outline" onClick={() => window.location.href = `/organizations/${state.orgPermalink}`}>
-            <ExternalLink className="mr-2 h-4 w-4" /> Open Organization
-          </Button>
+          <ButtonLink href={`/organizations/${state.orgPermalink}`} variant="secondary">
+            <ExternalLink size={15} aria-hidden /> Open organisation
+          </ButtonLink>
         )}
-        <Button onClick={onFinish}>
-          Back to Dashboard
+        <Button variant="primary" onClick={onFinish}>
+          Finish
         </Button>
       </div>
     </div>

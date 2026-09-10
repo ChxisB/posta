@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import type { WizardState } from '../wizard-client';
 import { getDomainSetup, checkDomainDns, getDomain } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Copy, CheckCircle2, RefreshCw } from 'lucide-react';
+import { CheckPill } from '@/components/ui/pill';
+import { Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
+import { CopyableValue } from '@/components/ui/copy-button';
+import { StepIntro } from './step-intro';
 
 interface Props {
   state: WizardState;
@@ -70,7 +72,11 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
     if (!state.orgPermalink || !state.serverId || !state.domainId) return;
     setChecking(true);
     try {
-      const result = await checkDomainDns(state.orgPermalink, String(state.serverId), String(state.domainId));
+      const result = await checkDomainDns(
+        state.orgPermalink,
+        String(state.serverId),
+        String(state.domainId),
+      );
       setDnsStatus({
         spf: result.spf_status,
         dkim: result.dkim_status,
@@ -82,18 +88,20 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
   };
 
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading DNS setup...</div>;
+    return <div className="text-sm text-muted">Loading DNS setup...</div>;
   }
 
   if (!setup) {
     return (
       <div className="space-y-5 max-w-lg">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           Unable to load DNS setup details. You can skip this step and configure DNS later.
         </p>
         <div className="flex gap-3 pt-2">
           <Button onClick={onNext}>Skip & Continue</Button>
-          <Button variant="outline" onClick={onBack}>Back</Button>
+          <Button variant="secondary" onClick={onBack}>
+            Back
+          </Button>
         </div>
       </div>
     );
@@ -101,43 +109,40 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
 
   const records: { label: string; value: string; field: string }[] = [];
   if (setup.verification_token) {
-    records.push({ label: 'Verification Token (TXT)', value: setup.verification_token, field: 'verification' });
+    records.push({
+      label: 'Verification Token (TXT)',
+      value: setup.verification_token,
+      field: 'verification',
+    });
   }
   if (setup.spf) records.push({ label: 'SPF (TXT)', value: setup.spf, field: 'spf' });
   if (setup.dkim) records.push({ label: 'DKIM (TXT)', value: setup.dkim, field: 'dkim' });
   if (setup.mx) records.push({ label: 'MX Record', value: setup.mx, field: 'mx' });
-  if (setup.return_path) records.push({ label: 'Return-Path (CNAME)', value: setup.return_path, field: 'return_path' });
+  if (setup.return_path)
+    records.push({ label: 'Return-Path (CNAME)', value: setup.return_path, field: 'return_path' });
 
   const allOk = dnsStatus.spf === 'OK' && dnsStatus.dkim === 'OK' && dnsStatus.mx === 'OK';
 
   return (
     <div className="space-y-5 max-w-2xl">
-      <p className="text-sm text-muted-foreground">
-        Add these DNS records to your domain provider. Once configured, click &quot;Check DNS&quot; below to verify.
-      </p>
-
+      <StepIntro
+        title="Publish your DNS records"
+        needs="access to wherever this domain's DNS is managed — your registrar, Cloudflare, Route 53, and so on."
+        next="Posta checks whether each record has propagated. You can leave and come back."
+      >
+        Copy each record below into your DNS provider. These are what let receiving servers verify
+        the mail is really from you: without them, most inboxes will treat your messages as spam or
+        reject them outright. Propagation is usually minutes but can take up to 48 hours, so it is
+        normal for this step to stay amber for a while.
+      </StepIntro>
       {/* Verification token */}
       {setup.verification_token && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-          <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-1">
-            Domain Verification Required
-          </p>
-          <p className="text-xs text-muted-foreground mb-3">
+        <div className="rounded-lg border border-amber/30 bg-amber/5 p-4">
+          <p className="text-sm font-medium text-amber mb-1">Domain Verification Required</p>
+          <p className="text-xs text-muted mb-3">
             Add this TXT record to your domain to prove ownership:
           </p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 text-xs bg-background rounded px-2 py-1.5 border break-all font-mono">
-              {setup.verification_token}
-            </code>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleCopy(setup.verification_token!, 'verification')}
-              title="Copy"
-            >
-              {copiedField === 'verification' ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-            </Button>
-          </div>
+          <CopyableValue value={setup.verification_token} label="verification token" />
         </div>
       )}
 
@@ -146,28 +151,12 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
         {records.map((r) => {
           const status = dnsStatus[r.field as keyof typeof dnsStatus];
           return (
-            <div key={r.field} className="rounded-lg border border-border/60 p-3">
+            <div key={r.field} className="rounded-lg border border-line p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium">{r.label}</span>
-                {status && (
-                  <Badge variant={status === 'OK' ? 'default' : 'secondary'}>
-                    {status}
-                  </Badge>
-                )}
+                {status && <CheckPill status={status} />}
               </div>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-muted rounded px-2 py-1.5 border break-all font-mono">
-                  {r.value}
-                </code>
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => handleCopy(r.value, r.field)}
-                  title="Copy"
-                >
-                  {copiedField === r.field ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
+              <CopyableValue value={r.value} label={`${r.field} record`} />
             </div>
           );
         })}
@@ -175,11 +164,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
 
       {/* Check DNS */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={handleCheckDns}
-          disabled={checking}
-        >
+        <Button variant="secondary" onClick={handleCheckDns} disabled={checking}>
           {checking ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
@@ -188,21 +173,22 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
           {checking ? 'Checking...' : 'Check DNS'}
         </Button>
         {allOk && (
-          <span className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-1 text-sm text-green">
             <CheckCircle2 className="h-4 w-4" /> All records verified
           </span>
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        DNS changes can take up to 48 hours to propagate. You can continue without verification and come back later.
+      <p className="text-xs text-muted">
+        DNS changes can take up to 48 hours to propagate. You can continue without verification and
+        come back later.
       </p>
 
       <div className="flex gap-3 pt-2">
-        <Button onClick={onNext}>
-          {allOk ? 'Continue' : 'Skip Verification & Continue'}
+        <Button onClick={onNext}>{allOk ? 'Continue' : 'Skip Verification & Continue'}</Button>
+        <Button variant="secondary" onClick={onBack}>
+          Back
         </Button>
-        <Button variant="outline" onClick={onBack}>Back</Button>
       </div>
     </div>
   );

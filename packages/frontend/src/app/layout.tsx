@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
-import { ThemeProvider } from '@/components/theme-provider';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { ThemeProvider, THEME_INIT_SCRIPT } from '@/components/theme-provider';
+import { AppShell } from '@/components/shell/app-shell';
+import { cn } from '@/lib/utils';
 import './globals.css';
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: 'Posta',
@@ -14,10 +16,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body>
+    <html lang="en" suppressHydrationWarning className={cn(geist.variable, geistMono.variable)}>
+      <head>
+        {/* Blocking, and before anything paints: sets data-theme so the first
+            frame is already in the right palette. See THEME_INIT_SCRIPT. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="font-sans">
         <ClerkProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {/* The shell is chosen by route rather than opted into by each
+                page. Previously every one of the 30-odd pages wrapped itself
+                in <>, so a new page shipped without navigation
+                unless its author remembered. */}
+            <AppShell>{children}</AppShell>
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

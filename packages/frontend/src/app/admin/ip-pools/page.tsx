@@ -1,39 +1,84 @@
-import OrgLayout from '@/components/org-layout';
+import { Network } from 'lucide-react';
 import { getIpPools } from '@/lib/api';
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
+import { ButtonLink } from '@/components/ui/button';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { FlagPill } from '@/components/ui/pill';
+
 export const dynamic = 'force-dynamic';
 
+interface IpPool {
+  id: number;
+  name?: string;
+  default?: boolean;
+  ip_addresses?: unknown[];
+}
+
+const COLUMNS: Column<IpPool>[] = [
+  { key: 'name', header: 'Name', primary: true, cell: (p) => p.name ?? '—' },
+  {
+    key: 'default',
+    header: 'Default',
+    cell: (p) => <FlagPill on={!!p.default} onLabel="Default" offLabel="No" />,
+  },
+  {
+    key: 'addresses',
+    header: 'Addresses',
+    cell: (p) => <span className="tabular-nums text-muted">{p.ip_addresses?.length ?? 0}</span>,
+  },
+];
+
 export default async function IpPoolsPage() {
-  let pools: any[] = [];
-  try { const d = await getIpPools(); pools = d.ip_pools; } catch {}
+  let pools: IpPool[] = [];
+  let error: unknown = null;
+  try {
+    pools = (await getIpPools()).ip_pools;
+  } catch (err) {
+    error = err;
+  }
 
   return (
-    <OrgLayout>
-      <div className="animate-fade-in">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title gradient-text glow-text">IP Pools</h1>
-            <div className="page-subtitle">Manage outbound IP pools</div>
-          </div>
-          <Link href="/admin/ip-pools/new" className="btn btn-primary">New Pool</Link>
+    <>
+      <PageHeader
+        title="IP pools"
+        description="Groups of outbound addresses that servers send from. Organisations are assigned a pool by the IP pool rules on their overview page."
+        actions={
+          <ButtonLink href="/admin/ip-pools/new" variant="primary">
+            New pool
+          </ButtonLink>
+        }
+      />
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={pools}
+            columns={COLUMNS}
+            getRowKey={(p) => String(p.id)}
+            rowHref={(p) => `/admin/ip-pools/${p.id}`}
+            getRowLabel={(p) => `Edit pool ${p.name ?? p.id}`}
+            error={
+              error ? (
+                <ErrorState error={error} what="the IP pools" retryHref="/admin/ip-pools" />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={Network}
+                title="No IP pools yet"
+                description="Create a pool and add outbound addresses to it before assigning it to an organisation."
+                action={
+                  <ButtonLink href="/admin/ip-pools/new" variant="primary" size="sm">
+                    New pool
+                  </ButtonLink>
+                }
+              />
+            }
+          />
         </div>
-        <div className="card">
-        <table className="table">
-          <thead><tr><th>Name</th><th>Default</th><th>Addresses</th></tr></thead>
-          <tbody>
-            {pools.length === 0 ? (
-              <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>No IP pools yet.</td></tr>
-            ) : pools.map((p: any) => (
-              <tr key={p.id}>
-                <td><Link href={`/admin/ip-pools/${p.id}`} style={{ color: 'var(--color-accent)' }}>{p.name}</Link></td>
-                <td>{p.default ? <span className="tag tag-green">Yes</span> : 'No'}</td>
-                <td style={{ color: 'var(--color-text-muted)' }}>{p.ip_addresses?.length ?? 0} addresses</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    </OrgLayout>
+      </Card>
+    </>
   );
 }
