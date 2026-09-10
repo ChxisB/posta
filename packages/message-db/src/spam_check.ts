@@ -24,15 +24,15 @@ export class SpamCheckStore {
   /**
    * Record a spam check result for a message.
    */
-  create(attributes: Partial<SpamCheckRecord>): number {
+  async create(attributes: Partial<SpamCheckRecord>): Promise<number> {
     return this.db.insert('spam_checks', attributes);
   }
 
   /**
    * Get all spam checks for a message.
    */
-  forMessage(messageId: number): SpamCheckRecord[] {
-    const result = this.db.select<SpamCheckRecord>('spam_checks', {
+  async forMessage(messageId: number): Promise<SpamCheckRecord[]> {
+    const result = await this.db.select<SpamCheckRecord>('spam_checks', {
       where: { message_id: messageId },
     });
     return Array.isArray(result) ? result : [];

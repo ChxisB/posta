@@ -14,10 +14,13 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@posta/core": "workspace:*"
+    "@posta/core": "workspace:*",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "@types/bun": "latest"
-  }
+  },
+  "author": "Chris Beckett <chrisssyyyb@gmail.com>",
+  "license": "MIT"
 }

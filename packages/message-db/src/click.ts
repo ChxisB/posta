@@ -19,7 +19,7 @@ export interface ClickWithLink extends ClickRecord {
 }
 
 /**
- * Click tracking — mirrors Ruby Click class.
+ * Click tracking.
  */
 export class ClickStore {
   private db: MessageDatabase;
@@ -31,7 +31,7 @@ export class ClickStore {
   /**
    * Create a click record.
    */
-  create(attributes: Partial<ClickRecord>): number {
+  async create(attributes: Partial<ClickRecord>): Promise<number> {
     return this.db.insert('clicks', {
       ...attributes,
       timestamp: attributes.timestamp ?? Date.now() / 1000,
@@ -41,8 +41,8 @@ export class ClickStore {
   /**
    * Get all clicks for a message.
    */
-  forMessage(messageId: number): ClickWithLink[] {
-    const result = this.db.select<ClickRecord>('clicks', {
+  async forMessage(messageId: number): Promise<ClickWithLink[]> {
+    const result = await this.db.select<ClickRecord>('clicks', {
       where: { message_id: messageId },
       order: 'timestamp',
     });
@@ -54,8 +54,10 @@ export class ClickStore {
     const linkIds = clicks.map((c) => c.link_id).filter(Boolean) as number[];
     if (linkIds.length === 0) return clicks as ClickWithLink[];
 
-    const links = this.db.query<{ id: number; url: string }>(
-      `SELECT id, url FROM links WHERE id IN (${linkIds.join(',')})`,
+    const placeholders = linkIds.map((_, i) => `$${i + 1}`).join(',');
+    const links = await this.db.query<{ id: number; url: string }>(
+      `SELECT id, url FROM links WHERE id IN (${placeholders})`,
+      linkIds,
     );
     const linkMap = new Map(links.map((l) => [l.id, l.url]));
 

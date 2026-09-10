@@ -13,7 +13,7 @@ type StatsCounter = typeof COUNTERS[number];
  * Rollup statistics — mirrors the Ruby Statistics class.
  *
  * Tracks aggregate counters across hourly/daily/monthly/yearly tables.
- * Uses INSERT OR REPLACE (SQLite equivalent of MySQL's ON DUPLICATE KEY UPDATE).
+ * Uses PostgreSQL ON CONFLICT for upsert semantics.
  */
 export class StatisticsStore {
   private db: MessageDatabase;
@@ -25,24 +25,27 @@ export class StatisticsStore {
   /**
    * Increment a single stats counter for a given period.
    */
-  incrementOne(period: StatsPeriod, field: StatsCounter, time: Date = new Date()): void {
+  async incrementOne(period: StatsPeriod, field: StatsCounter, time: Date = new Date()): Promise<void> {
     const timeKey = this.getPeriodStart(period, time);
     const initialValues = COUNTERS.map((c) => (c === field ? 1 : 0));
 
-    // SQLite equivalent of ON DUPLICATE KEY UPDATE
-    this.db.exec(
+    const columnPlaceholders = COUNTERS.map((_, i) => `$${i + 2}`).join(', ');
+    const updates = COUNTERS.map((c) => `${c} = stats_${period}.${c} + CASE WHEN ${c} = $2 THEN 1 ELSE 0 END`).join(', ');
+
+    await this.db.run(
       `INSERT INTO stats_${period} (time, ${COUNTERS.join(', ')}) ` +
-      `VALUES (${timeKey}, ${initialValues.join(', ')}) ` +
-      `ON CONFLICT(time) DO UPDATE SET ${field} = ${field} + 1`,
+      `VALUES ($1, ${columnPlaceholders}) ` +
+      `ON CONFLICT(time) DO UPDATE SET ${updates}`,
+      [timeKey, ...initialValues],
     );
   }
 
   /**
    * Increment all stats counters (hourly, daily, monthly, yearly) for a given field.
    */
-  incrementAll(time: Date, field: StatsCounter): void {
+  async incrementAll(time: Date, field: StatsCounter): Promise<void> {
     for (const period of STATS_PERIODS) {
-      this.incrementOne(period, field, time);
+      await this.incrementOne(period, field, time);
     }
   }
 
@@ -51,12 +54,12 @@ export class StatisticsStore {
    *
    * Returns an array of [time, counters] pairs, ordered chronologically.
    */
-  get(
+  async get(
     period: StatsPeriod,
     counters: StatsCounter[],
     startDate: Date = new Date(),
     quantity: number = 10,
-  ): Array<{ time: Date; counters: Record<string, number> }> {
+  ): Promise<Array<{ time: Date; counters: Record<string, number> }>> {
     // Build the expected time slots
     const slots = new Map<number, Record<string, number>>();
     for (let i = 0; i < quantity; i++) {
@@ -71,8 +74,11 @@ export class StatisticsStore {
 
     // Fetch actual data
     const timeKeys = [...slots.keys()];
-    const rows = this.db.query<Record<string, unknown>>(
-      `SELECT time, ${counters.join(', ')} FROM stats_${period} WHERE time IN (${timeKeys.join(',')})`,
+    if (timeKeys.length === 0) return [];
+    const placeholders = timeKeys.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await this.db.query<Record<string, unknown>>(
+      `SELECT time, ${counters.join(', ')} FROM stats_${period} WHERE time IN (${placeholders})`,
+      timeKeys,
     );
 
     for (const row of rows) {

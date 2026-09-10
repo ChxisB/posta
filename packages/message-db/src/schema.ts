@@ -1,12 +1,11 @@
 /**
- * MessageDB DDL — SQLite-compatible CREATE TABLE statements.
+ * MessageDB DDL — PostgreSQL-compatible CREATE TABLE statements.
  *
  * Translated from 20 MySQL migrations at lib/posta/message_db/migrations/.
  * Key differences from MySQL:
- * - INTEGER PRIMARY KEY instead of AUTO_INCREMENT
- * - TEXT instead of VARCHAR (SQLite treats them the same)
+ * - SERIAL PRIMARY KEY instead of AUTO_INCREMENT
+ * - TEXT instead of VARCHAR
  * - REAL instead of DECIMAL(18,6) for timestamps
- * - No ENGINE, CHARSET, COLLATION, or USING BTREE
  */
 
 export const MESSAGE_DB_DDL = `
@@ -18,7 +17,7 @@ CREATE TABLE IF NOT EXISTS migrations (
 
 -- Messages (core table)
 CREATE TABLE IF NOT EXISTS messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     token TEXT,
     scope TEXT,
     rcpt_to TEXT,
@@ -70,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status);
 
 -- Deliveries
 CREATE TABLE IF NOT EXISTS deliveries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     message_id INTEGER,
     status TEXT,
     code INTEGER,
@@ -85,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_deliveries_message ON deliveries(message_id);
 
 -- Clicks
 CREATE TABLE IF NOT EXISTS clicks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     message_id INTEGER,
     link_id INTEGER,
     ip_address TEXT,
@@ -99,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_clicks_link ON clicks(link_id);
 
 -- Loads (image opens)
 CREATE TABLE IF NOT EXISTS loads (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     message_id INTEGER,
     ip_address TEXT,
     country TEXT,
@@ -111,7 +110,7 @@ CREATE INDEX IF NOT EXISTS idx_loads_message ON loads(message_id);
 
 -- Links (tracked URLs)
 CREATE TABLE IF NOT EXISTS links (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     message_id INTEGER,
     token TEXT,
     hash TEXT,
@@ -123,7 +122,7 @@ CREATE INDEX IF NOT EXISTS idx_links_token ON links(token);
 
 -- Spam checks
 CREATE TABLE IF NOT EXISTS spam_checks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     message_id INTEGER,
     score REAL,
     code TEXT,
@@ -143,7 +142,7 @@ CREATE TABLE IF NOT EXISTS live_stats (
 
 -- Raw message sizes tracking
 CREATE TABLE IF NOT EXISTS raw_message_sizes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     table_name TEXT,
     size INTEGER
 );
@@ -151,7 +150,7 @@ CREATE INDEX IF NOT EXISTS idx_raw_sizes_table ON raw_message_sizes(table_name);
 
 -- Statistics (hourly/daily/monthly/yearly)
 CREATE TABLE IF NOT EXISTS stats_hourly (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     time INTEGER UNIQUE,
     incoming INTEGER DEFAULT 0,
     outgoing INTEGER DEFAULT 0,
@@ -161,7 +160,7 @@ CREATE TABLE IF NOT EXISTS stats_hourly (
 );
 
 CREATE TABLE IF NOT EXISTS stats_daily (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     time INTEGER UNIQUE,
     incoming INTEGER DEFAULT 0,
     outgoing INTEGER DEFAULT 0,
@@ -171,7 +170,7 @@ CREATE TABLE IF NOT EXISTS stats_daily (
 );
 
 CREATE TABLE IF NOT EXISTS stats_monthly (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     time INTEGER UNIQUE,
     incoming INTEGER DEFAULT 0,
     outgoing INTEGER DEFAULT 0,
@@ -181,7 +180,7 @@ CREATE TABLE IF NOT EXISTS stats_monthly (
 );
 
 CREATE TABLE IF NOT EXISTS stats_yearly (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     time INTEGER UNIQUE,
     incoming INTEGER DEFAULT 0,
     outgoing INTEGER DEFAULT 0,
@@ -192,7 +191,7 @@ CREATE TABLE IF NOT EXISTS stats_yearly (
 
 -- Suppressions
 CREATE TABLE IF NOT EXISTS suppressions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     type TEXT,
     address TEXT,
     reason TEXT,
@@ -204,7 +203,7 @@ CREATE INDEX IF NOT EXISTS idx_suppressions_keep_until ON suppressions(keep_unti
 
 -- Webhook requests
 CREATE TABLE IF NOT EXISTS webhook_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     uuid TEXT,
     event TEXT,
     attempt INTEGER,

@@ -14,7 +14,7 @@ export interface LoadRecord {
 }
 
 /**
- * Load (image open) tracking — mirrors Ruby Load class.
+ * Load (image open) tracking.
  */
 export class LoadStore {
   private db: MessageDatabase;
@@ -26,7 +26,7 @@ export class LoadStore {
   /**
    * Create a load record.
    */
-  create(attributes: Partial<LoadRecord>): number {
+  async create(attributes: Partial<LoadRecord>): Promise<number> {
     return this.db.insert('loads', {
       ...attributes,
       timestamp: attributes.timestamp ?? Date.now() / 1000,
@@ -36,8 +36,8 @@ export class LoadStore {
   /**
    * Get all loads for a message.
    */
-  forMessage(messageId: number): LoadRecord[] {
-    const result = this.db.select<LoadRecord>('loads', {
+  async forMessage(messageId: number): Promise<LoadRecord[]> {
+    const result = await this.db.select<LoadRecord>('loads', {
       where: { message_id: messageId },
       order: 'timestamp',
     });

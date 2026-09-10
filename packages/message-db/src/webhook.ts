@@ -18,7 +18,7 @@ export interface WebhookRequestRecord {
 }
 
 /**
- * Webhook request management — mirrors Ruby Webhooks class.
+ * Webhook request management.
  */
 export class WebhookStore {
   private db: MessageDatabase;
@@ -30,7 +30,7 @@ export class WebhookStore {
   /**
    * Record a webhook request.
    */
-  record(attributes: Partial<WebhookRequestRecord>): number {
+  async record(attributes: Partial<WebhookRequestRecord>): Promise<number> {
     return this.db.insert('webhook_requests', {
       ...attributes,
       timestamp: attributes.timestamp ?? Date.now() / 1000,
@@ -40,7 +40,7 @@ export class WebhookStore {
   /**
    * List webhook requests with pagination.
    */
-  list(page: number = 1) {
+  async list(page: number = 1) {
     return this.db.selectWithPagination<WebhookRequestRecord>(
       'webhook_requests',
       page,
@@ -51,8 +51,8 @@ export class WebhookStore {
   /**
    * Find a webhook request by UUID.
    */
-  find(uuid: string): WebhookRequestRecord {
-    const rows = this.db.select<WebhookRequestRecord>('webhook_requests', {
+  async find(uuid: string): Promise<WebhookRequestRecord> {
+    const rows = await this.db.select<WebhookRequestRecord>('webhook_requests', {
       where: { uuid },
       limit: 1,
     });
@@ -65,9 +65,9 @@ export class WebhookStore {
   /**
    * Prune old webhook requests (older than 10 days).
    */
-  prune(): number {
+  async prune(): Promise<number> {
     const cutoff = (Date.now() / 1000) - (10 * 86400);
-    const last = this.db.select<{ id: number }>('webhook_requests', {
+    const last = await this.db.select<{ id: number }>('webhook_requests', {
       where: { timestamp: { less_than: cutoff } },
       order: 'timestamp',
       direction: 'DESC',

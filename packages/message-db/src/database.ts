@@ -1,4 +1,4 @@
-import { Database } from 'bun:sqlite';
+import type { Queryable } from '@posta/core';
 
 /**
  * Options for the `select` query builder.
@@ -51,14 +51,14 @@ export interface PaginationResult<T> {
  * Provides select/insert/update/delete with parameterized queries,
  * pagination, and safe SQL construction.
  *
- * Each server gets its own SQLite file via this wrapper.
- * All queries use parameterized binding to prevent SQL injection.
+ * Each server gets its own PostgreSQL schema, configured via the connection
+ * search_path. All queries use parameterized binding to prevent SQL injection.
  */
 export class MessageDatabase {
-  public readonly db: Database;
+  public readonly db: Queryable;
   public readonly serverId: number;
 
-  constructor(db: Database, serverId: number) {
+  constructor(db: Queryable, serverId: number) {
     this.db = db;
     this.serverId = serverId;
   }
@@ -66,10 +66,10 @@ export class MessageDatabase {
   /**
    * Select records from a table.
    */
-  select<T = Record<string, unknown>>(
+  async select<T = Record<string, unknown>>(
     table: string,
     options: SelectOptions = {},
-  ): T[] | number {
+  ): Promise<T[] | number> {
     const parts: string[] = [];
 
     if (options.count) {
@@ -104,29 +104,28 @@ export class MessageDatabase {
     }
 
     const sql = parts.join(' ');
-    const stmt = this.db.query(sql);
 
     if (options.count) {
-      const row = stmt.get(...params) as { count: number } | undefined;
+      const row = await this.db.get<{ count: number }>(sql, params);
       return row?.count ?? 0;
     }
 
-    return stmt.all(...params) as T[];
+    return this.db.query<T>(sql, params);
   }
 
   /**
    * Paginated select — returns total count, records, and page metadata.
    */
-  selectWithPagination<T = Record<string, unknown>>(
+  async selectWithPagination<T = Record<string, unknown>>(
     table: string,
     page: number,
     options: Omit<SelectOptions, 'offset'> = {},
-  ): PaginationResult<T> {
+  ): Promise<PaginationResult<T>> {
     const perPage = options.limit ?? 30;
     const actualPage = Math.max(1, page);
     const offset = (actualPage - 1) * perPage;
 
-    const total = this.select<{ count: number }>(table, {
+    const total = await this.select<{ count: number }>(table, {
       ...options,
       count: true,
       fields: undefined,
@@ -134,7 +133,7 @@ export class MessageDatabase {
       direction: undefined,
     }) as number;
 
-    const records = this.select<T>(table, {
+    const records = await this.select<T>(table, {
       ...options,
       limit: perPage,
       offset,
@@ -155,16 +154,16 @@ export class MessageDatabase {
    * Update records in a table.
    * Returns the number of affected rows.
    */
-  update(
+  async update(
     table: string,
     attributes: Record<string, unknown>,
     options: { where?: WhereCondition } = {},
-  ): number {
+  ): Promise<number> {
     const setClauses: string[] = [];
     const params: any[] = [];
 
     for (const [key, value] of Object.entries(attributes)) {
-      setClauses.push(`"${sanitizeIdentifier(key)}" = ?`);
+      setClauses.push(`"${sanitizeIdentifier(key)}" = $${params.length + 1}`);
       params.push(convertValue(value));
     }
 
@@ -180,8 +179,7 @@ export class MessageDatabase {
     }
 
     const sql = parts.join(' ');
-    const stmt = this.db.prepare(sql);
-    const result = stmt.run(...params);
+    const result = await this.db.run(sql, params);
     return result.changes;
   }
 
@@ -189,50 +187,56 @@ export class MessageDatabase {
    * Insert a record into a table.
    * Returns the new row ID.
    */
-  insert(table: string, attributes: Record<string, unknown>): number {
+  async insert(table: string, attributes: Record<string, unknown>): Promise<number> {
     const keys = Object.keys(attributes);
     const values = keys.map((k) => convertValue(attributes[k]));
 
     const sql = `INSERT INTO "${sanitizeIdentifier(table)}" (` +
       keys.map((k) => `"${sanitizeIdentifier(k)}"`).join(', ') +
       ') VALUES (' +
-      keys.map(() => '?').join(', ') +
-      ')';
+      keys.map((_, i) => `$${i + 1}`).join(', ') +
+      ') RETURNING id';
 
-    const stmt = this.db.prepare(sql);
-    const result = stmt.run(...values);
+    const result = await this.db.run(sql, values);
     return Number(result.lastInsertRowid);
   }
 
   /**
    * Insert multiple rows in a single query.
    */
-  insertMulti(
+  async insertMulti(
     table: string,
     keys: string[],
     rows: any[][],
-  ): void {
+  ): Promise<void> {
     if (rows.length === 0) return;
 
-    const placeholders = rows.map(() => `(${keys.map(() => '?').join(', ')})`).join(', ');
-    const values = rows.flatMap((row) => row.map(convertValue));
+    const params: any[] = [];
+    const placeholders: string[] = [];
+    for (const row of rows) {
+      const rowPlaceholders: string[] = [];
+      for (const value of row) {
+        params.push(convertValue(value));
+        rowPlaceholders.push(`$${params.length}`);
+      }
+      placeholders.push(`(${rowPlaceholders.join(', ')})`);
+    }
 
     const sql = `INSERT INTO "${sanitizeIdentifier(table)}" (` +
       keys.map((k) => `"${sanitizeIdentifier(k)}"`).join(', ') +
-      `) VALUES ${placeholders}`;
+      `) VALUES ${placeholders.join(', ')}`;
 
-    const stmt = this.db.prepare(sql);
-    stmt.run(...values);
+    await this.db.run(sql, params);
   }
 
   /**
    * Delete records from a table.
    * Returns the number of affected rows.
    */
-  delete(
+  async delete(
     table: string,
     options: { where?: WhereCondition } = {},
-  ): number {
+  ): Promise<number> {
     const parts: string[] = [];
     parts.push(`DELETE FROM "${sanitizeIdentifier(table)}"`);
 
@@ -245,43 +249,46 @@ export class MessageDatabase {
     }
 
     const sql = parts.join(' ');
-    const stmt = this.db.prepare(sql);
-    const result = stmt.run(...params);
+    const result = await this.db.run(sql, params);
     return result.changes;
   }
 
   /**
    * Run a raw SQL query with optional parameters.
    */
-  query<T = Record<string, unknown>>(sql: string, params?: any[]): T[] {
-    if (params && params.length > 0) {
-      return this.db.query(sql).all(...params) as T[];
-    }
-    return this.db.query(sql).all() as T[];
+  async query<T = Record<string, unknown>>(sql: string, params?: any[]): Promise<T[]> {
+    return this.db.query<T>(sql, params);
+  }
+
+  /**
+   * Execute a parameterized SQL statement (no results).
+   */
+  async run(sql: string, params?: any[]): Promise<void> {
+    await this.db.run(sql, params);
   }
 
   /**
    * Execute a raw SQL statement (no results).
    */
-  exec(sql: string): void {
-    this.db.exec(sql);
+  async exec(sql: string): Promise<void> {
+    await this.db.exec(sql);
   }
 
   /**
    * Run a function inside a transaction.
    */
-  transaction<T>(fn: () => T): T {
-    return this.db.transaction(fn)();
+  async transaction<T>(fn: () => Promise<T>): Promise<T> {
+    return this.db.transaction(async () => fn());
   }
 
   /**
    * Get the total size of all stored raw messages.
    */
-  totalSize(): number {
-    const row = this.query<{ size: number | null }>(
+  async totalSize(): Promise<number> {
+    const row = await this.db.get<{ size: number | null }>(
       'SELECT COALESCE(SUM(size), 0) AS size FROM raw_message_sizes',
     );
-    return row[0]?.size ?? 0;
+    return row?.size ?? 0;
   }
 }
 
@@ -304,34 +311,36 @@ function buildWhereClause(
       if (value.length === 0) {
         clauses.push('1=0');
       } else {
-        const placeholders = value.map(() => '?').join(', ');
-        clauses.push(`${column} IN (${placeholders})`);
-        params.push(...value.map(convertValue));
+        const placeholders = value.map((v) => {
+          params.push(convertValue(v));
+          return `$${params.length}`;
+        });
+        clauses.push(`${column} IN (${placeholders.join(', ')})`);
       }
     } else if (isWhereOperator(value)) {
       const op = value as WhereOperator;
       if (op.less_than !== undefined) {
-        clauses.push(`${column} < ?`);
         params.push(convertValue(op.less_than));
+        clauses.push(`${column} < $${params.length}`);
       }
       if (op.greater_than !== undefined) {
-        clauses.push(`${column} > ?`);
         params.push(convertValue(op.greater_than));
+        clauses.push(`${column} > $${params.length}`);
       }
       if (op.less_than_or_equal_to !== undefined) {
-        clauses.push(`${column} <= ?`);
         params.push(convertValue(op.less_than_or_equal_to));
+        clauses.push(`${column} <= $${params.length}`);
       }
       if (op.greater_than_or_equal_to !== undefined) {
-        clauses.push(`${column} >= ?`);
         params.push(convertValue(op.greater_than_or_equal_to));
+        clauses.push(`${column} >= $${params.length}`);
       }
       if (clauses.length === 0) {
         clauses.push('1=1');
       }
     } else {
-      clauses.push(`${column} = ?`);
       params.push(convertValue(value));
+      clauses.push(`${column} = $${params.length}`);
     }
   }
 
