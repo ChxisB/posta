@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 import StepOrganization from './steps/step-organization';
 import StepServer from './steps/step-server';
@@ -40,14 +40,17 @@ export interface WizardState {
   testSent: boolean;
 }
 
-const STEPS: { key: WizardStep; label: string }[] = [
+const STEPS: { key: WizardStep; label: string; optional?: boolean }[] = [
   { key: 'organization', label: 'Organization' },
   { key: 'server', label: 'Server' },
   { key: 'domain', label: 'Domain' },
-  { key: 'dns', label: 'DNS Setup' },
+  { key: 'dns', label: 'DNS' },
   { key: 'credentials', label: 'Credentials' },
-  { key: 'sending', label: 'Sending Direction' },
-  { key: 'test-send', label: 'Test Send' },
+  // Sending direction defaults to outgoing and a test send proves nothing
+  // the rest of the setup has not already configured, so both can be skipped
+  // without leaving the server in a broken state.
+  { key: 'sending', label: 'Direction', optional: true },
+  { key: 'test-send', label: 'Test send', optional: true },
   { key: 'summary', label: 'Summary' },
 ];
 
@@ -55,6 +58,11 @@ const STEP_ORDER: WizardStep[] = STEPS.map((s) => s.key);
 
 const STORAGE_KEY_PREFIX = 'posta:wizard:';
 
+/**
+ * The wizard is explicitly resumable: DNS propagation can take a day, so an
+ * operator is expected to leave part-way and come back. Progress is keyed by
+ * permalink so two half-finished organisations don't overwrite each other.
+ */
 function loadSaved(permalink: string): { step: WizardStep; state: WizardState } | null {
   try {
     const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${permalink}`);
@@ -104,7 +112,6 @@ function firstIncompleteStep(p: PreloadedOrg): WizardStep {
 export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Props) {
   const router = useRouter();
 
-  // Build initial state from preloaded data or defaults
   const initialData = preloaded ?? {
     orgId: null,
     orgPermalink: initialOrgPermalink,
@@ -118,12 +125,9 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
     routeCount: 0,
   };
 
-  const [step, setStep] = useState<WizardStep>(() => {
-    if (initialData.orgPermalink) {
-      return firstIncompleteStep(initialData);
-    }
-    return 'organization';
-  });
+  const [step, setStep] = useState<WizardStep>(() =>
+    initialData.orgPermalink ? firstIncompleteStep(initialData) : 'organization',
+  );
 
   const [state, setState] = useState<WizardState>({
     orgId: initialData.orgId,
@@ -139,7 +143,8 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
     testSent: false,
   });
 
-  // Restore from localStorage if it exists (overrides preloaded data for resumed sessions)
+  // A saved session is more current than the server preload, so it wins.
+  // Runs once: after this the persist effect below owns the stored value.
   const initialized = useRef(false);
   useEffect(() => {
     if (initialized.current) return;
@@ -151,9 +156,8 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
       setState(saved.state);
       setStep(saved.step);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.orgPermalink]);
 
-  // Persist state to localStorage
   useEffect(() => {
     if (!state.orgPermalink) return;
     saveToDisk(state.orgPermalink, step, state);
@@ -165,15 +169,10 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  const goToStep = useCallback((s: WizardStep) => {
-    setStep(s);
-  }, []);
-
   const goNext = useCallback(() => {
     setStep((prev) => {
       const idx = STEP_ORDER.indexOf(prev);
-      if (idx < STEP_ORDER.length - 1) return STEP_ORDER[idx + 1];
-      return prev;
+      return idx < STEP_ORDER.length - 1 ? STEP_ORDER[idx + 1] : prev;
     });
   }, []);
 
@@ -182,9 +181,10 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
       const idx = STEP_ORDER.indexOf(prev);
       if (idx <= 0) return prev;
       const candidate = STEP_ORDER[idx - 1];
+      // Once the organisation exists, step 1 has nothing left to do, so Back
+      // skips over it rather than showing a form that would create a second.
       if (candidate === 'organization' && orgExists) {
-        if (idx - 2 >= 0) return STEP_ORDER[idx - 2];
-        return prev;
+        return idx - 2 >= 0 ? STEP_ORDER[idx - 2] : prev;
       }
       return candidate;
     });
@@ -192,142 +192,110 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
 
   const currentIdx = STEP_ORDER.indexOf(step);
 
-  return (
-    <div className="animate-fade-in">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/20">
-          <Sparkles className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Setup Wizard</h1>
-          <p className="text-sm text-muted-foreground">
-            {state.orgName
-              ? `Configuring ${state.orgName}`
-              : 'Get your organization ready to send and receive email'}
-          </p>
-        </div>
-      </div>
+  /**
+   * Each step owns its own Back/Next buttons, because most of them create
+   * something through the API before advancing and only the step knows
+   * whether that succeeded. So this renders the rail and the frame and
+   * leaves navigation to the step, rather than using the shared Wizard
+   * primitive whose footer drives the transitions itself.
+   */
+  const stepProps = { state, updateState, onNext: goNext, onBack: goBack };
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <nav className="lg:w-56 shrink-0">
-          <div className="lg:sticky lg:top-8 space-y-1">
+  return (
+    <>
+      <PageHeader
+        title="Setup wizard"
+        description={
+          state.orgName
+            ? `Configuring ${state.orgName}. Five required steps, two optional. Progress saves as you go, so you can stop at any point and pick up where you left off.`
+            : 'Takes a new organisation all the way to a verified, sending domain. Five required steps, two optional — progress saves as you go, so you can stop at any point and come back.'
+        }
+      />
+
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+        <nav aria-label="Setup steps" className="shrink-0 lg:w-52">
+          <ol className="flex gap-1 overflow-x-auto pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible lg:pb-0">
             {STEPS.map((s, i) => {
               const isCurrent = s.key === step;
               const isPast = i < currentIdx;
+              // The organisation step is complete by definition when the
+              // wizard was opened against an existing organisation.
               const isSkipped = s.key === 'organization' && orgExists;
-              const isDisabled = !isPast && !isCurrent && !isSkipped;
+              const reachable = isPast || isCurrent || isSkipped;
+              const complete = isPast || isSkipped;
 
               return (
-                <button
-                  key={s.key}
-                  onClick={() => {
-                    if (isCurrent || isDisabled) return;
-                    goToStep(s.key);
-                  }}
-                  className={cn(
-                    'flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm text-left transition-all',
-                    isCurrent
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : isSkipped || isPast
-                        ? 'text-muted-foreground hover:bg-muted/60 hover:text-foreground cursor-pointer'
-                        : 'text-muted-foreground/40 cursor-not-allowed'
-                  )}
-                >
-                  <span
+                <li key={s.key}>
+                  <button
+                    type="button"
+                    onClick={() => reachable && !isCurrent && setStep(s.key)}
+                    disabled={!reachable || isCurrent}
+                    aria-current={isCurrent ? 'step' : undefined}
+                    aria-label={`Step ${i + 1}: ${s.label}`}
                     className={cn(
-                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
+                      'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors',
                       isCurrent
-                        ? 'bg-primary text-primary-foreground'
-                        : isSkipped || isPast
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-muted text-muted-foreground/40'
+                        ? 'bg-accent/10 font-medium text-accent'
+                        : reachable
+                          ? 'cursor-pointer text-muted hover:bg-panel-2 hover:text-foreground'
+                          : 'text-faint/50',
                     )}
                   >
-                    {(isSkipped || isPast) ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                  </span>
-                  {s.label}
-                </button>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'grid h-6 w-6 shrink-0 place-items-center rounded-full text-2xs font-bold',
+                        isCurrent
+                          ? 'bg-accent text-accent-ink'
+                          : complete
+                            ? 'bg-green/15 text-green'
+                            : 'bg-panel-2 text-faint',
+                      )}
+                    >
+                      {complete ? <Check size={12} strokeWidth={3} /> : i + 1}
+                    </span>
+                    <span className="whitespace-nowrap">{s.label}</span>
+                    {s.optional && !complete && (
+                      <span className="ml-auto hidden text-2xs text-faint lg:inline">optional</span>
+                    )}
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </nav>
 
-        <div className="flex-1 min-w-0">
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/95">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                {STEPS.find((s) => s.key === step)?.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {step === 'organization' && (
-                <StepOrganization
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                />
-              )}
-              {step === 'server' && (
-                <StepServer
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'domain' && (
-                <StepDomain
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'dns' && (
-                <StepDns
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'credentials' && (
-                <StepCredentials
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'sending' && (
-                <StepSending
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'test-send' && (
-                <StepTestSend
-                  state={state}
-                  updateState={updateState}
-                  onNext={goNext}
-                  onBack={goBack}
-                />
-              )}
-              {step === 'summary' && (
-                <StepSummary
-                  state={state}
-                  onFinish={() => {
-                    if (state.orgPermalink) clearSaved(state.orgPermalink);
-                    router.push(`/organizations`);
-                  }}
-                />
-              )}
-            </CardContent>
+        <div className="min-w-0 flex-1">
+          <Card padded>
+            <div className="flex items-center gap-2 border-b border-line-soft pb-4">
+              <Sparkles size={15} className="text-accent" aria-hidden />
+              <h2 className="text-sm font-semibold text-foreground">{STEPS[currentIdx]?.label}</h2>
+              <span className="ml-auto text-xs tabular-nums text-faint">
+                Step {currentIdx + 1} of {STEPS.length}
+              </span>
+            </div>
+
+            {step === 'organization' && (
+              <StepOrganization state={state} updateState={updateState} onNext={goNext} />
+            )}
+            {step === 'server' && <StepServer {...stepProps} />}
+            {step === 'domain' && <StepDomain {...stepProps} />}
+            {step === 'dns' && <StepDns {...stepProps} />}
+            {step === 'credentials' && <StepCredentials {...stepProps} />}
+            {step === 'sending' && <StepSending {...stepProps} />}
+            {step === 'test-send' && <StepTestSend {...stepProps} />}
+            {step === 'summary' && (
+              <StepSummary
+                state={state}
+                onFinish={() => {
+                  if (state.orgPermalink) clearSaved(state.orgPermalink);
+                  router.push('/organizations');
+                }}
+              />
+            )}
           </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

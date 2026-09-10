@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import { getWebhook, updateWebhook, getWebhookHistory, deleteWebhook } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function EditWebhookPage() {
-  const { permalink, serverId, webhookId } = useParams<{ permalink: string; serverId: string; webhookId: string }>();
+  const { permalink, serverId, webhookId } = useParams<{
+    permalink: string;
+    serverId: string;
+    webhookId: string;
+  }>();
   const router = useRouter();
   const [webhook, setWebhook] = useState<any>({});
   const [name, setName] = useState('');
@@ -78,26 +83,42 @@ export default function EditWebhookPage() {
   };
 
   return (
-    <OrgLayout orgPermalink={permalink}>
+    <>
       <div style={{ marginBottom: 24 }}>
-        <Link href={`/organizations/${permalink}/servers/${serverId}/webhooks`} style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+        <Link
+          href={`/organizations/${permalink}/servers/${serverId}/webhooks`}
+          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+        >
           &larr; Back to Webhooks
         </Link>
       </div>
 
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Edit Webhook</h1>
-      <div className="card" style={{ maxWidth: 500, marginBottom: 24 }}>
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 500, marginBottom: 24 }}
+      >
         {loading ? (
           <p style={{ color: 'var(--color-text-muted)' }}>Loading...</p>
         ) : (
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {message && (
-              <div className={`tag ${message.type === 'success' ? 'tag-green' : 'tag-red'}`}>{message.text}</div>
+              <div className={`tag ${message.type === 'success' ? 'tag-green' : 'tag-red'}`}>
+                {message.text}
+              </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Name</label>
-              <input
-                className="input"
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                Name
+              </label>
+              <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My Webhook"
@@ -105,9 +126,17 @@ export default function EditWebhookPage() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>URL</label>
-              <input
-                className="input"
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                URL
+              </label>
+              <Input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com/webhook"
@@ -121,7 +150,9 @@ export default function EditWebhookPage() {
                 checked={enabled}
                 onChange={(e) => setEnabled(e.target.checked)}
               />
-              <label htmlFor="enabled" style={{ fontSize: 14, cursor: 'pointer' }}>Enabled</label>
+              <label htmlFor="enabled" style={{ fontSize: 14, cursor: 'pointer' }}>
+                Enabled
+              </label>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
@@ -130,7 +161,9 @@ export default function EditWebhookPage() {
                 checked={sign}
                 onChange={(e) => setSign(e.target.checked)}
               />
-              <label htmlFor="sign" style={{ fontSize: 14, cursor: 'pointer' }}>Sign Requests</label>
+              <label htmlFor="sign" style={{ fontSize: 14, cursor: 'pointer' }}>
+                Sign Requests
+              </label>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
@@ -139,26 +172,28 @@ export default function EditWebhookPage() {
                 checked={allEvents}
                 onChange={(e) => setAllEvents(e.target.checked)}
               />
-              <label htmlFor="allEvents" style={{ fontSize: 14, cursor: 'pointer' }}>All Events</label>
+              <label htmlFor="allEvents" style={{ fontSize: 14, cursor: 'pointer' }}>
+                All Events
+              </label>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
+              <Button variant="primary" type="submit" disabled={saving}>
                 {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button type="button" className="btn btn-danger" onClick={handleDelete}>
+              </Button>
+              <Button variant="danger" type="button" onClick={handleDelete}>
                 Delete
-              </button>
+              </Button>
             </div>
           </form>
         )}
       </div>
 
-      <div className="card">
+      <div className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm">
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Webhook History</h3>
         {history.length === 0 ? (
           <p style={{ color: 'var(--color-text-muted)' }}>No webhook requests yet.</p>
         ) : (
-          <table className="table">
+          <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-line-soft [&_td]:py-3 [&_td]:pr-3 [&_th]:py-2.5 [&_th]:pr-3 [&_th]:text-left [&_th]:text-2xs [&_th]:font-medium [&_th]:tracking-wide [&_th]:text-faint [&_th]:uppercase [&_tr:last-child_td]:border-0">
             <thead>
               <tr>
                 <th>Event</th>
@@ -171,15 +206,19 @@ export default function EditWebhookPage() {
               {history.map((req: any) => (
                 <tr key={req.id}>
                   <td>{req.event ?? '-'}</td>
-                  <td style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>{req.url ?? '-'}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
+                    {req.url ?? '-'}
+                  </td>
                   <td>{req.attempts ?? 0}</td>
-                  <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{req.created_at ?? '-'}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+                    {req.created_at ?? '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-    </OrgLayout>
+    </>
   );
 }

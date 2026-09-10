@@ -1,12 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5001';
 
-async function fetchApi<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path}`;
   const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> ?? {}),
+    ...((options.headers as Record<string, string>) ?? {}),
   };
 
   try {
@@ -77,9 +74,12 @@ export async function getServerQueue(orgPermalink: string, serverId: string, pag
 }
 
 export async function getServerLimits(orgPermalink: string, serverId: string) {
-  return fetchApi<{ send_limit: number; sent_today: number; approaching: boolean; exceeded: boolean }>(
-    `/org/${orgPermalink}/servers/${serverId}/limits`,
-  );
+  return fetchApi<{
+    send_limit: number;
+    sent_today: number;
+    approaching: boolean;
+    exceeded: boolean;
+  }>(`/org/${orgPermalink}/servers/${serverId}/limits`);
 }
 
 // ─── Messages ────────────────────────────────────────────
@@ -113,16 +113,14 @@ export async function retryMessage(orgPermalink: string, serverId: string, messa
 // ─── Domains ─────────────────────────────────────────────
 
 export async function getDomains(orgPermalink: string, serverId: string) {
-  return fetchApi<{ domains: any[] }>(
-    `/org/${orgPermalink}/servers/${serverId}/domains`,
-  );
+  return fetchApi<{ domains: any[] }>(`/org/${orgPermalink}/servers/${serverId}/domains`);
 }
 
 export async function createDomain(orgPermalink: string, serverId: string, data: any) {
-  return fetchApi<{ domain: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/domains`,
-    { method: 'POST', body: JSON.stringify(data) },
-  );
+  return fetchApi<{ domain: any }>(`/org/${orgPermalink}/servers/${serverId}/domains`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteDomain(orgPermalink: string, serverId: string, domainId: string) {
@@ -132,49 +130,51 @@ export async function deleteDomain(orgPermalink: string, serverId: string, domai
   );
 }
 
-export async function updateDomain(orgPermalink: string, serverId: string, domainId: string, data: any) {
-  return fetchApi<{ domain: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/domains/${domainId}`,
-    { method: 'PATCH', body: JSON.stringify(data) },
-  );
+export async function updateDomain(
+  orgPermalink: string,
+  serverId: string,
+  domainId: string,
+  data: any,
+) {
+  return fetchApi<{ domain: any }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function checkDomainDns(orgPermalink: string, serverId: string, domainId: string) {
-  return fetchApi<{ spf_status: string; dkim_status: string; mx_status: string; return_path_status: string }>(
-    `/org/${orgPermalink}/servers/${serverId}/domains/${domainId}/check`,
-    { method: 'POST' },
-  );
+  return fetchApi<{
+    spf_status: string;
+    dkim_status: string;
+    mx_status: string;
+    return_path_status: string;
+  }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}/check`, { method: 'POST' });
 }
 
 // ─── Credentials ─────────────────────────────────────────
 
 export async function getCredentials(orgPermalink: string, serverId: string) {
-  return fetchApi<{ credentials: any[] }>(
-    `/org/${orgPermalink}/servers/${serverId}/credentials`,
-  );
+  return fetchApi<{ credentials: any[] }>(`/org/${orgPermalink}/servers/${serverId}/credentials`);
 }
 
 export async function createCredential(orgPermalink: string, serverId: string, data: any) {
-  return fetchApi<{ credential: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/credentials`,
-    { method: 'POST', body: JSON.stringify(data) },
-  );
+  return fetchApi<{ credential: any }>(`/org/${orgPermalink}/servers/${serverId}/credentials`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
-
 
 // ─── Routes ──────────────────────────────────────────────
 
 export async function getRoutes(orgPermalink: string, serverId: string) {
-  return fetchApi<{ routes: any[] }>(
-    `/org/${orgPermalink}/servers/${serverId}/routes`,
-  );
+  return fetchApi<{ routes: any[] }>(`/org/${orgPermalink}/servers/${serverId}/routes`);
 }
 
 export async function createRoute(orgPermalink: string, serverId: string, data: any) {
-  return fetchApi<{ route: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/routes`,
-    { method: 'POST', body: JSON.stringify(data) },
-  );
+  return fetchApi<{ route: any }>(`/org/${orgPermalink}/servers/${serverId}/routes`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteRoute(orgPermalink: string, serverId: string, routeId: string) {
@@ -195,16 +195,14 @@ export async function getEndpoints(orgPermalink: string, serverId: string) {
 // ─── Webhooks ────────────────────────────────────────────
 
 export async function getWebhooks(orgPermalink: string, serverId: string) {
-  return fetchApi<{ webhooks: any[] }>(
-    `/org/${orgPermalink}/servers/${serverId}/webhooks`,
-  );
+  return fetchApi<{ webhooks: any[] }>(`/org/${orgPermalink}/servers/${serverId}/webhooks`);
 }
 
 export async function createWebhook(orgPermalink: string, serverId: string, data: any) {
-  return fetchApi<{ webhook: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/webhooks`,
-    { method: 'POST', body: JSON.stringify(data) },
-  );
+  return fetchApi<{ webhook: any }>(`/org/${orgPermalink}/servers/${serverId}/webhooks`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteWebhook(orgPermalink: string, serverId: string, webhookId: string) {
@@ -258,7 +256,9 @@ export async function createUser(data: any) {
 // ─── Track Domains ───────────────────────────────────────
 
 export async function getTrackDomains(orgPermalink: string, serverId: string) {
-  return fetchApi<{ track_domains: any[] }>(`/org/${orgPermalink}/servers/${serverId}/track_domains`);
+  return fetchApi<{ track_domains: any[] }>(
+    `/org/${orgPermalink}/servers/${serverId}/track_domains`,
+  );
 }
 
 export async function createTrackDomain(orgPermalink: string, serverId: string, data: any) {
@@ -314,18 +314,16 @@ export async function createEndpoint(
   type: 'http' | 'smtp' | 'address',
   data: any,
 ) {
-  return fetchApi<{ endpoint: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/endpoints/${type}`,
-    { method: 'POST', body: JSON.stringify(data) },
-  );
+  return fetchApi<{ endpoint: any }>(`/org/${orgPermalink}/servers/${serverId}/endpoints/${type}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 // ─── Domain Setup ───────────────────────────────────────
 
 export async function getDomain(orgPermalink: string, serverId: string, domainId: string) {
-  return fetchApi<{ domain: any }>(
-    `/org/${orgPermalink}/servers/${serverId}/domains/${domainId}`,
-  );
+  return fetchApi<{ domain: any }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}`);
 }
 
 export async function getDomainSetup(orgPermalink: string, serverId: string, domainId: string) {
@@ -359,14 +357,22 @@ export async function updateTrackDomain(
   );
 }
 
-export async function toggleTrackDomainSsl(orgPermalink: string, serverId: string, domainId: string) {
+export async function toggleTrackDomainSsl(
+  orgPermalink: string,
+  serverId: string,
+  domainId: string,
+) {
   return fetchApi<{ ssl_enabled: boolean }>(
     `/org/${orgPermalink}/servers/${serverId}/track_domains/${domainId}/toggle_ssl`,
     { method: 'POST' },
   );
 }
 
-export async function checkTrackDomainDns(orgPermalink: string, serverId: string, domainId: string) {
+export async function checkTrackDomainDns(
+  orgPermalink: string,
+  serverId: string,
+  domainId: string,
+) {
   return fetchApi<{ status: string }>(
     `/org/${orgPermalink}/servers/${serverId}/track_domains/${domainId}/check`,
     { method: 'POST' },
@@ -419,7 +425,11 @@ export async function getMessageHeaders(orgPermalink: string, serverId: string, 
   );
 }
 
-export async function getMessageAttachments(orgPermalink: string, serverId: string, messageId: string) {
+export async function getMessageAttachments(
+  orgPermalink: string,
+  serverId: string,
+  messageId: string,
+) {
   return fetchApi<{ attachments: any[] }>(
     `/org/${orgPermalink}/servers/${serverId}/messages/${messageId}/attachments`,
   );
@@ -447,19 +457,33 @@ export async function deleteOrgIpPoolRule(orgPermalink: string, ruleId: string) 
 // ─── Credentials ─────────────────────────────────────────
 
 export async function getCredential(orgPermalink: string, serverId: string, credId: string) {
-  return fetchApi<{ credential: any }>(`/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`);
+  return fetchApi<{ credential: any }>(
+    `/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`,
+  );
 }
 
-export async function updateCredential(orgPermalink: string, serverId: string, credId: string, data: any) {
-  return fetchApi<{ credential: any }>(`/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`, {
-    method: 'PATCH', body: JSON.stringify(data),
-  });
+export async function updateCredential(
+  orgPermalink: string,
+  serverId: string,
+  credId: string,
+  data: any,
+) {
+  return fetchApi<{ credential: any }>(
+    `/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export async function deleteCredential(orgPermalink: string, serverId: string, credId: string) {
-  return fetchApi<{ deleted: boolean }>(`/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`, {
-    method: 'DELETE',
-  });
+  return fetchApi<{ deleted: boolean }>(
+    `/org/${orgPermalink}/servers/${serverId}/credentials/${credId}`,
+    {
+      method: 'DELETE',
+    },
+  );
 }
 
 // ─── Routes ──────────────────────────────────────────────
@@ -468,28 +492,59 @@ export async function getRoute(orgPermalink: string, serverId: string, routeId: 
   return fetchApi<{ route: any }>(`/org/${orgPermalink}/servers/${serverId}/routes/${routeId}`);
 }
 
-export async function updateRoute(orgPermalink: string, serverId: string, routeId: string, data: any) {
+export async function updateRoute(
+  orgPermalink: string,
+  serverId: string,
+  routeId: string,
+  data: any,
+) {
   return fetchApi<{ route: any }>(`/org/${orgPermalink}/servers/${serverId}/routes/${routeId}`, {
-    method: 'PATCH', body: JSON.stringify(data),
+    method: 'PATCH',
+    body: JSON.stringify(data),
   });
 }
 
 // ─── Endpoints ───────────────────────────────────────────
 
-export async function getEndpoint(orgPermalink: string, serverId: string, type: string, endpointId: string) {
-  return fetchApi<{ endpoint: any }>(`/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`);
+export async function getEndpoint(
+  orgPermalink: string,
+  serverId: string,
+  type: string,
+  endpointId: string,
+) {
+  return fetchApi<{ endpoint: any }>(
+    `/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`,
+  );
 }
 
-export async function updateEndpoint(orgPermalink: string, serverId: string, type: string, endpointId: string, data: any) {
-  return fetchApi<{ endpoint: any }>(`/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`, {
-    method: 'PATCH', body: JSON.stringify(data),
-  });
+export async function updateEndpoint(
+  orgPermalink: string,
+  serverId: string,
+  type: string,
+  endpointId: string,
+  data: any,
+) {
+  return fetchApi<{ endpoint: any }>(
+    `/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    },
+  );
 }
 
-export async function deleteEndpoint(orgPermalink: string, serverId: string, type: string, endpointId: string) {
-  return fetchApi<{ deleted: boolean }>(`/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`, {
-    method: 'DELETE',
-  });
+export async function deleteEndpoint(
+  orgPermalink: string,
+  serverId: string,
+  type: string,
+  endpointId: string,
+) {
+  return fetchApi<{ deleted: boolean }>(
+    `/org/${orgPermalink}/servers/${serverId}/endpoints/${type}/${endpointId}`,
+    {
+      method: 'DELETE',
+    },
+  );
 }
 
 // ─── Users (Admin) ────────────────────────────────────────
@@ -500,7 +555,8 @@ export async function getUser(userId: string) {
 
 export async function updateUser(userId: string, data: any) {
   return fetchApi<{ user: any }>(`/users/${userId}`, {
-    method: 'PATCH', body: JSON.stringify(data),
+    method: 'PATCH',
+    body: JSON.stringify(data),
   });
 }
 

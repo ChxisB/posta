@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import { createEndpoint } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
 
 export default function NewEndpointPage() {
   const { permalink, serverId } = useParams<{ permalink: string; serverId: string }>();
@@ -57,23 +60,37 @@ export default function NewEndpointPage() {
   };
 
   return (
-    <OrgLayout orgPermalink={permalink}>
+    <>
       <div style={{ marginBottom: 24 }}>
-        <Link href={`/organizations/${permalink}/servers/${serverId}/endpoints`} style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+        <Link
+          href={`/organizations/${permalink}/servers/${serverId}/endpoints`}
+          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+        >
           &larr; Back to Endpoints
         </Link>
       </div>
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>New {validType.toUpperCase()} Endpoint</h1>
-      <div className="card" style={{ maxWidth: 500 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>
+        New {validType.toUpperCase()} Endpoint
+      </h1>
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 500 }}
+      >
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && (
-            <div className="tag tag-red">{error}</div>
-          )}
+          {error && <Callout tone="danger">{error}</Callout>}
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Name</label>
-            <input
-              className="input"
+            <label
+              style={{
+                display: 'block',
+                fontSize: 12,
+                color: 'var(--color-text-muted)',
+                marginBottom: 6,
+              }}
+            >
+              Name
+            </label>
+            <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Endpoint"
@@ -84,9 +101,17 @@ export default function NewEndpointPage() {
           {validType === 'http' && (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>URL</label>
-                <input
-                  className="input"
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  URL
+                </label>
+                <Input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com/webhook"
@@ -94,18 +119,36 @@ export default function NewEndpointPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Format</label>
-                <select className="input" value={format} onChange={(e) => setFormat(e.target.value)}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  Format
+                </label>
+                <Select value={format} onChange={(e) => setFormat(e.target.value)}>
                   <option value="RawMessage">Raw RFC822</option>
                   <option value="JSON">JSON</option>
-                </select>
+                </Select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Encoding</label>
-                <select className="input" value={encoding} onChange={(e) => setEncoding(e.target.value)}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  Encoding
+                </label>
+                <Select value={encoding} onChange={(e) => setEncoding(e.target.value)}>
                   <option value="Base64">Base64</option>
                   <option value="QuotedPrintable">Quoted-Printable</option>
-                </select>
+                </Select>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
@@ -114,7 +157,9 @@ export default function NewEndpointPage() {
                   checked={stripReplies}
                   onChange={(e) => setStripReplies(e.target.checked)}
                 />
-                <label htmlFor="stripReplies" style={{ fontSize: 14, cursor: 'pointer' }}>Strip Replies</label>
+                <label htmlFor="stripReplies" style={{ fontSize: 14, cursor: 'pointer' }}>
+                  Strip Replies
+                </label>
               </div>
             </>
           )}
@@ -122,9 +167,17 @@ export default function NewEndpointPage() {
           {validType === 'smtp' && (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Hostname</label>
-                <input
-                  className="input"
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  Hostname
+                </label>
+                <Input
                   value={hostname}
                   onChange={(e) => setHostname(e.target.value)}
                   placeholder="smtp.example.com"
@@ -132,9 +185,17 @@ export default function NewEndpointPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Port</label>
-                <input
-                  className="input"
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  Port
+                </label>
+                <Input
                   type="number"
                   value={port}
                   onChange={(e) => setPort(e.target.value)}
@@ -142,22 +203,39 @@ export default function NewEndpointPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>SSL Mode</label>
-                <select className="input" value={sslMode} onChange={(e) => setSslMode(e.target.value)}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  SSL Mode
+                </label>
+                <Select value={sslMode} onChange={(e) => setSslMode(e.target.value)}>
                   <option value="Auto">Auto</option>
                   <option value="STARTTLS">STARTTLS</option>
                   <option value="TLS">TLS</option>
                   <option value="None">None</option>
-                </select>
+                </Select>
               </div>
             </>
           )}
 
           {validType === 'address' && (
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Email Address</label>
-              <input
-                className="input"
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                Email Address
+              </label>
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -168,15 +246,15 @@ export default function NewEndpointPage() {
           )}
 
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <Button variant="primary" type="submit" disabled={loading}>
               {loading ? 'Creating...' : 'Create Endpoint'}
-            </button>
-            <button type="button" className="btn" onClick={() => router.back()}>
+            </Button>
+            <Button type="button" onClick={() => router.back()}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </OrgLayout>
+    </>
   );
 }

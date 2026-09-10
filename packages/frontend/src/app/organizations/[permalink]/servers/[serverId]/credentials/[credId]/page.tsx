@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import OrgLayout from '@/components/org-layout';
 import { getCredential, updateCredential, deleteCredential } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function CredentialEditPage() {
   const params = useParams<{ permalink: string; serverId: string; credId: string }>();
@@ -40,7 +41,9 @@ export default function CredentialEditPage() {
       setMessage({ type: 'success', text: 'Credential updated successfully.' });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -53,32 +56,50 @@ export default function CredentialEditPage() {
     }
   };
 
-  if (loading) return <OrgLayout orgPermalink={params?.permalink ?? ''}><p>Loading...</p></OrgLayout>;
+  if (loading)
+    return (
+      <>
+        <p>Loading...</p>
+      </>
+    );
 
   return (
-    <OrgLayout orgPermalink={params.permalink}>
-      <Link href={`/organizations/${params.permalink}/servers/${params.serverId}/credentials`}
-        style={{ fontSize: 13, color: 'var(--color-text-muted)', textDecoration: 'none' }}>
+    <>
+      <Link
+        href={`/organizations/${params.permalink}/servers/${params.serverId}/credentials`}
+        style={{ fontSize: 13, color: 'var(--color-text-muted)', textDecoration: 'none' }}
+      >
         &larr; Back to Credentials
       </Link>
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '16px 0' }}>Edit Credential</h1>
-      {message && <div className={`tag tag-${message.type === 'success' ? 'green' : 'red'}`}>{message.text}</div>}
-      <div className="card" style={{ maxWidth: 500 }}>
+      {message && (
+        <div className={`tag tag-${message.type === 'success' ? 'green' : 'red'}`}>
+          {message.text}
+        </div>
+      )}
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 500 }}
+      >
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', marginBottom: 4 }}>Name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="checkbox" checked={hold} onChange={(e) => setHold(e.target.checked)} />
             <label>Hold messages from this credential</label>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-            <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+            <Button variant="primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button variant="danger" type="button" onClick={handleDelete}>
+              Delete
+            </Button>
           </div>
         </form>
       </div>
-    </OrgLayout>
+    </>
   );
 }

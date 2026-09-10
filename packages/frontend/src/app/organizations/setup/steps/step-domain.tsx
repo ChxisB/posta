@@ -5,6 +5,8 @@ import type { WizardState } from '../wizard-client';
 import { createDomain, updateDomain, getDomains } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { StepIntro } from './step-intro';
 
 interface Props {
   state: WizardState;
@@ -47,21 +49,27 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
     };
   }, []);
 
-  const checkName = useCallback((val: string) => {
-    if (!val.trim()) return;
-    const trimmed = val.trim().toLowerCase();
-    const match = allDomains.find(
-      (d) => d.name?.toLowerCase() === trimmed && d.id !== state.domainId
-    );
-    setNameTaken(!!match);
-  }, [allDomains, state.domainId]);
+  const checkName = useCallback(
+    (val: string) => {
+      if (!val.trim()) return;
+      const trimmed = val.trim().toLowerCase();
+      const match = allDomains.find(
+        (d) => d.name?.toLowerCase() === trimmed && d.id !== state.domainId,
+      );
+      setNameTaken(!!match);
+    },
+    [allDomains, state.domainId],
+  );
 
-  const handleNameChange = useCallback((val: string) => {
-    setName(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setNameTaken(false);
-    debounceRef.current = setTimeout(() => checkName(val), 400);
-  }, [checkName]);
+  const handleNameChange = useCallback(
+    (val: string) => {
+      setName(val);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      setNameTaken(false);
+      debounceRef.current = setTimeout(() => checkName(val), 400);
+    },
+    [checkName],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +79,12 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
       setSaving(true);
       setError(null);
       try {
-        const data = await updateDomain(state.orgPermalink, String(state.serverId), String(state.domainId), { name: name.trim() });
+        const data = await updateDomain(
+          state.orgPermalink,
+          String(state.serverId),
+          String(state.domainId),
+          { name: name.trim() },
+        );
         const domain = data.domain;
         updateState({ domainName: domain.name ?? name.trim() });
         onNext();
@@ -84,7 +97,9 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
       setLoading(true);
       setError(null);
       try {
-        const data = await createDomain(state.orgPermalink, String(state.serverId), { name: name.trim() });
+        const data = await createDomain(state.orgPermalink, String(state.serverId), {
+          name: name.trim(),
+        });
         const domain = data.domain;
         updateState({ domainId: domain.id, domainName: domain.name });
         onNext();
@@ -97,7 +112,7 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
   };
 
   if (poolsLoading) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>;
+    return <div className="text-sm text-muted">Loading...</div>;
   }
 
   const isUnchanged = isExisting && name === state.domainName;
@@ -105,16 +120,25 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+      <StepIntro
+        title="Add a domain"
+        needs="a domain you control, and the ability to change its DNS records in the next step."
+        next="Posta generates the SPF, DKIM and MX records you'll publish for it."
+      >
+        This is the domain your mail will appear to come from. It has to be one you own, because the
+        next step asks you to prove it by publishing DNS records — that proof is what stops anyone
+        else sending as you.
+      </StepIntro>
       {isExisting && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-          <p className="text-sm text-muted-foreground">
+        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+          <p className="text-sm text-muted">
             Editing domain &quot;{state.domainName}&quot;. Changes are saved when you continue.
           </p>
         </div>
       )}
 
       {!isExisting && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           Add a domain you own. You will need to configure DNS records in the next step.
         </p>
       )}
@@ -122,41 +146,47 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
       <div>
         <label className="block text-sm font-medium mb-1.5">Domain Name</label>
         <div className="relative">
-          <input
-            className="input w-full font-mono text-sm pr-10"
+          <Input
+            className="w-full font-mono text-sm pr-10"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="example.com"
             required
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-            {nameTaken && <AlertTriangle className="h-4 w-4 text-destructive" />}
-            {!nameTaken && name.trim() && (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            )}
+            {nameTaken && <AlertTriangle className="h-4 w-4 text-red" />}
+            {!nameTaken && name.trim() && <CheckCircle2 className="h-4 w-4 text-green" />}
           </div>
         </div>
         {nameTaken && (
-          <p className="text-xs text-destructive mt-1">A domain with this name already exists in this server.</p>
+          <p className="text-xs text-red mt-1">
+            A domain with this name already exists in this server.
+          </p>
         )}
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-muted mt-1">
           The domain you want to send or receive email from.
         </p>
       </div>
-      {error && (
-        <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</div>
-      )}
+      {error && <div className="text-sm text-red bg-red/10 rounded-lg px-3 py-2">{error}</div>}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading || saving || !canSubmit}>
           {(loading || saving) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? 'Adding...' : saving ? 'Saving...' : isExisting ? 'Save & Continue' : 'Add Domain & Continue'}
+          {loading
+            ? 'Adding...'
+            : saving
+              ? 'Saving...'
+              : isExisting
+                ? 'Save & Continue'
+                : 'Add Domain & Continue'}
         </Button>
         {isExisting && (
           <Button type="button" variant="ghost" onClick={onNext}>
             Skip (unchanged)
           </Button>
         )}
-        <Button type="button" variant="outline" onClick={onBack}>Back</Button>
+        <Button type="button" variant="secondary" onClick={onBack}>
+          Back
+        </Button>
       </div>
     </form>
   );

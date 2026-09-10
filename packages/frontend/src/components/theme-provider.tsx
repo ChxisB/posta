@@ -1,117 +1,85 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from 'react';
+import { createContext, useContext, useSyncExternalStore } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
-
-interface ThemeContextValue {
-  theme: Theme;
-  resolvedTheme: 'light' | 'dark';
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'posta-theme';
+const listeners = new Set<() => void>();
 
-function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+function subscribe(callback: () => void) {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
 }
 
-function resolveTheme(theme: Theme): 'light' | 'dark' {
-  return theme === 'system' ? getSystemTheme() : theme;
+function getSnapshot(): Theme {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 }
+
+// Matches THEME_INIT_SCRIPT's light default so hydration never has to
+// reconcile a mismatch: useSyncExternalStore renders this until mount, then
+// swaps to the real client value. Keep the two in lockstep, if the init
+// script's fallback changes this must change with it.
+function getServerSnapshot(): Theme {
+  return 'light';
+}
+
+function setThemeAttribute(theme: Theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(STORAGE_KEY, theme);
+  listeners.forEach((cb) => cb());
+}
+
+const ThemeContext = createContext<{
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  toggle: () => void;
+} | null>(null);
+
+/**
+ * Sets data-theme on <html> before hydration so there is no flash of the
+ * wrong palette. Must run synchronously, so this string is injected as a
+ * blocking inline script rather than executed from a mounted component.
+ *
+ * This replaces the previous provider, which hid the entire application
+ * behind `visibility: hidden` until it had mounted. That did prevent the
+ * flash, but it also threw away every server-rendered page: the first paint
+ * was a blank screen on every navigation, and the markup Next had already
+ * streamed was invisible until React caught up.
+ *
+ * Light is Posta's identity and dark is a secondary preference, so the OS
+ * setting is deliberately NOT consulted: only an explicit choice made
+ * through the theme toggle switches away from light, and that choice then
+ * persists. Honouring prefers-color-scheme here would mean most visitors
+ * never saw the light design at all.
+ */
+export const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem("${STORAGE_KEY}");
+    document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+`;
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
-  const [mounted, setMounted] = useState(false);
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  const applyTheme = useCallback((next: Theme) => {
-    const resolved = resolveTheme(next);
-    setResolvedTheme(resolved);
+  function toggle() {
+    setThemeAttribute(theme === 'dark' ? 'light' : 'dark');
+  }
 
-    const root = document.documentElement;
-    root.setAttribute('data-theme', resolved);
-    if (resolved === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    const saved = (typeof window !== 'undefined'
-      ? window.localStorage.getItem(STORAGE_KEY)
-      : null) as Theme | null;
-
-    const initial: Theme = saved ?? 'system';
-    setThemeState(initial);
-    applyTheme(initial);
-    setMounted(true);
-
-    const listener = (e: MediaQueryListEvent) => {
-      setThemeState((current) => {
-        if (current === 'system') {
-          applyTheme('system');
-        }
-        return current;
-      });
-    };
-
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [applyTheme]);
-
-  const setTheme = useCallback(
-    (next: Theme) => {
-      setThemeState(next);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      }
-      applyTheme(next);
-    },
-    [applyTheme],
-  );
-
-  const toggleTheme = useCallback(() => {
-    const next = resolvedTheme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-  }, [resolvedTheme, setTheme]);
-
-  // Prevent flash by hiding content until theme is resolved on first load.
   return (
-    <ThemeContext.Provider
-      value={{ theme, resolvedTheme, setTheme, toggleTheme }}
-    >
-      <div
-        style={{
-          visibility: mounted ? 'visible' : 'hidden',
-          opacity: mounted ? 1 : 0,
-          transition: 'opacity 0.15s ease',
-        }}
-      >
-        {children}
-      </div>
+    <ThemeContext.Provider value={{ theme, setTheme: setThemeAttribute, toggle }}>
+      {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
   return ctx;
 }

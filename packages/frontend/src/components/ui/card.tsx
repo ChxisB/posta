@@ -1,103 +1,119 @@
-import * as React from "react"
+import { cn } from '@/lib/utils';
 
-import { cn } from "@/lib/utils"
-
-function Card({
-  className,
-  size = "default",
-  ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+/**
+ * The app's one raised surface. Unpadded by default so a card can hold a
+ * flush table or its own header/body split; pass `padded` for the common
+ * single-block case.
+ *
+ * `rounded-2xl` and a 6-unit pad, one step softer and roomier than Warden's
+ * equivalent. Posta is a product people leave open all day reading lists of
+ * mail, not an operator console being scanned under pressure.
+ */
+export function Card({
+  padded = false,
+  className = '',
+  children,
+}: {
+  padded?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
-      data-slot="card"
-      data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
-        className
+        'rounded-2xl border border-line bg-panel shadow-elev-sm',
+        padded && 'p-6',
+        className,
       )}
-      {...props}
-    />
-  )
+    >
+      {children}
+    </div>
+  );
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+export function CardHeader({
+  title,
+  description,
+  action,
+  className = '',
+}: {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div
-      data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
-        className
+        'flex flex-wrap items-start gap-3 border-b border-line-soft px-6 py-4',
+        className,
       )}
-      {...props}
-    />
-  )
+    >
+      <div className="min-w-0 flex-1">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {description && <p className="mt-1 text-xs leading-relaxed text-muted">{description}</p>}
+      </div>
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+    </div>
+  );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+export function CardBody({
+  className = '',
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return <div className={cn('p-6', className)}>{children}</div>;
+}
+
+export function CardFooter({
+  className = '',
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div
-      data-slot="card-title"
-      className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
-        className
-      )}
-      {...props}
-    />
-  )
+    <div className={cn('flex items-center gap-2 border-t border-line-soft px-6 py-3.5', className)}>
+      {children}
+    </div>
+  );
 }
 
-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+/**
+ * A single headline number. Posta's overview screens are mostly counters
+ * (sent today, held, bounced), and every page was previously rolling its own
+ * markup for them.
+ */
+export function StatCard({
+  label,
+  value,
+  hint,
+  tone = 'default',
+  className = '',
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  hint?: React.ReactNode;
+  tone?: 'default' | 'green' | 'amber' | 'orange' | 'red' | 'sky';
+  className?: string;
+}) {
+  const TONE = {
+    default: 'text-foreground',
+    green: 'text-green',
+    amber: 'text-amber',
+    orange: 'text-orange',
+    red: 'text-red',
+    sky: 'text-sky',
+  } as const;
+
   return (
-    <div
-      data-slot="card-description"
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  )
-}
-
-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-content"
-      className={cn("px-(--card-spacing)", className)}
-      {...props}
-    />
-  )
-}
-
-function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-footer"
-      className={cn(
-        "flex items-center rounded-b-xl border-t bg-muted/50 p-(--card-spacing)",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardAction,
-  CardDescription,
-  CardContent,
+    <Card className={cn('p-6', className)}>
+      <p className="text-2xs font-semibold tracking-wide text-faint uppercase">{label}</p>
+      <p className={cn('mt-2 text-3xl font-semibold tabular-nums', TONE[tone])}>{value}</p>
+      {hint && <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p>}
+    </Card>
+  );
 }

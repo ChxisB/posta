@@ -5,6 +5,8 @@ import type { WizardState } from '../wizard-client';
 import { createOrganization, updateOrganization, getOrganization } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { StepIntro } from './step-intro';
 
 interface Props {
   state: WizardState;
@@ -37,44 +39,53 @@ export default function StepOrganization({ state, updateState, onNext }: Props) 
     };
   }, []);
 
-  const checkPermalink = useCallback(async (val: string) => {
-    if (!val.trim() || val === state.orgPermalink) {
-      setPermalinkTaken(false);
-      return;
-    }
-    setCheckingPermalink(true);
-    try {
-      const data = await getOrganization(val);
-      if (data.organization && data.organization.id !== state.orgId) {
-        setPermalinkTaken(true);
-      } else {
+  const checkPermalink = useCallback(
+    async (val: string) => {
+      if (!val.trim() || val === state.orgPermalink) {
+        setPermalinkTaken(false);
+        return;
+      }
+      setCheckingPermalink(true);
+      try {
+        const data = await getOrganization(val);
+        if (data.organization && data.organization.id !== state.orgId) {
+          setPermalinkTaken(true);
+        } else {
+          setPermalinkTaken(false);
+        }
+      } catch {
         setPermalinkTaken(false);
       }
-    } catch {
-      setPermalinkTaken(false);
-    }
-    setCheckingPermalink(false);
-  }, [state.orgId, state.orgPermalink]);
+      setCheckingPermalink(false);
+    },
+    [state.orgId, state.orgPermalink],
+  );
 
-  const handlePermalinkChange = useCallback((val: string) => {
-    const slug = slugify(val);
-    setAutoSlug(false);
-    setPermalink(slug);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setPermalinkTaken(false);
-    debounceRef.current = setTimeout(() => checkPermalink(slug), 400);
-  }, [checkPermalink]);
-
-  const handleNameChange = useCallback((val: string) => {
-    setName(val);
-    if (autoSlug) {
+  const handlePermalinkChange = useCallback(
+    (val: string) => {
       const slug = slugify(val);
+      setAutoSlug(false);
       setPermalink(slug);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       setPermalinkTaken(false);
       debounceRef.current = setTimeout(() => checkPermalink(slug), 400);
-    }
-  }, [autoSlug, checkPermalink]);
+    },
+    [checkPermalink],
+  );
+
+  const handleNameChange = useCallback(
+    (val: string) => {
+      setName(val);
+      if (autoSlug) {
+        const slug = slugify(val);
+        setPermalink(slug);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        setPermalinkTaken(false);
+        debounceRef.current = setTimeout(() => checkPermalink(slug), 400);
+      }
+    },
+    [autoSlug, checkPermalink],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +100,10 @@ export default function StepOrganization({ state, updateState, onNext }: Props) 
           permalink: permalink.trim(),
         });
         const org = data.organization;
-        updateState({ orgName: org.name ?? name.trim(), orgPermalink: org.permalink ?? permalink.trim() });
+        updateState({
+          orgName: org.name ?? name.trim(),
+          orgPermalink: org.permalink ?? permalink.trim(),
+        });
         onNext();
       } catch (err: any) {
         setError(err.message || 'Failed to update organization');
@@ -117,9 +131,16 @@ export default function StepOrganization({ state, updateState, onNext }: Props) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+      <StepIntro
+        title="Create the organisation"
+        next="Posta creates the organisation, then you'll add a mail server to it."
+      >
+        An organisation is the top-level container: it owns your mail servers, domains and
+        credentials. Most setups need one per product, or one per customer you send on behalf of.
+      </StepIntro>
       {isExisting && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-          <p className="text-sm text-muted-foreground">
+        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+          <p className="text-sm text-muted">
             Editing organization details. Changes are saved when you continue.
           </p>
         </div>
@@ -127,8 +148,8 @@ export default function StepOrganization({ state, updateState, onNext }: Props) 
 
       <div>
         <label className="block text-sm font-medium mb-1.5">Organization Name</label>
-        <input
-          className="input w-full"
+        <Input
+          className="w-full"
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="My Organization"
@@ -138,37 +159,41 @@ export default function StepOrganization({ state, updateState, onNext }: Props) 
       <div>
         <label className="block text-sm font-medium mb-1.5">Permalink</label>
         <div className="relative">
-          <input
-            className="input w-full font-mono text-sm pr-10"
+          <Input
+            className="w-full font-mono text-sm pr-10"
             value={permalink}
             onChange={(e) => handlePermalinkChange(e.target.value)}
             placeholder="my-org"
             required
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-            {checkingPermalink && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-            {!checkingPermalink && permalinkTaken && (
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-            )}
+            {checkingPermalink && <Loader2 className="h-4 w-4 animate-spin text-muted" />}
+            {!checkingPermalink && permalinkTaken && <AlertTriangle className="h-4 w-4 text-red" />}
             {!checkingPermalink && !permalinkTaken && permalink.trim() && (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <CheckCircle2 className="h-4 w-4 text-green" />
             )}
           </div>
         </div>
         {permalinkTaken && (
-          <p className="text-xs text-destructive mt-1">This permalink is already taken by another organization.</p>
+          <p className="text-xs text-red mt-1">
+            This permalink is already taken by another organization.
+          </p>
         )}
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-muted mt-1">
           Used in URLs and API routes. Auto-generated from the name.
         </p>
       </div>
-      {error && (
-        <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</div>
-      )}
+      {error && <div className="text-sm text-red bg-red/10 rounded-lg px-3 py-2">{error}</div>}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading || saving || !canSubmit}>
           {(loading || saving) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? 'Creating...' : saving ? 'Saving...' : isExisting ? 'Save & Continue' : 'Create & Continue'}
+          {loading
+            ? 'Creating...'
+            : saving
+              ? 'Saving...'
+              : isExisting
+                ? 'Save & Continue'
+                : 'Create & Continue'}
         </Button>
         {isExisting && (
           <Button type="button" variant="ghost" onClick={onNext}>

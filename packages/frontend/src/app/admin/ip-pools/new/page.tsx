@@ -2,9 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import { createIpPool } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/select';
 
 export default function NewIpPoolPage() {
   const router = useRouter();
@@ -20,56 +26,54 @@ export default function NewIpPoolPage() {
     try {
       await createIpPool({ name, default_pool: defaultPool });
       router.push('/admin/ip-pools');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create IP pool');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create IP pool');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <OrgLayout>
-      <div style={{ marginBottom: 24 }}>
-        <Link href="/admin/ip-pools" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-          &larr; Back to IP Pools
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href="/admin/ip-pools">IP pools</BackLink>}
+        title="New IP pool"
+        description="Create the pool first, then add outbound addresses to it from the pool's own page."
+      />
+      <Card className="max-w-xl" padded>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {error && <Callout tone="danger">{error}</Callout>}
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>New IP Pool</h1>
-      <div className="card" style={{ maxWidth: 500 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && (
-            <div className="tag tag-red">{error}</div>
-          )}
-          <div>
-            <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Name</label>
-            <input
-              className="input"
+          <Field
+            label="Name"
+            required
+            hint="Shown wherever a pool is chosen, so name it after what it sends."
+          >
+            <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Pool"
+              placeholder="Transactional"
               required
             />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              id="defaultPool"
-              type="checkbox"
-              checked={defaultPool}
-              onChange={(e) => setDefaultPool(e.target.checked)}
-            />
-            <label htmlFor="defaultPool" style={{ fontSize: 14, cursor: 'pointer' }}>Default Pool</label>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Pool'}
-            </button>
-            <button type="button" className="btn" onClick={() => router.back()}>
+          </Field>
+
+          <Checkbox
+            label="Make this the default pool"
+            hint="Organisations with no matching IP pool rule send from the default pool."
+            checked={defaultPool}
+            onChange={(e) => setDefaultPool(e.target.checked)}
+          />
+
+          <div className="flex gap-2">
+            <Button type="submit" variant="primary" loading={loading}>
+              Create pool
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </OrgLayout>
+      </Card>
+    </>
   );
 }

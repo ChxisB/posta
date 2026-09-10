@@ -1,9 +1,33 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
+import { useState, useEffect, useCallback, use } from 'react';
+import { Network, Plus, Trash2 } from 'lucide-react';
 import { getIpPool, getIpAddresses, createIpAddress, deleteIpAddress } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input, CodeInput } from '@/components/ui/input';
+import { FlagPill, KindTag } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface IpAddress {
+  id: number;
+  ip?: string;
+  hostname?: string;
+}
+
+interface Pool {
+  id?: number;
+  name?: string;
+  default?: boolean;
+}
 
 export default function IpPoolDetailPage({
   params: paramsPromise,
@@ -11,137 +35,215 @@ export default function IpPoolDetailPage({
   params: Promise<{ poolId: string }>;
 }) {
   const { poolId } = use(paramsPromise);
-  const [pool, setPool] = useState<any>({});
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
+
+  const [pool, setPool] = useState<Pool>({});
+  const [addresses, setAddresses] = useState<IpAddress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
+
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ ip: '', hostname: '' });
 
-  async function load() {
-    setLoading(true);
-    try {
-      const poolData = await getIpPool(poolId);
-      setPool(poolData.ip_pool ?? {});
-    } catch {}
-    try {
-      const addrData = await getIpAddresses(poolId);
-      setAddresses(addrData.ip_addresses ?? []);
-    } catch {}
-    setLoading(false);
-  }
+  const [pendingDelete, setPendingDelete] = useState<IpAddress | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => { load(); }, [poolId]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [poolData, addrData] = await Promise.all([getIpPool(poolId), getIpAddresses(poolId)]);
+      setPool(poolData.ip_pool ?? {});
+      setAddresses(addrData.ip_addresses ?? []);
+    } catch (err) {
+      // Both fetches used to have their own bare `catch {}`, so a failure on
+      // either left the page rendering an unnamed pool with no addresses.
+      setLoadError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [poolId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    setCreating(true);
+    setFormError(null);
     try {
       await createIpAddress(poolId, formData);
       setShowForm(false);
       setFormData({ ip: '', hostname: '' });
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      toast('success', `${formData.ip} added to the pool.`);
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not add the address.');
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleDelete(addressId: string) {
-    if (!confirm('Remove this IP address?')) return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteIpAddress(poolId, addressId);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      await deleteIpAddress(poolId, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', `${pendingDelete.ip} removed from the pool.`);
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not remove the address.');
+    } finally {
+      setDeleting(false);
     }
   }
+
+  const columns: Column<IpAddress>[] = [
+    {
+      key: 'ip',
+      header: 'IP address',
+      primary: true,
+      cell: (a) => <KindTag>{a.ip}</KindTag>,
+    },
+    {
+      key: 'hostname',
+      header: 'Reverse hostname',
+      cell: (a) => <span className="text-muted">{a.hostname || '—'}</span>,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (a) => (
+        <IconButton
+          label={`Remove ${a.ip}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(a)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
 
   return (
-    <OrgLayout>
-      <div style={{ marginBottom: 24 }}>
-        <Link href="/admin/ip-pools" style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-          &larr; Back to IP Pools
-        </Link>
-      </div>
-
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{pool.name ?? 'IP Pool'}</h1>
-        <div style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-          ID: {pool.id} &middot; Default: {pool.default ? 'Yes' : 'No'}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 600 }}>IP Addresses</h2>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'Add IP Address'}
-        </button>
-      </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href="/admin/ip-pools">IP pools</BackLink>}
+        title={pool.name ?? 'IP pool'}
+        description="Servers assigned to this pool send from these addresses. Reverse DNS on each one should match its hostname, or receiving servers will treat the mail as suspicious."
+        actions={
+          <>
+            {pool.default !== undefined && (
+              <FlagPill on={!!pool.default} onLabel="Default pool" offLabel="Not default" />
+            )}
+            <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
+              <Plus size={15} aria-hidden /> Add address
+            </Button>
+          </>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ marginBottom: 24, maxWidth: 400 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Add IP Address</h3>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              IP Address
-            </label>
-            <input
-              className="input"
-              value={formData.ip}
-              onChange={(e) => setFormData({ ...formData, ip: e.target.value })}
-              placeholder="192.168.1.1"
-              required
-            />
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-              Hostname (optional)
-            </label>
-            <input
-              className="input"
-              value={formData.hostname}
-              onChange={(e) => setFormData({ ...formData, hostname: e.target.value })}
-              placeholder="mail.example.com"
-            />
-          </div>
-          <button className="btn btn-primary" type="submit">Add IP Address</button>
-        </form>
+        <Card className="max-w-xl">
+          <CardHeader title="Add IP address" />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field label="IP address" required>
+                <CodeInput
+                  value={formData.ip}
+                  onChange={(e) => setFormData({ ...formData, ip: e.target.value })}
+                  placeholder="203.0.113.10"
+                  required
+                />
+              </Field>
+              <Field
+                label="Reverse hostname"
+                hint="The PTR record this address resolves to. Optional, but recommended."
+              >
+                <Input
+                  value={formData.hostname}
+                  onChange={(e) => setFormData({ ...formData, hostname: e.target.value })}
+                  placeholder="mail.example.com"
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button type="submit" variant="primary" loading={creating}>
+                  Add address
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>IP Address</th>
-              <th>Hostname</th>
-              <th style={{ width: 80 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {addresses.length === 0 ? (
-              <tr>
-                <td colSpan={3} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                  {loading ? 'Loading...' : 'No IP addresses yet.'}
-                </td>
-              </tr>
-            ) : (
-              addresses.map((addr: any) => (
-                <tr key={addr.id}>
-                  <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{addr.ip}</td>
-                  <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{addr.hostname ?? '-'}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      style={{ padding: '2px 8px', fontSize: 12 }}
-                      onClick={() => handleDelete(addr.id)}
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </OrgLayout>
+      <Card>
+        <CardHeader title="Addresses" description={`${addresses.length} in this pool.`} />
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={addresses}
+            columns={columns}
+            getRowKey={(a) => String(a.id)}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState
+                  error={loadError}
+                  what="this pool"
+                  retryHref={`/admin/ip-pools/${poolId}`}
+                />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={Network}
+                title="No addresses in this pool"
+                description="A pool with no addresses cannot send. Add at least one before assigning it to an organisation."
+                action={
+                  <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                    <Plus size={14} aria-hidden /> Add address
+                  </Button>
+                }
+              />
+            }
+          />
+        </div>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Remove IP address"
+          description={
+            <>
+              This removes <strong className="text-foreground">{pendingDelete.ip}</strong> from{' '}
+              {pool.name ?? 'this pool'}. Mail already queued against it will be re-assigned to the
+              pool&apos;s other addresses.
+            </>
+          }
+          confirmLabel="Remove address"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

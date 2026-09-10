@@ -2,16 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { sendTestMessage } from '@/lib/api';
+import { Button } from '@/components/ui/button';
 
 export default function SendTestForm({
-  permalink, serverId,
-}: { permalink: string; serverId: string }) {
+  permalink,
+  serverId,
+}: {
+  permalink: string;
+  serverId: string;
+}) {
   const [mounted, setMounted] = useState(false);
   const [to, setTo] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSend = async () => {
     if (!to) return;
@@ -33,13 +40,15 @@ export default function SendTestForm({
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
       <input
-        type="email" placeholder="Recipient email"
-        value={to} onChange={(e) => setTo(e.target.value)}
+        type="email"
+        placeholder="Recipient email"
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
         style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc' }}
       />
-      <button className="btn btn-primary" onClick={handleSend} disabled={sending || !to}>
+      <Button variant="primary" onClick={handleSend} disabled={sending || !to}>
         {sending ? 'Sending...' : 'Send Test'}
-      </button>
+      </Button>
       {result && <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{result}</span>}
     </div>
   );

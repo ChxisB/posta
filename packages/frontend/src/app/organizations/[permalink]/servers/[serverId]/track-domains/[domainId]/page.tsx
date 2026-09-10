@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
 import {
   getTrackDomain,
   updateTrackDomain,
@@ -11,9 +10,15 @@ import {
   checkTrackDomainDns,
   deleteTrackDomain,
 } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function EditTrackDomainPage() {
-  const { permalink, serverId, domainId } = useParams<{ permalink: string; serverId: string; domainId: string }>();
+  const { permalink, serverId, domainId } = useParams<{
+    permalink: string;
+    serverId: string;
+    domainId: string;
+  }>();
   const router = useRouter();
   const [domain, setDomain] = useState<any>({});
   const [name, setName] = useState('');
@@ -105,26 +110,42 @@ export default function EditTrackDomainPage() {
   };
 
   return (
-    <OrgLayout orgPermalink={permalink}>
+    <>
       <div style={{ marginBottom: 24 }}>
-        <Link href={`/organizations/${permalink}/servers/${serverId}/track-domains`} style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+        <Link
+          href={`/organizations/${permalink}/servers/${serverId}/track-domains`}
+          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+        >
           &larr; Back to Track Domains
         </Link>
       </div>
 
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Edit Track Domain</h1>
-      <div className="card" style={{ maxWidth: 500 }}>
+      <div
+        className="rounded-2xl border border-line bg-panel p-6 shadow-elev-sm"
+        style={{ maxWidth: 500 }}
+      >
         {loading ? (
           <p style={{ color: 'var(--color-text-muted)' }}>Loading...</p>
         ) : (
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {message && (
-              <div className={`tag ${message.type === 'success' ? 'tag-green' : 'tag-red'}`}>{message.text}</div>
+              <div className={`tag ${message.type === 'success' ? 'tag-green' : 'tag-red'}`}>
+                {message.text}
+              </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Name</label>
-              <input
-                className="input"
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                Name
+              </label>
+              <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="track.example.com"
@@ -138,7 +159,9 @@ export default function EditTrackDomainPage() {
                 checked={sslEnabled}
                 onChange={(e) => setSslEnabled(e.target.checked)}
               />
-              <label htmlFor="sslEnabled" style={{ fontSize: 14, cursor: 'pointer' }}>SSL Enabled</label>
+              <label htmlFor="sslEnabled" style={{ fontSize: 14, cursor: 'pointer' }}>
+                SSL Enabled
+              </label>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
@@ -147,7 +170,9 @@ export default function EditTrackDomainPage() {
                 checked={trackClicks}
                 onChange={(e) => setTrackClicks(e.target.checked)}
               />
-              <label htmlFor="trackClicks" style={{ fontSize: 14, cursor: 'pointer' }}>Track Clicks</label>
+              <label htmlFor="trackClicks" style={{ fontSize: 14, cursor: 'pointer' }}>
+                Track Clicks
+              </label>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
@@ -156,34 +181,44 @@ export default function EditTrackDomainPage() {
                 checked={trackLoads}
                 onChange={(e) => setTrackLoads(e.target.checked)}
               />
-              <label htmlFor="trackLoads" style={{ fontSize: 14, cursor: 'pointer' }}>Track Loads</label>
+              <label htmlFor="trackLoads" style={{ fontSize: 14, cursor: 'pointer' }}>
+                Track Loads
+              </label>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Excluded Click Domains</label>
-              <input
-                className="input"
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 6,
+                }}
+              >
+                Excluded Click Domains
+              </label>
+              <Input
                 value={excludedClickDomains}
                 onChange={(e) => setExcludedClickDomains(e.target.value)}
                 placeholder="example.com, another.com"
               />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
+              <Button variant="primary" type="submit" disabled={saving}>
                 {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button type="button" className="btn" onClick={handleToggleSsl}>
+              </Button>
+              <Button type="button" onClick={handleToggleSsl}>
                 Toggle SSL
-              </button>
-              <button type="button" className="btn" onClick={handleCheckDns}>
+              </Button>
+              <Button type="button" onClick={handleCheckDns}>
                 Check DNS
-              </button>
-              <button type="button" className="btn btn-danger" onClick={handleDelete}>
+              </Button>
+              <Button variant="danger" type="button" onClick={handleDelete}>
                 Delete
-              </button>
+              </Button>
             </div>
           </form>
         )}
       </div>
-    </OrgLayout>
+    </>
   );
 }

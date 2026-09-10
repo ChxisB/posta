@@ -1,9 +1,30 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-import OrgLayout from '@/components/org-layout';
+import { useState, useEffect, useCallback, use } from 'react';
+import { Globe, Plus, Trash2 } from 'lucide-react';
 import { getDomains, createDomain, deleteDomain } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { BackLink } from '@/components/ui/back-link';
+import { Card, CardHeader, CardBody } from '@/components/ui/card';
+import { Button, IconButton } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { CheckPill, FlagPill } from '@/components/ui/pill';
+import { useToast } from '@/components/providers/toast-provider';
+
+interface Domain {
+  id: number;
+  name?: string;
+  verified_at?: string | null;
+  spf_status?: string;
+  dkim_status?: string;
+  mx_status?: string;
+}
 
 export default function DomainsPage({
   params: paramsPromise,
@@ -11,147 +32,222 @@ export default function DomainsPage({
   params: Promise<{ permalink: string; serverId: string }>;
 }) {
   const { permalink, serverId } = use(paramsPromise);
-  const [domains, setDomains] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
+  const base = `/organizations/${permalink}/servers/${serverId}`;
+
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ name: '' });
+  const [loadError, setLoadError] = useState<unknown>(null);
 
-  async function load() {
+  const [showForm, setShowForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [name, setName] = useState('');
+
+  const [pendingDelete, setPendingDelete] = useState<Domain | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const d = await getDomains(permalink, serverId);
-      setDomains(d.domains ?? []);
-    } catch {}
-    setLoading(false);
-  }
+      setDomains((await getDomains(permalink, serverId)).domains ?? []);
+    } catch (err) {
+      // Was `catch {}`, which made an unreachable API render as "No domains
+      // added yet" — sending the operator off to re-add a domain that was
+      // already there and already verified.
+      setLoadError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [permalink, serverId]);
 
-  useEffect(() => { load(); }, [permalink, serverId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    setCreating(true);
+    setFormError(null);
     try {
-      await createDomain(permalink, serverId, formData);
+      await createDomain(permalink, serverId, { name });
       setShowForm(false);
-      setFormData({ name: '' });
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      setName('');
+      toast('success', `${name} added. Publish its DNS records to verify it.`);
+      await load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not add the domain.');
+    } finally {
+      setCreating(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this domain?')) return;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteDomain(permalink, serverId, id);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+      await deleteDomain(permalink, serverId, String(pendingDelete.id));
+      setPendingDelete(null);
+      toast('success', `${pendingDelete.name} removed.`);
+      await load();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not remove the domain.');
+    } finally {
+      setDeleting(false);
     }
   }
+
+  const columns: Column<Domain>[] = [
+    {
+      key: 'name',
+      header: 'Domain',
+      primary: true,
+      cell: (d) => <span className="font-medium">{d.name}</span>,
+    },
+    {
+      key: 'verified',
+      header: 'Status',
+      // "Pending" is a problem worth acting on, not a neutral off-switch:
+      // an unverified domain cannot authenticate the mail it sends.
+      cell: (d) => (
+        <FlagPill on={!!d.verified_at} onLabel="Verified" offLabel="Pending" tone="bad" />
+      ),
+    },
+    { key: 'spf', header: 'SPF', cell: (d) => <CheckPill status={d.spf_status} /> },
+    { key: 'dkim', header: 'DKIM', cell: (d) => <CheckPill status={d.dkim_status} /> },
+    { key: 'mx', header: 'MX', cell: (d) => <CheckPill status={d.mx_status} /> },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      hideOnCard: true,
+      cell: (d) => (
+        <IconButton
+          label={`Delete ${d.name}`}
+          size="sm"
+          variant="ghost"
+          onClick={() => setPendingDelete(d)}
+          className="text-faint hover:text-red"
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const unverified = domains.filter((d) => !d.verified_at).length;
 
   return (
-    <OrgLayout orgPermalink={permalink}>
-      <div className="animate-fade-in">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title gradient-text glow-text">Domains</h1>
-            <div className="page-subtitle text-gray-400">Configure and verify sender domains</div>
-          </div>
-          <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Cancel' : 'Add Domain'}
-          </button>
-        </div>
+    <>
+      <PageHeader
+        breadcrumb={<BackLink href={base}>Server</BackLink>}
+        title="Domains"
+        description="The domains this server may send as. Each one needs SPF, DKIM and MX records published before it will authenticate."
+        actions={
+          <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={15} aria-hidden /> Add domain
+          </Button>
+        }
+      />
 
-        {showForm && (
-          <form onSubmit={handleCreate} className="card animate-fade-in" style={{ marginBottom: 24, maxWidth: 400 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>New Domain</h3>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 4 }}>
-                Name
-              </label>
-              <input
-                className="input"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="mail.example.com"
+      {!loading && !loadError && unverified > 0 && (
+        <Callout tone="warning" title="Unverified domains">
+          {unverified === 1
+            ? 'One domain has not verified yet.'
+            : `${unverified} domains have not verified yet.`}{' '}
+          Mail sent from an unverified domain is likely to be rejected or filtered. Open a domain to
+          see which records are still missing.
+        </Callout>
+      )}
+
+      {showForm && (
+        <Card className="max-w-xl">
+          <CardHeader
+            title="Add domain"
+            description="You will need to publish DNS records for it afterwards."
+          />
+          <CardBody>
+            <form onSubmit={handleCreate} className="flex flex-col gap-5">
+              {formError && <Callout tone="danger">{formError}</Callout>}
+              <Field
+                label="Domain name"
                 required
-                style={{ width: '100%' }}
-              />
-            </div>
-            <button className="btn btn-primary" type="submit">Create Domain</button>
-          </form>
-        )}
+                hint="The domain mail will be sent from, e.g. mail.example.com."
+              >
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="mail.example.com"
+                  required
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button type="submit" variant="primary" loading={creating} disabled={!name.trim()}>
+                  Add domain
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
+      )}
 
-        <div className="card">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Domain</th>
-                <th>Status</th>
-                <th>SPF</th>
-                <th>DKIM</th>
-                <th>MX</th>
-                <th>Verified</th>
-                <th style={{ width: 80, textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {domains.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                    {loading ? 'Loading...' : 'No domains added yet.'}
-                  </td>
-                </tr>
-              ) : (
-                domains.map((d: any) => (
-                  <tr key={d.id}>
-                    <td>
-                      <Link
-                        href={`/organizations/${permalink}/servers/${serverId}/domains/${d.id}/setup`}
-                        style={{ color: 'var(--color-accent)', fontWeight: 500 }}
-                      >
-                        {d.name}
-                      </Link>
-                    </td>
-                    <td>
-                      <span className={`tag ${d.verified_at ? 'tag-green' : 'tag-yellow'}`}>
-                        {d.verified_at ? 'Verified' : 'Pending'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`tag ${d.spf_status === 'OK' ? 'tag-green' : 'tag-red'}`}>
-                        {d.spf_status ?? '-'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`tag ${d.dkim_status === 'OK' ? 'tag-green' : 'tag-red'}`}>
-                        {d.dkim_status ?? '-'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`tag ${d.mx_status === 'OK' ? 'tag-green' : 'tag-red'}`}>
-                        {d.mx_status ?? '-'}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                      {d.verified_at ?? '-'}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn btn-danger"
-                        style={{ padding: '2px 8px', fontSize: 12 }}
-                        onClick={() => handleDelete(d.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <Card>
+        <div className="px-6 pb-1">
+          <DataTable
+            rows={domains}
+            columns={columns}
+            getRowKey={(d) => String(d.id)}
+            rowHref={(d) => `${base}/domains/${d.id}/setup`}
+            getRowLabel={(d) => `DNS setup for ${d.name}`}
+            loading={loading}
+            error={
+              loadError ? (
+                <ErrorState error={loadError} what="these domains" retryHref={`${base}/domains`} />
+              ) : undefined
+            }
+            empty={
+              <EmptyState
+                icon={Globe}
+                title="No domains yet"
+                description="A server cannot send until it has at least one verified domain."
+                action={
+                  <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                    <Plus size={14} aria-hidden /> Add domain
+                  </Button>
+                }
+              />
+            }
+          />
         </div>
-      </div>
-    </OrgLayout>
+      </Card>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete domain"
+          description={
+            <>
+              This removes <strong className="text-foreground">{pendingDelete.name}</strong> and its
+              DKIM key from this server. Mail can no longer be sent as this domain, and re-adding it
+              generates a new key that has to be published again.
+            </>
+          }
+          confirmLabel="Delete domain"
+          destructive
+          loading={deleting}
+          error={deleteError}
+          onConfirm={handleDelete}
+          onClose={() => {
+            setPendingDelete(null);
+            setDeleteError(null);
+          }}
+        />
+      )}
+    </>
   );
 }

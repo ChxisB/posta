@@ -1,110 +1,128 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import OrgLayout from '@/components/org-layout';
 import { getSettings, updateSettings } from '@/lib/api';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { ErrorState } from '@/components/ui/error-state';
+import { SkeletonRows } from '@/components/ui/skeleton';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useToast } from '@/components/providers/toast-provider';
 
 export default function SettingsPage() {
+  const toast = useToast();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [timeZone, setTimeZone] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoading(true);
+    (async () => {
       try {
-        const data = await getSettings();
+        const user = (await getSettings()).user ?? {};
         if (cancelled) return;
-        const user = data.user ?? {};
         setFirstName(user.first_name ?? '');
         setLastName(user.last_name ?? '');
         setTimeZone(user.time_zone ?? '');
-      } catch (err: any) {
-        if (!cancelled) {
-          setMessage({ type: 'error', text: err.message || 'Failed to load settings' });
-        }
+      } catch (err) {
+        if (!cancelled) setLoadError(err);
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-    load();
-    return () => { cancelled = true; };
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    setMessage(null);
     try {
       await updateSettings({
         first_name: firstName || undefined,
         last_name: lastName || undefined,
         time_zone: timeZone || undefined,
       });
-      setMessage({ type: 'success', text: 'Settings saved successfully.' });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Failed to save settings' });
+      toast('success', 'Settings saved.');
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Could not save your settings.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <OrgLayout>
-      <div className="animate-fade-in">
-        <h1 className="page-title gradient-text glow-text" style={{ marginBottom: 24 }}>Settings</h1>
+    <>
+      <PageHeader title="Settings" description="Your profile and how Posta looks for you." />
 
-        <div className="card" style={{ maxWidth: 500, marginBottom: 20 }}>
-          <div className="card-header">
-            <span className="card-title">Profile</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {message && (
-              <div className={`tag ${message.type === 'success' ? 'tag-green' : 'tag-red'}`}>
-                {message.text}
+      <div className="flex max-w-xl flex-col gap-5">
+        <Card>
+          <CardHeader
+            title="Profile"
+            description="How your name appears on activity across every organisation."
+          />
+          <CardBody>
+            {loading ? (
+              <SkeletonRows count={3} height="h-11" />
+            ) : loadError ? (
+              <ErrorState error={loadError} what="your settings" retryHref="/settings" />
+            ) : (
+              <div className="flex flex-col gap-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="First name">
+                    <Input
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Jane"
+                    />
+                  </Field>
+                  <Field label="Last name">
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                    />
+                  </Field>
+                </div>
+                <Field
+                  label="Time zone"
+                  hint="An IANA name, such as Europe/London. Timestamps are shown in this zone."
+                >
+                  <Input
+                    value={timeZone}
+                    onChange={(e) => setTimeZone(e.target.value)}
+                    placeholder="UTC"
+                  />
+                </Field>
               </div>
             )}
-            <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>First Name</label>
-              <input
-                className="input"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First name"
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Last Name</label>
-              <input
-                className="input"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Last name"
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Time Zone</label>
-              <input
-                className="input"
-                value={timeZone}
-                onChange={(e) => setTimeZone(e.target.value)}
-                placeholder="UTC"
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving || loading}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
+          </CardBody>
+          {!loading && !loadError && (
+            <CardFooter>
+              <Button variant="primary" onClick={handleSave} loading={saving}>
+                Save changes
+              </Button>
+            </CardFooter>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Appearance"
+            description="Stored in this browser, not on your account."
+          />
+          <CardBody className="flex items-center justify-between gap-4">
+            <p className="text-sm text-muted">Switch between the light and dark palette.</p>
+            <ThemeToggle />
+          </CardBody>
+        </Card>
       </div>
-    </OrgLayout>
+    </>
   );
 }

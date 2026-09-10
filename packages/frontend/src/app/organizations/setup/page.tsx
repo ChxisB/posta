@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import OrgLayout from '@/components/org-layout';
 import SetupWizardClient from './wizard-client';
 import { getOrganization, getServers, getOrganizationStats } from '@/lib/api';
 
@@ -78,13 +77,10 @@ export default async function SetupWizardPage({
   const preloaded = await preloadOrg(org ?? null);
 
   return (
-    <OrgLayout>
-      <Suspense fallback={<div className="text-center py-16 text-muted-foreground">Loading wizard...</div>}>
-        <SetupWizardClient
-          initialOrgPermalink={org ?? null}
-          preloaded={preloaded}
-        />
+    <>
+      <Suspense fallback={<div className="text-center py-16 text-muted">Loading wizard...</div>}>
+        <SetupWizardClient initialOrgPermalink={org ?? null} preloaded={preloaded} />
       </Suspense>
-    </OrgLayout>
+    </>
   );
 }
