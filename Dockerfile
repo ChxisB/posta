@@ -43,12 +43,8 @@ COPY config/ ./config/
 COPY scripts/ ./scripts/
 RUN chmod +x scripts/*.sh
 
-# Data directory for SQLite files
-RUN mkdir -p /data
-VOLUME /data
-
-ENV POSTA_MAIN_DB_PATH=/data/posta-main.db \
-    POSTA_MESSAGE_DB_DIRECTORY=/data/message-db \
+ENV POSTA_MAIN_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_main \
+    POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_main \
     POSTA_CONFIG_FILE_PATH=/app/config/posta/posta.yml \
     NODE_ENV=production
 

@@ -1,19 +1,37 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: posta_main
+    ports:
+      - "5432:5432"
+    volumes:
+      - posta-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d posta_main"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   posta:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "5001:5001"   # HTTP API
       - "25:25"       # SMTP
     volumes:
-      - posta-data:/data
       - ./config/posta:/app/config/posta:ro
     environment:
-      - POSTA_MAIN_DB_PATH=/data/posta-main.db
-      - POSTA_MESSAGE_DB_DIRECTORY=/data/message-db
+      - POSTA_MAIN_DB_URL=postgresql://postgres:postgres@postgres:5432/posta_main
+      - POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@postgres:5432/posta_main
       - PORT=5001
       - SMTP_PORT=25
       - POSTA_CONFIG_FILE_PATH=/app/config/posta/posta.yml
@@ -23,7 +41,5 @@ services:
       - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET:-}
     restart: unless-stopped
 
-  # PostgreSQL is NOT needed — SQLite is built into Bun
-
 volumes:
-  posta-data:
+  posta-postgres:

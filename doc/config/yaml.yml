@@ -53,34 +53,15 @@ worker:
   threads: 2
 
 main_db:
-  # Hostname for the main MariaDB server
-  host: localhost
-  # The MariaDB port to connect to
-  port: 3306
-  # The MariaDB username
-  username: posta
-  # The MariaDB password
-  password: 
-  # The MariaDB database name
-  database: posta
-  # The maximum size of the MariaDB connection pool
-  pool_size: 5
-  # The encoding to use when connecting to the MariaDB database
-  encoding: utf8mb4
+  # PostgreSQL connection URL for the main database (e.g. Supabase direct connection)
+  url: "postgresql://postgres:postgres@localhost:5432/posta_main"
 
 message_db:
-  # Hostname for the MariaDB server which stores the mail server databases
-  host: localhost
-  # The MariaDB port to connect to
-  port: 3306
-  # The MariaDB username
-  username: posta
-  # The MariaDB password
-  password: 
-  # The encoding to use when connecting to the MariaDB database
-  encoding: utf8mb4
-  # The MariaDB prefix to add to database names
-  database_name_prefix: posta
+  # Optional separate PostgreSQL connection URL for per-server message data.
+  # If omitted, main_db.url is used. Each server is isolated in its own schema.
+  url:
+  # PostgreSQL schema prefix for per-server message tables.
+  schema_prefix: posta_server
 
 logging:
   # Enable the Posta logger to log to STDOUT

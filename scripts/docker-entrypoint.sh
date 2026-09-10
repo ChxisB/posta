@@ -3,14 +3,6 @@ set -e
 
 echo "Posta — starting all processes..."
 
-# Ensure data directories exist
-mkdir -p /data/message-db
-
-# Run main DB schema (ensures tables exist)
-if [ -f /app/packages/core/dist/index.js ]; then
-  bun run --cwd /app/packages/core dist/index.js --migrate
-fi
-
 # Start all processes
 echo "Starting web server (port ${PORT:-5000})..."
 bun run --cwd /app/packages/web-server dist/index.js &
