@@ -28,7 +28,7 @@ const DELIVERY_WEBHOOK_EVENTS: Record<string, string> = {
 };
 
 /**
- * Delivery management — mirrors Ruby Delivery class.
+ * Delivery management.
  */
 export class DeliveryStore {
   private db: MessageDatabase;
@@ -40,11 +40,11 @@ export class DeliveryStore {
   /**
    * Create a delivery attempt for a message.
    */
-  create(
+  async create(
     message: MessageRecord,
     status: string,
     options: Partial<DeliveryRecord> = {},
-  ): DeliveryRecord {
+  ): Promise<DeliveryRecord> {
     const attributes: Record<string, unknown> = {
       message_id: message.id,
       status,
@@ -60,7 +60,7 @@ export class DeliveryStore {
       attributes.details = attributes.details.slice(0, 250);
     }
 
-    const id = this.db.insert('deliveries', attributes);
+    const id = await this.db.insert('deliveries', attributes);
 
     const delivery: DeliveryRecord = { ...attributes, id };
 
@@ -69,7 +69,7 @@ export class DeliveryStore {
       ? Date.now() / 1000 + (7 * 86400) // default_maximum_hold_expiry_days = 7
       : null;
 
-    this.db.update('messages', {
+    await this.db.update('messages', {
       status,
       last_delivery_attempt: delivery.timestamp,
       held: status === 'Held' ? 1 : 0,
@@ -82,8 +82,8 @@ export class DeliveryStore {
   /**
    * Get all deliveries for a message.
    */
-  forMessage(messageId: number): DeliveryRecord[] {
-    const result = this.db.select<DeliveryRecord>('deliveries', {
+  async forMessage(messageId: number): Promise<DeliveryRecord[]> {
+    const result = await this.db.select<DeliveryRecord>('deliveries', {
       where: { message_id: messageId },
       order: 'timestamp',
     });

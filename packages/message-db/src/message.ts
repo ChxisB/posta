@@ -65,9 +65,9 @@ export class MessageStore {
   /**
    * Find a single message by ID or conditions.
    */
-  findOne(query: number | WhereCondition): MessageRecord {
+  async findOne(query: number | WhereCondition): Promise<MessageRecord> {
     const conditions: WhereCondition = typeof query === 'number' ? { id: query } : query;
-    const rows = this.db.select<MessageRecord>('messages', {
+    const rows = await this.db.select<MessageRecord>('messages', {
       where: conditions,
       limit: 1,
     });
@@ -80,8 +80,8 @@ export class MessageStore {
   /**
    * Find multiple messages matching options.
    */
-  find(options: MessageQueryOptions = {}): MessageRecord[] {
-    const result = this.db.select<MessageRecord>('messages', {
+  async find(options: MessageQueryOptions = {}): Promise<MessageRecord[]> {
+    const result = await this.db.select<MessageRecord>('messages', {
       where: options.where,
       order: options.order,
       direction: options.direction,
@@ -94,7 +94,7 @@ export class MessageStore {
   /**
    * Find messages with pagination.
    */
-  findWithPagination(page: number, options: MessageQueryOptions = {}) {
+  async findWithPagination(page: number, options: MessageQueryOptions = {}) {
     return this.db.selectWithPagination<MessageRecord>('messages', page, {
       where: options.where,
       order: options.order,
@@ -106,7 +106,7 @@ export class MessageStore {
   /**
    * Create a new message record.
    */
-  create(attributes: Partial<MessageRecord>): number {
+  async create(attributes: Partial<MessageRecord>): Promise<number> {
     const record = {
       ...attributes,
       timestamp: attributes.timestamp ?? Date.now() / 1000,
@@ -117,14 +117,14 @@ export class MessageStore {
   /**
    * Update a message by ID.
    */
-  update(id: number, attributes: Partial<MessageRecord>): number {
+  async update(id: number, attributes: Partial<MessageRecord>): Promise<number> {
     return this.db.update('messages', attributes, { where: { id } });
   }
 
   /**
    * Delete a message by ID.
    */
-  delete(id: number): number {
+  async delete(id: number): Promise<number> {
     return this.db.delete('messages', { where: { id } });
   }
 
@@ -132,10 +132,10 @@ export class MessageStore {
    * Insert a raw message (headers + body) into a daily partitioned table.
    * Returns the table name, headers_id, body_id.
    */
-  insertRawMessage(
+  async insertRawMessage(
     data: Buffer | string,
     date: Date = new Date(),
-  ): { tableName: string; headersId: number; bodyId: number } {
+  ): Promise<{ tableName: string; headersId: number; bodyId: number }> {
     const dateStr = date.toISOString().slice(0, 10);
     const tableName = `raw-${dateStr}`;
 
@@ -153,14 +153,14 @@ export class MessageStore {
     }
 
     // Ensure the raw table exists
-    this.ensureRawTable(tableName);
+    await this.ensureRawTable(tableName);
 
-    const headersId = this.db.insert(tableName, { data: headers });
-    const bodyId = this.db.insert(tableName, { data: body });
+    const headersId = await this.db.insert(tableName, { data: Buffer.from(headers, 'binary') });
+    const bodyId = await this.db.insert(tableName, { data: Buffer.from(body, 'binary') });
 
     // Update size tracking
     const size = Buffer.byteLength(str, 'utf-8');
-    this.db.exec(
+    await this.db.exec(
       `UPDATE raw_message_sizes SET size = COALESCE(size, 0) + ${size} WHERE table_name = '${tableName}'`,
     );
 
@@ -170,69 +170,72 @@ export class MessageStore {
   /**
    * Ensure a raw message table exists for the given date.
    */
-  private ensureRawTable(tableName: string): void {
+  private async ensureRawTable(tableName: string): Promise<void> {
     // Check if table exists
-    const tables = this.db.query<{ name: string }>(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+    const tables = await this.db.query<{ table_name: string }>(
+      `SELECT table_name FROM information_schema.tables
+       WHERE table_schema = current_schema() AND table_name = $1`,
       [tableName],
     );
     if (tables.length === 0) {
-      this.db.exec(`
+      await this.db.exec(`
         CREATE TABLE "${tableName}" (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          data BLOB,
+          id SERIAL PRIMARY KEY,
+          data BYTEA,
           next INTEGER
         )
       `);
-      this.db.insert('raw_message_sizes', { table_name: tableName, size: 0 });
+      await this.db.insert('raw_message_sizes', { table_name: tableName, size: 0 });
     }
   }
 
   /**
    * Fetch raw headers for a message.
    */
-  getRawHeaders(message: MessageRecord): string {
+  async getRawHeaders(message: MessageRecord): Promise<string> {
     if (!message.raw_table || !message.raw_headers_id) return '';
-    const rows = this.db.query<{ data: string }>(
-      `SELECT data FROM "${message.raw_table}" WHERE id = ?`,
+    const rows = await this.db.query<{ data: Buffer }>(
+      `SELECT data FROM "${message.raw_table}" WHERE id = $1`,
       [message.raw_headers_id],
     );
-    return rows[0]?.data ?? '';
+    const data = rows[0]?.data;
+    return data ? data.toString('binary') : '';
   }
 
   /**
    * Fetch raw body for a message.
    */
-  getRawBody(message: MessageRecord): string {
+  async getRawBody(message: MessageRecord): Promise<string> {
     if (!message.raw_table || !message.raw_body_id) return '';
-    const rows = this.db.query<{ data: string }>(
-      `SELECT data FROM "${message.raw_table}" WHERE id = ?`,
+    const rows = await this.db.query<{ data: Buffer }>(
+      `SELECT data FROM "${message.raw_table}" WHERE id = $1`,
       [message.raw_body_id],
     );
-    return rows[0]?.data ?? '';
+    const data = rows[0]?.data;
+    return data ? data.toString('binary') : '';
   }
 
   /**
    * Get full raw message (headers + body).
    */
-  getRawMessage(message: MessageRecord): string {
-    const headers = this.getRawHeaders(message);
-    const body = this.getRawBody(message);
+  async getRawMessage(message: MessageRecord): Promise<string> {
+    const headers = await this.getRawHeaders(message);
+    const body = await this.getRawBody(message);
     return `${headers}\r\n\r\n${body}`;
   }
 
   /**
    * Append headers to the raw headers of a message.
    */
-  appendHeaders(message: MessageRecord, ...headers: string[]): void {
+  async appendHeaders(message: MessageRecord, ...headers: string[]): Promise<void> {
     const newHeaders = headers.join('\r\n');
-    const existingHeaders = this.getRawHeaders(message);
+    const existingHeaders = await this.getRawHeaders(message);
     const combined = `${newHeaders}\r\n${existingHeaders}`;
     if (message.raw_table && message.raw_headers_id) {
-      const stmt = this.db.db.prepare(
-        `UPDATE "${message.raw_table}" SET data = ? WHERE id = ?`,
+      await this.db.db.run(
+        `UPDATE "${message.raw_table}" SET data = $1 WHERE id = $2`,
+        [Buffer.from(combined, 'binary'), message.raw_headers_id],
       );
-      stmt.run(combined, message.raw_headers_id);
     }
   }
 }

@@ -13,7 +13,7 @@ export interface SuppressionRecord {
 }
 
 /**
- * Suppression list management — mirrors Ruby SuppressionList class.
+ * Suppression list management.
  */
 export class SuppressionStore {
   private db: MessageDatabase;
@@ -25,25 +25,25 @@ export class SuppressionStore {
   /**
    * Add an address to the suppression list.
    */
-  add(
+  async add(
     type: string,
     address: string,
     options: { days?: number; reason?: string } = {},
-  ): boolean {
+  ): Promise<boolean> {
     const keepUntil = (Date.now() / 1000) + ((options.days ?? 30) * 86400);
-    const existing = this.db.select<SuppressionRecord>('suppressions', {
+    const existing = await this.db.select<SuppressionRecord>('suppressions', {
       where: { type, address },
       limit: 1,
     });
 
     if (Array.isArray(existing) && existing.length > 0) {
       const record = existing[0];
-      this.db.update('suppressions', {
+      await this.db.update('suppressions', {
         reason: options.reason ?? record.reason,
         keep_until: keepUntil,
       }, { where: { id: record.id! } });
     } else {
-      this.db.insert('suppressions', {
+      await this.db.insert('suppressions', {
         type,
         address,
         reason: options.reason,
@@ -57,8 +57,8 @@ export class SuppressionStore {
   /**
    * Check if an address is suppressed.
    */
-  get(type: string, address: string): SuppressionRecord | undefined {
-    const rows = this.db.select<SuppressionRecord>('suppressions', {
+  async get(type: string, address: string): Promise<SuppressionRecord | undefined> {
+    const rows = await this.db.select<SuppressionRecord>('suppressions', {
       where: {
         type,
         address,
@@ -72,7 +72,7 @@ export class SuppressionStore {
   /**
    * List suppressions with pagination.
    */
-  listWithPagination(page: number) {
+  async listWithPagination(page: number) {
     return this.db.selectWithPagination<SuppressionRecord>(
       'suppressions',
       page,
@@ -83,15 +83,15 @@ export class SuppressionStore {
   /**
    * Remove a suppression.
    */
-  remove(type: string, address: string): boolean {
-    const changes = this.db.delete('suppressions', { where: { type, address } });
+  async remove(type: string, address: string): Promise<boolean> {
+    const changes = await this.db.delete('suppressions', { where: { type, address } });
     return changes > 0;
   }
 
   /**
    * Prune expired suppressions.
    */
-  prune(): number {
+  async prune(): Promise<number> {
     return this.db.delete('suppressions', {
       where: { keep_until: { less_than: Date.now() / 1000 } },
     });

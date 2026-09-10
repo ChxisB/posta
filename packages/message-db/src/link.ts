@@ -27,10 +27,10 @@ export class LinkStore {
    * Create a tracked link for a message.
    * Returns the link token.
    */
-  create(messageId: number, url: string): string {
+  async create(messageId: number, url: string): Promise<string> {
     const hash = crypto.createHash('sha1').update(url).digest('hex');
     const token = crypto.randomBytes(16).toString('base64url');
-    this.db.insert('links', {
+    await this.db.insert('links', {
       message_id: messageId,
       hash,
       url,
@@ -43,8 +43,8 @@ export class LinkStore {
   /**
    * Find a link by its token.
    */
-  findByToken(token: string): LinkRecord | undefined {
-    const rows = this.db.select<LinkRecord>('links', {
+  async findByToken(token: string): Promise<LinkRecord | undefined> {
+    const rows = await this.db.select<LinkRecord>('links', {
       where: { token },
       limit: 1,
     });
@@ -54,8 +54,8 @@ export class LinkStore {
   /**
    * Find links by message ID.
    */
-  forMessage(messageId: number): LinkRecord[] {
-    const result = this.db.select<LinkRecord>('links', {
+  async forMessage(messageId: number): Promise<LinkRecord[]> {
+    const result = await this.db.select<LinkRecord>('links', {
       where: { message_id: messageId },
       order: 'timestamp',
     });

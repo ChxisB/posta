@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { PostaConfig } from '@posta/core';
-import { getMainDb, createQueuedMessage } from '@posta/core';
+import { getMainDb, createQueuedMessage, getServerDb } from '@posta/core';
 import { MessageDbProvisioner } from './provisioner';
 import { MessageStore } from './message';
 
@@ -29,7 +29,7 @@ function buildMimeMessage(params: {
   ].join('\r\n');
 }
 
-function storeAndQueue(
+async function storeAndQueue(
   config: PostaConfig,
   provisioner: MessageDbProvisioner,
   serverId: number,
@@ -39,13 +39,14 @@ function storeAndQueue(
     mailFrom: string;
     subject: string;
   },
-): number {
-  const msgDb = provisioner.openServerDb(serverId);
+): Promise<number> {
+  const client = getServerDb(config, serverId);
+  const msgDb = await provisioner.openServerDb(serverId, client);
   const msgStore = new MessageStore(msgDb);
 
-  const { tableName, headersId, bodyId } = msgStore.insertRawMessage(rawMessage);
+  const { tableName, headersId, bodyId } = await msgStore.insertRawMessage(rawMessage);
 
-  const msgId = msgDb.insert('messages', {
+  const msgId = await msgDb.insert('messages', {
     token: randomUUID(),
     scope: 'outgoing',
     rcpt_to: meta.rcptTo,
@@ -61,19 +62,20 @@ function storeAndQueue(
   });
 
   const mainDb = getMainDb(config);
-  createQueuedMessage(mainDb, { serverId, messageId: msgId });
+  await createQueuedMessage(mainDb, { serverId, messageId: msgId });
 
   return msgId;
 }
 
-function resolveNotificationRecipient(
+async function resolveNotificationRecipient(
   config: PostaConfig,
   serverId: number,
-): string {
+): Promise<string> {
   const mainDb = getMainDb(config);
-  const row = mainDb.query(`SELECT postmaster_address FROM servers WHERE id = ?`).get(serverId) as
-    | { postmaster_address: string | null }
-    | undefined;
+  const row = await mainDb.get<{ postmaster_address: string | null }>(
+    `SELECT postmaster_address FROM servers WHERE id = $1`,
+    [serverId],
+  );
 
   return row?.postmaster_address || config.smtp.from_address;
 }
@@ -82,15 +84,15 @@ function notificationFromAddress(config: PostaConfig): string {
   return `${config.smtp.from_name} <${config.smtp.from_address}>`;
 }
 
-export function sendServerSendLimitApproachingEmail(
+export async function sendServerSendLimitApproachingEmail(
   config: PostaConfig,
   serverId: number,
   serverName: string,
   sendLimit: number,
   sentToday: number,
-): number {
+): Promise<number> {
   const provisioner = new MessageDbProvisioner(config);
-  const recipient = resolveNotificationRecipient(config, serverId);
+  const recipient = await resolveNotificationRecipient(config, serverId);
   const from = notificationFromAddress(config);
 
   const subject = `[${serverName}] Mail server is approaching its send limit`;
@@ -120,15 +122,15 @@ export function sendServerSendLimitApproachingEmail(
   });
 }
 
-export function sendServerSendLimitExceededEmail(
+export async function sendServerSendLimitExceededEmail(
   config: PostaConfig,
   serverId: number,
   serverName: string,
   sendLimit: number,
   sentToday: number,
-): number {
+): Promise<number> {
   const provisioner = new MessageDbProvisioner(config);
-  const recipient = resolveNotificationRecipient(config, serverId);
+  const recipient = await resolveNotificationRecipient(config, serverId);
   const from = notificationFromAddress(config);
 
   const subject = `[${serverName}] Mail server has exceeded its send limit`;
@@ -157,14 +159,14 @@ export function sendServerSendLimitExceededEmail(
   });
 }
 
-export function sendServerSuspendedEmail(
+export async function sendServerSuspendedEmail(
   config: PostaConfig,
   serverId: number,
   serverName: string,
   reason: string,
-): number {
+): Promise<number> {
   const provisioner = new MessageDbProvisioner(config);
-  const recipient = resolveNotificationRecipient(config, serverId);
+  const recipient = await resolveNotificationRecipient(config, serverId);
   const from = notificationFromAddress(config);
 
   const subject = `[${serverName}] Your mail server has been suspended`;
@@ -191,12 +193,12 @@ export function sendServerSuspendedEmail(
   });
 }
 
-export function sendTestEmail(
+export async function sendTestEmail(
   config: PostaConfig,
   serverId: number,
   to: string,
   from: string,
-): number {
+): Promise<number> {
   const provisioner = new MessageDbProvisioner(config);
 
   const subject = 'Posta SMTP Test Message';

@@ -1,7 +1,5 @@
-import { Database } from 'bun:sqlite';
-import { mkdirSync, existsSync } from 'node:fs';
-import path from 'node:path';
-import type { PostaConfig } from '@posta/core';
+import type { PostaConfig, Queryable } from '@posta/core';
+import { ensureServerSchema, getServerSchemaName } from '@posta/core';
 import { MessageDatabase } from './database';
 
 /**
@@ -10,13 +8,13 @@ import { MessageDatabase } from './database';
 export interface MessageDbMigration {
   version: number;
   name: string;
-  up: (db: MessageDatabase) => void;
+  up: (db: MessageDatabase) => Promise<void>;
 }
 
 /**
- * Handles per-server SQLite database provisioning and migration.
+ * Handles per-server PostgreSQL schema provisioning and migration.
  *
- * Each server gets its own SQLite file: `posta-server-{id}.db`
+ * Each server gets its own PostgreSQL schema: `posta_server_{id}`
  */
 export class MessageDbProvisioner {
   private config: PostaConfig;
@@ -26,33 +24,25 @@ export class MessageDbProvisioner {
   }
 
   /**
-   * Get the file path for a server's MessageDB.
+   * Get the PostgreSQL schema name for a server's MessageDB.
    */
-  getServerDbPath(serverId: number): string {
-    const dir = path.resolve(this.config.message_db.directory);
-    return path.join(dir, `${this.config.message_db.database_name_prefix}-server-${serverId}.db`);
+  getServerSchemaName(serverId: number): string {
+    return getServerSchemaName(this.config, serverId);
   }
 
   /**
    * Open (or create) a ServerDB, apply pending migrations, and return a MessageDatabase wrapper.
    */
-  openServerDb(serverId: number): MessageDatabase {
-    const dbPath = this.getServerDbPath(serverId);
-    const dir = path.dirname(dbPath);
-    mkdirSync(dir, { recursive: true });
+  async openServerDb(serverId: number, client: Queryable): Promise<MessageDatabase> {
+    const msgDb = new MessageDatabase(client, serverId);
 
-    const sqliteDb = new Database(dbPath, { create: true });
-
-    // SQLite pragmas for WAL mode and concurrent access
-    sqliteDb.exec('PRAGMA journal_mode = WAL;');
-    sqliteDb.exec('PRAGMA busy_timeout = 5000;');
-    sqliteDb.exec('PRAGMA foreign_keys = ON;');
-
-    const msgDb = new MessageDatabase(sqliteDb, serverId);
+    // Ensure the per-server schema exists
+    await ensureServerSchema(client, this.config, serverId);
+    await msgDb.exec(`SET search_path TO "${this.getServerSchemaName(serverId)}", public`);
 
     // Auto-provision the schema and run migrations
-    this.ensureSchema(msgDb);
-    this.runMigrations(msgDb);
+    await this.ensureSchema(msgDb);
+    await this.runMigrations(msgDb);
 
     return msgDb;
   }
@@ -60,8 +50,8 @@ export class MessageDbProvisioner {
   /**
    * Ensure the base schema tables exist.
    */
-  private ensureSchema(msgDb: MessageDatabase): void {
-    msgDb.exec(`
+  private async ensureSchema(msgDb: MessageDatabase): Promise<void> {
+    await msgDb.exec(`
       CREATE TABLE IF NOT EXISTS migrations (
         version INTEGER NOT NULL PRIMARY KEY
       )
@@ -71,9 +61,9 @@ export class MessageDbProvisioner {
   /**
    * Run all pending migrations on this database.
    */
-  private runMigrations(msgDb: MessageDatabase): void {
+  private async runMigrations(msgDb: MessageDatabase): Promise<void> {
     const applied = new Set<number>();
-    const rows = msgDb.query<{ version: number }>(
+    const rows = await msgDb.query<{ version: number }>(
       'SELECT version FROM migrations ORDER BY version',
     );
     for (const row of rows) {
@@ -82,9 +72,9 @@ export class MessageDbProvisioner {
 
     for (const migration of ALL_MIGRATIONS) {
       if (applied.has(migration.version)) continue;
-      msgDb.transaction(() => {
-        migration.up(msgDb);
-        msgDb.insert('migrations', { version: migration.version });
+      await msgDb.transaction(async () => {
+        await migration.up(msgDb);
+        await msgDb.insert('migrations', { version: migration.version });
       });
     }
   }
@@ -92,9 +82,9 @@ export class MessageDbProvisioner {
   /**
    * Get the current schema version for a server DB.
    */
-  getSchemaVersion(msgDb: MessageDatabase): number {
+  async getSchemaVersion(msgDb: MessageDatabase): Promise<number> {
     try {
-      const rows = msgDb.query<{ version: number }>(
+      const rows = await msgDb.query<{ version: number }>(
         'SELECT MAX(version) AS version FROM migrations',
       );
       return rows[0]?.version ?? 0;
@@ -106,19 +96,20 @@ export class MessageDbProvisioner {
   /**
    * Get list of raw message tables older than maxAge days.
    */
-  getOldRawTables(msgDb: MessageDatabase, maxAge: number = 30): string[] {
+  async getOldRawTables(msgDb: MessageDatabase, maxAge: number = 30): Promise<string[]> {
     const cutoff = new Date(Date.now() - maxAge * 86400 * 1000)
       .toISOString()
       .slice(0, 10);
 
     const tables: string[] = [];
-    const rows = msgDb.query<{ name: string }>(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'raw-%'`,
+    const rows = await msgDb.query<{ table_name: string }>(
+      `SELECT table_name FROM information_schema.tables
+       WHERE table_schema = current_schema() AND table_name LIKE 'raw-%'`,
     );
     for (const row of rows) {
-      const dateStr = row.name.replace(/^raw-/, '');
+      const dateStr = row.table_name.replace(/^raw-/, '');
       if (dateStr < cutoff) {
-        tables.push(row.name);
+        tables.push(row.table_name);
       }
     }
     return tables.sort();
@@ -127,21 +118,21 @@ export class MessageDbProvisioner {
   /**
    * Remove raw message tables older than maxAge days.
    */
-  removeOldRawTables(msgDb: MessageDatabase, maxAge: number = 30): void {
-    const tables = this.getOldRawTables(msgDb, maxAge);
+  async removeOldRawTables(msgDb: MessageDatabase, maxAge: number = 30): Promise<void> {
+    const tables = await this.getOldRawTables(msgDb, maxAge);
     for (const table of tables) {
-      msgDb.exec(`UPDATE messages SET raw_table = NULL, raw_headers_id = NULL, raw_body_id = NULL, size = NULL WHERE raw_table = '${table}'`);
-      msgDb.exec(`DELETE FROM raw_message_sizes WHERE table_name = '${table}'`);
-      msgDb.exec(`DROP TABLE IF EXISTS "${table}"`);
+      await msgDb.exec(`UPDATE messages SET raw_table = NULL, raw_headers_id = NULL, raw_body_id = NULL, size = NULL WHERE raw_table = '${table}'`);
+      await msgDb.exec(`DELETE FROM raw_message_sizes WHERE table_name = '${table}'`);
+      await msgDb.exec(`DROP TABLE IF EXISTS "${table}"`);
     }
   }
 
   /**
    * Remove messages older than maxAge days.
    */
-  removeOldMessages(msgDb: MessageDatabase, maxAge: number = 60): void {
+  async removeOldMessages(msgDb: MessageDatabase, maxAge: number = 60): Promise<void> {
     const cutoff = (Date.now() / 1000) - (maxAge * 86400);
-    const newest = msgDb.select<{ id: number }>('messages', {
+    const newest = await msgDb.select<{ id: number }>('messages', {
       where: { timestamp: { less_than_or_equal_to: cutoff } },
       order: 'id',
       direction: 'DESC',
@@ -149,29 +140,30 @@ export class MessageDbProvisioner {
       fields: ['id'],
     }) as any as { id: number }[];
 
-    if (newest.length === 0) return;
+    if (!Array.isArray(newest) || newest.length === 0) return;
     const maxId = newest[0].id;
-    msgDb.exec(`DELETE FROM clicks WHERE message_id <= ${maxId}`);
-    msgDb.exec(`DELETE FROM loads WHERE message_id <= ${maxId}`);
-    msgDb.exec(`DELETE FROM deliveries WHERE message_id <= ${maxId}`);
-    msgDb.exec(`DELETE FROM spam_checks WHERE message_id <= ${maxId}`);
-    msgDb.exec(`DELETE FROM messages WHERE id <= ${maxId}`);
+    await msgDb.exec(`DELETE FROM clicks WHERE message_id <= ${maxId}`);
+    await msgDb.exec(`DELETE FROM loads WHERE message_id <= ${maxId}`);
+    await msgDb.exec(`DELETE FROM deliveries WHERE message_id <= ${maxId}`);
+    await msgDb.exec(`DELETE FROM spam_checks WHERE message_id <= ${maxId}`);
+    await msgDb.exec(`DELETE FROM messages WHERE id <= ${maxId}`);
   }
 
   /**
    * Remove raw tables until total size is under the given MB limit.
    */
-  removeRawTablesUntilUnderSize(msgDb: MessageDatabase, sizeMb: number): string[] {
-    const tables = msgDb.query<{ name: string }>(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'raw-%' ORDER BY name`,
+  async removeRawTablesUntilUnderSize(msgDb: MessageDatabase, sizeMb: number): Promise<string[]> {
+    const tables = await msgDb.query<{ table_name: string }>(
+      `SELECT table_name FROM information_schema.tables
+       WHERE table_schema = current_schema() AND table_name LIKE 'raw-%' ORDER BY table_name`,
     );
     const removed: string[] = [];
     for (const row of tables) {
-      if (msgDb.totalSize() <= sizeMb) break;
-      msgDb.exec(`UPDATE messages SET raw_table = NULL, raw_headers_id = NULL, raw_body_id = NULL, size = NULL WHERE raw_table = '${row.name}'`);
-      msgDb.exec(`DELETE FROM raw_message_sizes WHERE table_name = '${row.name}'`);
-      msgDb.exec(`DROP TABLE IF EXISTS "${row.name}"`);
-      removed.push(row.name);
+      if ((await msgDb.totalSize()) <= sizeMb) break;
+      await msgDb.exec(`UPDATE messages SET raw_table = NULL, raw_headers_id = NULL, raw_body_id = NULL, size = NULL WHERE raw_table = '${row.table_name}'`);
+      await msgDb.exec(`DELETE FROM raw_message_sizes WHERE table_name = '${row.table_name}'`);
+      await msgDb.exec(`DROP TABLE IF EXISTS "${row.table_name}"`);
+      removed.push(row.table_name);
     }
     return removed;
   }
@@ -179,23 +171,28 @@ export class MessageDbProvisioner {
   /**
    * Create a raw message table for a given date.
    */
-  createRawTable(msgDb: MessageDatabase, tableName: string): void {
-    msgDb.exec(`
+  async createRawTable(msgDb: MessageDatabase, tableName: string): Promise<void> {
+    await msgDb.exec(`
       CREATE TABLE IF NOT EXISTS "${tableName}" (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        data BLOB,
+        id SERIAL PRIMARY KEY,
+        data BYTEA,
         next INTEGER
       )
     `);
     // Track the size in raw_message_sizes
-    msgDb.insert('raw_message_sizes', { table_name: tableName, size: 0 });
+    await msgDb.insert('raw_message_sizes', { table_name: tableName, size: 0 });
   }
 
   /**
-   * Check if a database file exists for a server.
+   * Check if a server schema exists.
    */
-  serverDbExists(serverId: number): boolean {
-    return existsSync(this.getServerDbPath(serverId));
+  async serverDbExists(serverId: number, client: Queryable): Promise<boolean> {
+    const schema = this.getServerSchemaName(serverId);
+    const rows = await client.query<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM information_schema.schemata WHERE schema_name = $1`,
+      [schema],
+    );
+    return (rows[0]?.count ?? 0) > 0;
   }
 }
 
@@ -203,23 +200,23 @@ export class MessageDbProvisioner {
  * All MessageDB migrations, ordered by version.
  *
  * These correspond to the 20 MySQL migrations at lib/posta/message_db/migrations/.
- * With SQLite we don't need separate migration files — they're defined inline.
+ * With PostgreSQL we define them inline.
  */
 export const ALL_MIGRATIONS: MessageDbMigration[] = [
   {
     version: 1,
     name: 'CreateMigrations',
-    up: (db) => {
+    up: async () => {
       // migrations table is created by ensureSchema()
     },
   },
   {
     version: 2,
     name: 'CreateMessages',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS messages (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           token TEXT,
           scope TEXT,
           rcpt_to TEXT,
@@ -250,27 +247,27 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           received_with_ssl INTEGER
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_message_id ON messages(message_id)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_token ON messages(token)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_bounce_for ON messages(bounce_for_id)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_held ON messages(held)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_status ON messages(scope, spam, status, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_tag ON messages(scope, spam, tag, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_spam ON messages(scope, spam, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_threat_status ON messages(scope, threat, status, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_threat ON messages(scope, threat, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_rcpt_to ON messages(rcpt_to, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_mail_from ON messages(mail_from, timestamp)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_raw_table ON messages(raw_table)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_message_id ON messages(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_token ON messages(token)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_bounce_for ON messages(bounce_for_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_held ON messages(held)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_status ON messages(scope, spam, status, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_tag ON messages(scope, spam, tag, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_spam ON messages(scope, spam, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_threat_status ON messages(scope, threat, status, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_scope_threat ON messages(scope, threat, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_rcpt_to ON messages(rcpt_to, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_mail_from ON messages(mail_from, timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_raw_table ON messages(raw_table)');
     },
   },
   {
     version: 3,
     name: 'CreateDeliveries',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS deliveries (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           message_id INTEGER,
           status TEXT,
           code INTEGER,
@@ -281,14 +278,14 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           timestamp REAL
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_deliveries_message ON deliveries(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_deliveries_message ON deliveries(message_id)');
     },
   },
   {
     version: 4,
     name: 'CreateLiveStats',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS live_stats (
           type TEXT NOT NULL,
           minute INTEGER NOT NULL,
@@ -302,24 +299,24 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
   {
     version: 5,
     name: 'CreateRawMessageSizes',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS raw_message_sizes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           table_name TEXT,
           size INTEGER
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_raw_sizes_table ON raw_message_sizes(table_name)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_raw_sizes_table ON raw_message_sizes(table_name)');
     },
   },
   {
     version: 6,
     name: 'CreateClicks',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS clicks (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           message_id INTEGER,
           link_id INTEGER,
           ip_address TEXT,
@@ -329,17 +326,17 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           timestamp REAL
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_clicks_message ON clicks(message_id)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_clicks_link ON clicks(link_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_clicks_message ON clicks(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_clicks_link ON clicks(link_id)');
     },
   },
   {
     version: 7,
     name: 'CreateLoads',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS loads (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           message_id INTEGER,
           ip_address TEXT,
           country TEXT,
@@ -348,17 +345,17 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           timestamp REAL
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_loads_message ON loads(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_loads_message ON loads(message_id)');
     },
   },
   {
     version: 8,
     name: 'CreateStats',
-    up: (db) => {
+    up: async (db) => {
       for (const suffix of ['hourly', 'daily', 'monthly', 'yearly']) {
-        db.exec(`
+        await db.exec(`
           CREATE TABLE IF NOT EXISTS stats_${suffix} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             time INTEGER UNIQUE,
             incoming INTEGER DEFAULT 0,
             outgoing INTEGER DEFAULT 0,
@@ -373,10 +370,10 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
   {
     version: 9,
     name: 'CreateLinks',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS links (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           message_id INTEGER,
           token TEXT,
           hash TEXT,
@@ -384,55 +381,55 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           timestamp REAL
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_links_message ON links(message_id)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_links_token ON links(token)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_links_message ON links(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_links_token ON links(token)');
     },
   },
   {
     version: 10,
     name: 'CreateSpamChecks',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS spam_checks (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           message_id INTEGER,
           score REAL,
           code TEXT,
           description TEXT
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_spam_checks_message ON spam_checks(message_id)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_spam_checks_code ON spam_checks(code)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_spam_checks_message ON spam_checks(message_id)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_spam_checks_code ON spam_checks(code)');
     },
   },
   {
     version: 11,
     name: 'AddTimeToDeliveries',
-    up: (db) => {
-      db.exec('ALTER TABLE deliveries ADD COLUMN time REAL');
+    up: async (db) => {
+      await db.exec('ALTER TABLE deliveries ADD COLUMN IF NOT EXISTS time REAL');
     },
   },
   {
     version: 12,
     name: 'AddHoldExpiry',
-    up: (db) => {
-      db.exec('ALTER TABLE messages ADD COLUMN hold_expiry REAL');
+    up: async (db) => {
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS hold_expiry REAL');
     },
   },
   {
     version: 13,
     name: 'AddIndexToMessageStatus',
-    up: (db) => {
-      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status)');
+    up: async (db) => {
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status)');
     },
   },
   {
     version: 14,
     name: 'CreateSuppressions',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS suppressions (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           type TEXT,
           address TEXT,
           reason TEXT,
@@ -440,17 +437,17 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           keep_until REAL
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_suppressions_address ON suppressions(address)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_suppressions_keep_until ON suppressions(keep_until)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_suppressions_address ON suppressions(address)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_suppressions_keep_until ON suppressions(keep_until)');
     },
   },
   {
     version: 15,
     name: 'CreateWebhookRequests',
-    up: (db) => {
-      db.exec(`
+    up: async (db) => {
+      await db.exec(`
         CREATE TABLE IF NOT EXISTS webhook_requests (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           uuid TEXT,
           event TEXT,
           attempt INTEGER,
@@ -461,49 +458,49 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
           will_retry INTEGER
         )
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_uuid ON webhook_requests(uuid)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_event ON webhook_requests(event)');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_timestamp ON webhook_requests(timestamp)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_uuid ON webhook_requests(uuid)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_event ON webhook_requests(event)');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_timestamp ON webhook_requests(timestamp)');
     },
   },
   {
     version: 16,
     name: 'AddUrlAndHookToWebhooks',
-    up: (db) => {
-      db.exec('ALTER TABLE webhook_requests ADD COLUMN url TEXT');
-      db.exec('ALTER TABLE webhook_requests ADD COLUMN webhook_id INTEGER');
-      db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_webhook ON webhook_requests(webhook_id)');
+    up: async (db) => {
+      await db.exec('ALTER TABLE webhook_requests ADD COLUMN IF NOT EXISTS url TEXT');
+      await db.exec('ALTER TABLE webhook_requests ADD COLUMN IF NOT EXISTS webhook_id INTEGER');
+      await db.exec('CREATE INDEX IF NOT EXISTS idx_webhook_requests_webhook ON webhook_requests(webhook_id)');
     },
   },
   {
     version: 17,
     name: 'AddReplacedLinkCountToMessages',
-    up: (db) => {
-      db.exec('ALTER TABLE messages ADD COLUMN tracked_links INTEGER DEFAULT 0');
-      db.exec('ALTER TABLE messages ADD COLUMN tracked_images INTEGER DEFAULT 0');
-      db.exec('ALTER TABLE messages ADD COLUMN parsed INTEGER DEFAULT 0');
+    up: async (db) => {
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS tracked_links INTEGER DEFAULT 0');
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS tracked_images INTEGER DEFAULT 0');
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS parsed INTEGER DEFAULT 0');
     },
   },
   {
     version: 18,
     name: 'AddEndpointsToMessages',
-    up: (db) => {
-      db.exec('ALTER TABLE messages ADD COLUMN endpoint_id INTEGER');
-      db.exec('ALTER TABLE messages ADD COLUMN endpoint_type TEXT');
+    up: async (db) => {
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS endpoint_id INTEGER');
+      await db.exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS endpoint_type TEXT');
     },
   },
   {
     version: 19,
     name: 'ConvertToUtf8',
-    up: () => {
-      // No-op — SQLite uses UTF-8 natively
+    up: async () => {
+      // No-op — PostgreSQL uses UTF-8 natively
     },
   },
   {
     version: 20,
     name: 'IncreaseLinksUrlSize',
-    up: () => {
-      // No-op — SQLite TEXT has no size limit
+    up: async () => {
+      // No-op — PostgreSQL TEXT has no size limit
     },
   },
 ];

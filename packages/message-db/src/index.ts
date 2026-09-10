@@ -29,3 +29,14 @@ export {
   sendServerSuspendedEmail,
   sendTestEmail,
 } from './mailers';
+
+// ─── v2: unified, tenant-scoped store ───────────────────────────────────
+export { scopeFor, tenantOnly, InvalidScopeError, type TenantScope } from './v2/scope';
+export { MessageRepository, type MessageRow, type NewMessage } from './v2/messages';
+export { DeliveryRepository, type DeliveryRow, type NewDelivery } from './v2/deliveries';
+export { EngagementRepository, type LinkRow, type EngagementRow } from './v2/engagement';
+export { SuppressionRepository, type SuppressionRow } from './v2/suppressions';
+export { backfillServer, verifyBackfill, prepareBackfill, type BackfillPlan } from './v2/backfill';
+export { DualWriteMessages, DivergenceLog, canAdvance, readsV2, writesV2, writesLegacy,
+  type MigrationMode } from './v2/migration-mode';
+export { ComparisonSampler, readyToAdvance, type SamplerStats } from './v2/sampler';
