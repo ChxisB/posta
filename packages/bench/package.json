@@ -1,0 +1,18 @@
+{
+  "name": "@posta/bench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sink": "bun src/sink.ts",
+    "bench": "bun src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^5.9.3"
+  },
+  "author": "Chris Beckett <chrisssyyyb@gmail.com>",
+  "license": "MIT"
+}
