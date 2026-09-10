@@ -191,3 +191,5 @@ export interface DeliveryResult {
   endpointUsed?: string;
   error?: string;
 }
+
+export { SmtpConnectionPool, poolKey, type PoolOptions, type PoolStats } from './pool';
