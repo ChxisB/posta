@@ -1,7 +1,6 @@
 /**
  * Parses search/query strings into key-value pairs.
  *
- * Ported from the Ruby `QueryString` class (app/lib/query_string.rb).
  *
  * Supports:
  *   - Simple values:          `key: value`

@@ -432,5 +432,5 @@ export const AdditionalRouteEndpointSchema = z.object({
 });
 export type AdditionalRouteEndpoint = z.infer<typeof AdditionalRouteEndpointSchema>;
 
-// ─── Retry / Backoff / DLQ types (bunqueue-inspired) ────
+// ─── Retry / Backoff / DLQ types ────
 export * from './retry';

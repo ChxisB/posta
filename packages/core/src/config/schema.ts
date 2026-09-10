@@ -42,13 +42,35 @@ export const PostaConfigSchema = z.object({
     threads: z.number().int().default(2),
   }).default({}),
 
+  /**
+   * Which message store is authoritative. See message-db/v2/migration-mode.
+   *
+   * Defaults to 'legacy' so an existing installation is unaffected by
+   * deploying this code: the migration is opted into deliberately, never
+   * entered by upgrading.
+   */
+  message_store: z
+    .object({
+      mode: z.enum(['legacy', 'dual', 'v2-read', 'v2']).default('legacy'),
+      /**
+       * Fraction of reads that also read the shadow store and compare.
+       * Sampled rather than universal because it doubles the read cost, and
+       * a divergence severe enough to matter shows up in a small sample.
+       */
+      compare_sample_rate: z.number().min(0).max(1).default(0.01),
+    })
+    .default(() => ({
+      mode: (process.env.POSTA_MESSAGE_STORE_MODE as 'legacy') ?? 'legacy',
+      compare_sample_rate: Number(process.env.POSTA_MESSAGE_STORE_COMPARE_RATE ?? 0.01),
+    })),
+
   main_db: z.object({
-    path: z.string().default('data/posta-main.db'),
-  }).default({}),
+    url: z.string(),
+  }).default(() => ({ url: process.env.POSTA_MAIN_DB_URL ?? 'postgresql://postgres:postgres@localhost:5432/posta_main' })),
 
   message_db: z.object({
-    directory: z.string().default('data/message-db'),
-    database_name_prefix: z.string().default('posta'),
+    url: z.string().optional(),
+    schema_prefix: z.string().default('posta_server'),
   }).default({}),
 
   logging: z.object({

@@ -1,6 +1,5 @@
 /**
  * Failure reason classification & Dead Letter Queue types.
- * Ported from bunqueue's production patterns.
  */
 
 /** Categories for delivery/send failures */
