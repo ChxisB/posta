@@ -1,4 +1,4 @@
-import type { Database } from 'bun:sqlite';
+import type { Queryable } from './db/client';
 
 export interface PoolRule {
   id?: number;
@@ -21,39 +21,41 @@ export interface MessageContext {
  * Allocate an IP address for an outgoing message.
  * Returns the ip_address_id or null if no pool matches.
  */
-export function allocateIpAddress(
-  db: Database,
+export async function allocateIpAddress(
+  client: Queryable,
   useIpPools: boolean,
   serverId: number,
   scope: string,
   rcptTo: string,
-): number | null {
+): Promise<number | null> {
   if (!useIpPools) return null;
   if (scope !== 'outgoing') return null;
   if (!rcptTo) return null;
 
-  const poolId = ipPoolForMessage(db, serverId, rcptTo);
+  const poolId = await ipPoolForMessage(client, serverId, rcptTo);
   if (!poolId) return null;
 
-  return selectIpAddressByPriority(db, poolId);
+  return selectIpAddressByPriority(client, poolId);
 }
 
 /**
  * Resolve which IP pool to use for a message.
  * Server rules (newest first) → Org rules (newest first) → server.ip_pool_id fallback.
  */
-function ipPoolForMessage(db: Database, serverId: number, rcptTo: string): number | null {
-  const server = db.query(
-    `SELECT organization_id, ip_pool_id FROM servers WHERE id = ?`,
-  ).get(serverId) as { organization_id: number; ip_pool_id: number | null } | undefined;
+async function ipPoolForMessage(client: Queryable, serverId: number, rcptTo: string): Promise<number | null> {
+  const server = await client.get<{ organization_id: number; ip_pool_id: number | null }>(
+    `SELECT organization_id, ip_pool_id FROM servers WHERE id = $1`,
+    [serverId],
+  );
   if (!server) return null;
 
   const recipientDomain = rcptTo.split('@')[1] ?? '';
 
   // 1. Server-scoped rules (newest first)
-  const serverRules = db.query(
-    `SELECT * FROM ip_pool_rules WHERE owner_type = 'Server' AND owner_id = ? ORDER BY created_at DESC`,
-  ).all(serverId) as PoolRule[];
+  const serverRules = await client.query<PoolRule>(
+    `SELECT * FROM ip_pool_rules WHERE owner_type = 'Server' AND owner_id = $1 ORDER BY created_at DESC`,
+    [serverId],
+  );
   for (const rule of serverRules) {
     if (applyToMessage(rule, rcptTo, recipientDomain)) {
       return rule.ip_pool_id;
@@ -61,9 +63,10 @@ function ipPoolForMessage(db: Database, serverId: number, rcptTo: string): numbe
   }
 
   // 2. Org-scoped rules (newest first)
-  const orgRules = db.query(
-    `SELECT * FROM ip_pool_rules WHERE owner_type = 'Organization' AND owner_id = ? ORDER BY created_at DESC`,
-  ).all(server.organization_id) as PoolRule[];
+  const orgRules = await client.query<PoolRule>(
+    `SELECT * FROM ip_pool_rules WHERE owner_type = 'Organization' AND owner_id = $1 ORDER BY created_at DESC`,
+    [server.organization_id],
+  );
   for (const rule of orgRules) {
     if (applyToMessage(rule, rcptTo, recipientDomain)) {
       return rule.ip_pool_id;
@@ -130,12 +133,13 @@ function addressMatches(condition: string, address: string): boolean {
  * Select an IP address from a pool using weighted random selection.
  * Higher priority = higher probability.
  */
-function selectIpAddressByPriority(db: Database, poolId: number): number | null {
-  const row = db.query(
+async function selectIpAddressByPriority(client: Queryable, poolId: number): Promise<number | null> {
+  const row = await client.get<{ id: number }>(
     `SELECT id FROM ip_addresses
-     WHERE ip_pool_id = ?
-     ORDER BY (ABS(RANDOM()) / 9223372036854775807.0) * COALESCE(priority, 100) DESC
+     WHERE ip_pool_id = $1
+     ORDER BY RANDOM() * COALESCE(priority, 100) DESC
      LIMIT 1`,
-  ).get(poolId) as { id: number } | undefined;
+    [poolId],
+  );
   return row?.id ?? null;
 }

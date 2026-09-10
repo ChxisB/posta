@@ -72,12 +72,12 @@ function applyEnvOverrides(raw: Record<string, any>): void {
   // Worker
   if (env.WORKER_THREADS) setNested(raw, ['worker', 'threads'], parseInt(env.WORKER_THREADS, 10));
 
-  // Main DB (SQLite path)
-  if (env.POSTA_MAIN_DB_PATH) setNested(raw, ['main_db', 'path'], env.POSTA_MAIN_DB_PATH);
+  // Main DB (PostgreSQL connection URL)
+  if (env.POSTA_MAIN_DB_URL) setNested(raw, ['main_db', 'url'], env.POSTA_MAIN_DB_URL);
 
-  // Message DB directory
-  if (env.POSTA_MESSAGE_DB_DIRECTORY) setNested(raw, ['message_db', 'directory'], env.POSTA_MESSAGE_DB_DIRECTORY);
-  if (env.POSTA_MESSAGE_DB_PREFIX) setNested(raw, ['message_db', 'database_name_prefix'], env.POSTA_MESSAGE_DB_PREFIX);
+  // Message DB (optional separate PostgreSQL connection URL and schema prefix)
+  if (env.POSTA_MESSAGE_DB_URL) setNested(raw, ['message_db', 'url'], env.POSTA_MESSAGE_DB_URL);
+  if (env.POSTA_MESSAGE_DB_SCHEMA_PREFIX) setNested(raw, ['message_db', 'schema_prefix'], env.POSTA_MESSAGE_DB_SCHEMA_PREFIX);
 
   // Logging
   if (env.POSTA_LOG_LEVEL) setNested(raw, ['logging', 'level'], env.POSTA_LOG_LEVEL);

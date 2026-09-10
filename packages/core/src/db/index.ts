@@ -1,117 +1,90 @@
-import { Database } from 'bun:sqlite';
-import path from 'node:path';
-import { mkdirSync, existsSync } from 'node:fs';
-import { MAIN_DB_DDL } from './schema';
 import type { PostaConfig } from '../config/types';
+import { PgClient, type Queryable } from './client';
+import { MAIN_DB_DDL } from './schema';
 
 interface DbConnection {
-  db: Database;
-  path: string;
+  client: PgClient;
+  url: string;
 }
 
 let mainDbConnection: DbConnection | null = null;
 const serverDbConnections = new Map<number, DbConnection>();
 
 /**
- * Get or create the main SQLite database connection.
- * Uses WAL mode with busy_timeout for concurrent access.
+ * Get or create the main PostgreSQL database connection.
  */
-export function getMainDb(config: PostaConfig): Database {
-  if (mainDbConnection) return mainDbConnection.db;
+export function getMainDb(config: PostaConfig): PgClient {
+  if (mainDbConnection) return mainDbConnection.client;
 
-  const dbPath = path.resolve(config.main_db.path);
-  const dir = path.dirname(dbPath);
-  mkdirSync(dir, { recursive: true });
-
-  const db = new Database(dbPath, { create: true });
-  configureDatabase(db);
-  mainDbConnection = { db, path: dbPath };
-  return db;
+  const client = new PgClient(config.main_db.url);
+  mainDbConnection = { client, url: config.main_db.url };
+  return client;
 }
 
 /**
- * Get or create a per-server MessageDB SQLite connection.
- * One SQLite file per server, stored in the message_db directory.
+ * Get or create a per-server MessageDB PostgreSQL connection.
+ *
+ * Servers are isolated using a dedicated PostgreSQL schema named
+ * `{message_db.schema_prefix}_{serverId}`. The underlying connection is
+ * the same as the main database unless a separate message_db.url is configured.
  */
-export function getServerDb(config: PostaConfig, serverId: number): Database {
+export function getServerDb(config: PostaConfig, serverId: number): PgClient {
   const existing = serverDbConnections.get(serverId);
-  if (existing) return existing.db;
+  if (existing) return existing.client;
 
-  const dir = path.resolve(config.message_db.directory);
-  mkdirSync(dir, { recursive: true });
-
-  const dbPath = path.join(dir, `${config.message_db.database_name_prefix}-server-${serverId}.db`);
-  const db = new Database(dbPath, { create: true });
-  configureDatabase(db);
-  serverDbConnections.set(serverId, { db, path: dbPath });
-  return db;
+  const baseUrl = config.message_db.url ?? config.main_db.url;
+  const schema = getServerSchemaName(config, serverId);
+  const url = setSearchPath(baseUrl, `${schema},public`);
+  const client = new PgClient(url);
+  serverDbConnections.set(serverId, { client, url });
+  return client;
 }
 
-/**
- * Configure a SQLite database with WAL mode and busy timeout.
- */
-function configureDatabase(db: Database): void {
-  // Enable WAL mode for concurrent read performance
-  db.exec('PRAGMA journal_mode = WAL;');
-  // Normal sync is faster than FULL and safe with WAL
-  db.exec('PRAGMA synchronous = NORMAL;');
-  // Busy timeout in milliseconds — wait up to 5s if another process is writing
-  db.exec('PRAGMA busy_timeout = 5000;');
-  // Enable foreign keys
-  db.exec('PRAGMA foreign_keys = ON;');
-  // Set cache size to 64MB (-kBytes)
-  db.exec('PRAGMA cache_size = -64000;');
-  // Keep temp tables in memory for speed
-  db.exec('PRAGMA temp_store = MEMORY;');
+function setSearchPath(url: string, searchPath: string): string {
+  const parsed = new URL(url);
+  parsed.searchParams.set('search_path', searchPath);
+  return parsed.toString();
 }
 
 /**
  * Close all database connections.
  */
-export function closeAllDatabases(): void {
+export async function closeAllDatabases(): Promise<void> {
   if (mainDbConnection) {
-    mainDbConnection.db.close();
+    await mainDbConnection.client.close();
     mainDbConnection = null;
   }
   for (const conn of serverDbConnections.values()) {
-    conn.db.close();
+    await conn.client.close();
   }
   serverDbConnections.clear();
 }
 
 /**
- * Initialize the main database: create tables and configure PRAGMAs.
+ * Initialize the main database: create tables.
  * Call this at startup before any service starts.
  */
-export function initializeMainDb(config: PostaConfig): Database {
-  const db = getMainDb(config);
-  db.exec(MAIN_DB_DDL);
+export async function initializeMainDb(config: PostaConfig): Promise<PgClient> {
+  const client = getMainDb(config);
+  await client.exec(MAIN_DB_DDL);
   console.log('[db] Main database initialized');
-
-  // Ensure the MessageDB directory exists
-  const msgDir = path.resolve(config.message_db.directory);
-  if (!existsSync(msgDir)) {
-    mkdirSync(msgDir, { recursive: true });
-    console.log(`[db] Created MessageDB directory: ${msgDir}`);
-  }
-
-  return db;
+  return client;
 }
 
 /**
  * Initialize the database standalone (for SMTP server / worker).
- * Same as initializeMainDb but returns the DB immediately.
+ * Same as initializeMainDb but returns the client immediately.
  */
-export function initializeDatabase(config: PostaConfig): Database {
-  return initializeMainDb(config);
+export function initializeDatabase(config: PostaConfig): PgClient {
+  return getMainDb(config);
 }
 
 /**
  * Create a queued message entry for delivery.
  * Inserts into the queued_messages table so the worker can pick it up.
  */
-export function createQueuedMessage(
-  db: Database,
+export async function createQueuedMessage(
+  client: PgClient,
   params: {
     serverId: number;
     messageId: number;
@@ -121,20 +94,45 @@ export function createQueuedMessage(
     maxAttempts?: number;
     ipAddressId?: number | null;
   },
-): number {
-  const serverId = params.serverId; // type-safe reference
-  const stmt = db.prepare(`
-    INSERT INTO queued_messages (server_id, message_id, domain_id, retry_after, priority, max_attempts, ip_address_id, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-  `);
-  const result = stmt.run(
-    params.serverId,
-    params.messageId,
-    params.domainId ?? null,
-    params.retryAfter?.toISOString() ?? null,
-    params.priority ?? 0,
-    params.maxAttempts ?? 18,
-    params.ipAddressId ?? null,
+): Promise<number> {
+  const result = await client.run(
+    `INSERT INTO queued_messages
+      (server_id, message_id, domain_id, retry_after, priority, max_attempts, ip_address_id, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+     RETURNING id`,
+    [
+      params.serverId,
+      params.messageId,
+      params.domainId ?? null,
+      params.retryAfter?.toISOString() ?? null,
+      params.priority ?? 0,
+      params.maxAttempts ?? 18,
+      params.ipAddressId ?? null,
+    ],
   );
   return Number(result.lastInsertRowid);
+}
+
+/**
+ * Format a PostgreSQL schema name for a server's MessageDB.
+ */
+export function getServerSchemaName(config: PostaConfig, serverId: number): string {
+  return `${config.message_db.schema_prefix}_${serverId}`;
+}
+
+/**
+ * Set the search_path for a connection to the given schema.
+ * The search_path is scoped to the current session/connection.
+ */
+export async function useServerSchema(client: Queryable, config: PostaConfig, serverId: number): Promise<void> {
+  const schema = getServerSchemaName(config, serverId);
+  await client.run(`SET search_path TO "${schema}", public`);
+}
+
+/**
+ * Ensure a server schema exists.
+ */
+export async function ensureServerSchema(client: Queryable, config: PostaConfig, serverId: number): Promise<void> {
+  const schema = getServerSchemaName(config, serverId);
+  await client.run(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
 }

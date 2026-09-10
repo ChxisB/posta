@@ -12,15 +12,18 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "bun": "latest",
+    "js-yaml": "^4.1.0",
     "pino": "^9.6.0",
     "pino-gelf": "^2.0.0",
-    "js-yaml": "^4.1.0",
-    "zod": "^3.24.0",
-    "bun": "latest"
+    "postgres": "^3.4.9",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "@types/bun": "latest",
     "@types/js-yaml": "^4.0.9"
-  }
+  },
+  "author": "Chris Beckett <chrisssyyyb@gmail.com>",
+  "license": "MIT"
 }

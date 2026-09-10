@@ -1,28 +1,28 @@
-import { Database } from 'bun:sqlite';
+import type { Queryable } from './client';
 
 export interface Migration {
   version: number;
   name: string;
-  up: (db: Database) => void;
+  up: (client: Queryable) => Promise<void>;
 }
 
 /**
  * Run pending migrations against a database.
  * Tracks applied migrations in a `schema_migrations` table.
  */
-export function runMigrations(db: Database, migrations: Migration[]): void {
+export async function runMigrations(client: Queryable, migrations: Migration[]): Promise<void> {
   // Ensure the migrations tracking table exists
-  db.exec(`
+  await client.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
-      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
   // Get already-applied versions
   const applied = new Set<number>();
-  const rows = db.query('SELECT version FROM schema_migrations').all() as { version: number }[];
+  const rows = await client.query<{ version: number }>('SELECT version FROM schema_migrations');
   for (const row of rows) {
     applied.add(row.version);
   }
@@ -34,13 +34,13 @@ export function runMigrations(db: Database, migrations: Migration[]): void {
 
     console.log(`[migration] Applying v${migration.version}: ${migration.name}`);
 
-    db.transaction(() => {
-      migration.up(db);
-      db.run(
-        'INSERT INTO schema_migrations (version, name) VALUES (?, ?)',
+    await client.transaction(async () => {
+      await migration.up(client);
+      await client.run(
+        'INSERT INTO schema_migrations (version, name) VALUES ($1, $2)',
         [migration.version, migration.name],
       );
-    })();
+    });
 
     console.log(`[migration] Applied v${migration.version}`);
   }
@@ -50,11 +50,11 @@ export function runMigrations(db: Database, migrations: Migration[]): void {
  * Get the current schema migration version.
  * Returns 0 if no migrations have been applied.
  */
-export function getMigrationVersion(db: Database): number {
+export async function getMigrationVersion(client: Queryable): Promise<number> {
   try {
-    const row = db.query(
+    const row = await client.get<{ version: number | null }>(
       'SELECT MAX(version) as version FROM schema_migrations',
-    ).get() as { version: number | null } | undefined;
+    );
     return row?.version ?? 0;
   } catch {
     return 0;

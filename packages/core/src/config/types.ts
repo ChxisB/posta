@@ -36,15 +36,15 @@ export interface PostaConfig {
   };
 
   main_db: {
-    /** SQLite path for the main database (replaces MariaDB host/port/username/password/database) */
-    path: string;
+    /** PostgreSQL connection URL for the main database (e.g. Supabase direct connection string) */
+    url: string;
   };
 
   message_db: {
-    /** Directory where per-server SQLite files are stored */
-    directory: string;
-    /** Prefix for per-server database filenames */
-    database_name_prefix: string;
+    /** Optional PostgreSQL connection URL for the message database. Defaults to main_db.url. */
+    url?: string;
+    /** Prefix for per-server PostgreSQL schemas used to isolate message tables. */
+    schema_prefix: string;
   };
 
   logging: {
