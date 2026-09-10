@@ -20,11 +20,12 @@ worker:
   threads: 2
 
 main_db:
-  path: "data/posta-main.db"
+  url: "postgresql://postgres:postgres@localhost:5432/posta_main"
 
 message_db:
-  directory: "data/message-db"
-  database_name_prefix: "posta"
+  # Optional: use a separate database/URL for per-server message data.
+  # url: "postgresql://postgres:postgres@localhost:5432/posta_main"
+  schema_prefix: "posta_server"
 
 logging:
   enabled: true
