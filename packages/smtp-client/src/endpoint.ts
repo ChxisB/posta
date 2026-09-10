@@ -15,7 +15,6 @@ export interface DeliveryAttempt {
 
 /**
  * An endpoint represents one IP address for a destination mail server.
- * Mirrors Ruby SMTPClient::Endpoint.
  */
 export class SmtpEndpoint {
   readonly hostname: string;
@@ -179,34 +178,19 @@ export class SmtpEndpoint {
 
     const session = this.session;
 
-    // MAIL FROM
-    const mfResponse = await session.mailFrom(mailFrom);
-    if (mfResponse.code >= 500) {
-      return {
-        endpointDescription: this.description,
-        success: false,
-        classification: this.classifyCode(mfResponse.code),
-        responseCode: mfResponse.code,
-        responseMessage: mfResponse.message,
-        time: Date.now() - startTime,
-      };
-    }
+    // One transaction, pipelined where the peer allows it.
+    //
+    // Replaces the sequential MAIL / RCPT / DATA exchange, which cost four
+    // round trips per message. Against a mailbox provider every one of those
+    // is pure network latency, so collapsing to two halves the dialog. See
+    // SmtpSession.transaction: it falls back to the sequential path when
+    // PIPELINING is not advertised, because RFC 2920 forbids pipelining
+    // unannounced and some servers drop the connection on unexpected input.
+    const { response: dataResponse } = await session.transaction(mailFrom, rcptTo, rawMessage);
 
-    // RCPT TO
-    const rtResponse = await session.rcptTo(rcptTo);
-    if (rtResponse.code >= 500) {
-      return {
-        endpointDescription: this.description,
-        success: false,
-        classification: this.classifyCode(rtResponse.code),
-        responseCode: rtResponse.code,
-        responseMessage: rtResponse.message,
-        time: Date.now() - startTime,
-      };
-    }
-
-    // DATA
-    const dataResponse = await session.data(rawMessage);
+    // A permanent failure from any stage arrives here as that stage's reply,
+    // so one classification covers all three rather than three near-identical
+    // early returns.
     const classification = dataResponse.code >= 500
       ? this.classifyCode(dataResponse.code)
       : 'Sent';

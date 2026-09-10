@@ -1,6 +1,5 @@
 /**
  * SSL modes for outbound SMTP connections.
- * Mirrors Ruby SMTPClient::SSLModes.
  */
 export const SSLModes = {
   AUTO: 'Auto',
