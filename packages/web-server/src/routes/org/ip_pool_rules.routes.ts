@@ -10,10 +10,11 @@ export const serverIpPoolRuleRoutes = new Elysia({
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const rules = db.query(
-      `SELECT * FROM ip_pool_rules WHERE owner_type = 'Server' AND owner_id = ?`,
-    ).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const rules = await db.query(
+      `SELECT * FROM ip_pool_rules WHERE owner_type = 'Server' AND owner_id = $1`,
+      [c.params.serverId],
+    ) as any[];
     c.set.status = 200;
     return { ip_pool_rules: rules };
   }, {
@@ -22,14 +23,14 @@ export const serverIpPoolRuleRoutes = new Elysia({
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { ip_pool_id, from_text, to_text } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO ip_pool_rules (uuid, owner_type, owner_id, ip_pool_id, from_text, to_text, created_at, updated_at)
-      VALUES (?, 'Server', ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(uuid, c.params.serverId, ip_pool_id, from_text ?? null, to_text ?? null);
+      VALUES ($1, 'Server', $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id
+    `, [uuid, c.params.serverId, ip_pool_id, from_text ?? null, to_text ?? null]);
     c.set.status = 201;
     return {
       ip_pool_rule: {
@@ -53,10 +54,11 @@ export const serverIpPoolRuleRoutes = new Elysia({
 
   .patch('/:ruleId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const rule = db.query(
-      `SELECT * FROM ip_pool_rules WHERE uuid = ? AND owner_type = 'Server' AND owner_id = ?`,
-    ).get(c.params.ruleId, c.params.serverId) as any;
+    const db = await getDb();
+    const rule = await db.get(
+      `SELECT * FROM ip_pool_rules WHERE uuid = $1 AND owner_type = 'Server' AND owner_id = $2`,
+      [c.params.ruleId, c.params.serverId],
+    ) as any;
     if (!rule) {
       c.set.status = 404;
       return { error: 'RuleNotFound' };
@@ -68,13 +70,14 @@ export const serverIpPoolRuleRoutes = new Elysia({
       c.set.status = 200;
       return { ip_pool_rule: rule };
     }
-    const setClauses = fields.map(([k]) => `${k} = ?`);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
     const values: any[] = fields.map(([_, v]) => v);
     values.push(rule.id);
-    db.prepare(
-      `UPDATE ip_pool_rules SET ${setClauses.join(', ')}, updated_at = datetime('now') WHERE id = ?`,
-    ).run(...values);
-    const updated = db.query(`SELECT * FROM ip_pool_rules WHERE id = ?`).get(rule.id) as any;
+    await db.run(
+      `UPDATE ip_pool_rules SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`,
+      values,
+    );
+    const updated = await db.get(`SELECT * FROM ip_pool_rules WHERE id = $1`, [rule.id]) as any;
     c.set.status = 200;
     return { ip_pool_rule: updated };
   }, {
@@ -88,15 +91,16 @@ export const serverIpPoolRuleRoutes = new Elysia({
 
   .delete('/:ruleId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const rule = db.query(
-      `SELECT * FROM ip_pool_rules WHERE uuid = ? AND owner_type = 'Server' AND owner_id = ?`,
-    ).get(c.params.ruleId, c.params.serverId) as any;
+    const db = await getDb();
+    const rule = await db.get(
+      `SELECT * FROM ip_pool_rules WHERE uuid = $1 AND owner_type = 'Server' AND owner_id = $2`,
+      [c.params.ruleId, c.params.serverId],
+    ) as any;
     if (!rule) {
       c.set.status = 404;
       return { error: 'RuleNotFound' };
     }
-    db.run(`DELETE FROM ip_pool_rules WHERE id = ?`, [rule.id]);
+    await db.run(`DELETE FROM ip_pool_rules WHERE id = $1`, [rule.id]);
     c.set.status = 200;
     return { deleted: true };
   }, {
@@ -113,17 +117,18 @@ export const orgIpPoolRuleRoutes = new Elysia({
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(
+    const db = await getDb();
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [
       c.params.orgPermalink,
-    ) as any;
+    ]) as any;
     if (!org) {
       c.set.status = 404;
       return { error: 'OrgNotFound' };
     }
-    const rules = db.query(
-      `SELECT * FROM ip_pool_rules WHERE owner_type = 'Organization' AND owner_id = ?`,
-    ).all(org.id) as any[];
+    const rules = await db.query(
+      `SELECT * FROM ip_pool_rules WHERE owner_type = 'Organization' AND owner_id = $1`,
+      [org.id],
+    ) as any[];
     c.set.status = 200;
     return { ip_pool_rules: rules };
   }, {
@@ -132,27 +137,27 @@ export const orgIpPoolRuleRoutes = new Elysia({
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(
+    const db = await getDb();
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [
       c.params.orgPermalink,
-    ) as any;
+    ]) as any;
     if (!org) {
       c.set.status = 404;
       return { error: 'OrgNotFound' };
     }
     const { ip_pool_id, from_text, to_text } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO ip_pool_rules (uuid, owner_type, owner_id, ip_pool_id, from_text, to_text, created_at, updated_at)
-      VALUES (?, 'Organization', ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(
+      VALUES ($1, 'Organization', $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id
+    `, [
       uuid,
       org.id,
       ip_pool_id,
       from_text ?? null,
       to_text ?? null,
-    );
+    ]);
     c.set.status = 201;
     return {
       ip_pool_rule: {
@@ -176,17 +181,18 @@ export const orgIpPoolRuleRoutes = new Elysia({
 
   .patch('/:ruleId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(
+    const db = await getDb();
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [
       c.params.orgPermalink,
-    ) as any;
+    ]) as any;
     if (!org) {
       c.set.status = 404;
       return { error: 'OrgNotFound' };
     }
-    const rule = db.query(
-      `SELECT * FROM ip_pool_rules WHERE uuid = ? AND owner_type = 'Organization' AND owner_id = ?`,
-    ).get(c.params.ruleId, org.id) as any;
+    const rule = await db.get(
+      `SELECT * FROM ip_pool_rules WHERE uuid = $1 AND owner_type = 'Organization' AND owner_id = $2`,
+      [c.params.ruleId, org.id],
+    ) as any;
     if (!rule) {
       c.set.status = 404;
       return { error: 'RuleNotFound' };
@@ -198,13 +204,14 @@ export const orgIpPoolRuleRoutes = new Elysia({
       c.set.status = 200;
       return { ip_pool_rule: rule };
     }
-    const setClauses = fields.map(([k]) => `${k} = ?`);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
     const values: any[] = fields.map(([_, v]) => v);
     values.push(rule.id);
-    db.prepare(
-      `UPDATE ip_pool_rules SET ${setClauses.join(', ')}, updated_at = datetime('now') WHERE id = ?`,
-    ).run(...values);
-    const updated = db.query(`SELECT * FROM ip_pool_rules WHERE id = ?`).get(rule.id) as any;
+    await db.run(
+      `UPDATE ip_pool_rules SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`,
+      values,
+    );
+    const updated = await db.get(`SELECT * FROM ip_pool_rules WHERE id = $1`, [rule.id]) as any;
     c.set.status = 200;
     return { ip_pool_rule: updated };
   }, {
@@ -218,22 +225,23 @@ export const orgIpPoolRuleRoutes = new Elysia({
 
   .delete('/:ruleId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(
+    const db = await getDb();
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [
       c.params.orgPermalink,
-    ) as any;
+    ]) as any;
     if (!org) {
       c.set.status = 404;
       return { error: 'OrgNotFound' };
     }
-    const rule = db.query(
-      `SELECT * FROM ip_pool_rules WHERE uuid = ? AND owner_type = 'Organization' AND owner_id = ?`,
-    ).get(c.params.ruleId, org.id) as any;
+    const rule = await db.get(
+      `SELECT * FROM ip_pool_rules WHERE uuid = $1 AND owner_type = 'Organization' AND owner_id = $2`,
+      [c.params.ruleId, org.id],
+    ) as any;
     if (!rule) {
       c.set.status = 404;
       return { error: 'RuleNotFound' };
     }
-    db.run(`DELETE FROM ip_pool_rules WHERE id = ?`, [rule.id]);
+    await db.run(`DELETE FROM ip_pool_rules WHERE id = $1`, [rule.id]);
     c.set.status = 200;
     return { deleted: true };
   }, {

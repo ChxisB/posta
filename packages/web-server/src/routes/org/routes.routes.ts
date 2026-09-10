@@ -7,21 +7,21 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const routes = db.query(`SELECT * FROM routes WHERE server_id = ?`).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const routes = await db.query(`SELECT * FROM routes WHERE server_id = $1`, [c.params.serverId]) as any[];
     c.set.status = 200;
     return { routes };
   }, { detail: { tags: ['Routes'], summary: 'List routes' } })
 
   .post('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, domain_id, mode, spam_mode, endpoint_type, endpoint_id } = c.body;
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO routes (server_id, name, domain_id, mode, spam_mode, endpoint_type, endpoint_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, name, domain_id ?? null, mode ?? 'Normal', spam_mode ?? null, endpoint_type ?? null, endpoint_id ?? null);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, name, domain_id ?? null, mode ?? 'Normal', spam_mode ?? null, endpoint_type ?? null, endpoint_id ?? null]);
     c.set.status = 201;
     return { route: { id: Number(result.lastInsertRowid), name } };
   }, {
@@ -38,10 +38,11 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
 
   .get('/:routeId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const route = db.query(
-      `SELECT r.*, d.name as domain_name FROM routes r LEFT JOIN domains d ON d.id = r.domain_id WHERE r.id = ?`,
-    ).get(c.params.routeId) as any;
+    const db = await getDb();
+    const route = await db.get(
+      `SELECT r.*, d.name as domain_name FROM routes r LEFT JOIN domains d ON d.id = r.domain_id WHERE r.id = $1`,
+      [c.params.routeId],
+    ) as any;
     if (!route) { c.set.status = 404; return { error: 'RouteNotFound' }; }
     return { route };
   }, {
@@ -51,12 +52,13 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
 
   .patch('/:routeId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { route: { id: parseInt(c.params.routeId) } }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.routeId);
-    db.prepare(`UPDATE routes SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE routes SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { route: { id: parseInt(c.params.routeId), ...c.body } };
   }, {
@@ -73,8 +75,8 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
 
   .delete('/:routeId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    db.run(`DELETE FROM routes WHERE id = ?`, [c.params.routeId]);
+    const db = await getDb();
+    await db.run(`DELETE FROM routes WHERE id = $1`, [c.params.routeId]);
     c.set.status = 200;
     return { deleted: true };
   }, {

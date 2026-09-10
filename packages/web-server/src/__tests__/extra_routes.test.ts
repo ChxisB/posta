@@ -19,8 +19,9 @@ describe('GET /ip', () => {
 
 describe('Help routes', () => {
   beforeAll(() => {
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-extra-${Date.now()}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-msg-extra-${Date.now()}`;
+    const testId = Date.now();
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_extra_${testId}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_extra_${testId}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
   });
 

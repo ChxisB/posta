@@ -8,10 +8,11 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // GET / — List track domains for a server
   .get('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const track_domains = db.query(
-      `SELECT * FROM track_domains WHERE server_id = ? ORDER BY name`,
-    ).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const track_domains = await db.query(
+      `SELECT * FROM track_domains WHERE server_id = $1 ORDER BY name`,
+      [c.params.serverId],
+    ) as any[];
     c.set.status = 200;
     return { track_domains };
   }, { detail: { tags: ['Track Domains'], summary: 'List track domains for a server' } })
@@ -19,21 +20,21 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // POST / — Create a track domain
   .post('/', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, domain_id, track_loads, track_clicks, excluded_click_domains, ssl_enabled } = c.body;
 
     // Validate domain_id exists if provided
     if (domain_id !== undefined && domain_id !== null) {
-      const domain = db.query(`SELECT id FROM domains WHERE id = ?`).get(domain_id) as any;
+      const domain = await db.get(`SELECT id FROM domains WHERE id = $1`, [domain_id]) as any;
       if (!domain) { c.set.status = 422; return { error: 'DomainNotFound', message: 'domain_id does not exist' }; }
     }
 
     const uuid = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO track_domains (server_id, uuid, name, domain_id, track_loads, track_clicks, excluded_click_domains, ssl_enabled, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      RETURNING id
+    `, [
       c.params.serverId,
       uuid,
       name,
@@ -42,9 +43,9 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
       typeof track_clicks === 'boolean' ? (track_clicks ? 1 : 0) : 1,
       excluded_click_domains ?? null,
       typeof ssl_enabled === 'boolean' ? (ssl_enabled ? 1 : 0) : 1,
-    );
+    ]);
 
-    const track_domain = db.query(`SELECT * FROM track_domains WHERE id = ?`).get(Number(result.lastInsertRowid)) as any;
+    const track_domain = await db.get(`SELECT * FROM track_domains WHERE id = $1`, [Number(result.lastInsertRowid)]) as any;
     c.set.status = 201;
     return { track_domain };
   }, {
@@ -62,10 +63,11 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // GET /:domainId — Get a track domain (lookup by UUID)
   .get('/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const track_domain = db.query(
-      `SELECT * FROM track_domains WHERE uuid = ? AND server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+    const db = await getDb();
+    const track_domain = await db.get(
+      `SELECT * FROM track_domains WHERE uuid = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     if (!track_domain) { c.set.status = 404; return { error: 'TrackDomainNotFound' }; }
     c.set.status = 200;
     return { track_domain };
@@ -74,11 +76,12 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // PATCH /:domainId — Update a track domain (lookup by UUID)
   .patch('/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
 
-    const existing = db.query(
-      `SELECT * FROM track_domains WHERE uuid = ? AND server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+    const existing = await db.get(
+      `SELECT * FROM track_domains WHERE uuid = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     if (!existing) { c.set.status = 404; return { error: 'TrackDomainNotFound' }; }
 
     const allowedFields = ['name', 'track_loads', 'track_clicks', 'excluded_click_domains', 'ssl_enabled'];
@@ -99,13 +102,16 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
 
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.domainId, c.params.serverId);
-    db.prepare(
-      `UPDATE track_domains SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE uuid = ? AND server_id = ?`,
-    ).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(
+      `UPDATE track_domains SET ${setClauses.join(', ')}, updated_at = NOW() WHERE uuid = $${values.length - 1} AND server_id = $${values.length}`,
+      values,
+    );
 
-    const track_domain = db.query(
-      `SELECT * FROM track_domains WHERE uuid = ? AND server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+    const track_domain = await db.get(
+      `SELECT * FROM track_domains WHERE uuid = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     c.set.status = 200;
     return { track_domain };
   }, {
@@ -121,10 +127,11 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // DELETE /:domainId — Delete a track domain (lookup by UUID)
   .delete('/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const result = db.prepare(
-      `DELETE FROM track_domains WHERE uuid = ? AND server_id = ?`,
-    ).run(c.params.domainId, c.params.serverId);
+    const db = await getDb();
+    const result = await db.run(
+      `DELETE FROM track_domains WHERE uuid = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    );
     if (result.changes === 0) { c.set.status = 404; return { error: 'TrackDomainNotFound' }; }
     c.set.status = 200;
     return { deleted: true };
@@ -133,15 +140,17 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // POST /:domainId/toggle_ssl — Toggle ssl_enabled
   .post('/:domainId/toggle_ssl', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const track_domain = db.query(
-      `SELECT ssl_enabled FROM track_domains WHERE uuid = ? AND server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+    const db = await getDb();
+    const track_domain = await db.get(
+      `SELECT ssl_enabled FROM track_domains WHERE uuid = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     if (!track_domain) { c.set.status = 404; return { error: 'TrackDomainNotFound' }; }
     const newValue = track_domain.ssl_enabled ? 0 : 1;
-    db.prepare(
-      `UPDATE track_domains SET ssl_enabled = ?, updated_at = datetime('now') WHERE uuid = ? AND server_id = ?`,
-    ).run(newValue, c.params.domainId, c.params.serverId);
+    await db.run(
+      `UPDATE track_domains SET ssl_enabled = $1, updated_at = NOW() WHERE uuid = $2 AND server_id = $3`,
+      [newValue, c.params.domainId, c.params.serverId],
+    );
     c.set.status = 200;
     return { ssl_enabled: Boolean(newValue) };
   }, { detail: { tags: ['Track Domains'], summary: 'Toggle SSL for a track domain' } })
@@ -149,11 +158,12 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
   // POST /:domainId/check — Verify CNAME record points to configured track domain
   .post('/:domainId/check', async (c: any) => {
     const { getDb, getConfig } = await import('../../index');
-    const db = getDb();
-    const config = getConfig();
-    const track_domain = db.query(
-      `SELECT td.id, td.name, td.domain_id, d.name as domain_name FROM track_domains td LEFT JOIN domains d ON d.id = td.domain_id WHERE td.uuid = ? AND td.server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+    const db = await getDb();
+    const config = await getConfig();
+    const track_domain = await db.get(
+      `SELECT td.id, td.name, td.domain_id, d.name as domain_name FROM track_domains td LEFT JOIN domains d ON d.id = td.domain_id WHERE td.uuid = $1 AND td.server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     if (!track_domain) { c.set.status = 404; return { error: 'TrackDomainNotFound' }; }
 
     const fullName = `${track_domain.name}.${track_domain.domain_name}`;
@@ -182,9 +192,10 @@ export const trackDomainsRoutes = new Elysia({ prefix: '/org/:orgPermalink/serve
       dnsError = `DNS lookup failed: ${err.message}`;
     }
 
-    db.prepare(
-      `UPDATE track_domains SET dns_checked_at = datetime('now'), dns_status = ?, dns_error = ?, updated_at = datetime('now') WHERE uuid = ? AND server_id = ?`,
-    ).run(dnsStatus, dnsError, c.params.domainId, c.params.serverId);
+    await db.run(
+      `UPDATE track_domains SET dns_checked_at = NOW(), dns_status = $1, dns_error = $2, updated_at = NOW() WHERE uuid = $3 AND server_id = $4`,
+      [dnsStatus, dnsError, c.params.domainId, c.params.serverId],
+    );
     c.set.status = 200;
     return { status: dnsStatus, error: dnsError };
   }, { detail: { tags: ['Track Domains'], summary: 'Check DNS for a track domain' } });

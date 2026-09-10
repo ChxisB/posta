@@ -87,14 +87,16 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
       }
 
       const { getDb, getProvisioner, getConfig, MessageStore } = await import('../../../index');
-      const config = getConfig();
-      const db = getDb();
-      const provisioner = getProvisioner();
+      const { getServerDb } = await import('@posta/core');
+      const config = await getConfig();
+      const db = await getDb();
+      const provisioner = await getProvisioner();
       const rawMessage = Buffer.from(body.data, 'base64').toString('binary');
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const store = new MessageStore(msgDb);
-      const raw = store.insertRawMessage(rawMessage);
+      const raw = await store.insertRawMessage(rawMessage);
 
       const separatorIndex = rawMessage.search(/\r?\n\r?\n/);
       const headersSection = separatorIndex >= 0 ? rawMessage.slice(0, separatorIndex) : rawMessage;
@@ -108,7 +110,7 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
 
       for (const rcpt of body.rcpt_to) {
         const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-        const msgId = store.create({
+        const msgId = await store.create({
           scope: body.bounce ? 'bounce' : 'outgoing',
           rcpt_to: rcpt,
           mail_from: body.mail_from,
@@ -126,8 +128,8 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
         if (firstMessageId === null) firstMessageId = msgId;
 
         const { createQueuedMessage, allocateIpAddress } = await import('@posta/core');
-        const ipAddressId = allocateIpAddress(db, config.posta.use_ip_pools, serverId, body.bounce ? 'bounce' : 'outgoing', rcpt);
-        createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
+        const ipAddressId = await allocateIpAddress(db, config.posta.use_ip_pools, serverId, body.bounce ? 'bounce' : 'outgoing', rcpt);
+        await createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
 
         results[rcpt] = { id: msgId, token };
       }
@@ -225,14 +227,16 @@ async function handleSend(c: any): Promise<any> {
     }
 
     const { getDb, getProvisioner, getConfig, MessageStore } = await import('../../../index');
-    const config = getConfig();
-    const db = getDb();
-    const provisioner = getProvisioner();
+    const { getServerDb } = await import('@posta/core');
+    const config = await getConfig();
+    const db = await getDb();
+    const provisioner = await getProvisioner();
     const mimeMessage = buildMimeMessage(body);
 
-    const msgDb = provisioner.openServerDb(serverId);
+    const client = getServerDb(config, serverId);
+    const msgDb = await provisioner.openServerDb(serverId, client);
     const store = new MessageStore(msgDb);
-    const raw = store.insertRawMessage(mimeMessage);
+    const raw = await store.insertRawMessage(mimeMessage);
 
     const toAddresses = normalizeAddresses(body.to);
     const ccAddresses = normalizeAddresses(body.cc);
@@ -245,7 +249,7 @@ async function handleSend(c: any): Promise<any> {
     if (body.from) {
       const fromDomain = body.from.split('@')[1];
       if (fromDomain) {
-        const domainRow = db.query(`SELECT id FROM domains WHERE name = ? AND server_id = ?`).get(fromDomain, serverId) as any;
+        const domainRow = await db.get(`SELECT id FROM domains WHERE name = $1 AND server_id = $2`, [fromDomain, serverId]) as any;
         domainId = domainRow?.id;
       }
     }
@@ -255,7 +259,7 @@ async function handleSend(c: any): Promise<any> {
 
     for (const address of allAddresses) {
       const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-      const msgId = store.create({
+      const msgId = await store.create({
         scope: 'outgoing',
         rcpt_to: address,
         mail_from: body.from,
@@ -275,8 +279,8 @@ async function handleSend(c: any): Promise<any> {
       if (firstMessageId === null) firstMessageId = msgId;
 
       const { createQueuedMessage, allocateIpAddress } = await import('@posta/core');
-      const ipAddressId = allocateIpAddress(db, config.posta.use_ip_pools, serverId, 'outgoing', address);
-      createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
+      const ipAddressId = await allocateIpAddress(db, config.posta.use_ip_pools, serverId, 'outgoing', address);
+      await createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
 
       results[address] = { id: msgId, token };
     }

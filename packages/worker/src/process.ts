@@ -9,7 +9,7 @@ export { processQueuedMessagesJob } from './jobs/process_queued_messages';
 export { processWebhookRequestsJob } from './jobs/process_webhook_requests';
 
 /**
- * Improved Worker with bunqueue-inspired patterns:
+ * Worker:
  * - EventEmitter lifecycle for observability
  * - Batch pulling with lock tokens
  * - Heartbeat for active jobs (stall prevention)
@@ -21,6 +21,7 @@ export class WorkerProcess extends EventEmitter {
   private activeJobs = 0;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  private polling = false;
 
   constructor(
     public name: string,
@@ -28,6 +29,8 @@ export class WorkerProcess extends EventEmitter {
     private handler: (config: PostaConfig) => Promise<boolean>,
     private opts: {
       pollIntervalMs?: number;
+      /** Fallback wait when idle and no NOTIFY arrives. */
+      idleIntervalMs?: number;
       batchSize?: number;
       heartbeatIntervalMs?: number;
     } = {},
@@ -65,26 +68,62 @@ export class WorkerProcess extends EventEmitter {
     this.emit('closed');
   }
 
-  private scheduleNextPoll(): void {
+  /**
+   * Sleep until there is plausibly work, then poll.
+   *
+   * Two changes from a fixed interval, and the first matters more:
+   *
+   * 1. After a batch that found work, poll again immediately. The previous
+   *    loop slept the full interval regardless, so a backlog drained at one
+   *    batch per interval — with the shipped 5s setting, a thousand queued
+   *    messages took over an hour to clear no matter how idle the machine.
+   *
+   * 2. When genuinely idle, wait for a NOTIFY rather than a timer. That takes
+   *    the delay between "message accepted" and "worker looks at it" from a
+   *    uniform 0-5s down to the round trip to Postgres.
+   *
+   * The timer is retained as a floor, not the primary path: NOTIFY is
+   * best-effort and a notification raised while the listener is reconnecting
+   * is lost. Without the fallback poll, one dropped notification would strand
+   * a message until something else happened to wake the worker.
+   */
+  private scheduleNextPoll(immediate = false): void {
     if (this.closing) return;
-    this.pollTimer = setTimeout(() => this.poll(), this.opts.pollIntervalMs ?? 1000);
+    if (immediate) {
+      // setTimeout(0) rather than a direct call: yields to the event loop so
+      // a long backlog cannot starve heartbeats or shutdown.
+      this.pollTimer = setTimeout(() => this.poll(), 0);
+      return;
+    }
+    this.pollTimer = setTimeout(() => this.poll(), this.opts.idleIntervalMs ?? 30_000);
+  }
+
+  /** Called on NOTIFY. Collapses the current idle wait. */
+  wake(): void {
+    if (this.closing || this.polling) return;
+    if (this.pollTimer) clearTimeout(this.pollTimer);
+    this.scheduleNextPoll(true);
   }
 
   private async poll(): Promise<void> {
     if (this.closing) return;
+    this.polling = true;
+    let hadWork = false;
     try {
       this.activeJobs++;
-      const hadWork = await this.handler(this.config);
+      hadWork = await this.handler(this.config);
       this.activeJobs--;
       if (!hadWork && !this.closing) {
-        // No work found — emit drained
         this.emit('drained');
       }
     } catch (err: any) {
       this.activeJobs--;
       this.emit('error', err);
+    } finally {
+      this.polling = false;
     }
-    this.scheduleNextPoll();
+    // Keep draining while there is work; only sleep once genuinely idle.
+    this.scheduleNextPoll(hadWork);
   }
 
   private startHeartbeat(): void {
@@ -111,14 +150,36 @@ export async function runJobs(
 
   const workers = jobs.map((handler, i) => {
     const w = new WorkerProcess(`job-thread-${i}`, config, handler, {
-      pollIntervalMs: opts.sleepTime * 1000,
+      // The idle wait, not the time between batches: a worker that finds
+      // work polls again immediately, and NOTIFY collapses this wait when
+      // new mail arrives. It exists only to catch a lost notification, so a
+      // long value costs nothing in the normal case.
+      idleIntervalMs: opts.sleepTime * 1000,
       heartbeatIntervalMs: 10_000,
     });
     w.on('error', (err: Error) => console.error(`[worker] ${w.name} error:`, err.message));
-    w.on('drained', () => { /* no-op, fine */ });
     w.start();
     return w;
   });
+
+  // Wake every worker the instant something is enqueued. The trigger on
+  // queued_messages raises this; see MAIN_DB_DDL.
+  //
+  // Failure here is deliberately not fatal: without notifications the workers
+  // fall back to the idle poll and mail still moves, just later. Refusing to
+  // start would turn a degraded path into an outage.
+  try {
+    const mainDb = getMainDb(config);
+    await mainDb.listen('posta_queued_messages', () => {
+      for (const w of workers) w.wake();
+    });
+    console.log('[worker] listening for queued-message notifications');
+  } catch (err: any) {
+    console.warn(
+      `[worker] could not subscribe to queue notifications (${err.message}); ` +
+        `falling back to ${opts.sleepTime}s idle polling`,
+    );
+  }
 
   // Handle graceful shutdown
   process.on('SIGTERM', async () => {
@@ -137,7 +198,7 @@ export async function runJobs(
   await new Promise(() => {});
 }
 
-// ─── Role locking (bunqueue-inspired: shard-based with expiry check) ───
+// ─── Role locking: shard-based, with expiry check ───
 
 interface RoleLock {
   worker: string;
@@ -150,14 +211,14 @@ const roleLocks = new Map<string, RoleLock>();
 /**
  * Acquire a distributed role lock.
  * Uses in-memory cache + periodic re-acquire, backed by DB.
- * bunqueue pattern: lock expiry + heartbeat to prevent stale locks.
+ * Lock expiry + heartbeat to prevent stale locks.
  */
-export function acquireRoleLock(
+export async function acquireRoleLock(
   db: ReturnType<typeof getMainDb>,
   role: string,
   workerName: string,
   ttlMs: number = 5 * 60 * 1000,
-): boolean {
+): Promise<boolean> {
   const now = Date.now();
   const existing = roleLocks.get(role);
 
@@ -165,7 +226,7 @@ export function acquireRoleLock(
   if (existing && existing.worker === workerName && existing.expiresAt > now) {
     // Refresh our lock in DB
     try {
-      db.run(`UPDATE worker_roles SET acquired_at = datetime('now') WHERE role = ? AND worker = ?`, [role, workerName]);
+      await db.run(`UPDATE worker_roles SET acquired_at = NOW() WHERE role = $1 AND worker = $2`, [role, workerName]);
       existing.expiresAt = now + ttlMs / 2; // renew at half TTL
       return true;
     } catch {
@@ -175,27 +236,28 @@ export function acquireRoleLock(
 
   // Try to acquire
   try {
-    const row = db.query(
-      `SELECT worker, acquired_at FROM worker_roles WHERE role = ?`,
-    ).get(role) as { worker: string; acquired_at: string } | undefined;
+    const row = await db.get<{ worker: string; acquired_at: Date }>(
+      `SELECT worker, acquired_at FROM worker_roles WHERE role = $1`,
+      [role],
+    );
 
     if (row) {
-      const acquiredAt = new Date(row.acquired_at + 'Z').getTime();
+      const acquiredAt = row.acquired_at instanceof Date ? row.acquired_at.getTime() : new Date(row.acquired_at).getTime();
       const expired = now - acquiredAt > ttlMs;
 
       if (row.worker === workerName) {
-        db.run(`UPDATE worker_roles SET acquired_at = datetime('now') WHERE role = ?`, [role]);
+        await db.run(`UPDATE worker_roles SET acquired_at = NOW() WHERE role = $1`, [role]);
         roleLocks.set(role, { worker: workerName, acquiredAt: now, expiresAt: now + ttlMs });
         return true;
       }
 
       if (expired) {
         // Steal expired lock — use atomic CAS
-        db.run(
-          `UPDATE worker_roles SET worker = ?, acquired_at = datetime('now') WHERE role = ? AND worker = ?`,
+        await db.run(
+          `UPDATE worker_roles SET worker = $1, acquired_at = NOW() WHERE role = $2 AND worker = $3`,
           [workerName, role, row.worker],
         );
-        const updated = db.query(`SELECT worker FROM worker_roles WHERE role = ?`).get(role) as { worker: string } | undefined;
+        const updated = await db.get<{ worker: string }>(`SELECT worker FROM worker_roles WHERE role = $1`, [role]);
         if (updated?.worker === workerName) {
           roleLocks.set(role, { worker: workerName, acquiredAt: now, expiresAt: now + ttlMs });
           return true;
@@ -206,7 +268,7 @@ export function acquireRoleLock(
     }
 
     // First acquisition
-    db.run(`INSERT INTO worker_roles (role, worker, acquired_at) VALUES (?, ?, datetime('now'))`, [role, workerName]);
+    await db.run(`INSERT INTO worker_roles (role, worker, acquired_at) VALUES ($1, $2, NOW())`, [role, workerName]);
     roleLocks.set(role, { worker: workerName, acquiredAt: now, expiresAt: now + ttlMs });
     return true;
   } catch {
@@ -217,13 +279,13 @@ export function acquireRoleLock(
 /**
  * Release a role lock.
  */
-export function releaseRoleLock(
+export async function releaseRoleLock(
   db: ReturnType<typeof getMainDb>,
   role: string,
-): void {
+): Promise<void> {
   roleLocks.delete(role);
   try {
-    db.run(`UPDATE worker_roles SET worker = NULL WHERE role = ?`, [role]);
+    await db.run(`UPDATE worker_roles SET worker = NULL WHERE role = $1`, [role]);
   } catch {
     // Best effort
   }
@@ -239,7 +301,6 @@ interface TaskEntry {
 
 /**
  * Min-heap implementation for O(log n) insert and O(1) next-due peek.
- * Ported from bunqueue's cron scheduler pattern.
  */
 class TaskHeap {
   private heap: TaskEntry[] = [];
@@ -305,7 +366,7 @@ class TaskHeap {
 
 /**
  * Run scheduled tasks with precise setTimeout scheduling.
- * Ported from bunqueue's CronScheduler — uses min-heap + setTimeout
+ * Uses min-heap + setTimeout
  * instead of polling, reducing idle CPU to ~0.
  */
 export async function runScheduledTasks(
@@ -346,7 +407,7 @@ export async function runScheduledTasks(
 
     const delay = Math.max(0, next.nextRun - Date.now());
 
-    // bunqueue pattern: precise setTimeout fires exactly when the next task is due
+    // Precise setTimeout fires exactly when the next task is due
     // Safety fallback: if delay > 60s, wake every 60s to handle clock drift
     if (delay > 60_000) {
       setTimeout(() => scheduleNext(), 60_000);
@@ -357,7 +418,7 @@ export async function runScheduledTasks(
       if (closing) return;
 
       try {
-        if (!acquireRoleLock(mainDb, 'scheduled-tasks', workerName)) {
+        if (!await acquireRoleLock(mainDb, 'scheduled-tasks', workerName)) {
           scheduleNext();
           return;
         }
@@ -401,19 +462,19 @@ function getTaskInterval(task: { nextRunAfter(): Date }): number {
   return Math.max(60_000, next - now);
 }
 
-// ─── SQLite helpers ─────────────────────────────────────
+// ─── Database helpers ─────────────────────────────────────
 
-export function dbRun(db: ReturnType<typeof getMainDb>, sql: string, ...params: any[]): void {
+export async function dbRun(db: ReturnType<typeof getMainDb>, sql: string, ...params: any[]): Promise<void> {
   if (params.length > 0) {
-    db.prepare(sql).run(...params);
+    await db.run(sql, params);
   } else {
-    db.run(sql);
+    await db.run(sql);
   }
 }
 
-export function dbQuery<T = any>(db: ReturnType<typeof getMainDb>, sql: string, ...params: any[]): T {
+export async function dbQuery<T = any>(db: ReturnType<typeof getMainDb>, sql: string, ...params: any[]): Promise<T> {
   if (params.length > 0) {
-    return db.query(sql).all(...params) as T;
+    return await db.query(sql, params) as T;
   }
-  return db.query(sql).all() as T;
+  return await db.query(sql) as T;
 }

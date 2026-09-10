@@ -2,8 +2,10 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 import { BounceProcessor } from '../bounce';
 import type { BounceOptions } from '../bounce';
 import type { PostaConfig } from '@posta/core';
-import { initializeMainDb } from '@posta/core';
+import { initializeMainDb, getServerDb } from '@posta/core';
 import { MessageDbProvisioner, MessageStore } from '@posta/message-db';
+
+const TEST_DB_URL = process.env.POSTA_MAIN_DB_URL ?? 'postgresql://postgres:postgres@localhost:5432/posta_test';
 
 /**
  * Minimal config fixture with only the fields needed for bounce processing.
@@ -37,11 +39,11 @@ function buildConfig(returnPathDomain: string = 'return.example.com'): PostaConf
       threads: 2,
     },
     main_db: {
-      path: ':memory:',
+      url: TEST_DB_URL,
     },
     message_db: {
-      directory: '/tmp/test-message-dbs',
-      database_name_prefix: 'posta',
+      url: TEST_DB_URL,
+      schema_prefix: 'posta-bounce-test',
     },
     logging: {
       enabled: false,
@@ -286,10 +288,10 @@ describe('BounceProcessor.processBounce', () => {
   let provisioner: MessageDbProvisioner;
   let processor: BounceProcessor;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = buildConfig();
     // Initialize the main DB so queued_messages table exists
-    initializeMainDb(config);
+    await initializeMainDb(config);
     provisioner = new MessageDbProvisioner(config);
     processor = new BounceProcessor(config, provisioner);
   });
@@ -307,14 +309,14 @@ describe('BounceProcessor.processBounce', () => {
     const msgId = await processor.processBounce(opts);
 
     // Open the server DB and read back the message
-    const msgDb = provisioner.openServerDb(opts.serverId);
+    const client = getServerDb(config, opts.serverId);
+    const msgDb = await provisioner.openServerDb(opts.serverId, client);
     const msgStore = new MessageStore(msgDb);
 
-    const record = msgStore.findOne({ id: msgId });
+    const record = await msgStore.findOne({ id: msgId });
 
     expect(record.scope).toBe('outgoing');
-    // SQLite stores booleans as 0/1 integers
-    expect(record.bounce as unknown as number).toBe(1);
+    expect(record.bounce).toBeTruthy();
     expect(record.bounce_for_id).toBe(opts.messageId);
     expect(record.rcpt_to).toBe(opts.mailFrom);
   });

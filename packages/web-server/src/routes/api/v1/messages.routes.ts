@@ -31,9 +31,13 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
       const expand = c.query.expand as string | undefined;
       const expansions = parseExpansions(expand);
 
-      const { getProvisioner, MessageStore } = await import('../../../index');
-      const msgDb = getProvisioner().openServerDb(serverId);
-      const msg = msgDb.db.query(`SELECT * FROM messages WHERE id = ?`).get(messageId) as any;
+      const { getProvisioner, getConfig, MessageStore } = await import('../../../index');
+      const { getServerDb } = await import('@posta/core');
+      const config = await getConfig();
+      const provisioner = await getProvisioner();
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
+      const msg = await msgDb.db.get(`SELECT * FROM messages WHERE id = $1`, [messageId]) as any;
 
       if (!msg) {
         return renderError('MessageNotFound', { message: `No message found with id ${messageId}` }, t0);
@@ -69,7 +73,7 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
       if (expansions === true || expansions.includes('headers')) {
         const store = new MessageStore(msgDb);
         let raw = '';
-        try { raw = store.getRawHeaders(msg); } catch { raw = ''; }
+        try { raw = await store.getRawHeaders(msg); } catch { raw = ''; }
         const headers: Record<string, string[]> = {};
         for (const line of raw.split('\r\n')) {
           const idx = line.indexOf(':');
@@ -108,17 +112,22 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
         return renderError('ServerRequired', { message: 'Could not determine server from API key.' }, t0);
       }
 
-      const { getProvisioner } = await import('../../../index');
-      const msgDb = getProvisioner().openServerDb(serverId);
+      const { getProvisioner, getConfig } = await import('../../../index');
+      const { getServerDb } = await import('@posta/core');
+      const config = await getConfig();
+      const provisioner = await getProvisioner();
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
 
-      const msg = msgDb.db.query(`SELECT id FROM messages WHERE id = ?`).get(messageId) as any;
+      const msg = await msgDb.db.get(`SELECT id FROM messages WHERE id = $1`, [messageId]) as any;
       if (!msg) {
         return renderError('MessageNotFound', { message: `No message found with id ${messageId}` }, t0);
       }
 
-      const deliveries = msgDb.db.query(
-        `SELECT id, status, details, timestamp, time FROM deliveries WHERE message_id = ? ORDER BY timestamp DESC`,
-      ).all(messageId) as any[];
+      const deliveries = await msgDb.db.query(
+        `SELECT id, status, details, timestamp, time FROM deliveries WHERE message_id = $1 ORDER BY timestamp DESC`,
+        [messageId],
+      ) as any[];
 
       return renderSuccess({ deliveries }, t0);
     } catch (err: any) {
@@ -147,9 +156,13 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
       const expand = c.query.expand as string | undefined;
       const expansions = parseExpansions(expand);
 
-      const { getProvisioner, MessageStore } = await import('../../../index');
-      const msgDb = getProvisioner().openServerDb(serverId);
-      const msg = msgDb.db.query(`SELECT * FROM messages WHERE id = ?`).get(messageId) as any;
+      const { getProvisioner, getConfig, MessageStore } = await import('../../../index');
+      const { getServerDb } = await import('@posta/core');
+      const config = await getConfig();
+      const provisioner = await getProvisioner();
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
+      const msg = await msgDb.db.get(`SELECT * FROM messages WHERE id = $1`, [messageId]) as any;
 
       if (!msg) {
         return renderError('MessageNotFound', { message: `No message found with id ${messageId}` }, t0);
@@ -185,7 +198,7 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
       if (expansions === true || expansions.includes('headers')) {
         const store = new MessageStore(msgDb);
         let raw = '';
-        try { raw = store.getRawHeaders(msg); } catch { raw = ''; }
+        try { raw = await store.getRawHeaders(msg); } catch { raw = ''; }
         const headers: Record<string, string[]> = {};
         for (const line of raw.split('\r\n')) {
           const idx = line.indexOf(':');
@@ -226,17 +239,22 @@ export const messagesRoutes = new Elysia({ prefix: '/api/v1/messages' })
         return renderError('ServerRequired', { message: 'Could not determine server from API key.' }, t0);
       }
 
-      const { getProvisioner } = await import('../../../index');
-      const msgDb = getProvisioner().openServerDb(serverId);
+      const { getProvisioner, getConfig } = await import('../../../index');
+      const { getServerDb } = await import('@posta/core');
+      const config = await getConfig();
+      const provisioner = await getProvisioner();
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
 
-      const msg = msgDb.db.query(`SELECT id FROM messages WHERE id = ?`).get(messageId) as any;
+      const msg = await msgDb.db.get(`SELECT id FROM messages WHERE id = $1`, [messageId]) as any;
       if (!msg) {
         return renderError('MessageNotFound', { message: `No message found with id ${messageId}` }, t0);
       }
 
-      const deliveries = msgDb.db.query(
-        `SELECT id, status, details, timestamp, time FROM deliveries WHERE message_id = ? ORDER BY timestamp DESC`,
-      ).all(messageId) as any[];
+      const deliveries = await msgDb.db.query(
+        `SELECT id, status, details, timestamp, time FROM deliveries WHERE message_id = $1 ORDER BY timestamp DESC`,
+        [messageId],
+      ) as any[];
 
       return renderSuccess({ deliveries }, t0);
     } catch (err: any) {

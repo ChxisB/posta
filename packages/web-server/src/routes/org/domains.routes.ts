@@ -8,10 +8,11 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // GET /org/:permalink/domains — List domains for org
   .get('/domains', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const domains = db.query(
-      `SELECT * FROM domains WHERE server_id IN (SELECT id FROM servers WHERE organization_id = (SELECT id FROM organizations WHERE permalink = ?))`,
-    ).all(c.params.orgPermalink) as any[];
+    const db = await getDb();
+    const domains = await db.query(
+      `SELECT * FROM domains WHERE server_id IN (SELECT id FROM servers WHERE organization_id = (SELECT id FROM organizations WHERE permalink = $1))`,
+      [c.params.orgPermalink],
+    ) as any[];
     c.set.status = 200;
     return { domains };
   }, { detail: { tags: ['Domains'], summary: 'List domains' } })
@@ -19,20 +20,20 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // POST /org/:permalink/domains — Create org-level domain
   .post('/domains', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name, server_id } = c.body;
 
     // Look up the organization
-    const org = db.query(`SELECT id FROM organizations WHERE permalink = ?`).get(c.params.orgPermalink) as any;
+    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [c.params.orgPermalink]) as any;
     if (!org) { c.set.status = 404; return { error: 'OrganizationNotFound' }; }
 
     const uuid = crypto.randomUUID().replace(/-/g, '');
     const verificationToken = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO domains (server_id, uuid, name, verification_token, owner_type, owner_id, dns_checked_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'Organization', ?, datetime('now'), datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(server_id ?? null, uuid, name, verificationToken, org.id);
+      VALUES ($1, $2, $3, $4, 'Organization', $5, NOW(), NOW(), NOW())
+      RETURNING id
+    `, [server_id ?? null, uuid, name, verificationToken, org.id]);
     c.set.status = 201;
     return { domain: { id: Number(result.lastInsertRowid), uuid, name, owner_type: 'Organization', verification_token: verificationToken } };
   }, {
@@ -46,8 +47,8 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // GET /org/:permalink/servers/:serverId/domains — List domains for a server
   .get('/servers/:serverId/domains', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const domains = db.query(`SELECT * FROM domains WHERE server_id = ?`).all(c.params.serverId) as any[];
+    const db = await getDb();
+    const domains = await db.query(`SELECT * FROM domains WHERE server_id = $1`, [c.params.serverId]) as any[];
     c.set.status = 200;
     return { domains };
   }, { detail: { tags: ['Domains'], summary: 'List domains for a server' } })
@@ -55,15 +56,15 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // POST /org/:permalink/servers/:serverId/domains — Add domain
   .post('/servers/:serverId/domains', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const { name } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
     const verificationToken = crypto.randomUUID().replace(/-/g, '');
-    const stmt = db.prepare(`
+    const result = await db.run(`
       INSERT INTO domains (server_id, uuid, name, verification_token, dns_checked_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))
-    `);
-    const result = stmt.run(c.params.serverId, uuid, name, verificationToken);
+      VALUES ($1, $2, $3, $4, NOW(), NOW(), NOW())
+      RETURNING id
+    `, [c.params.serverId, uuid, name, verificationToken]);
     c.set.status = 201;
     return { domain: { id: Number(result.lastInsertRowid), uuid, name, verification_token: verificationToken } };
   }, {
@@ -74,8 +75,8 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // DELETE /org/:permalink/servers/:serverId/domains/:domainId
   .delete('/servers/:serverId/domains/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    db.run(`DELETE FROM domains WHERE id = ? AND server_id = ?`, [c.params.domainId, c.params.serverId]);
+    const db = await getDb();
+    await db.run(`DELETE FROM domains WHERE id = $1 AND server_id = $2`, [c.params.domainId, c.params.serverId]);
     c.set.status = 200;
     return { deleted: true };
   }, { detail: { tags: ['Domains'], summary: 'Delete a domain' } })
@@ -83,12 +84,13 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // PATCH /org/:permalink/servers/:serverId/domains/:domainId — Update domain
   .patch('/servers/:serverId/domains/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { domain: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(c.params.domainId);
-    db.prepare(`UPDATE domains SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE domains SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { domain: { id: parseInt(c.params.domainId), ...c.body } };
   }, {
@@ -99,11 +101,11 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // GET /org/:permalink/servers/:serverId/domains/:domainId
   .get('/servers/:serverId/domains/:domainId', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const domain = db.query(`SELECT * FROM domains WHERE id = ? AND server_id = ?`).get(
+    const db = await getDb();
+    const domain = await db.get(`SELECT * FROM domains WHERE id = $1 AND server_id = $2`, [
       c.params.domainId,
       c.params.serverId,
-    ) as any;
+    ]) as any;
     if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
     c.set.status = 200;
     return { domain };
@@ -112,8 +114,8 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // POST /org/:permalink/servers/:serverId/domains/:domainId/verify
   .post('/servers/:serverId/domains/:domainId/verify', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    db.run(`UPDATE domains SET verified_at = datetime('now') WHERE id = ?`, [c.params.domainId]);
+    const db = await getDb();
+    await db.run(`UPDATE domains SET verified_at = NOW() WHERE id = $1`, [c.params.domainId]);
     c.set.status = 200;
     return { verified: true };
   }, { detail: { tags: ['Domains'], summary: 'Verify a domain' } })
@@ -121,13 +123,14 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // GET /org/:permalink/servers/:serverId/domains/:domainId/verify — Get verification status
   .get('/servers/:serverId/domains/:domainId/verify', async (c: any) => {
     const { getDb } = await import('../../index');
-    const db = getDb();
-    const domain = db.query(
+    const db = await getDb();
+    const domain = await db.get(
       `SELECT id, name, uuid, verification_token, verification_method, verified_at,
               spf_status, spf_error, dkim_status, dkim_error,
               mx_status, mx_error, return_path_status, return_path_error
-       FROM domains WHERE id = ? AND server_id = ?`,
-    ).get(c.params.domainId, c.params.serverId) as any;
+       FROM domains WHERE id = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId],
+    ) as any;
     if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
     c.set.status = 200;
     return {
@@ -154,9 +157,9 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   // GET /org/:permalink/servers/:serverId/domains/:domainId/dns — DNS setup instructions
   .get('/servers/:serverId/domains/:domainId/dns', async (c: any) => {
     const { getDb, getConfig } = await import('../../index');
-    const db = getDb();
-    const config = getConfig();
-    const domain = db.query(`SELECT name FROM domains WHERE id = ?`).get(c.params.domainId) as any;
+    const db = await getDb();
+    const config = await getConfig();
+    const domain = await db.get(`SELECT name FROM domains WHERE id = $1`, [c.params.domainId]) as any;
     const selector = (c.query.selector as string) ?? config.dns.dkim_identifier;
     c.set.status = 200;
     return {
@@ -173,8 +176,8 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
   .post('/servers/:serverId/domains/:domainId/check', async (c: any) => {
     const { getDb } = await import('../../index');
     const { DnsResolver } = await import('@posta/core');
-    const db = getDb();
-    const domain = db.query(`SELECT * FROM domains WHERE id = ?`).get(c.params.domainId) as any;
+    const db = await getDb();
+    const domain = await db.get(`SELECT * FROM domains WHERE id = $1`, [c.params.domainId]) as any;
     if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
 
     const domainName: string = domain.name;
@@ -261,21 +264,21 @@ export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
     }
 
     // Persist results
-    db.prepare(`
+    await db.run(`
       UPDATE domains SET
-        dns_checked_at = datetime('now'),
-        spf_status = ?, spf_error = ?,
-        dkim_status = ?, dkim_error = ?,
-        mx_status = ?, mx_error = ?,
-        return_path_status = ?, return_path_error = ?
-      WHERE id = ?
-    `).run(
+        dns_checked_at = NOW(),
+        spf_status = $1, spf_error = $2,
+        dkim_status = $3, dkim_error = $4,
+        mx_status = $5, mx_error = $6,
+        return_path_status = $7, return_path_error = $8
+      WHERE id = $9
+    `, [
       spfStatus, spfError,
       dkimStatus, dkimError,
       mxStatus, mxError,
       returnPathStatus, returnPathError,
       c.params.domainId,
-    );
+    ]);
 
     c.set.status = 200;
     return {

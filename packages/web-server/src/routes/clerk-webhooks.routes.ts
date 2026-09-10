@@ -39,16 +39,16 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
       const eventType = evt.type as string;
       const data = evt.data ?? {};
       const { getDb } = await import('../index');
-      const db = getDb();
+      const db = await getDb();
 
       switch (eventType) {
         case 'user.created': {
           const email = data.email_addresses?.[0]?.email_address ?? '';
           const { first_name, last_name, id: clerkId } = data;
           const uuid = crypto.randomUUID().replace(/-/g, '');
-          db.run(
+          await db.run(
             `INSERT INTO users (uuid, first_name, last_name, email_address, oidc_uid, oidc_issuer, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, 'clerk', datetime('now'), datetime('now'))`,
+             VALUES ($1, $2, $3, $4, $5, 'clerk', NOW(), NOW())`,
             [uuid, first_name ?? null, last_name ?? null, email, clerkId],
           );
           console.log(`[clerk] user created: ${clerkId} (${email})`);
@@ -58,8 +58,8 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
         case 'user.updated': {
           const email = data.email_addresses?.[0]?.email_address ?? '';
           const { first_name, last_name, id: clerkId } = data;
-          db.run(
-            `UPDATE users SET first_name = COALESCE(?, first_name), last_name = COALESCE(?, last_name), email_address = COALESCE(?, email_address), updated_at = datetime('now') WHERE oidc_uid = ?`,
+          await db.run(
+            `UPDATE users SET first_name = COALESCE($1, first_name), last_name = COALESCE($2, last_name), email_address = COALESCE($3, email_address), updated_at = NOW() WHERE oidc_uid = $4`,
             [first_name ?? null, last_name ?? null, email, clerkId],
           );
           console.log(`[clerk] user updated: ${clerkId}`);
@@ -68,7 +68,7 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
 
         case 'user.deleted': {
           const { id: clerkId } = data;
-          db.run(`DELETE FROM users WHERE oidc_uid = ?`, [clerkId]);
+          await db.run(`DELETE FROM users WHERE oidc_uid = $1`, [clerkId]);
           console.log(`[clerk] user deleted: ${clerkId}`);
           break;
         }
@@ -77,10 +77,11 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
           const { id: clerkOrgId, name, slug, created_at } = data;
           const uuid = crypto.randomUUID().replace(/-/g, '');
           const permalink = slug ?? `org-${Date.now().toString(36)}`;
-          const result = db.prepare(`
+          const result = await db.run(`
             INSERT INTO organizations (uuid, name, permalink, clerk_id, created_at, updated_at)
-            VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-          `).run(uuid, name, permalink, clerkOrgId);
+            VALUES ($1, $2, $3, $4, NOW(), NOW())
+            RETURNING id
+          `, [uuid, name, permalink, clerkOrgId]);
           const orgId = Number(result.lastInsertRowid);
           console.log(`[clerk] organization created: ${clerkOrgId} ${name}`);
           break;
@@ -88,8 +89,8 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
 
         case 'organization.updated': {
           const { id: clerkOrgId, name, slug } = data;
-          db.run(
-            `UPDATE organizations SET name = COALESCE(?, name), permalink = COALESCE(?, permalink), updated_at = datetime('now') WHERE clerk_id = ?`,
+          await db.run(
+            `UPDATE organizations SET name = COALESCE($1, name), permalink = COALESCE($2, permalink), updated_at = NOW() WHERE clerk_id = $3`,
             [name ?? null, slug ?? null, clerkOrgId],
           );
           console.log(`[clerk] organization updated: ${clerkOrgId}`);
@@ -98,7 +99,7 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
 
         case 'organization.deleted': {
           const { id: clerkOrgId } = data;
-          db.run(`UPDATE organizations SET deleted_at = datetime('now') WHERE clerk_id = ?`, [clerkOrgId]);
+          await db.run(`UPDATE organizations SET deleted_at = NOW() WHERE clerk_id = $1`, [clerkOrgId]);
           console.log(`[clerk] organization deleted: ${clerkOrgId}`);
           break;
         }
@@ -106,11 +107,11 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
         case 'organizationMembership.created': {
           const { user_id, organization_id } = data;
           // Map Clerk IDs to internal IDs
-          const org = db.query(`SELECT id FROM organizations WHERE clerk_id = ?`).get(organization_id) as any;
-          const user = db.query(`SELECT id FROM users WHERE oidc_uid = ?`).get(user_id) as any;
+          const org = await db.get(`SELECT id FROM organizations WHERE clerk_id = $1`, [organization_id]) as any;
+          const user = await db.get(`SELECT id FROM users WHERE oidc_uid = $1`, [user_id]) as any;
           if (org && user) {
-            db.run(
-              `INSERT OR IGNORE INTO organization_users (organization_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
+            await db.run(
+              `INSERT INTO organization_users (organization_id, user_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT (organization_id, user_id) DO NOTHING`,
               [org.id, user.id],
             );
             console.log(`[clerk] membership created: user ${user_id} → org ${organization_id}`);
@@ -122,10 +123,10 @@ export const clerkWebhookRoutes = new Elysia({ prefix: '/api/clerk/webhooks' })
 
         case 'organizationMembership.deleted': {
           const { user_id, organization_id } = data;
-          const org = db.query(`SELECT id FROM organizations WHERE clerk_id = ?`).get(organization_id) as any;
-          const user = db.query(`SELECT id FROM users WHERE oidc_uid = ?`).get(user_id) as any;
+          const org = await db.get(`SELECT id FROM organizations WHERE clerk_id = $1`, [organization_id]) as any;
+          const user = await db.get(`SELECT id FROM users WHERE oidc_uid = $1`, [user_id]) as any;
           if (org && user) {
-            db.run(`DELETE FROM organization_users WHERE organization_id = ? AND user_id = ?`, [org.id, user.id]);
+            await db.run(`DELETE FROM organization_users WHERE organization_id = $1 AND user_id = $2`, [org.id, user.id]);
             console.log(`[clerk] membership deleted: user ${user_id} → org ${organization_id}`);
           }
           break;

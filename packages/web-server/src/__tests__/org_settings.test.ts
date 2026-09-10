@@ -5,9 +5,10 @@ describe('Organization Settings Routes', () => {
   let testOrgPermalink: string;
 
   beforeAll(async () => {
-    // Use temp DB path for tests to avoid stale schema issues
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-main-${Date.now()}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-msg-${Date.now()}`;
+    // Use a separate test database for each run to avoid stale schema issues
+    const testId = Date.now();
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_org_settings_${testId}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_org_settings_${testId}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
 
     // Create a test organization to use in settings tests

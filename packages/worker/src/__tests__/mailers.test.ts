@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterEach } from 'bun:test';
 import type { PostaConfig } from '@posta/core';
-import { initializeMainDb, getMainDb } from '@posta/core';
+import { initializeMainDb, getMainDb, getServerDb } from '@posta/core';
 import { MessageDbProvisioner, MessageStore } from '@posta/message-db';
 import {
   sendServerSendLimitApproachingEmail,
@@ -8,6 +8,8 @@ import {
   sendServerSuspendedEmail,
   sendTestEmail,
 } from '../mailers';
+
+const TEST_DB_URL = process.env.POSTA_MAIN_DB_URL ?? 'postgresql://postgres:postgres@localhost:5432/posta_test';
 
 /**
  * Minimal config fixture for mailer tests.
@@ -41,11 +43,11 @@ function buildConfig(): PostaConfig {
       threads: 2,
     },
     main_db: {
-      path: ':memory:',
+      url: TEST_DB_URL,
     },
     message_db: {
-      directory: '/tmp/test-mailer-dbs',
-      database_name_prefix: 'posta-mailer-test',
+      url: TEST_DB_URL,
+      schema_prefix: 'posta-mailer-test',
     },
     logging: {
       enabled: false,
@@ -99,31 +101,35 @@ describe('Notification Mailers', () => {
   let provisioner: MessageDbProvisioner;
   const serverId = 42;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = buildConfig();
-    initializeMainDb(config);
+    await initializeMainDb(config);
     provisioner = new MessageDbProvisioner(config);
 
     // Insert a test server record with a postmaster_address
     const mainDb = getMainDb(config);
-    mainDb.run(
-      `INSERT OR IGNORE INTO servers (id, uuid, name, mode, permalink, send_limit, postmaster_address)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    await mainDb.run(
+      `INSERT INTO servers (id, uuid, name, mode, permalink, send_limit, postmaster_address)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         uuid = EXCLUDED.uuid, name = EXCLUDED.name, mode = EXCLUDED.mode,
+         permalink = EXCLUDED.permalink, send_limit = EXCLUDED.send_limit,
+         postmaster_address = EXCLUDED.postmaster_address`,
       [serverId, 'test-uuid', 'TestServer', 'Live', 'test-server', 1000, 'admin@example.com'],
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up queued messages between tests
     const mainDb = getMainDb(config);
-    mainDb.run(`DELETE FROM queued_messages`);
+    await mainDb.run(`DELETE FROM queued_messages`);
   });
 
   // ─── sendServerSendLimitApproachingEmail ─────────────────────
 
   describe('sendServerSendLimitApproachingEmail', () => {
-    it('returns a numeric message ID', () => {
-      const msgId = sendServerSendLimitApproachingEmail(
+    it('returns a numeric message ID', async () => {
+      const msgId = await sendServerSendLimitApproachingEmail(
         config,
         serverId,
         'TestServer',
@@ -135,8 +141,8 @@ describe('Notification Mailers', () => {
       expect(typeof msgId).toBe('number');
     });
 
-    it('stores the message in the server MessageDB', () => {
-      const msgId = sendServerSendLimitApproachingEmail(
+    it('stores the message in the server MessageDB', async () => {
+      const msgId = await sendServerSendLimitApproachingEmail(
         config,
         serverId,
         'TestServer',
@@ -144,9 +150,10 @@ describe('Notification Mailers', () => {
         900,
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.scope).toBe('outgoing');
       expect(record.status).toBe('Pending');
@@ -154,8 +161,8 @@ describe('Notification Mailers', () => {
       expect(record.subject).toContain('approaching its send limit');
     });
 
-    it('creates a queued message in the main DB', () => {
-      const msgId = sendServerSendLimitApproachingEmail(
+    it('creates a queued message in the main DB', async () => {
+      const msgId = await sendServerSendLimitApproachingEmail(
         config,
         serverId,
         'TestServer',
@@ -164,15 +171,16 @@ describe('Notification Mailers', () => {
       );
 
       const mainDb = getMainDb(config);
-      const queued = mainDb.query(
-        `SELECT * FROM queued_messages WHERE server_id = ? AND message_id = ?`,
-      ).all(serverId, msgId) as any[];
+      const queued = await mainDb.query(
+        `SELECT * FROM queued_messages WHERE server_id = $1 AND message_id = $2`,
+        [serverId, msgId],
+      ) as any[];
 
       expect(queued).toHaveLength(1);
     });
 
-    it('includes usage details in the raw message body', () => {
-      const msgId = sendServerSendLimitApproachingEmail(
+    it('includes usage details in the raw message body', async () => {
+      const msgId = await sendServerSendLimitApproachingEmail(
         config,
         serverId,
         'TestServer',
@@ -180,10 +188,11 @@ describe('Notification Mailers', () => {
         900,
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
-      const rawBody = msgStore.getRawBody(record);
+      const record = await msgStore.findOne({ id: msgId });
+      const rawBody = await msgStore.getRawBody(record);
 
       expect(rawBody).toContain('900');
       expect(rawBody).toContain('1000');
@@ -194,8 +203,8 @@ describe('Notification Mailers', () => {
   // ─── sendServerSendLimitExceededEmail ────────────────────────
 
   describe('sendServerSendLimitExceededEmail', () => {
-    it('returns a numeric message ID', () => {
-      const msgId = sendServerSendLimitExceededEmail(
+    it('returns a numeric message ID', async () => {
+      const msgId = await sendServerSendLimitExceededEmail(
         config,
         serverId,
         'TestServer',
@@ -206,8 +215,8 @@ describe('Notification Mailers', () => {
       expect(msgId).toBeGreaterThan(0);
     });
 
-    it('stores the message with exceeded subject', () => {
-      const msgId = sendServerSendLimitExceededEmail(
+    it('stores the message with exceeded subject', async () => {
+      const msgId = await sendServerSendLimitExceededEmail(
         config,
         serverId,
         'TestServer',
@@ -215,15 +224,16 @@ describe('Notification Mailers', () => {
         1050,
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.subject).toContain('exceeded its send limit');
     });
 
-    it('sends to the postmaster_address', () => {
-      const msgId = sendServerSendLimitExceededEmail(
+    it('sends to the postmaster_address', async () => {
+      const msgId = await sendServerSendLimitExceededEmail(
         config,
         serverId,
         'TestServer',
@@ -231,9 +241,10 @@ describe('Notification Mailers', () => {
         1050,
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.rcpt_to).toBe('admin@example.com');
     });
@@ -242,8 +253,8 @@ describe('Notification Mailers', () => {
   // ─── sendServerSuspendedEmail ────────────────────────────────
 
   describe('sendServerSuspendedEmail', () => {
-    it('returns a numeric message ID', () => {
-      const msgId = sendServerSuspendedEmail(
+    it('returns a numeric message ID', async () => {
+      const msgId = await sendServerSuspendedEmail(
         config,
         serverId,
         'TestServer',
@@ -253,34 +264,36 @@ describe('Notification Mailers', () => {
       expect(msgId).toBeGreaterThan(0);
     });
 
-    it('includes the suspension reason in the body', () => {
-      const msgId = sendServerSuspendedEmail(
+    it('includes the suspension reason in the body', async () => {
+      const msgId = await sendServerSuspendedEmail(
         config,
         serverId,
         'TestServer',
         'Excessive spam complaints',
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
-      const rawBody = msgStore.getRawBody(record);
+      const record = await msgStore.findOne({ id: msgId });
+      const rawBody = await msgStore.getRawBody(record);
 
       expect(rawBody).toContain('Excessive spam complaints');
       expect(rawBody).toContain('suspended');
     });
 
-    it('sets the subject to indicate suspension', () => {
-      const msgId = sendServerSuspendedEmail(
+    it('sets the subject to indicate suspension', async () => {
+      const msgId = await sendServerSuspendedEmail(
         config,
         serverId,
         'TestServer',
         'Policy violation',
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.subject).toContain('suspended');
     });
@@ -289,8 +302,8 @@ describe('Notification Mailers', () => {
   // ─── sendTestEmail ───────────────────────────────────────────
 
   describe('sendTestEmail', () => {
-    it('returns a numeric message ID', () => {
-      const msgId = sendTestEmail(
+    it('returns a numeric message ID', async () => {
+      const msgId = await sendTestEmail(
         config,
         serverId,
         'recipient@test.com',
@@ -300,49 +313,52 @@ describe('Notification Mailers', () => {
       expect(msgId).toBeGreaterThan(0);
     });
 
-    it('sends to the specified recipient', () => {
-      const msgId = sendTestEmail(
+    it('sends to the specified recipient', async () => {
+      const msgId = await sendTestEmail(
         config,
         serverId,
         'recipient@test.com',
         'sender@test.com',
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.rcpt_to).toBe('recipient@test.com');
       expect(record.mail_from).toBe('sender@test.com');
     });
 
-    it('sets the subject to "Posta SMTP Test Message"', () => {
-      const msgId = sendTestEmail(
+    it('sets the subject to "Posta SMTP Test Message"', async () => {
+      const msgId = await sendTestEmail(
         config,
         serverId,
         'recipient@test.com',
         'sender@test.com',
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
+      const record = await msgStore.findOne({ id: msgId });
 
       expect(record.subject).toBe('Posta SMTP Test Message');
     });
 
-    it('generates a valid MIME message', () => {
-      const msgId = sendTestEmail(
+    it('generates a valid MIME message', async () => {
+      const msgId = await sendTestEmail(
         config,
         serverId,
         'recipient@test.com',
         'sender@test.com',
       );
 
-      const msgDb = provisioner.openServerDb(serverId);
+      const client = getServerDb(config, serverId);
+      const msgDb = await provisioner.openServerDb(serverId, client);
       const msgStore = new MessageStore(msgDb);
-      const record = msgStore.findOne({ id: msgId });
-      const rawHeaders = msgStore.getRawHeaders(record);
+      const record = await msgStore.findOne({ id: msgId });
+      const rawHeaders = await msgStore.getRawHeaders(record);
 
       expect(rawHeaders).toContain('MIME-Version: 1.0');
       expect(rawHeaders).toContain('Content-Type: text/plain');

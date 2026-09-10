@@ -19,32 +19,37 @@ const NON_ADMIN_HEADER = { Authorization: `Bearer ${makeToken(NON_ADMIN_UID)}` }
 describe('IP Addresses — nested under /ip_pools/:poolId/ip_addresses', () => {
   let poolId: number;
 
-  beforeAll(() => {
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-main-${Date.now()}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-msg-${Date.now()}`;
+  beforeAll(async () => {
+    const testId = Date.now();
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_addresses_${testId}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_addresses_${testId}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
 
-    const db = getDb();
+    const db = await getDb();
 
     // Ensure admin user exists
-    db.run(
-      `INSERT OR IGNORE INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 1, ?, 'clerk', datetime('now'), datetime('now'))`,
+    await db.run(
+      `INSERT INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 1, $5, 'clerk', NOW(), NOW())
+       ON CONFLICT (oidc_uid) DO NOTHING`,
       [crypto.randomUUID().replace(/-/g, ''), 'Admin', 'User', 'admin@test.local', ADMIN_UID],
     );
 
     // Ensure non-admin user exists
-    db.run(
-      `INSERT OR IGNORE INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 0, ?, 'clerk', datetime('now'), datetime('now'))`,
+    await db.run(
+      `INSERT INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 0, $5, 'clerk', NOW(), NOW())
+       ON CONFLICT (oidc_uid) DO NOTHING`,
       [crypto.randomUUID().replace(/-/g, ''), 'Non', 'Admin', 'nobody@test.local', NON_ADMIN_UID],
     );
 
     // Create a test pool
-    const result = db.prepare(
+    const result = await db.run(
       `INSERT INTO ip_pools (uuid, name, default_pool, created_at, updated_at)
-       VALUES (?, ?, 0, datetime('now'), datetime('now'))`,
-    ).run(crypto.randomUUID().replace(/-/g, ''), `test-pool-${Date.now()}`);
+       VALUES ($1, $2, 0, NOW(), NOW())
+       RETURNING id`,
+      [crypto.randomUUID().replace(/-/g, ''), `test-pool-${Date.now()}`],
+    );
     poolId = Number(result.lastInsertRowid);
   });
 

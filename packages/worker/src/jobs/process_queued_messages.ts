@@ -1,8 +1,9 @@
 import type { PostaConfig } from '@posta/core';
-import { getMainDb } from '@posta/core';
+import { getMainDb, getServerDb } from '@posta/core';
 import { computeRetryDelay, FailureReason, BackoffStrategy } from '@posta/core';
 import type { FailureReasonType } from '@posta/core';
 import { checkWithRspamd, scanWithClamav, checkWithSpamAssassin } from '@posta/core';
+import type { MessageDatabase } from '@posta/message-db';
 import { MessageStore } from '@posta/message-db';
 import { BounceProcessor } from '../bounce';
 
@@ -18,22 +19,23 @@ export async function processQueuedMessagesJob(config: PostaConfig): Promise<boo
   const now = Date.now();
   const lockTime = new Date(now).toISOString();
 
-  mainDb.run(`
+  await mainDb.run(`
     UPDATE queued_messages
-    SET locked_by = ?, locked_at = ?, attempts = COALESCE(attempts, 0) + 1
+    SET locked_by = $1, locked_at = $2, attempts = COALESCE(attempts, 0) + 1
     WHERE id IN (
       SELECT id FROM queued_messages
       WHERE locked_by IS NULL
         AND locked_at IS NULL
-        AND (retry_after IS NULL OR retry_after <= datetime('now'))
+        AND (retry_after IS NULL OR retry_after <= NOW())
       ORDER BY priority DESC, created_at ASC
-      LIMIT ?
+      LIMIT $3
     )
   `, [locker, lockTime, BATCH_SIZE]);
 
-  const messages = mainDb.query(
-    `SELECT * FROM queued_messages WHERE locked_by = ? AND locked_at = ?`,
-  ).all(locker, lockTime) as any[];
+  const messages = await mainDb.query(
+    `SELECT * FROM queued_messages WHERE locked_by = $1 AND locked_at = $2`,
+    [locker, lockTime],
+  ) as any[];
 
   if (messages.length === 0) return false;
 
@@ -56,11 +58,12 @@ async function processMessage(
   try {
     const serverId = queuedMessage.server_id;
     const provisioner = new (await import('@posta/message-db')).MessageDbProvisioner(config);
-    const msgDb = provisioner.openServerDb(serverId);
+    const client = getServerDb(config, serverId);
+    const msgDb = await provisioner.openServerDb(serverId, client);
     const store = new MessageStore(msgDb);
 
-    const rows = msgDb.query(
-      `SELECT * FROM messages WHERE id = ?`,
+    const rows = await msgDb.query(
+      `SELECT * FROM messages WHERE id = $1`,
       [queuedMessage.message_id],
     ) as any[];
 
@@ -88,7 +91,7 @@ async function processMessage(
  */
 async function processOutgoing(
   config: PostaConfig,
-  msgDb: any,
+  msgDb: MessageDatabase,
   store: MessageStore,
   queuedMessage: any,
   message: any,
@@ -106,10 +109,10 @@ async function processOutgoing(
 
   // ── Check domain exists ──────────────────────────────
   if (message.domain_id) {
-    const domain = mainDb.query(`SELECT id FROM domains WHERE id = ?`).get(message.domain_id) as any;
+    const domain = await mainDb.get(`SELECT id FROM domains WHERE id = $1`, [message.domain_id]) as any;
     if (!domain) {
-      insertDelivery(msgDb, message.id, 'HardFail', "Message's domain no longer exists");
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'HardFail', "Message's domain no longer exists");
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
   }
@@ -117,45 +120,46 @@ async function processOutgoing(
   // ── Add tag from X-Posta-Tag header ─────────────────
   if (!message.tag) {
     try {
-      const rawHeaders = store.getRawHeaders(message);
+      const rawHeaders = await store.getRawHeaders(message);
       const tagMatch = rawHeaders.match(/^X-Posta-Tag:\s*(.+)$/im);
       if (tagMatch) {
-        msgDb.update('messages', { tag: tagMatch[1].trim() }, { where: { id: message.id } });
+        await msgDb.update('messages', { tag: tagMatch[1].trim() }, { where: { id: message.id } });
       }
     } catch {}
   }
 
   // ── Hold if credential is set to hold ────────────────
   if (!queuedMessage.manual && message.credential_id) {
-    const credential = mainDb.query(`SELECT hold FROM credentials WHERE id = ?`).get(message.credential_id) as any;
+    const credential = await mainDb.get(`SELECT hold FROM credentials WHERE id = $1`, [message.credential_id]) as any;
     if (credential?.hold) {
-      insertDelivery(msgDb, message.id, 'Held', 'Credential is configured to hold all messages authenticated by it.');
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'Held', 'Credential is configured to hold all messages authenticated by it.');
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
   }
 
   // ── Hold if recipient on suppression list ────────────
   if (!queuedMessage.manual) {
-    const suppression = msgDb.query(`SELECT * FROM suppressions WHERE type = 'recipient' AND address = ?`, [message.rcpt_to]) as any[];
+    const suppression = await msgDb.query(`SELECT * FROM suppressions WHERE type = 'recipient' AND address = $1`, [message.rcpt_to]) as any[];
     if (suppression && suppression.length > 0) {
-      insertDelivery(msgDb, message.id, 'Held', `Recipient (${message.rcpt_to}) is on the suppression list`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'Held', `Recipient (${message.rcpt_to}) is on the suppression list`);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
   }
 
   // ── Load server info ─────────────────────────────────
-  const server = mainDb.query(`SELECT * FROM servers WHERE id = ?`).get(queuedMessage.server_id) as any;
+  const server = await mainDb.get(`SELECT * FROM servers WHERE id = $1`, [queuedMessage.server_id]) as any;
 
   // ── Parse content (link rewriting, tracking pixel) ────
   if (!message.parsed && server) {
-    const rawMsgForParse = store.getRawMessage(message);
+    const rawMsgForParse = await store.getRawMessage(message);
     if (rawMsgForParse) {
       try {
-        const trackDomainRow = message.domain_id ? mainDb.query(
-          `SELECT td.*, d.name as domain_name FROM track_domains td JOIN domains d ON d.id = td.domain_id WHERE td.domain_id = ? AND td.server_id = ?`,
-        ).get(message.domain_id, queuedMessage.server_id) as any : null;
+        const trackDomainRow = message.domain_id ? await mainDb.get(
+          `SELECT td.*, d.name as domain_name FROM track_domains td JOIN domains d ON d.id = td.domain_id WHERE td.domain_id = $1 AND td.server_id = $2`,
+          [message.domain_id, queuedMessage.server_id],
+        ) as any : null;
 
         if (trackDomainRow) {
           const { MessageParser, LinkStore } = await import('@posta/message-db');
@@ -172,25 +176,31 @@ async function processOutgoing(
             message_token: message.token ?? '',
           };
           const linkStore = new LinkStore(msgDb);
-          const parser = new MessageParser(config, { createLink: (url: string) => Promise.resolve(linkStore.create(message.id, url)) });
+          const parser = new MessageParser(config, { createLink: (url: string) => linkStore.create(message.id, url) });
           const modified = await parser.parse(rawMsgForParse);
           if (parser.isActioned()) {
             const sep = modified.search(/\r?\n\r?\n/);
             const newHeaders = sep >= 0 ? modified.slice(0, sep) : modified;
             const newBody = sep >= 0 ? modified.slice(sep + modified.slice(sep, sep + 4).length) : '';
             if (message.raw_table && message.raw_headers_id) {
-              msgDb.db.prepare(`UPDATE "${message.raw_table}" SET data = ? WHERE id = ?`).run(newHeaders, message.raw_headers_id);
+              await msgDb.db.run(
+                `UPDATE "${message.raw_table}" SET data = $1 WHERE id = $2`,
+                [Buffer.from(newHeaders, 'binary'), message.raw_headers_id],
+              );
             }
             if (message.raw_table && message.raw_body_id) {
-              msgDb.db.prepare(`UPDATE "${message.raw_table}" SET data = ? WHERE id = ?`).run(newBody, message.raw_body_id);
+              await msgDb.db.run(
+                `UPDATE "${message.raw_table}" SET data = $1 WHERE id = $2`,
+                [Buffer.from(newBody, 'binary'), message.raw_body_id],
+              );
             }
-            msgDb.run(
-              `UPDATE messages SET parsed = 1, tracked_links = ?, tracked_images = ? WHERE id = ?`,
+            await msgDb.run(
+              `UPDATE messages SET parsed = 1, tracked_links = $1, tracked_images = $2 WHERE id = $3`,
               [parser.tracked_links, parser.tracked_images, message.id],
             );
             message.parsed = 1;
           } else {
-            msgDb.run(`UPDATE messages SET parsed = 1 WHERE id = ?`, [message.id]);
+            await msgDb.run(`UPDATE messages SET parsed = 1 WHERE id = $1`, [message.id]);
             message.parsed = 1;
           }
         }
@@ -203,11 +213,11 @@ async function processOutgoing(
   // ── Inspect message for spam (outbound) ──────────────
   if (!message.inspected && server?.outbound_spam_threshold) {
     await inspectMessage(config, msgDb, message, 'outgoing', queuedMessage.server_id);
-    const updated = msgDb.query(`SELECT spam_score, spam FROM messages WHERE id = ?`, [message.id]) as any[];
+    const updated = await msgDb.query(`SELECT spam_score, spam FROM messages WHERE id = $1`, [message.id]) as any[];
     if (updated[0]?.spam && updated[0]?.spam_score >= server.outbound_spam_threshold) {
-      insertDelivery(msgDb, message.id, 'HardFail',
+      await insertDelivery(msgDb, message.id, 'HardFail',
         `Message is likely spam. Threshold is ${server.outbound_spam_threshold} and the message scored ${updated[0].spam_score}.`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
   }
@@ -216,15 +226,15 @@ async function processOutgoing(
   if (server?.send_limit) {
     const today = new Date(); today.setUTCHours(0, 0, 0, 0);
     const todayTs = today.toISOString();
-    const count = mainDb.query(`SELECT COUNT(*) as c FROM queued_messages WHERE server_id = ? AND created_at >= ?`).get(queuedMessage.server_id, todayTs) as any;
+    const count = await mainDb.get(`SELECT COUNT(*) as c FROM queued_messages WHERE server_id = $1 AND created_at >= $2`, [queuedMessage.server_id, todayTs]) as any;
     const sentToday = count?.c ?? 0;
     if (sentToday >= server.send_limit) {
-      mainDb.run(`UPDATE servers SET send_limit_exceeded_at = datetime('now'), send_limit_approaching_at = NULL WHERE id = ?`, [queuedMessage.server_id]);
-      insertDelivery(msgDb, message.id, 'Held', `Message held because send limit (${server.send_limit}) has been reached.`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`UPDATE servers SET send_limit_exceeded_at = NOW(), send_limit_approaching_at = NULL WHERE id = $1`, [queuedMessage.server_id]);
+      await insertDelivery(msgDb, message.id, 'Held', `Message held because send limit (${server.send_limit}) has been reached.`);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     } else if (sentToday >= server.send_limit * 0.9) {
-      mainDb.run(`UPDATE servers SET send_limit_approaching_at = datetime('now'), send_limit_exceeded_at = NULL WHERE id = ?`, [queuedMessage.server_id]);
+      await mainDb.run(`UPDATE servers SET send_limit_approaching_at = NOW(), send_limit_exceeded_at = NULL WHERE id = $1`, [queuedMessage.server_id]);
     }
   }
 
@@ -232,7 +242,7 @@ async function processOutgoing(
     // ── Load raw message from partitioned storage ─────────
     let rawMessage: string;
     try {
-      rawMessage = store.getRawMessage(message);
+      rawMessage = await store.getRawMessage(message);
     } catch {
       // Fallback if raw_message column exists directly
       rawMessage = message.raw_message ?? '';
@@ -248,9 +258,10 @@ async function processOutgoing(
     let sourceIp = '127.0.0.1';
     if (queuedMessage.ip_address_id) {
       try {
-        const ipRow = mainDb.query(
-          `SELECT COALESCE(ipv4, ipv6) as ip FROM ip_addresses WHERE id = ?`,
-        ).get(queuedMessage.ip_address_id) as any;
+        const ipRow = await mainDb.get(
+          `SELECT COALESCE(ipv4, ipv6) as ip FROM ip_addresses WHERE id = $1`,
+          [queuedMessage.ip_address_id],
+        ) as any;
         if (ipRow?.ip) sourceIp = ipRow.ip;
       } catch {}
     }
@@ -291,7 +302,7 @@ async function processOutgoing(
     const duration = Date.now() - startTime;
 
     // ── Record delivery attempt ───────────────────────────
-    msgDb.insert('deliveries', {
+    await msgDb.insert('deliveries', {
       message_id: message.id,
       status: deliveryStatus,
       details: result.error ?? (deliveryStatus === 'Sent' ? 'Message sent successfully' : 'Delivery failed'),
@@ -299,19 +310,21 @@ async function processOutgoing(
       time: Math.floor(duration / 1000),
     });
 
-    msgDb.update('messages', {
+    await msgDb.update('messages', {
       status: deliveryStatus,
       last_delivery_attempt: Date.now() / 1000,
     }, { where: { id: message.id } });
 
     // Live stats
-    msgDb.exec(
-      `INSERT INTO live_stats (type, minute, count, timestamp) VALUES ('outgoing', ${new Date().getUTCMinutes()}, 1, ${Date.now() / 1000}) ` +
-      `ON CONFLICT(minute, type) DO UPDATE SET count = count + 1, timestamp = ${Date.now() / 1000}`,
+    const minute = new Date().getUTCMinutes();
+    const ts = Date.now() / 1000;
+    await msgDb.exec(
+      `INSERT INTO live_stats (type, minute, count, timestamp) VALUES ('outgoing', ${minute}, 1, ${ts}) ` +
+      `ON CONFLICT(minute, type) DO UPDATE SET count = count + 1, timestamp = ${ts}`,
     );
 
     if (deliveryStatus === 'Sent') {
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
     } else if (deliveryStatus === 'HardFail') {
       await recordFinalFailure(mainDb, queuedMessage, FailureReason.HardFail,
         result.error ?? 'Hard fail', attemptNum, startTime);
@@ -340,9 +353,10 @@ async function signWithDkim(
   const mainDb = getMainDb(config);
 
   // Look up domain's DKIM private key
-  const domain = mainDb.query(
-    `SELECT dkim_private_key, name FROM domains WHERE id = ?`,
-  ).get(message.domain_id) as { dkim_private_key: string | null; name: string } | undefined;
+  const domain = await mainDb.get(
+    `SELECT dkim_private_key, name FROM domains WHERE id = $1`,
+    [message.domain_id],
+  ) as { dkim_private_key: string | null; name: string } | undefined;
 
   if (!domain?.dkim_private_key) return rawMessage;
 
@@ -399,7 +413,7 @@ function generateReceivedHeader(
  */
 async function processIncoming(
   config: PostaConfig,
-  msgDb: any,
+  msgDb: MessageDatabase,
   store: MessageStore,
   queuedMessage: any,
   message: any,
@@ -411,12 +425,13 @@ async function processIncoming(
 
   try {
     // Look up the server for this message
-    const server = mainDb.query(
-      `SELECT * FROM servers WHERE id = ?`,
-    ).get(queuedMessage.server_id) as any;
+    const server = await mainDb.get(
+      `SELECT * FROM servers WHERE id = $1`,
+      [queuedMessage.server_id],
+    ) as any;
 
     if (!server) {
-      insertDelivery(msgDb, message.id, 'HardFail', 'Server not found');
+      await insertDelivery(msgDb, message.id, 'HardFail', 'Server not found');
       await recordFinalFailure(mainDb, queuedMessage, FailureReason.HardFail,
         'Server not found', attemptNum, startTime);
       return;
@@ -429,38 +444,38 @@ async function processIncoming(
       // Look for original outgoing messages that this bounce relates to.
       // The bounce_for_id may already be set by the SMTP server when linking
       // the return path, or we look up by matching outgoing messages.
-      const originalMessages = findOriginalMessages(msgDb, message);
+      const originalMessages = await findOriginalMessages(msgDb, message);
 
       if (originalMessages.length > 0) {
         for (const origMsg of originalMessages) {
           // Link the bounce to the original message
-          msgDb.run(
-            `UPDATE messages SET bounce_for_id = ?, domain_id = ? WHERE id = ?`,
+          await msgDb.run(
+            `UPDATE messages SET bounce_for_id = $1, domain_id = $2 WHERE id = $3`,
             [origMsg.id, origMsg.domain_id, message.id],
           );
 
-          insertDelivery(msgDb, message.id, 'Processed',
+          await insertDelivery(msgDb, message.id, 'Processed',
             `This has been detected as a bounce message for <msg:${origMsg.id}>.`);
 
           // Mark the original message as bounced
-          msgDb.run(
-            `UPDATE messages SET status = 'Bounced' WHERE id = ?`,
+          await msgDb.run(
+            `UPDATE messages SET status = 'Bounced' WHERE id = $1`,
             [origMsg.id],
           );
 
           console.log(`[worker] bounce linked with message ${origMsg.id}`);
         }
 
-        mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+        await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
         return;
       }
 
       // No original messages found — if there's no route_id, hard fail
       if (!message.route_id) {
         console.log(`[worker] incoming msg ${message.id}: no source messages found, hard failing`);
-        insertDelivery(msgDb, message.id, 'HardFail',
+        await insertDelivery(msgDb, message.id, 'HardFail',
           "This message was a bounce but we couldn't link it with any outgoing message and there was no route for it.");
-        mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+        await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
         return;
       }
 
@@ -468,7 +483,7 @@ async function processIncoming(
     }
 
     // ── Step 2: Increment live stats ────────────────────────
-    incrementLiveStats(msgDb, message.scope ?? 'incoming');
+    await incrementLiveStats(msgDb, message.scope ?? 'incoming');
 
     // ── Step 3: Inspect message (spam/virus) ────────────────
     await inspectMessage(config, msgDb, message, 'incoming', queuedMessage.server_id);
@@ -479,17 +494,17 @@ async function processIncoming(
 
     if (message.spam_score >= spamFailureThreshold) {
       console.log(`[worker] incoming msg ${message.id}: spam score ${message.spam_score} exceeds failure threshold ${spamFailureThreshold}`);
-      insertDelivery(msgDb, message.id, 'HardFail',
+      await insertDelivery(msgDb, message.id, 'HardFail',
         `Message's spam score is higher than the failure threshold for this server. Threshold is currently ${spamFailureThreshold}.`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
     // ── Step 5: Hold if server in development mode ──────────
     if (!queuedMessage.manual && server.mode === 'Development') {
       console.log(`[worker] incoming msg ${message.id}: server is in development mode, holding`);
-      insertDelivery(msgDb, message.id, 'Held', 'Server is in development mode.');
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'Held', 'Server is in development mode.');
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -497,22 +512,24 @@ async function processIncoming(
     let route: any = null;
 
     if (message.route_id) {
-      route = mainDb.query(
-        `SELECT * FROM routes WHERE id = ?`,
-      ).get(message.route_id) as any;
+      route = await mainDb.get(
+        `SELECT * FROM routes WHERE id = $1`,
+        [message.route_id],
+      ) as any;
     }
 
     if (!route && message.domain_id) {
-      route = mainDb.query(
-        `SELECT * FROM routes WHERE domain_id = ? AND server_id = ?`,
-      ).get(message.domain_id, queuedMessage.server_id) as any;
+      route = await mainDb.get(
+        `SELECT * FROM routes WHERE domain_id = $1 AND server_id = $2`,
+        [message.domain_id, queuedMessage.server_id],
+      ) as any;
     }
 
     if (!route) {
       console.log(`[worker] incoming msg ${message.id}: no route found, hard failing`);
-      insertDelivery(msgDb, message.id, 'HardFail',
+      await insertDelivery(msgDb, message.id, 'HardFail',
         'Message does not have a route and/or endpoint available for delivery.');
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -520,14 +537,14 @@ async function processIncoming(
     if (message.spam && !queuedMessage.manual) {
       if (route.spam_mode === 'Quarantine') {
         console.log(`[worker] incoming msg ${message.id}: spam quarantined by route`);
-        insertDelivery(msgDb, message.id, 'Held', 'Message placed into quarantine.');
-        mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+        await insertDelivery(msgDb, message.id, 'Held', 'Message placed into quarantine.');
+        await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
         return;
       } else if (route.spam_mode === 'Fail') {
         console.log(`[worker] incoming msg ${message.id}: spam failed by route`);
-        insertDelivery(msgDb, message.id, 'HardFail',
+        await insertDelivery(msgDb, message.id, 'HardFail',
           'Message is spam and the route specified it should be failed.');
-        mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+        await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
         return;
       }
     }
@@ -535,9 +552,9 @@ async function processIncoming(
     // ── Step 8: Accept without endpoints (route.mode == 'Accept') ─
     if (route.mode === 'Accept') {
       console.log(`[worker] incoming msg ${message.id}: route says accept without endpoint`);
-      insertDelivery(msgDb, message.id, 'Processed',
+      await insertDelivery(msgDb, message.id, 'Processed',
         'Message has been accepted but not sent to any endpoints.');
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -545,13 +562,13 @@ async function processIncoming(
     if (route.mode === 'Hold') {
       if (queuedMessage.manual) {
         console.log(`[worker] incoming msg ${message.id}: route says hold but queued manually, processing`);
-        insertDelivery(msgDb, message.id, 'Processed', 'Message has been processed.');
+        await insertDelivery(msgDb, message.id, 'Processed', 'Message has been processed.');
       } else {
         console.log(`[worker] incoming msg ${message.id}: route says hold`);
-        insertDelivery(msgDb, message.id, 'Held',
+        await insertDelivery(msgDb, message.id, 'Held',
           'Message has been accepted but not sent to any endpoints.');
       }
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -568,8 +585,8 @@ async function processIncoming(
         console.log(`[worker] bounce sent with id ${bounceId}`);
       }
 
-      insertDelivery(msgDb, message.id, 'HardFail', bounceDetails);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'HardFail', bounceDetails);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -579,21 +596,21 @@ async function processIncoming(
 
     if (!endpointType || !endpointId) {
       console.log(`[worker] incoming msg ${message.id}: invalid endpoint for route`);
-      insertDelivery(msgDb, message.id, 'HardFail', 'Invalid endpoint for route.');
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'HardFail', 'Invalid endpoint for route.');
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
     // Load the raw message for sending
     let rawMessage: string;
     try {
-      rawMessage = store.getRawMessage(message);
+      rawMessage = await store.getRawMessage(message);
     } catch {
       rawMessage = message.raw_message ?? '';
     }
 
     if (!rawMessage) {
-      insertDelivery(msgDb, message.id, 'HardFail', 'No raw message content available for delivery.');
+      await insertDelivery(msgDb, message.id, 'HardFail', 'No raw message content available for delivery.');
       await recordFinalFailure(mainDb, queuedMessage, FailureReason.HardFail,
         'No raw message content', attemptNum, startTime);
       return;
@@ -609,8 +626,8 @@ async function processIncoming(
       sendResult = await sendToAddressEndpoint(config, mainDb, message, rawMessage, endpointId);
     } else {
       console.log(`[worker] incoming msg ${message.id}: invalid endpoint type ${endpointType}`);
-      insertDelivery(msgDb, message.id, 'HardFail', `Invalid endpoint type: ${endpointType}`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await insertDelivery(msgDb, message.id, 'HardFail', `Invalid endpoint type: ${endpointType}`);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
 
@@ -632,17 +649,17 @@ async function processIncoming(
     const duration = Date.now() - startTime;
 
     // Record the delivery
-    insertDelivery(msgDb, message.id, sendResult.classification,
+    await insertDelivery(msgDb, message.id, sendResult.classification,
       (sendResult.details ?? '') + additionalDetails, duration);
 
     // Update message status
-    msgDb.run(
-      `UPDATE messages SET status = ?, last_delivery_attempt = ?, endpoint_id = ?, endpoint_type = ? WHERE id = ?`,
+    await msgDb.run(
+      `UPDATE messages SET status = $1, last_delivery_attempt = $2, endpoint_id = $3, endpoint_type = $4 WHERE id = $5`,
       [sendResult.classification, Date.now() / 1000, endpointId, endpointType, message.id],
     );
 
     // Mark endpoint as used
-    markEndpointAsUsed(mainDb, endpointType, endpointId);
+    await markEndpointAsUsed(mainDb, endpointType, endpointId);
 
     if (sendResult.retry) {
       // Retry later
@@ -661,7 +678,7 @@ async function processIncoming(
     } else {
       // Success — remove from queue
       console.log(`[worker] incoming msg ${message.id}: processing completed`);
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [queuedMessage.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
     }
   } catch (err: any) {
     console.error(`[worker] incoming processing error for msg ${message.id}:`, err.message);
@@ -681,11 +698,11 @@ async function processIncoming(
  * - The bounce's bounce_for_id is already set, OR
  * - The bounce's rcpt_to (return path) matches an outgoing message's mail_from
  */
-function findOriginalMessages(msgDb: any, message: any): any[] {
+async function findOriginalMessages(msgDb: MessageDatabase, message: any): Promise<any[]> {
   // If bounce_for_id is already set, look up that specific message
   if (message.bounce_for_id && message.bounce_for_id > 0) {
-    const rows = msgDb.query(
-      `SELECT * FROM messages WHERE id = ? AND scope = 'outgoing'`,
+    const rows = await msgDb.query(
+      `SELECT * FROM messages WHERE id = $1 AND scope = 'outgoing'`,
       [message.bounce_for_id],
     ) as any[];
     return Array.isArray(rows) ? rows : [];
@@ -693,8 +710,8 @@ function findOriginalMessages(msgDb: any, message: any): any[] {
 
   // Try to find outgoing messages whose return path matches this bounce's rcpt_to
   if (message.rcpt_to) {
-    const rows = msgDb.query(
-      `SELECT * FROM messages WHERE scope = 'outgoing' AND mail_from = ? LIMIT 10`,
+    const rows = await msgDb.query(
+      `SELECT * FROM messages WHERE scope = 'outgoing' AND mail_from = $1 LIMIT 10`,
       [message.rcpt_to],
     ) as any[];
     return Array.isArray(rows) ? rows : [];
@@ -708,14 +725,14 @@ function findOriginalMessages(msgDb: any, message: any): any[] {
 /**
  * Insert a delivery record into the server's MessageDB.
  */
-function insertDelivery(
-  msgDb: any,
+async function insertDelivery(
+  msgDb: MessageDatabase,
   messageId: number,
   status: string,
   details: string,
   durationMs?: number,
-): void {
-  msgDb.insert('deliveries', {
+): Promise<void> {
+  await msgDb.insert('deliveries', {
     message_id: messageId,
     status,
     details,
@@ -729,10 +746,10 @@ function insertDelivery(
 /**
  * Increment the live_stats counter for the given message type.
  */
-function incrementLiveStats(msgDb: any, type: string): void {
+async function incrementLiveStats(msgDb: MessageDatabase, type: string): Promise<void> {
   const minute = new Date().getUTCMinutes();
   const ts = Date.now() / 1000;
-  msgDb.exec(
+  await msgDb.exec(
     `INSERT INTO live_stats (type, minute, count, timestamp) VALUES ('${type}', ${minute}, 1, ${ts}) ` +
     `ON CONFLICT(minute, type) DO UPDATE SET count = count + 1, timestamp = ${ts}`,
   );
@@ -751,7 +768,7 @@ function incrementLiveStats(msgDb: any, type: string): void {
  */
 async function inspectMessage(
   config: PostaConfig,
-  msgDb: any,
+  msgDb: MessageDatabase,
   message: any,
   scope: 'incoming' | 'outgoing',
   serverId: number,
@@ -770,7 +787,7 @@ async function inspectMessage(
   let rawMessage: string;
   try {
     const store = new MessageStore(msgDb);
-    rawMessage = store.getRawMessage(message);
+    rawMessage = await store.getRawMessage(message);
   } catch {
     rawMessage = message.raw_message ?? '';
   }
@@ -782,9 +799,10 @@ async function inspectMessage(
 
   // Look up the server for spam thresholds
   const mainDb = getMainDb(config);
-  const server = mainDb.query(
-    `SELECT spam_threshold FROM servers WHERE id = ?`,
-  ).get(serverId) as { spam_threshold: number | null } | undefined;
+  const server = await mainDb.get(
+    `SELECT spam_threshold FROM servers WHERE id = $1`,
+    [serverId],
+  ) as { spam_threshold: number | null } | undefined;
 
   const spamThreshold = server?.spam_threshold ?? config.posta.default_spam_threshold;
 
@@ -814,7 +832,7 @@ async function inspectMessage(
         spamScore += check.score;
 
         // Store each check in the spam_checks table
-        msgDb.insert('spam_checks', {
+        await msgDb.insert('spam_checks', {
           message_id: message.id,
           score: check.score,
           code: check.name,
@@ -841,7 +859,7 @@ async function inspectMessage(
 
       for (const check of result.checks) {
         spamScore += check.score;
-        msgDb.insert('spam_checks', {
+        await msgDb.insert('spam_checks', {
           message_id: message.id,
           score: check.score,
           code: check.name,
@@ -881,8 +899,8 @@ async function inspectMessage(
   }
 
   // Update the message record with inspection results
-  msgDb.run(
-    `UPDATE messages SET inspected = 1, spam_score = ?, spam = ?, threat = ?, threat_details = ? WHERE id = ?`,
+  await msgDb.run(
+    `UPDATE messages SET inspected = 1, spam_score = $1, spam = $2, threat = $3, threat_details = $4 WHERE id = $5`,
     [spamScore, isSpam ? 1 : 0, isThreat ? 1 : 0, threatDetails, message.id],
   );
 
@@ -921,7 +939,7 @@ async function sendBounce(
     // Load the raw message to attach to the bounce
     let rawMessage: string;
     try {
-      rawMessage = store.getRawMessage(message);
+      rawMessage = await store.getRawMessage(message);
     } catch {
       rawMessage = message.raw_message ?? '';
     }
@@ -963,15 +981,16 @@ interface SendResult {
 
 async function sendToHttpEndpoint(
   config: PostaConfig,
-  msgDb: any,
+  msgDb: MessageDatabase,
   mainDb: any,
   message: any,
   rawMessage: string,
   endpointId: number,
 ): Promise<SendResult> {
-  const endpoint = mainDb.query(
-    `SELECT * FROM http_endpoints WHERE id = ?`,
-  ).get(endpointId) as any;
+  const endpoint = await mainDb.get(
+    `SELECT * FROM http_endpoints WHERE id = $1`,
+    [endpointId],
+  ) as any;
 
   if (!endpoint) {
     return {
@@ -1026,9 +1045,10 @@ async function sendToSmtpEndpoint(
   rawMessage: string,
   endpointId: number,
 ): Promise<SendResult> {
-  const endpoint = mainDb.query(
-    `SELECT * FROM smtp_endpoints WHERE id = ?`,
-  ).get(endpointId) as any;
+  const endpoint = await mainDb.get(
+    `SELECT * FROM smtp_endpoints WHERE id = $1`,
+    [endpointId],
+  ) as any;
 
   if (!endpoint) {
     return {
@@ -1082,9 +1102,10 @@ async function sendToAddressEndpoint(
   rawMessage: string,
   endpointId: number,
 ): Promise<SendResult> {
-  const endpoint = mainDb.query(
-    `SELECT * FROM address_endpoints WHERE id = ?`,
-  ).get(endpointId) as any;
+  const endpoint = await mainDb.get(
+    `SELECT * FROM address_endpoints WHERE id = $1`,
+    [endpointId],
+  ) as any;
 
   if (!endpoint) {
     return {
@@ -1134,7 +1155,7 @@ async function sendToAddressEndpoint(
 /**
  * Update the endpoint's last_used_at timestamp.
  */
-function markEndpointAsUsed(mainDb: any, endpointType: string, endpointId: number): void {
+async function markEndpointAsUsed(mainDb: any, endpointType: string, endpointId: number): Promise<void> {
   const tableName = endpointType === 'HTTPEndpoint'
     ? 'http_endpoints'
     : endpointType === 'SMTPEndpoint'
@@ -1146,8 +1167,8 @@ function markEndpointAsUsed(mainDb: any, endpointType: string, endpointId: numbe
   if (!tableName) return;
 
   try {
-    mainDb.run(
-      `UPDATE ${tableName} SET last_used_at = datetime('now') WHERE id = ?`,
+    await mainDb.run(
+      `UPDATE ${tableName} SET last_used_at = NOW() WHERE id = $1`,
       [endpointId],
     );
   } catch {
@@ -1175,8 +1196,8 @@ async function handleRetry(
 
   const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 30, 300) / 1000);
 
-  db.run(
-    `UPDATE queued_messages SET retry_after = datetime('now', '+${delaySec} seconds'), locked_by = NULL, locked_at = NULL WHERE id = ?`,
+  await db.run(
+    `UPDATE queued_messages SET retry_after = NOW() + interval '${delaySec} seconds', locked_by = NULL, locked_at = NULL WHERE id = $1`,
     [qm.id],
   );
 }
@@ -1190,13 +1211,13 @@ async function recordFinalFailure(
   startedAt: number,
 ): Promise<void> {
   try {
-    db.run(`
-      INSERT OR REPLACE INTO failed_messages (queue_message_id, message_id, server_id, reason, error, attempts, last_attempt_at)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    await db.run(`
+      INSERT INTO failed_messages (queue_message_id, message_id, server_id, reason, error, attempts, last_attempt_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
     `, [qm.id, qm.message_id, qm.server_id, reason, error, attempt]);
   } catch {
     console.error(`[worker] DLQ write failed, msg ${qm.id} will be removed silently`);
   }
 
-  db.run(`DELETE FROM queued_messages WHERE id = ?`, [qm.id]);
+  await db.run(`DELETE FROM queued_messages WHERE id = $1`, [qm.id]);
 }

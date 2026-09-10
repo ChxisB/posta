@@ -2,8 +2,9 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 
 describe('Track Domains Routes', () => {
   beforeAll(() => {
-    process.env.POSTA_MAIN_DB_PATH = `/tmp/posta-test-td-${Date.now()}.db`;
-    process.env.POSTA_MESSAGE_DB_DIRECTORY = `/tmp/posta-test-msg-td-${Date.now()}`;
+    const testId = Date.now();
+    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_track_domains_${testId}`;
+    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_track_domains_${testId}`;
     process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
   });
 

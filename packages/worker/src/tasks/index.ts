@@ -1,10 +1,11 @@
 import type { PostaConfig } from '@posta/core';
-import { getMainDb, DnsResolver } from '@posta/core';
+import { getMainDb, getServerDb, DnsResolver } from '@posta/core';
 import { MessageDbProvisioner } from '@posta/message-db';
 import {
   sendServerSendLimitApproachingEmail,
   sendServerSendLimitExceededEmail,
 } from '../mailers';
+import { maintainPartitionsTask } from './maintain-partitions';
 
 export interface ScheduledTask {
   name: string;
@@ -48,10 +49,11 @@ const checkAllDnsTask: ScheduledTask = {
     const mainDb = getMainDb(config);
     const hourAgo = new Date(Date.now() - 3600000).toISOString();
 
-    const domains = mainDb.query(
+    const domains = await mainDb.query(
       `SELECT id, name, spf_status, dkim_status, mx_status, return_path_status
-       FROM domains WHERE dns_checked_at IS NOT NULL AND dns_checked_at <= ?`,
-    ).all(hourAgo) as any[];
+       FROM domains WHERE dns_checked_at IS NOT NULL AND dns_checked_at <= $1`,
+      [hourAgo],
+    ) as any[];
 
     if (domains.length === 0) return;
 
@@ -93,8 +95,8 @@ const checkAllDnsTask: ScheduledTask = {
           returnPathStatus = hasRp ? 'OK' : 'Missing';
         } catch { returnPathStatus = 'Error'; }
 
-        mainDb.run(
-          `UPDATE domains SET spf_status = ?, dkim_status = ?, mx_status = ?, return_path_status = ?, dns_checked_at = datetime('now') WHERE id = ?`,
+        await mainDb.run(
+          `UPDATE domains SET spf_status = $1, dkim_status = $2, mx_status = $3, return_path_status = $4, dns_checked_at = NOW() WHERE id = $5`,
           [spfStatus, dkimStatus, mxStatus, returnPathStatus, domain.id],
         );
 
@@ -115,20 +117,21 @@ const expireHeldMessagesTask: ScheduledTask = {
   async execute(config: PostaConfig) {
     const provisioner = new MessageDbProvisioner(config);
     const mainDb = getMainDb(config);
-    const servers = mainDb.query(`SELECT id FROM servers WHERE deleted_at IS NULL`).all() as any[];
+    const servers = await mainDb.query(`SELECT id FROM servers WHERE deleted_at IS NULL`) as any[];
 
     for (const server of servers) {
       try {
-        const msgDb = provisioner.openServerDb(server.id);
+        const client = getServerDb(config, server.id);
+        const msgDb = await provisioner.openServerDb(server.id, client);
         const now = Date.now() / 1000;
-        const expired = msgDb.query(
-          `SELECT id FROM messages WHERE status = 'Held' AND hold_expiry IS NOT NULL AND hold_expiry < ?`,
+        const expired = await msgDb.query(
+          `SELECT id FROM messages WHERE status = 'Held' AND hold_expiry IS NOT NULL AND hold_expiry < $1`,
           [now],
         ) as any[];
 
         for (const msg of expired) {
-          msgDb.update('messages', { status: 'Bounced', held: 0 }, { where: { id: msg.id } });
-          msgDb.insert('deliveries', {
+          await msgDb.update('messages', { status: 'Bounced', held: 0 }, { where: { id: msg.id } });
+          await msgDb.insert('deliveries', {
             message_id: msg.id,
             status: 'Bounced',
             details: 'Message expired',
@@ -153,23 +156,24 @@ const processMessageRetentionTask: ScheduledTask = {
   async execute(config: PostaConfig) {
     const provisioner = new MessageDbProvisioner(config);
     const mainDb = getMainDb(config);
-    const servers = mainDb.query(
+    const servers = await mainDb.query(
       `SELECT id, message_retention_days, raw_message_retention_days, raw_message_retention_size
        FROM servers WHERE deleted_at IS NULL`,
-    ).all() as any[];
+    ) as any[];
 
     for (const server of servers) {
       try {
-        const msgDb = provisioner.openServerDb(server.id);
+        const client = getServerDb(config, server.id);
+        const msgDb = await provisioner.openServerDb(server.id, client);
 
         if (server.raw_message_retention_days) {
-          provisioner.removeOldRawTables(msgDb, server.raw_message_retention_days);
+          await provisioner.removeOldRawTables(msgDb, server.raw_message_retention_days);
         }
         if (server.raw_message_retention_size) {
-          provisioner.removeRawTablesUntilUnderSize(msgDb, server.raw_message_retention_size * 1024 * 1024);
+          await provisioner.removeRawTablesUntilUnderSize(msgDb, server.raw_message_retention_size * 1024 * 1024);
         }
         if (server.message_retention_days) {
-          provisioner.removeOldMessages(msgDb, server.message_retention_days);
+          await provisioner.removeOldMessages(msgDb, server.message_retention_days);
         }
 
         console.log(`[worker] retention processed for server ${server.id}`);
@@ -188,7 +192,7 @@ const pruneWebhookRequestsTask: ScheduledTask = {
   async execute(config: PostaConfig) {
     const mainDb = getMainDb(config);
     const cutoff = new Date(Date.now() - 10 * 86400000).toISOString();
-    const result = mainDb.run(`DELETE FROM webhook_requests WHERE created_at < ?`, [cutoff]);
+    await mainDb.run(`DELETE FROM webhook_requests WHERE created_at < $1`, [cutoff]);
     console.log(`[worker] pruned webhook requests older than 10 days`);
   },
 };
@@ -202,13 +206,14 @@ const pruneSuppressionListsTask: ScheduledTask = {
   async execute(config: PostaConfig) {
     const provisioner = new MessageDbProvisioner(config);
     const mainDb = getMainDb(config);
-    const servers = mainDb.query(`SELECT id FROM servers WHERE deleted_at IS NULL`).all() as any[];
+    const servers = await mainDb.query(`SELECT id FROM servers WHERE deleted_at IS NULL`) as any[];
 
     for (const server of servers) {
       try {
-        const msgDb = provisioner.openServerDb(server.id);
+        const client = getServerDb(config, server.id);
+        const msgDb = await provisioner.openServerDb(server.id, client);
         const now = Date.now() / 1000;
-        const result = msgDb.delete('suppressions', { where: { keep_until: { less_than: now } } });
+        await msgDb.delete('suppressions', { where: { keep_until: { less_than: now } } });
         console.log(`[worker] pruned suppressions for server ${server.id}`);
       } catch { /* server DB not yet created */ }
     }
@@ -237,12 +242,13 @@ const tidyQueuedMessagesTask: ScheduledTask = {
     const staleThreshold = config.posta.queued_message_lock_stale_days ?? 1;
     const cutoff = new Date(Date.now() - staleThreshold * 86400000).toISOString();
 
-    const stale = mainDb.query(
-      `SELECT id FROM queued_messages WHERE locked_by IS NOT NULL AND locked_at < ?`,
-    ).all(cutoff) as any[];
+    const stale = await mainDb.query(
+      `SELECT id FROM queued_messages WHERE locked_by IS NOT NULL AND locked_at < $1`,
+      [cutoff],
+    ) as any[];
 
     for (const msg of stale) {
-      mainDb.run(`DELETE FROM queued_messages WHERE id = ?`, [msg.id]);
+      await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [msg.id]);
     }
 
     if (stale.length > 0) {
@@ -260,36 +266,37 @@ const sendNotificationsTask: ScheduledTask = {
   async execute(config: PostaConfig) {
     const mainDb = getMainDb(config);
 
-    const servers = mainDb.query(
+    const servers = await mainDb.query(
       `SELECT id, name, send_limit, send_limit_approaching_at, send_limit_exceeded_at,
               send_limit_approaching_notified_at, send_limit_exceeded_notified_at
        FROM servers WHERE deleted_at IS NULL AND send_limit IS NOT NULL`,
-    ).all() as any[];
+    ) as any[];
 
     for (const server of servers) {
       const today = new Date();
       today.setUTCHours(0, 0, 0, 0);
       const todayTs = today.getTime() / 1000;
 
-      const count = mainDb.query(
+      const count = await mainDb.get(
         `SELECT COUNT(*) as count FROM queued_messages q
          INNER JOIN messages m ON m.id = q.message_id
-         WHERE q.server_id = ? AND m.timestamp > ?`,
-      ).get(server.id, todayTs) as { count: number } | undefined;
+         WHERE q.server_id = $1 AND m.timestamp > $2`,
+        [server.id, todayTs],
+      ) as { count: number } | undefined;
 
       const totalSent = count?.count ?? 0;
 
       if (totalSent >= server.send_limit * 0.9 && !server.send_limit_approaching_notified_at) {
         console.log(`[worker] server ${server.name} (${server.id}) approaching send limit (${totalSent}/${server.send_limit})`);
         try {
-          sendServerSendLimitApproachingEmail(
+          await sendServerSendLimitApproachingEmail(
             config,
             server.id,
             server.name,
             server.send_limit,
             totalSent,
           );
-          mainDb.run(`UPDATE servers SET send_limit_approaching_at = datetime('now'), send_limit_approaching_notified_at = datetime('now') WHERE id = ?`, [server.id]);
+          await mainDb.run(`UPDATE servers SET send_limit_approaching_at = NOW(), send_limit_approaching_notified_at = NOW() WHERE id = $1`, [server.id]);
         } catch (err: any) {
           console.error(`[worker] failed to send approaching notification for server ${server.id}:`, err.message);
         }
@@ -298,14 +305,14 @@ const sendNotificationsTask: ScheduledTask = {
       if (totalSent >= server.send_limit && !server.send_limit_exceeded_notified_at) {
         console.log(`[worker] server ${server.name} (${server.id}) exceeded send limit (${totalSent}/${server.send_limit})`);
         try {
-          sendServerSendLimitExceededEmail(
+          await sendServerSendLimitExceededEmail(
             config,
             server.id,
             server.name,
             server.send_limit,
             totalSent,
           );
-          mainDb.run(`UPDATE servers SET send_limit_exceeded_at = datetime('now'), send_limit_exceeded_notified_at = datetime('now') WHERE id = ?`, [server.id]);
+          await mainDb.run(`UPDATE servers SET send_limit_exceeded_at = NOW(), send_limit_exceeded_notified_at = NOW() WHERE id = $1`, [server.id]);
         } catch (err: any) {
           console.error(`[worker] failed to send exceeded notification for server ${server.id}:`, err.message);
         }
@@ -324,8 +331,8 @@ const actionDeletionsTask: ScheduledTask = {
     const mainDb = getMainDb(config);
     const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
 
-    mainDb.run(`DELETE FROM servers WHERE deleted_at IS NOT NULL AND deleted_at < ?`, [cutoff]);
-    mainDb.run(`DELETE FROM organizations WHERE deleted_at IS NOT NULL AND deleted_at < ?`, [cutoff]);
+    await mainDb.run(`DELETE FROM servers WHERE deleted_at IS NOT NULL AND deleted_at < $1`, [cutoff]);
+    await mainDb.run(`DELETE FROM organizations WHERE deleted_at IS NOT NULL AND deleted_at < $1`, [cutoff]);
 
     console.log(`[worker] action deletions complete`);
   },
@@ -334,6 +341,7 @@ const actionDeletionsTask: ScheduledTask = {
 // ─── All tasks ────────────────────────────────────────────
 
 export const ALL_TASKS: ScheduledTask[] = [
+  maintainPartitionsTask,
   checkAllDnsTask,
   expireHeldMessagesTask,
   processMessageRetentionTask,

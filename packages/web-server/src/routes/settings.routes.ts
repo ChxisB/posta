@@ -4,20 +4,21 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
 
   .get('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
-    const users = db.query(`SELECT * FROM users LIMIT 1`).all() as any[];
+    const db = await getDb();
+    const users = await db.query(`SELECT * FROM users LIMIT 1`) as any[];
     c.set.status = 200;
     return { user: users[0] ?? {} };
   }, { detail: { tags: ['Settings'], summary: 'Get user settings' } })
 
   .patch('/', async (c: any) => {
     const { getDb } = await import('../index');
-    const db = getDb();
+    const db = await getDb();
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { user: {} }; }
     const values: any[] = fields.map(([_, v]) => v);
     values.push(1);
-    db.prepare(`UPDATE users SET ${fields.map(([k]) => `${k} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
+    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
+    await db.run(`UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
     return { user: { ...c.body } };
   }, {

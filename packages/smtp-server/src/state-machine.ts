@@ -1,5 +1,5 @@
 /**
- * SMTP state machine — mirrors Ruby SMTPServer::Client at app/lib/smtp_server/client.rb.
+ * SMTP state machine.
  *
  * States:
  *   preauth          — waiting for proxy protocol header

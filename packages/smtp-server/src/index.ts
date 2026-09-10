@@ -5,7 +5,7 @@ import { IncomingMessageHandler } from './incoming-handler';
 const config = loadConfig();
 
 // Initialize database before starting the server
-initializeDatabase(config);
+await initializeDatabase(config);
 
 const server = new SmtpServer(config);
 

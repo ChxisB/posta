@@ -4,22 +4,22 @@ import { runJobs, runScheduledTasks } from './process';
 const config = loadConfig();
 
 // Initialize database before starting the worker
-const mainDb = initializeMainDb(config);
+const mainDb = await initializeMainDb(config);
 
 // Ensure worker-specific tables exist
-mainDb.exec(`
+await mainDb.exec(`
   CREATE TABLE IF NOT EXISTS worker_roles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     role TEXT NOT NULL UNIQUE,
     worker TEXT,
-    acquired_at TEXT
+    acquired_at TIMESTAMPTZ
   )
 `);
-mainDb.exec(`
+await mainDb.exec(`
   CREATE TABLE IF NOT EXISTS scheduled_tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
-    next_run_after TEXT
+    next_run_after TIMESTAMPTZ
   )
 `);
 
