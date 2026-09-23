@@ -142,6 +142,11 @@ export class SmtpStateMachine {
       return this._dataHandler(line);
     }
 
+    // Mid-AUTH, the line is the client's answer to a 334 challenge
+    if (this.authHandler) {
+      return this.authHandler(line);
+    }
+
     // Otherwise dispatch as a command
     return this.dispatch(line);
   }
