@@ -36,7 +36,7 @@ export const messageRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
 
     bindings.push(limit, offset);
     const messages = await msgDb.db.query(
-      `SELECT id, token, scope, rcpt_to, mail_from, subject, status, message_id, timestamp, tag, size, bounced, hold_expiry
+      `SELECT id, token, scope, rcpt_to, mail_from, subject, status, message_id, timestamp, tag, size, bounce AS bounced, hold_expiry
        FROM messages ${where}
        ORDER BY timestamp DESC LIMIT $${bindings.length - 1} OFFSET $${bindings.length}`,
       bindings,
@@ -90,7 +90,7 @@ export const messageRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
       `SELECT COUNT(*) as c FROM messages WHERE status = 'Held'`,
     ) as any)?.c ?? 0;
     const bounced = (await msgDb.db.get(
-      `SELECT COUNT(*) as c FROM messages WHERE status = 'HardFail' OR status = 'SoftFail' OR bounced = 1`,
+      `SELECT COUNT(*) as c FROM messages WHERE status = 'HardFail' OR status = 'SoftFail' OR bounce = 1`,
     ) as any)?.c ?? 0;
     c.set.status = 200;
     return { incoming, outgoing, held, bounced };
@@ -113,7 +113,7 @@ export const messageRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
     c.set.status = 200;
     return { message: msg };
   }, {
-    params: t.Object({ messageId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), messageId: t.String() }),
     detail: { tags: ['Messages'], summary: 'Get message details' },
   })
 
@@ -472,7 +472,7 @@ async function handleList(c: any): Promise<any> {
 
   bindings.push(limit, offset);
   const messages = await msgDb.db.query(
-    `SELECT id, token, scope, rcpt_to, mail_from, subject, status, message_id, timestamp, tag, size, bounced, hold_expiry
+    `SELECT id, token, scope, rcpt_to, mail_from, subject, status, message_id, timestamp, tag, size, bounce AS bounced, hold_expiry
      FROM messages ${where}
      ORDER BY timestamp DESC LIMIT $${bindings.length - 1} OFFSET $${bindings.length}`,
     bindings,

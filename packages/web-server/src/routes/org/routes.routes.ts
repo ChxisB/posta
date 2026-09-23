@@ -46,7 +46,7 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
     if (!route) { c.set.status = 404; return { error: 'RouteNotFound' }; }
     return { route };
   }, {
-    params: t.Object({ routeId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), routeId: t.String() }),
     detail: { tags: ['Routes'], summary: 'Get a route' },
   })
 
@@ -62,7 +62,7 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
     c.set.status = 200;
     return { route: { id: parseInt(c.params.routeId), ...c.body } };
   }, {
-    params: t.Object({ routeId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), routeId: t.String() }),
     body: t.Object({
       name: t.Optional(t.String()),
       mode: t.Optional(t.String()),
@@ -80,6 +80,6 @@ export const routeRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:ser
     c.set.status = 200;
     return { deleted: true };
   }, {
-    params: t.Object({ routeId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), routeId: t.String() }),
     detail: { tags: ['Routes'], summary: 'Delete a route' },
   });
