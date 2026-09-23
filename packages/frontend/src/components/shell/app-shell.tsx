@@ -9,8 +9,8 @@ import { SkipLink } from '@/components/ui/skip-link';
 
 /**
  * Chooses the chrome for a route:
- *  - "/" (the public marketing site), /login and /sign-up render bare:
- *    they bring their own full-page layout.
+ *  - "/" (the setup screen), /login and /sign-up render bare: they bring
+ *    their own full-page frame (AuthSplit).
  *  - /start, where sign-in lands, renders centered without the shell.
  *  - Every other route gets the full sidebar + topbar frame.
  *

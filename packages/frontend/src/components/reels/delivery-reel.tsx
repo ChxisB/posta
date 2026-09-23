@@ -5,17 +5,19 @@ import { Reel, ReelRow, ReelStage } from '@/components/ui/reel';
 import { KindTag, MessageStatusPill } from '@/components/ui/pill';
 
 /**
- * The hero reel: one message from API call to accepted, with the clock
- * running.
+ * The delivery reel: one message from API call to accepted, with the clock
+ * running. Shown on the sign-in panel (AuthSplit), and copied into
+ * posta-site for its hero.
  *
- * Chosen because it dramatises the page's actual claim. The headline promises
- * sub-second delivery, and a static screenshot cannot show a duration —
- * whereas watching the stages tick past makes the number mean something.
+ * Chosen because it dramatises the headline's actual claim. The headline
+ * promises sub-second delivery, and a static screenshot cannot show a
+ * duration — whereas watching the stages tick past makes the number mean
+ * something.
  *
  * The figures are the benchmark's, not invented: ~8ms to accept, ~5ms to pick
  * up, then the handoff, which is dominated by the recipient's round trips. If
- * the pipeline regresses these become a lie on the front page, which is the
- * right kind of pressure to have.
+ * the pipeline regresses these become a lie, which is the right kind of
+ * pressure to have.
  *
  * Built from the real MessageStatusPill and KindTag, so it cannot drift from
  * what an operator actually sees in the dashboard.

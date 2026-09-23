@@ -36,7 +36,7 @@ This is Posta's first release: a self-hosted platform for sending and receiving 
 
 - A dashboard for organisations, mail servers, users and IP pools. A setup wizard walks through creating an organisation, a mail server, a domain and its DNS records, and credentials.
 - The first account to sign up becomes the administrator. Nobody else can sign in until an administrator adds their email under Administration → Users. Sign-in uses Clerk, and no webhook is needed.
-- A public site at `/` covering what Posta does and how to set it up.
+- A setup screen at `/` on a fresh installation. It checks that the API, the database and the Clerk keys are ready before the admin account is created, and forwards to sign-in after that.
 - The worker picks up a message as soon as it's queued, using PostgreSQL `LISTEN`/`NOTIFY`.
 - Received HTML messages are shown in a sandboxed frame.
 - `.env.example` puts SMTP on port 2525, which doesn't need root. Use 25 in production.

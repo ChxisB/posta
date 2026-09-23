@@ -22,6 +22,15 @@ The messages list shows everything a mail server has accepted and where each mes
   <img alt="The messages list: order confirmations, receipts, password resets and sign-in codes, most marked Delivered and one marked Retrying." src="docs/screenshots/messages-light.webp">
 </picture>
 
+### A setup screen on first run
+
+A fresh installation opens on a setup screen. It checks that the API, the database and the Clerk keys are ready, then has you create the admin account. Once that account exists, `/` goes straight to sign-in.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/setup-screen-dark.webp">
+  <img alt="The setup screen, headed Set up Posta, with the Posta API, Database and Sign-in checks passed, the Admin account still to create, and a Create the admin account button. Beside it, the five steps that follow, from naming your organisation to getting SMTP or API credentials." src="docs/screenshots/setup-screen-light.webp">
+</picture>
+
 ### From nothing to a verified sending domain
 
 The setup wizard creates an organisation, a mail server, a domain and its DNS records, and the credentials your app sends with. Progress saves as you go, so you can stop and come back.
@@ -29,15 +38,6 @@ The setup wizard creates an organisation, a mail server, a domain and its DNS re
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/setup-wizard-dark.webp">
   <img alt="The setup wizard on its first step, Create the organisation, with the eight steps listed down the side: Organization, Server, Domain, DNS, Credentials, Direction, Test send and Summary." src="docs/screenshots/setup-wizard-light.webp">
-</picture>
-
-### A public site at `/`
-
-Posta serves its own front page covering what it does and how to set it up. The dashboard sits behind sign-in.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/landing-dark.webp">
-  <img alt="Posta's front page, headed Transactional email you run yourself, above a panel tracing one message from the API call to the receiving server's 250 Accepted." src="docs/screenshots/landing-light.webp">
 </picture>
 
 ## What it does
@@ -65,7 +65,7 @@ bun run start            # the API on 5001, SMTP on 2525 and the delivery worker
 bun run start:frontend   # the dashboard on http://localhost:3000
 ```
 
-Open http://localhost:3000 and create an account. The first account becomes the administrator, and after that only people an administrator adds can sign in. The setup wizard then takes you through to a domain and an API key.
+Open http://localhost:3000. The setup screen checks that the API, the database and the Clerk keys are ready, then has you create the admin account. After that, only people an administrator adds can sign in. The setup wizard then takes you through to a domain and an API key.
 
 ## Sending an email
 

@@ -45,7 +45,7 @@ It's a Bun workspace, with Turborepo running tasks across packages.
 | `packages/smtp-client`  | Delivers outbound mail over SMTP and HTTP endpoints                                          |
 | `packages/worker`       | Works the delivery queue, handles bounces and runs scheduled tasks                            |
 | `packages/web-server`   | The HTTP API (Elysia): the send API and the dashboard's API                                   |
-| `packages/frontend`     | The dashboard and the public site (Next.js)                                                  |
+| `packages/frontend`     | The dashboard and the first-run setup screen (Next.js)                                       |
 | `packages/bench`        | Delivery latency benchmark                                                                   |
 
 ## Tests

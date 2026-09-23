@@ -2,10 +2,9 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 // Routes that don't require authentication.
 //
-// "/" is the public marketing site (app/page.tsx). It has to be listed
-// explicitly: it used to be a redirect into /organizations, so protecting it
-// was harmless, but now it is the page a signed-out visitor is meant to land
-// on and auth.protect() would bounce them straight to sign-in.
+// "/" is the first-run setup screen (app/page.tsx). It has to be public: on a
+// fresh installation nobody can sign in yet, and once an administrator exists
+// the page forwards signed-out visitors to /login itself.
 const isPublicRoute = createRouteMatcher([
   '/',
   '/login(.*)',
