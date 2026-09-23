@@ -5,10 +5,10 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 
 /**
- * The frame for /login and /sign-up: a brand panel on the left and the form
- * on the right. The panel carries whatever explains the page (the delivery
- * reel by default, the setup steps on a fresh installation), so the form
- * column can stay short and do one job.
+ * The frame for the signed-out pages ("/", /login and /sign-up): a brand
+ * panel on the left and the form on the right. The panel carries whatever
+ * explains the page (the delivery reel by default, the setup steps on a
+ * fresh installation), so the form column can stay short and do one job.
  *
  * Below `lg` the panel is dropped and the form stands alone, with the brand
  * mark moved into its top bar.
@@ -70,7 +70,7 @@ function BrandMark({ className }: { className?: string }) {
   );
 }
 
-/** The default panel: the landing page's headline and its delivery reel. */
+/** The default panel: the headline and delivery reel posta-site leads with. */
 function AuthShowcase() {
   return (
     <div>

@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { Reel } from './reel';
 import { DeliveryReel } from '@/components/reels/delivery-reel';
-import { BounceReel, DnsReel, WebhookReel } from '@/components/reels/feature-reels';
 
 /**
  * The reel's visible behaviour is easy to eyeball. What is not is whether it
@@ -147,32 +146,4 @@ describe('DeliveryReel', () => {
     expect(screen.getByText('250 Accepted')).toBeInTheDocument();
     expect(screen.getByText('94ms total')).toBeInTheDocument();
   });
-});
-
-describe('feature reels', () => {
-  // Each reel's final frame has to carry the outcome on its own: that is what
-  // a reduced-motion visitor sees, and what a screen reader is told.
-  const cases = [
-    ['DnsReel', <DnsReel key="d" />, 'Domain verified'],
-    ['BounceReel', <BounceReel key="b" />, 'Next send blocked'],
-    ['WebhookReel', <WebhookReel key="w" />, '200 OK'],
-  ] as const;
-
-  for (const [name, element, outcome] of cases) {
-    it(`${name} shows its outcome under reduced motion`, () => {
-      stubMotionPreference(true);
-      stubVisibility(true);
-      render(element);
-      expect(screen.getByText(outcome)).toBeInTheDocument();
-    });
-
-    it(`${name} narrates the sequence for assistive tech`, () => {
-      stubMotionPreference(false);
-      stubVisibility(true);
-      render(element);
-      const label = screen.getByRole('img').getAttribute('aria-label') ?? '';
-      // A label short enough to be a caption is not describing a sequence.
-      expect(label.length).toBeGreaterThan(80);
-    });
-  }
 });

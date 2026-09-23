@@ -1,9 +1,9 @@
 import { Elysia } from 'elysia';
 
 /**
- * Public: whether this installation has an administrator yet. The landing and
- * sign-up pages use it to tell a brand-new install ("create the admin
- * account") from one people are joining ("sign in").
+ * Public: whether this installation has an administrator yet. The setup
+ * screen at "/" and the sign-in pages use it to tell a brand-new install
+ * ("create the admin account") from one people are joining ("sign in").
  */
 export const setupStatusRoutes = new Elysia()
   .get('/setup/status', async () => {

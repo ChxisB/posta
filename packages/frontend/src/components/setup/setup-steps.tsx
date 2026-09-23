@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils';
 
 /**
- * What the setup wizard (organizations/setup) will ask for, shown on
- * /sign-up to the first person here. Mirrors the wizard's required steps.
+ * What the setup wizard (organizations/setup) will ask for, shown on the
+ * first-run pages: the setup screen at "/" and /sign-up. Mirrors the
+ * wizard's required steps.
  */
 export const SETUP_STEPS = [
   { title: 'Name your organisation', detail: 'Everything else you set up lives inside it.' },
