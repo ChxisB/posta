@@ -73,7 +73,8 @@ export class MessageDatabase {
     const parts: string[] = [];
 
     if (options.count) {
-      parts.push('SELECT COUNT(*) AS count');
+      // COUNT(*) is a bigint, which the driver returns as a string.
+      parts.push('SELECT COUNT(*)::int AS count');
     } else if (options.fields && options.fields.length > 0) {
       parts.push(`SELECT ${options.fields.map((f) => `"${sanitizeIdentifier(f)}"`).join(', ')}`);
     } else {

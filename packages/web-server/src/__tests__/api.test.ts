@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
+import { useTestDatabase } from './test-db';
 import { app } from '../index';
 
 const TEST_RUN_ID = Date.now();
@@ -11,9 +12,7 @@ function unwrap(body: any): any {
 
 describe('REST API — POST /api/v1/send', () => {
   beforeAll(async () => {
-    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_api_${TEST_RUN_ID}`;
-    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_api_${TEST_RUN_ID}`;
-    process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+    await useTestDatabase('api');
 
     // Seed a server + API credential
     const { getDb } = await import('../index');

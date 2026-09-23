@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
+import { useTestDatabase } from './test-db';
 
 describe('Track Domains Routes', () => {
-  beforeAll(() => {
-    const testId = Date.now();
-    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_track_domains_${testId}`;
-    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_track_domains_${testId}`;
-    process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+  beforeAll(async () => {
+    await useTestDatabase('track_domains');
   });
 
   it('CRUD: creates, lists, updates, toggles, checks, and deletes a track domain', async () => {

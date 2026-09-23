@@ -10,7 +10,7 @@
     "dev": "bun --hot src/index.ts",
     "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test ./src",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {

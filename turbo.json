@@ -14,7 +14,7 @@
       "outputs": []
     },
     "test": {
-      "inputs": ["src/**/*.ts", "package.json", "tsconfig.json"],
+      "inputs": ["src/**", "package.json", "tsconfig.json"],
       "outputs": []
     },
     "lint": {
