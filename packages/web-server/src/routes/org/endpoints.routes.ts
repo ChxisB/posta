@@ -89,7 +89,7 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'HTTP' } };
   }, {
-    params: t.Object({ endpointId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), endpointId: t.String() }),
     body: t.Object({
       name: t.Optional(t.String()), url: t.Optional(t.String()),
       format: t.Optional(t.String()), strip_replies: t.Optional(t.Boolean()),
@@ -118,7 +118,7 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'SMTP' } };
   }, {
-    params: t.Object({ endpointId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), endpointId: t.String() }),
     body: t.Object({
       name: t.Optional(t.String()), hostname: t.Optional(t.String()),
       port: t.Optional(t.Number()), ssl_mode: t.Optional(t.String()),
@@ -146,7 +146,7 @@ export const endpointRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:
     c.set.status = 200;
     return { endpoint: { id: parseInt(c.params.endpointId), ...c.body, type: 'Address' } };
   }, {
-    params: t.Object({ endpointId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), endpointId: t.String() }),
     body: t.Object({
       name: t.Optional(t.String()), email: t.Optional(t.String()),
     }),

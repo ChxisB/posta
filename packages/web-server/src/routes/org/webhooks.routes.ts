@@ -55,7 +55,7 @@ export const webhookRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
     c.set.status = 200;
     return { webhook: { id: parseInt(c.params.webhookId), ...c.body } };
   }, {
-    params: t.Object({ webhookId: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), webhookId: t.String() }),
     body: t.Object({
       name: t.Optional(t.String()), url: t.Optional(t.String()),
       enabled: t.Optional(t.Boolean()), all_events: t.Optional(t.Boolean()),
@@ -106,6 +106,6 @@ export const webhookRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
       throw err;
     }
   }, {
-    params: t.Object({ webhookId: t.String(), uuid: t.String() }),
+    params: t.Object({ orgPermalink: t.String(), serverId: t.String(), webhookId: t.String(), uuid: t.String() }),
     detail: { tags: ['Webhooks'], summary: 'Get a single webhook request by UUID' },
   });
