@@ -81,6 +81,22 @@ Format with Prettier using the repo's `.prettierrc`. Don't commit anything that 
 - Check that `bun run typecheck` and `bun run test --concurrency=1` pass before you open it. CI runs both on every push and pull request.
 - For anything users will notice, add a line to [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
+## Releasing
+
+Versions follow [semantic versioning](https://semver.org), and every package shares the root's version. To release, say, 0.2.0 from a green `main`:
+
+1. Set `"version": "0.2.0"` in the root `package.json` and in each `packages/*/package.json`, then run `bun install` so `bun.lock` picks up the change.
+2. In CHANGELOG.md, rename **Unreleased** to `## 0.2.0 – YYYY-MM-DD` and add an empty **Unreleased** above it.
+3. Commit, then tag and push:
+
+   ```sh
+   git commit -am "chore: release 0.2.0"
+   git tag v0.2.0
+   git push origin main v0.2.0
+   ```
+
+The tag starts the Release workflow. It checks that every `package.json` says 0.2.0, then publishes a GitHub Release whose notes are the 0.2.0 section of the changelog. If a check fails, nothing is published. Commit the fix, move the tag onto it with `git tag -f v0.2.0`, and push again with `git push origin main && git push -f origin v0.2.0`.
+
 ## Licence
 
 Posta is released under the [MIT licence](LICENSE). By contributing, you agree that your contributions are released under it too.
