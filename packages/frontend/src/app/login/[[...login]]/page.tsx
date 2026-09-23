@@ -1,5 +1,6 @@
 import { SignIn } from '@clerk/nextjs';
 import { AuthIntro } from '@/components/auth/auth-intro';
+import { AuthSplit } from '@/components/auth/auth-split';
 import { clerkAppearance } from '@/components/auth/clerk-appearance';
 import { ButtonLink } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
@@ -17,8 +18,10 @@ export default async function LoginPage() {
   const firstRun = await isFirstRun();
 
   return (
-    <div className="w-full max-w-md py-8">
-      <AuthIntro title="Sign in to Posta" />
+    <AuthSplit>
+      <AuthIntro title="Welcome back" align="start">
+        Sign in to manage your mail servers, domains and deliveries.
+      </AuthIntro>
 
       {/* Someone arriving here on a fresh installation has no account to
           sign in with. Without this they would try, fail, and have no idea
@@ -38,6 +41,6 @@ export default async function LoginPage() {
       )}
 
       <SignIn signUpUrl="/sign-up" fallbackRedirectUrl="/start" appearance={clerkAppearance} />
-    </div>
+    </AuthSplit>
   );
 }

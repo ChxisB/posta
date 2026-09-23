@@ -159,6 +159,15 @@ body {
   background-clip: content-box;
 }
 
+/* Clerk's header on the first sign-in and sign-up step ("Create your account
+   / Welcome! Please fill in the details") repeats the page's own heading
+   just above it. Later steps keep theirs: "Verify your email" is the only
+   place that step is named. */
+.cl-signIn-start .cl-header,
+.cl-signUp-start .cl-header {
+  display: none;
+}
+
 @keyframes pulse-dot {
   0%,
   100% {

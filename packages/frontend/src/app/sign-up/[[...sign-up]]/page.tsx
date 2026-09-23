@@ -1,19 +1,12 @@
 import { SignUp } from '@clerk/nextjs';
 import { AuthIntro } from '@/components/auth/auth-intro';
+import { AuthSplit } from '@/components/auth/auth-split';
 import { clerkAppearance } from '@/components/auth/clerk-appearance';
+import { SetupSteps, SetupStepsCompact } from '@/components/setup/setup-steps';
 import { Callout } from '@/components/ui/callout';
 import { isFirstRun } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
-
-// Mirrors the required steps of the setup wizard (organizations/setup).
-const SETUP_STEPS = [
-  'Name your organisation',
-  'Create a mail server',
-  'Add your sending domain',
-  'Publish its DNS records',
-  'Get SMTP or API credentials',
-];
 
 /**
  * Account creation. On a fresh installation this is where the administrator
@@ -28,41 +21,32 @@ export default async function SignUpPage() {
   const firstRun = await isFirstRun();
 
   return (
-    <div className="w-full max-w-md py-8">
+    <AuthSplit aside={firstRun ? <SetupSteps /> : undefined}>
       {firstRun ? (
-        <AuthIntro eyebrow="First-time setup" title="Create the admin account">
-          You&apos;re the first person here, so this account becomes the administrator. Straight
-          after, a short setup wizard gets you sending:
+        <AuthIntro eyebrow="First-time setup" title="Create the admin account" align="start">
+          You&apos;re the first person here, so this account becomes the administrator. The setup
+          wizard starts straight after.
         </AuthIntro>
       ) : (
-        <AuthIntro title="Create your account">
-          Use the email address an administrator added you under. Posta only lets in people who
-          have been added.
+        <AuthIntro title="Create your account" align="start">
+          Use the email address an administrator added you under. Posta only lets in people who have
+          been added.
         </AuthIntro>
       )}
 
-      {firstRun && (
-        <ol className="mx-auto mb-6 grid max-w-sm gap-2 text-sm text-muted">
-          {SETUP_STEPS.map((step, i) => (
-            <li key={step} className="flex items-center gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
-                {i + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
-      )}
+      {/* The steps live in the side panel from `lg` up; below that the panel
+          is hidden, so a compact copy sits above the form instead. */}
+      {firstRun && <SetupStepsCompact className="mb-6" />}
 
       {firstRun === null && (
         <Callout tone="warning" title="Can't reach the Posta API" className="mb-6">
-          This page couldn&apos;t check whether this installation already has an administrator.
-          You can still create an account, but check that the web-server is running and that
+          This page couldn&apos;t check whether this installation already has an administrator. You
+          can still create an account, but check that the web-server is running and that
           NEXT_PUBLIC_API_URL points at it.
         </Callout>
       )}
 
       <SignUp signInUrl="/login" forceRedirectUrl="/start" appearance={clerkAppearance} />
-    </div>
+    </AuthSplit>
   );
 }
