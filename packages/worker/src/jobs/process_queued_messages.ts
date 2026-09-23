@@ -320,7 +320,7 @@ async function processOutgoing(
     const ts = Date.now() / 1000;
     await msgDb.exec(
       `INSERT INTO live_stats (type, minute, count, timestamp) VALUES ('outgoing', ${minute}, 1, ${ts}) ` +
-      `ON CONFLICT(minute, type) DO UPDATE SET count = count + 1, timestamp = ${ts}`,
+      `ON CONFLICT(minute, type) DO UPDATE SET count = live_stats.count + 1, timestamp = ${ts}`,
     );
 
     if (deliveryStatus === 'Sent') {
@@ -751,7 +751,7 @@ async function incrementLiveStats(msgDb: MessageDatabase, type: string): Promise
   const ts = Date.now() / 1000;
   await msgDb.exec(
     `INSERT INTO live_stats (type, minute, count, timestamp) VALUES ('${type}', ${minute}, 1, ${ts}) ` +
-    `ON CONFLICT(minute, type) DO UPDATE SET count = count + 1, timestamp = ${ts}`,
+    `ON CONFLICT(minute, type) DO UPDATE SET count = live_stats.count + 1, timestamp = ${ts}`,
   );
 }
 
@@ -1194,7 +1194,7 @@ async function handleRetry(
     return;
   }
 
-  const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 30, 300) / 1000);
+  const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 30_000, 300_000) / 1000);
 
   await db.run(
     `UPDATE queued_messages SET retry_after = NOW() + interval '${delaySec} seconds', locked_by = NULL, locked_at = NULL WHERE id = $1`,

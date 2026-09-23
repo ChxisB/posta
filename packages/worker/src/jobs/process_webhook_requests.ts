@@ -170,7 +170,7 @@ async function retryWebhook(
   }
 
   // Jitter backoff prevents thundering herd on webhook server restarts
-  const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 60, 600) / 1000);
+  const delaySec = Math.floor(computeRetryDelay(BackoffStrategy.JITTER, attempt, 60_000, 600_000) / 1000);
   await db.run(
     `UPDATE webhook_requests SET retry_after = NOW() + interval '${delaySec} seconds', locked_by = NULL, locked_at = NULL WHERE id = $1`,
     [req.id],
