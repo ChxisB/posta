@@ -1,0 +1,45 @@
+---
+name: Release
+# Pushing a tag such as v0.2.0 publishes a GitHub Release for that version.
+# The notes are the version's section of CHANGELOG.md; see CONTRIBUTING.md.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for file in package.json packages/*/package.json; do
+            found="$(jq -r .version "$file")"
+            if [ "$found" != "$version" ]; then
+              echo "::error file=$file::version is $found, but the tag is $GITHUB_REF_NAME"
+              exit 1
+            fi
+          done
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Take the notes from the changelog
+        run: |
+          # Everything under "## <version> – <date>" up to the next "## ".
+          awk -v heading="## $VERSION " '
+            /^## / { if (found) exit; if (index($0, heading) == 1) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error file=CHANGELOG.md::no section for $VERSION"
+            exit 1
+          fi
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
