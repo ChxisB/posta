@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
+import { useTestDatabase } from './test-db';
 import { Elysia } from 'elysia';
 import { serverIpPoolRuleRoutes, orgIpPoolRuleRoutes } from '../routes/org/ip_pool_rules.routes';
 import { getDb } from '../index';
@@ -11,17 +12,14 @@ describe('IP Pool Rules — server-scoped', () => {
   let serverRuleUuid: string;
 
   beforeAll(async () => {
-    const testId = Date.now();
-    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_pool_rules_${testId}`;
-    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_pool_rules_${testId}`;
-    process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+    await useTestDatabase('ip_pool_rules');
 
     // Seed a test organization so org-permalink lookups succeed.
     const db = await getDb();
     await db.run(
       `INSERT INTO organizations (uuid, name, permalink, created_at, updated_at)
        VALUES ($1, $2, $3, NOW(), NOW())
-       ON CONFLICT (permalink) DO NOTHING`,
+       ON CONFLICT DO NOTHING`,
       [
         crypto.randomUUID().replace(/-/g, ''),
         'Test Org',

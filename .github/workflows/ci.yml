@@ -6,6 +6,25 @@ jobs:
   typecheck-and-test:
     name: TypeCheck & Test
     runs-on: ubuntu-latest
+    services:
+      # The integration tests create their own databases as the postgres
+      # superuser. Most expect it on 5432 with posta_test present; the
+      # message-db v2 tests expect 5433. One server published on both ports
+      # serves both.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: posta_test
+        ports:
+          - 5432:5432
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -13,7 +32,9 @@ jobs:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
-      - run: bun test
+      # Each package's own test script: vitest for the frontend, bun test
+      # elsewhere. One at a time, because several packages share posta_test.
+      - run: bun run test --concurrency=1
 
   build:
     name: Docker Build
@@ -21,6 +42,9 @@ jobs:
     needs: [typecheck-and-test]
     # Forks run CI too; only the canonical repo publishes the image.
     if: github.repository == 'ChxisB/posta' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3

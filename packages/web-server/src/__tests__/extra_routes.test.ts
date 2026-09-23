@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
+import { useTestDatabase } from './test-db';
 import { Elysia } from 'elysia';
 import { app } from '../index';
 import { serverRoutes } from '../routes/org/servers.routes';
@@ -18,11 +19,8 @@ describe('GET /ip', () => {
 });
 
 describe('Help routes', () => {
-  beforeAll(() => {
-    const testId = Date.now();
-    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_extra_${testId}`;
-    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_extra_${testId}`;
-    process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+  beforeAll(async () => {
+    await useTestDatabase('extra');
   });
 
   it('GET /:serverId/help/outgoing returns 200 with credentials array', async () => {

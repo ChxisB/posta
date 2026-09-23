@@ -74,7 +74,8 @@ export class MessageDbProvisioner {
       if (applied.has(migration.version)) continue;
       await msgDb.transaction(async () => {
         await migration.up(msgDb);
-        await msgDb.insert('migrations', { version: migration.version });
+        // Not msgDb.insert(): that returns the new row's id, and migrations has none.
+        await msgDb.run('INSERT INTO migrations (version) VALUES ($1)', [migration.version]);
       });
     }
   }

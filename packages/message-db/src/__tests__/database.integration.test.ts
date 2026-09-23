@@ -16,10 +16,12 @@ describe('MessageDatabase Integration', () => {
   let msgDb: MessageDatabase;
 
   beforeAll(async () => {
-    client = new PgClient(testDbUrl);
+    // PgClient is a pool, so a SET would reach only one of its connections.
+    const url = new URL(testDbUrl);
+    url.searchParams.set('search_path', testSchema);
+    client = new PgClient(url.toString());
     await client.run(`DROP SCHEMA IF EXISTS "${testSchema}" CASCADE`);
     await client.run(`CREATE SCHEMA "${testSchema}"`);
-    await client.run(`SET search_path TO "${testSchema}"`);
     msgDb = new MessageDatabase(client, 1);
   });
 

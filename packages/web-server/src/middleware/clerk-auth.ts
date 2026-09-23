@@ -29,7 +29,8 @@ export const clerkAuth = new Elysia().derive(
     }
 
     try {
-      const verified = await verifyToken(token, {
+      // Resolves to the token's claims themselves; throws if the token is invalid.
+      const payload: any = await verifyToken(token, {
         secretKey: process.env.CLERK_SECRET_KEY ?? '',
         jwtKey: process.env.CLERK_JWT_KEY,
         authorizedParties: [
@@ -38,8 +39,6 @@ export const clerkAuth = new Elysia().derive(
           process.env.POSTA_WEB_URL,
         ].filter(Boolean) as string[],
       });
-
-      const payload = verified.payload as any;
 
       return {
         clerk: {

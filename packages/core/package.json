@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc --build",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test ./src",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {

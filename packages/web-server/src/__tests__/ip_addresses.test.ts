@@ -1,29 +1,19 @@
 import { describe, it, expect, beforeAll } from 'bun:test';
+import { useTestDatabase } from './test-db';
+import { authHeader } from './test-auth';
 import { app, getDb } from '../index';
-
-// Craft a JWT that passes the clerkAuth middleware without hitting Clerk's API.
-// omitting `sid` from claims causes the middleware to skip Clerk session verification
-// and trust the `sub` claim directly.
-function makeToken(userId: string): string {
-  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
-  const payload = btoa(JSON.stringify({ sub: userId }));
-  return `${header}.${payload}.dummy`;
-}
 
 const ADMIN_UID = 'test_admin_for_ips';
 const NON_ADMIN_UID = 'test_nonadmin_for_ips';
 
-const AUTH_HEADER = { Authorization: `Bearer ${makeToken(ADMIN_UID)}` };
-const NON_ADMIN_HEADER = { Authorization: `Bearer ${makeToken(NON_ADMIN_UID)}` };
+const AUTH_HEADER = authHeader(ADMIN_UID);
+const NON_ADMIN_HEADER = authHeader(NON_ADMIN_UID);
 
 describe('IP Addresses — nested under /ip_pools/:poolId/ip_addresses', () => {
   let poolId: number;
 
   beforeAll(async () => {
-    const testId = Date.now();
-    process.env.POSTA_MAIN_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_addresses_${testId}`;
-    process.env.POSTA_MESSAGE_DB_URL = `postgresql://postgres:postgres@localhost:5432/posta_test_ip_addresses_${testId}`;
-    process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+    await useTestDatabase('ip_addresses');
 
     const db = await getDb();
 
@@ -31,7 +21,7 @@ describe('IP Addresses — nested under /ip_pools/:poolId/ip_addresses', () => {
     await db.run(
       `INSERT INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 1, $5, 'clerk', NOW(), NOW())
-       ON CONFLICT (oidc_uid) DO NOTHING`,
+       ON CONFLICT DO NOTHING`,
       [crypto.randomUUID().replace(/-/g, ''), 'Admin', 'User', 'admin@test.local', ADMIN_UID],
     );
 
@@ -39,7 +29,7 @@ describe('IP Addresses — nested under /ip_pools/:poolId/ip_addresses', () => {
     await db.run(
       `INSERT INTO users (uuid, first_name, last_name, email_address, admin, oidc_uid, oidc_issuer, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 0, $5, 'clerk', NOW(), NOW())
-       ON CONFLICT (oidc_uid) DO NOTHING`,
+       ON CONFLICT DO NOTHING`,
       [crypto.randomUUID().replace(/-/g, ''), 'Non', 'Admin', 'nobody@test.local', NON_ADMIN_UID],
     );
 

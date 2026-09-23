@@ -77,7 +77,7 @@ describe('Main DB Integration', () => {
     await runMigrations(client, migrations);
 
     const stillApplied = await client.get<{ count: number }>(
-      'SELECT COUNT(*) as count FROM schema_migrations',
+      'SELECT COUNT(*)::int as count FROM schema_migrations',
     );
     expect(stillApplied?.count).toBe(2);
   });
