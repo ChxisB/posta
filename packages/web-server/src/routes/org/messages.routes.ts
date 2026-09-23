@@ -350,7 +350,7 @@ export const messageRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
     const client = getServerDb(config, parseInt(c.params.serverId));
     const msgDb = await provisioner.openServerDb(c.params.serverId, client);
     const suppressions = await msgDb.db.query(
-      `SELECT * FROM suppressions ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      `SELECT * FROM suppressions ORDER BY timestamp DESC LIMIT $1 OFFSET $2`,
       [limit, offset],
     ) as any[];
     const totalRows = await msgDb.db.get(`SELECT COUNT(*) as c FROM suppressions`) as any;
@@ -369,7 +369,7 @@ export const messageRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers/:s
     const { type, address, reason } = c.body;
     const id = await msgDb.insert('suppressions', {
       type, address, reason: reason ?? null,
-      created_at: Date.now() / 1000,
+      timestamp: Date.now() / 1000,
     });
     c.set.status = 201;
     return { suppression: { id, type, address } };
