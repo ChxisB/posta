@@ -297,7 +297,7 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
       INSERT INTO credentials (server_id, uuid, type, name, key, hold, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
       RETURNING id
-    `, [c.params.serverId, uuid, type, name, keyToStore, hold ?? false]);
+    `, [c.params.serverId, uuid, type, name, keyToStore, hold ? 1 : 0]);
     c.set.status = 201;
     return { credential: { id: Number(result.lastInsertRowid), uuid, type, name, key: keyToStore, hold: hold ?? false } };
   }, {
@@ -330,7 +330,8 @@ export const credentialRoutes = new Elysia({ prefix: '/org/:orgPermalink/servers
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { credential: {} }; }
     const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
-    const values = fields.map(([_, v]) => v);
+    // hold is an integer column
+    const values = fields.map(([k, v]) => (k === 'hold' ? (v ? 1 : 0) : v));
     values.push(c.params.credId);
     await db.run(`UPDATE credentials SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
     c.set.status = 200;
