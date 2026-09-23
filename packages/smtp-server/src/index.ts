@@ -1,6 +1,6 @@
 import { loadConfig, initializeDatabase } from '@posta/core';
 import { SmtpServer } from './server';
-import { IncomingMessageHandler } from './incoming-handler';
+import { MessageQueuer } from './queue-message';
 
 const config = loadConfig();
 
@@ -9,9 +9,9 @@ await initializeDatabase(config);
 
 const server = new SmtpServer(config);
 
-// Wire incoming message handler
-const incomingHandler = new IncomingMessageHandler(config);
-server.onMessage = (msg) => incomingHandler.handle(msg);
+// Store and queue each received message; the worker delivers it
+const queuer = new MessageQueuer(config);
+server.onMessage = (msg) => queuer.queue(msg);
 
 server.start();
 
