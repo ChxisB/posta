@@ -4,7 +4,7 @@ import { computeRetryDelay, FailureReason, BackoffStrategy } from '@posta/core';
 import type { FailureReasonType } from '@posta/core';
 import { checkWithRspamd, scanWithClamav, checkWithSpamAssassin } from '@posta/core';
 import type { MessageDatabase } from '@posta/message-db';
-import { MessageStore } from '@posta/message-db';
+import { MessageStore, SuppressionStore } from '@posta/message-db';
 import { BounceProcessor } from '../bounce';
 
 const MAX_ATTEMPTS = 18;
@@ -326,6 +326,12 @@ async function processOutgoing(
     if (deliveryStatus === 'Sent') {
       await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
     } else if (deliveryStatus === 'HardFail') {
+      // The receiving domain said this address will never accept mail. The
+      // check above holds later messages to it rather than repeating the
+      // rejection, which mailbox providers count against the sending IP.
+      await new SuppressionStore(msgDb).add('recipient', message.rcpt_to, {
+        reason: result.error ?? 'Hard fail',
+      });
       await recordFinalFailure(mainDb, queuedMessage, FailureReason.HardFail,
         result.error ?? 'Hard fail', attemptNum, startTime);
     } else {
