@@ -4,17 +4,21 @@
 
 echo "Starting Posta in development mode..."
 
+# The root .env, if there is one. The path is relative to each package,
+# because bun resolves --env-file after --cwd.
+ENV_FILE="--env-file=../../.env"
+
 # Ensure data directories exist
 mkdir -p data/message-db
 
 # Start each process in the background
-bun run --cwd packages/web-server dev &
+bun $ENV_FILE run --cwd packages/web-server dev &
 PID1=$!
 
-bun run --cwd packages/smtp-server dev &
+bun $ENV_FILE run --cwd packages/smtp-server dev &
 PID2=$!
 
-bun run --cwd packages/worker dev &
+bun $ENV_FILE run --cwd packages/worker dev &
 PID3=$!
 
 echo "PIDs: web=$PID1 smtp=$PID2 worker=$PID3"

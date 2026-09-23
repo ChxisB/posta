@@ -7,6 +7,7 @@ import { sendRoutes } from './routes/api/v1/send.routes';
 import { messagesRoutes } from './routes/api/v1/messages.routes';
 import { apiAuth, requireApiAuth } from './middleware/api-auth';
 import { clerkAuth } from './middleware/clerk-auth';
+import { currentUser } from './middleware/current-user';
 import { requireClerkAuth } from './middleware/require-auth';
 import { serverRoutes, credentialRoutes } from './routes/org/servers.routes';
 import { domainRoutes } from './routes/org/domains.routes';
@@ -22,8 +23,7 @@ import { ipPoolRoutes } from './routes/ip_pools.routes';
 import { orgSettingsRoutes } from './routes/org/organization-settings.routes';
 import { wellKnownRoutes } from './routes/well-known.routes';
 import { settingsRoutes } from './routes/settings.routes';
-import { authRoutes } from './routes/auth.routes';
-import { clerkWebhookRoutes } from './routes/clerk-webhooks.routes';
+import { authRoutes, setupStatusRoutes } from './routes/auth.routes';
 
 // Lazy initialization — config is loaded when init() is called
 let config: PostaConfig;
@@ -77,12 +77,15 @@ export const app = new Elysia()
     return { ip };
   })
 
-  .use(clerkWebhookRoutes)
+  .use(wellKnownRoutes)
+  .use(setupStatusRoutes)
   .use(apiAuth)
   .use(sendRoutes)
   .use(messagesRoutes)
-  // Clerk auth + protection for Web UI API routes
+  // Web UI API routes: everything registered below needs a signed-in Clerk
+  // user with a Posta account (see middleware/current-user.ts).
   .use(clerkAuth)
+  .use(currentUser)
   .use(requireClerkAuth)
 
   .use(serverRoutes)
@@ -100,7 +103,6 @@ export const app = new Elysia()
   .use(orgSettingsRoutes)
   .use(userRoutes)
   .use(ipPoolRoutes)
-  .use(wellKnownRoutes)
   .use(settingsRoutes)
   .use(authRoutes);
 

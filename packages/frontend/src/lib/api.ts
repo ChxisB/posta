@@ -6,14 +6,24 @@ async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> 
     ...((options.headers as Record<string, string>) ?? {}),
   };
 
-  try {
-    const { cookies } = await import('next/headers');
-    const store = await cookies();
-    const sess = store.get('__session')?.value;
-    if (sess) {
-      headers['Cookie'] = `__session=${sess}`;
+  if (typeof window === 'undefined') {
+    // Server components: forward the visitor's Clerk session cookie.
+    try {
+      const { cookies } = await import('next/headers');
+      const store = await cookies();
+      const sess = store.get('__session')?.value;
+      if (sess) {
+        headers['Cookie'] = `__session=${sess}`;
+      }
+    } catch {}
+  } else {
+    // The browser: the API is on another origin, so the session cookie isn't
+    // sent. Pass the Clerk session token as a bearer token instead.
+    const token = await browserSessionToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-  } catch {}
+  }
 
   if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
@@ -22,17 +32,70 @@ async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> 
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.error ?? body.message ?? 'API error');
+    throw new ApiError(res.status, body.error ?? body.message ?? 'API error', body.error);
   }
   return res.json();
 }
 
+/**
+ * The signed-in user's Clerk session token. A page can call the API before
+ * Clerk has finished loading, so wait briefly for it rather than sending an
+ * unauthenticated request that is bound to fail.
+ */
+async function browserSessionToken(): Promise<string | null> {
+  const w = window as unknown as {
+    Clerk?: { loaded?: boolean; session?: { getToken(): Promise<string | null> } | null };
+  };
+  for (let waited = 0; !w.Clerk?.loaded && waited < 5000; waited += 50) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  try {
+    return (await w.Clerk?.session?.getToken()) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** The API's machine-readable error, e.g. "NotProvisioned". */
+  code?: string;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
+  }
+}
+
+// ─── Account ─────────────────────────────────────────────
+
+export interface Me {
+  id: number;
+  admin: boolean;
+  email_address: string | null;
+  first_name: string | null;
+  last_name: string | null;
+}
+
+export async function getMe() {
+  return fetchApi<{ user: Me }>('/me', { cache: 'no-store' });
+}
+
+/** Public. `admin_exists: false` means nobody has set this installation up yet. */
+export async function getSetupStatus() {
+  return fetchApi<{ admin_exists: boolean }>('/setup/status', { cache: 'no-store' });
+}
+
+/**
+ * True when nobody has created the admin account yet. Null when the API
+ * can't be reached: the public pages still render, with neutral copy.
+ */
+export async function isFirstRun(): Promise<boolean | null> {
+  try {
+    return !(await getSetupStatus()).admin_exists;
+  } catch {
+    return null;
   }
 }
 

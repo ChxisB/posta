@@ -23,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="font-sans">
-        <ClerkProvider>
+        {/* Set here rather than left to NEXT_PUBLIC_CLERK_* so a stale .env
+            can't send "Create account" to the sign-in page. */}
+        <ClerkProvider signInUrl="/login" signUpUrl="/sign-up">
           <ThemeProvider>
             {/* The shell is chosen by route rather than opted into by each
                 page. Previously every one of the 30-odd pages wrapped itself

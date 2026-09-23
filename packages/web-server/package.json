@@ -14,8 +14,7 @@
     "@clerk/backend": "^3.11.7",
     "@posta/core": "workspace:*",
     "@posta/message-db": "workspace:*",
-    "elysia": "^1.4.27",
-    "svix": "^1.97.0"
+    "elysia": "^1.4.27"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

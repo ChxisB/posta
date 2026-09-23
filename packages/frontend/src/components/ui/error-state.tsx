@@ -60,6 +60,22 @@ function describe(
   what: string,
 ): { title: string; detail: string; offline: boolean } {
   if (error instanceof ApiError) {
+    // The API names these two refusals; neither is fixed by signing in again.
+    if (error.code === 'NotProvisioned') {
+      return {
+        title: 'No access yet',
+        detail:
+          'You are signed in, but this account has not been added to this Posta installation. Ask an administrator to add your email address under Administration → Users.',
+        offline: false,
+      };
+    }
+    if (error.code === 'AdminRequired') {
+      return {
+        title: 'Administrators only',
+        detail: `Only an administrator can see ${what}. Ask one to make the change, or to make you an administrator.`,
+        offline: false,
+      };
+    }
     if (error.status === 401 || error.status === 403) {
       return {
         title: 'Not authorised',
