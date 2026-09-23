@@ -1,16 +1,22 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
 
+/**
+ * Public: whether this installation has an administrator yet. The landing and
+ * sign-up pages use it to tell a brand-new install ("create the admin
+ * account") from one people are joining ("sign in").
+ */
+export const setupStatusRoutes = new Elysia()
+  .get('/setup/status', async () => {
+    const { getDb } = await import('../index');
+    const db = await getDb();
+    const row = await db.get<{ admin_exists: boolean }>(
+      `SELECT EXISTS (SELECT 1 FROM users WHERE admin <> 0) AS admin_exists`,
+    );
+    return { admin_exists: !!row?.admin_exists };
+  }, { detail: { tags: ['Auth'], summary: 'First-run setup status' } });
+
+/** The signed-in user's Posta account. Registered behind requireClerkAuth. */
 export const authRoutes = new Elysia()
-
-  .post('/login', (c: any) => {
-    c.set.status = 200;
-    return { success: true, message: 'Use Clerk for authentication' };
-  }, {
-    body: t.Object({ email: t.String(), password: t.String() }),
-    detail: { tags: ['Auth'], summary: 'Login (use Clerk)' },
-  })
-
-  .post('/logout', (c: any) => {
-    c.set.status = 200;
-    return { success: true };
-  }, { detail: { tags: ['Auth'], summary: 'Logout (use Clerk)' } });
+  .get('/me', (c: any) => ({ user: c.user }), {
+    detail: { tags: ['Auth'], summary: 'The signed-in user' },
+  });

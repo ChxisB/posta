@@ -1,7 +1,10 @@
 import { Elysia, t } from 'elysia';
+import { requireAdmin } from '../middleware/require-auth';
 
 /**
- * IP Pool management routes.
+ * IP Pool management routes. Any signed-in user can list pools (servers pick
+ * one); creating, changing and deleting pools and their addresses is for
+ * administrators.
  */
 export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
 
@@ -25,6 +28,7 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
     return { ip_pool: { id: Number(result.lastInsertRowid), name, default_pool: default_pool ?? false } };
   }, {
     body: t.Object({ name: t.String(), default_pool: t.Optional(t.Boolean()) }),
+    beforeHandle: requireAdmin,
     detail: { tags: ['IP Pools'], summary: 'Create an IP pool' },
   })
 
@@ -50,6 +54,7 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
     return { ip_pool: { id: parseInt(c.params.poolId), ...c.body } };
   }, {
     body: t.Object({ name: t.Optional(t.String()), default_pool: t.Optional(t.Boolean()) }),
+    beforeHandle: requireAdmin,
     detail: { tags: ['IP Pools'], summary: 'Update an IP pool' },
   })
 
@@ -59,27 +64,21 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
     await db.run(`DELETE FROM ip_pools WHERE id = $1`, [c.params.poolId]);
     c.set.status = 200;
     return { deleted: true };
-  }, { detail: { tags: ['IP Pools'], summary: 'Delete an IP pool' } })
+  }, { beforeHandle: requireAdmin, detail: { tags: ['IP Pools'], summary: 'Delete an IP pool' } })
 
   // ── IP Addresses (nested under ip_pools) ──────────────────────
 
   .get('/:poolId/ip_addresses', async (c: any) => {
     const { getDb } = await import('../index');
     const db = await getDb();
-    if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
-    if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
     const addresses = await db.query(`SELECT * FROM ip_addresses WHERE ip_pool_id = $1 ORDER BY priority`, [c.params.poolId]) as any[];
     c.set.status = 200;
     return { ip_addresses: addresses };
-  }, { detail: { tags: ['IP Addresses'], summary: 'List IP addresses in pool' } })
+  }, { beforeHandle: requireAdmin, detail: { tags: ['IP Addresses'], summary: 'List IP addresses in pool' } })
 
   .post('/:poolId/ip_addresses', async (c: any) => {
     const { getDb } = await import('../index');
     const db = await getDb();
-    if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
-    if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
     const pool = await db.get(`SELECT id FROM ip_pools WHERE id = $1`, [c.params.poolId]) as any;
     if (!pool) { c.set.status = 404; return { error: 'PoolNotFound' }; }
     const { ipv4, ipv6, hostname, priority } = c.body;
@@ -91,15 +90,13 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
     return { ip_address: { id: Number(result.lastInsertRowid), ip_pool_id: parseInt(c.params.poolId), ipv4: ipv4 ?? null, ipv6: ipv6 ?? null, hostname: hostname ?? null, priority: priority ?? null } };
   }, {
     body: t.Object({ ipv4: t.Optional(t.String()), ipv6: t.Optional(t.String()), hostname: t.Optional(t.String()), priority: t.Optional(t.Number()) }),
+    beforeHandle: requireAdmin,
     detail: { tags: ['IP Addresses'], summary: 'Create an IP address' },
   })
 
   .patch('/:poolId/ip_addresses/:addressId', async (c: any) => {
     const { getDb } = await import('../index');
     const db = await getDb();
-    if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
-    if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
     const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
     if (fields.length === 0) { c.set.status = 200; return { ip_address: { id: parseInt(c.params.addressId) } }; }
     const values: any[] = fields.map(([_, v]) => v);
@@ -110,16 +107,14 @@ export const ipPoolRoutes = new Elysia({ prefix: '/ip_pools' })
     return { ip_address: { id: parseInt(c.params.addressId), ...c.body } };
   }, {
     body: t.Object({ ipv4: t.Optional(t.String()), ipv6: t.Optional(t.String()), hostname: t.Optional(t.String()), priority: t.Optional(t.Number()) }),
+    beforeHandle: requireAdmin,
     detail: { tags: ['IP Addresses'], summary: 'Update an IP address' },
   })
 
   .delete('/:poolId/ip_addresses/:addressId', async (c: any) => {
     const { getDb } = await import('../index');
     const db = await getDb();
-    if (!c.clerk?.authenticated) { c.set.status = 401; return { error: 'Unauthorized' }; }
-    const currentUser = await db.get(`SELECT admin FROM users WHERE oidc_uid = $1`, [c.clerk.userId]) as any;
-    if (!currentUser || !currentUser.admin) { c.set.status = 403; return { error: 'AdminRequired' }; }
     await db.run(`DELETE FROM ip_addresses WHERE id = $1`, [c.params.addressId]);
     c.set.status = 200;
     return { deleted: true };
-  }, { detail: { tags: ['IP Addresses'], summary: 'Delete an IP address' } });
+  }, { beforeHandle: requireAdmin, detail: { tags: ['IP Addresses'], summary: 'Delete an IP address' } });

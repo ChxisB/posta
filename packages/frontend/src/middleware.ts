@@ -14,11 +14,16 @@ const isPublicRoute = createRouteMatcher([
   '/_next(.*)',
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect();
-  }
-});
+export default clerkMiddleware(
+  async (auth, request) => {
+    if (!isPublicRoute(request)) {
+      await auth.protect();
+    }
+  },
+  // Where auth.protect() sends a signed-out visitor. Matches ClerkProvider
+  // in app/layout.tsx.
+  { signInUrl: '/login', signUpUrl: '/sign-up' },
+);
 
 export const config = {
   matcher: [

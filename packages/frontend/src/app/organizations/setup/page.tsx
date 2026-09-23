@@ -71,15 +71,19 @@ async function preloadOrg(permalink: string | null): Promise<PreloadedOrg | null
 export default async function SetupWizardPage({
   searchParams: searchParamsPromise,
 }: {
-  searchParams: Promise<{ org?: string }>;
+  searchParams: Promise<{ org?: string; welcome?: string }>;
 }) {
-  const { org } = await searchParamsPromise;
+  const { org, welcome } = await searchParamsPromise;
   const preloaded = await preloadOrg(org ?? null);
 
   return (
     <>
       <Suspense fallback={<div className="text-center py-16 text-muted">Loading wizard...</div>}>
-        <SetupWizardClient initialOrgPermalink={org ?? null} preloaded={preloaded} />
+        <SetupWizardClient
+          initialOrgPermalink={org ?? null}
+          preloaded={preloaded}
+          welcome={welcome === '1'}
+        />
       </Suspense>
     </>
   );

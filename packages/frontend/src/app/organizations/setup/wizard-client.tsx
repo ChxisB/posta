@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Sparkles } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { Callout } from '@/components/ui/callout';
 import { cn } from '@/lib/utils';
 
 import StepOrganization from './steps/step-organization';
@@ -99,6 +100,8 @@ interface PreloadedOrg {
 interface Props {
   initialOrgPermalink: string | null;
   preloaded: PreloadedOrg | null;
+  /** Arrived straight from creating the admin account (via /start). */
+  welcome?: boolean;
 }
 
 function firstIncompleteStep(p: PreloadedOrg): WizardStep {
@@ -109,7 +112,7 @@ function firstIncompleteStep(p: PreloadedOrg): WizardStep {
   return 'sending';
 }
 
-export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Props) {
+export default function SetupWizardClient({ initialOrgPermalink, preloaded, welcome = false }: Props) {
   const router = useRouter();
 
   const initialData = preloaded ?? {
@@ -211,6 +214,13 @@ export default function SetupWizardClient({ initialOrgPermalink, preloaded }: Pr
             : 'Takes a new organisation all the way to a verified, sending domain. Five required steps, two optional — progress saves as you go, so you can stop at any point and come back.'
         }
       />
+
+      {welcome && (
+        <Callout tone="success" title="Your admin account is ready">
+          You&apos;re the administrator of this Posta installation. Set up your first organisation
+          below; you can add teammates later under Administration → Users.
+        </Callout>
+      )}
 
       <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
         <nav aria-label="Setup steps" className="shrink-0 lg:w-52">

@@ -38,7 +38,6 @@ services:
       - POSTA_LOG_LEVEL=info
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
       - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
-      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET:-}
     restart: unless-stopped
 
 volumes:
