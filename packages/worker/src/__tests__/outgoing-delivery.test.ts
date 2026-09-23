@@ -25,6 +25,10 @@ import { processQueuedMessagesJob } from '../jobs/process_queued_messages';
 const SERVER_URL = 'postgresql://postgres:postgres@localhost:5432';
 const DB_NAME = `posta_test_worker_delivery_${Date.now()}`;
 
+// Test files share a process, so put these back for the files that run after.
+const ENV_KEYS = ['POSTA_MAIN_DB_URL', 'POSTA_MESSAGE_DB_URL', 'POSTA_CONFIG_FILE_PATH', 'POSTA_SMTP_RELAYS'];
+const savedEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
+
 /** A relay that answers RCPT TO with whatever the current test sets. */
 const relay = {
   port: 0,
@@ -183,6 +187,10 @@ afterAll(async () => {
   for (const socket of relay.sockets) socket.destroy();
   await new Promise<void>((done) => relay.server?.close(() => done()) ?? done());
   await closeAllDatabases();
+  for (const [key, value] of Object.entries(savedEnv)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
 
   const admin = new PgClient(`${SERVER_URL}/postgres`);
   try {
