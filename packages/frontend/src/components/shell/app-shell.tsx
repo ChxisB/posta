@@ -9,25 +9,22 @@ import { SkipLink } from '@/components/ui/skip-link';
 
 /**
  * Chooses the chrome for a route:
- *  - "/" (the public marketing site) renders bare, no dashboard shell.
- *  - The auth pages, and /start where they land, render centered, also
- *    without the shell.
+ *  - "/" (the public marketing site), /login and /sign-up render bare:
+ *    they bring their own full-page layout.
+ *  - /start, where sign-in lands, renders centered without the shell.
  *  - Every other route gets the full sidebar + topbar frame.
  *
- * Route-driven rather than layout-file-driven so the marketing site and the
- * app can share one root layout, and so a page cannot accidentally ship
+ * Route-driven rather than layout-file-driven so the signed-out pages and
+ * the app can share one root layout, and so a page cannot accidentally ship
  * without the shell by forgetting to opt in.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === '/') return <>{children}</>;
-  if (
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/sign-in') ||
-    pathname.startsWith('/sign-up') ||
-    pathname === '/start'
-  ) {
+  if (pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/sign-up')) {
+    return <>{children}</>;
+  }
+  if (pathname.startsWith('/sign-in') || pathname === '/start') {
     return <div className="flex min-h-screen items-center justify-center p-4">{children}</div>;
   }
 
