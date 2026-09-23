@@ -188,12 +188,11 @@ export class SmtpEndpoint {
     // unannounced and some servers drop the connection on unexpected input.
     const { response: dataResponse } = await session.transaction(mailFrom, rcptTo, rawMessage);
 
-    // A permanent failure from any stage arrives here as that stage's reply,
-    // so one classification covers all three rather than three near-identical
-    // early returns.
-    const classification = dataResponse.code >= 500
-      ? this.classifyCode(dataResponse.code)
-      : 'Sent';
+    // A failure from any stage arrives here as that stage's reply, so one
+    // classification covers all three rather than three near-identical early
+    // returns. A 4xx is a deferral, not a delivery: counting it as Sent drops
+    // the message with nothing left to retry.
+    const classification = this.classifyCode(dataResponse.code);
 
     return {
       endpointDescription: this.description,

@@ -72,33 +72,23 @@ export class SmtpSender {
       }
 
       // Try each server in order
+      const attempts: DeliveryAttempt[] = [];
       for (const server of servers) {
         const endpoints = await server.resolveEndpoints(this.heloHostname, {
           openTimeout: this.openTimeout,
           readTimeout: this.readTimeout,
         });
 
-        if (endpoints.length === 0) continue;
-
-        for (const endpoint of endpoints) {
-          const attempt = await endpoint.sendMessage(rawMessage, mailFrom, rcptTo);
-          if (attempt.success) {
-            return {
-              success: true,
-              classification: 'Sent',
-              attempts: [attempt],
-              endpointUsed: attempt.endpointDescription,
-            };
-          }
-        }
+        const result = await this.tryEndpoints(endpoints, rawMessage, mailFrom, rcptTo, attempts);
+        if (result) return result;
       }
 
       // All servers failed
       return {
         success: false,
         classification: 'SoftFail',
-        attempts: [],
-        error: 'All servers rejected the message',
+        attempts,
+        error: describeLastAttempt(attempts) ?? 'All servers rejected the message',
       };
     } catch (err: any) {
       return {
@@ -147,9 +137,33 @@ export class SmtpSender {
       };
     }
 
+    const result = await this.tryEndpoints(endpoints, rawMessage, mailFrom, rcptTo, attempts);
+    if (result) return result;
+
+    return {
+      success: false,
+      classification: 'SoftFail',
+      attempts,
+      error: describeLastAttempt(attempts) ?? 'All endpoints rejected the message',
+    };
+  }
+
+  /**
+   * Offer the message to each endpoint in turn. Returns the final result on
+   * delivery or a permanent rejection, or null to fall through to the next
+   * server. Every attempt is appended to `attempts`.
+   */
+  private async tryEndpoints(
+    endpoints: SmtpEndpoint[],
+    rawMessage: string,
+    mailFrom: string,
+    rcptTo: string,
+    attempts: DeliveryAttempt[],
+  ): Promise<DeliveryResult | null> {
     for (const endpoint of endpoints) {
       const attempt = await endpoint.sendMessage(rawMessage, mailFrom, rcptTo);
       attempts.push(attempt);
+
       if (attempt.success) {
         return {
           success: true,
@@ -158,14 +172,22 @@ export class SmtpSender {
           endpointUsed: attempt.endpointDescription,
         };
       }
+
+      // A 5xx is the receiving domain's verdict on this message. Its other
+      // MX hosts would give the same answer, and treating it as a soft fail
+      // retries the message for days and keeps the address off the
+      // suppression list.
+      if (attempt.responseCode >= 500 && attempt.responseCode < 600) {
+        return {
+          success: false,
+          classification: 'HardFail',
+          attempts,
+          error: describeLastAttempt(attempts),
+        };
+      }
     }
 
-    return {
-      success: false,
-      classification: 'SoftFail',
-      attempts,
-      error: 'All endpoints rejected the message',
-    };
+    return null;
   }
 
   /**
@@ -182,6 +204,13 @@ export class SmtpSender {
       return [];
     }
   }
+}
+
+/** The last remote reply, for the delivery history, e.g. "550 5.1.1 No such user". */
+function describeLastAttempt(attempts: DeliveryAttempt[]): string | undefined {
+  const last = attempts[attempts.length - 1];
+  if (!last) return undefined;
+  return last.responseCode > 0 ? `${last.responseCode} ${last.responseMessage}` : last.responseMessage;
 }
 
 export interface DeliveryResult {
