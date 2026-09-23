@@ -27,6 +27,14 @@ export interface Recipient {
   metadata: Record<string, unknown>;
 }
 
+/** One complete transaction: everything needed to store and queue it. */
+export interface ReceivedMessage {
+  mailFrom: string;
+  recipients: Recipient[];
+  /** The message as received, one character per byte. */
+  data: string;
+}
+
 export interface SmtpCommandResult {
   /** Response lines to send back. */
   lines: string[];
@@ -34,8 +42,11 @@ export interface SmtpCommandResult {
   finished?: boolean;
   /** If true, the socket should be upgraded to TLS. */
   startTls?: boolean;
-  /** If non-null, the client is sending message data and this proc handles it. */
-  dataHandler?: ((line: string, crPresent: boolean, prevCrPresent: boolean) => SmtpCommandResult | null) | null;
+  /**
+   * A complete message. The server must store it before sending `lines`:
+   * the 250 tells the client the message is ours, and it will not resend.
+   */
+  message?: ReceivedMessage;
   /** Logging control */
   silenceLogging?: boolean;
 }
@@ -386,6 +397,18 @@ export class SmtpStateMachine {
     return { lines: ['__RCPT_TO_VERIFY__', rcptTo] };
   }
 
+  /**
+   * Withdraw the recipient just added, after the server layer refused it.
+   * Without this a refused address would still be delivered to, and DATA
+   * would be accepted with no valid recipients at all.
+   */
+  rejectRecipient(): void {
+    this.recipients.pop();
+    if (this.recipients.length === 0 && this.state === 'rcpt_to_received') {
+      this.state = 'mail_from_received';
+    }
+  }
+
   // ─── DATA ────────────────────────────────────────────
 
   private cmdData(): SmtpCommandResult {
@@ -456,7 +479,7 @@ export class SmtpStateMachine {
     }
 
     // Check message size
-    const size = Buffer.byteLength(this.messageData, 'utf-8');
+    const size = Buffer.byteLength(this.messageData, 'latin1');
     if (size > this.maxMessageSize) {
       this.transactionReset();
       this.state = 'welcomed';
@@ -478,9 +501,14 @@ export class SmtpStateMachine {
       return { lines: ['550 Loop detected'] };
     }
 
-    // Signal to the server layer that we have a complete message
+    // Hand the transaction to the server layer before the reset clears it.
+    const message: ReceivedMessage = {
+      mailFrom: this.mailFrom ?? '',
+      recipients: this.recipients,
+      data: this.messageData,
+    };
     this.transactionReset();
-    return { lines: ['250 OK'], dataHandler: null };
+    return { lines: ['250 OK'], message };
   }
 
   /**

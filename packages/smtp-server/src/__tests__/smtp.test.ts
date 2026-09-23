@@ -102,6 +102,57 @@ describe('SMTP State Machine', () => {
     expect(finalResult!.lines[0]).toBe('250 OK');
   });
 
+  it('hands the finished transaction to the server', () => {
+    // The regression: the message was cleared at end of data without ever
+    // reaching the server, so mail submitted over SMTP was silently dropped.
+    const sm = simulateClient('mail.example.com');
+    sm.handleLine('EHLO test', true, false);
+    sm.handleLine('MAIL FROM:<sender@test.com>', true, false);
+    sm.handleLine('RCPT TO:<one@test.com>', true, false);
+    sm.handleLine('RCPT TO:<two@test.com>', true, false);
+    sm.handleLine('DATA', true, false);
+    sm.handleLine('Subject: Test', true, true);
+    sm.handleLine('', true, true);
+    sm.handleLine('..leading dot', true, true);
+
+    const result = sm.handleLine('.', true, true);
+    expect(result!.message).toEqual({
+      mailFrom: 'sender@test.com',
+      recipients: [
+        expect.objectContaining({ address: 'one@test.com' }),
+        expect.objectContaining({ address: 'two@test.com' }),
+      ],
+      data: 'Subject: Test\r\n\r\n.leading dot\r\n',
+    });
+    expect(sm.recipients).toEqual([]);
+    expect(sm.state).toBe('welcomed');
+  });
+
+  it('refuses DATA once every recipient has been rejected', () => {
+    const sm = simulateClient('mail.example.com');
+    sm.handleLine('EHLO test', true, false);
+    sm.handleLine('MAIL FROM:<sender@test.com>', true, false);
+    sm.handleLine('RCPT TO:<relay@elsewhere.test>', true, false);
+    sm.rejectRecipient();
+
+    expect(sm.recipients).toEqual([]);
+    expect(sm.state).toBe('mail_from_received');
+    const result = sm.handleLine('DATA', true, false);
+    expect(result!.lines[0]).toBe('503 HELO/EHLO, MAIL FROM and RCPT TO before sending data');
+  });
+
+  it('keeps earlier recipients when a later one is rejected', () => {
+    const sm = simulateClient('mail.example.com');
+    sm.handleLine('EHLO test', true, false);
+    sm.handleLine('MAIL FROM:<sender@test.com>', true, false);
+    sm.handleLine('RCPT TO:<ok@test.com>', true, false);
+    sm.handleLine('RCPT TO:<relay@elsewhere.test>', true, false);
+    sm.rejectRecipient();
+
+    expect(sm.recipients.map((r) => r.address)).toEqual(['ok@test.com']);
+    expect(sm.handleLine('DATA', true, false)!.lines[0]).toBe('354 Go ahead');
+  });
+
   it('rejects DATA without RCPT TO', () => {
     const sm = simulateClient('mail.example.com');
     sm.handleLine('EHLO test', true, false);
