@@ -100,3 +100,16 @@ The tag starts the Release workflow. It checks that every `package.json` says 0.
 ## Licence
 
 Posta is released under the [MIT licence](LICENSE). By contributing, you agree that your contributions are released under it too.
+
+The database tests need local PostgreSQL. To use the Compose database on port 5432, run:
+
+```sh
+docker compose up -d postgres
+docker compose exec postgres createdb -U postgres posta_test
+POSTA_MAIN_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_test \
+POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_test \
+POSTA_TEST_DB_BASE_URL=postgresql://postgres:postgres@localhost:5432 \
+POSTA_DELIVERY_PROVIDER=smtp bun run test
+```
+
+The AWS regression tests inject SES, SQS and S3 clients and require no AWS credentials, live sends or buckets. The v2 message-store tests use `POSTA_TEST_DB_BASE_URL` (default port 5433); they create their own test databases.

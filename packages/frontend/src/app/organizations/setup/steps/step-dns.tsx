@@ -5,9 +5,11 @@ import type { WizardState } from '../wizard-client';
 import { getDomainSetup, checkDomainDns, getDomain } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { CheckPill } from '@/components/ui/pill';
+import { Callout } from '@/components/ui/callout';
 import { Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { CopyableValue } from '@/components/ui/copy-button';
 import { StepIntro } from './step-intro';
+import { DnsRecords, type DomainDnsRecord } from '@/components/domains/dns-records';
 
 interface Props {
   state: WizardState;
@@ -18,6 +20,9 @@ interface Props {
 
 interface DnsSetup {
   domain: string;
+  records?: DomainDnsRecord[];
+  region?: string;
+  inbound_region?: string | null;
   spf: string;
   dkim: string;
   mx: string;
@@ -29,6 +34,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
   const [setup, setSetup] = useState<DnsSetup | null>(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
   const [dnsStatus, setDnsStatus] = useState<Record<string, string>>({});
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -42,7 +48,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
         ]);
         if (dnsData.status === 'fulfilled') {
           setSetup(dnsData.value);
-        }
+        } else { setError(dnsData.reason?.message ?? 'Could not load DNS setup'); }
         if (domainData.status === 'fulfilled') {
           const d = domainData.value.domain;
           if (d) {
@@ -71,19 +77,21 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
   const handleCheckDns = async () => {
     if (!state.orgPermalink || !state.serverId || !state.domainId) return;
     setChecking(true);
+    setError('');
     try {
       const result = await checkDomainDns(
         state.orgPermalink,
         String(state.serverId),
         String(state.domainId),
       );
+      if (result.records) setSetup((old) => old ? { ...old, records: result.records } : old);
       setDnsStatus({
         spf: result.spf_status,
         dkim: result.dkim_status,
         mx: result.mx_status,
         return_path: result.return_path_status,
       });
-    } catch {}
+    } catch (err: any) { setError(err.message ?? 'Could not check verification'); }
     setChecking(false);
   };
 
@@ -117,11 +125,11 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
   }
   if (setup.spf) records.push({ label: 'SPF (TXT)', value: setup.spf, field: 'spf' });
   if (setup.dkim) records.push({ label: 'DKIM (TXT)', value: setup.dkim, field: 'dkim' });
-  if (setup.mx) records.push({ label: 'MX Record', value: setup.mx, field: 'mx' });
+  if (setup.mx) records.push({ label: setup.inbound_region ? `MX Record (SES inbound, ${setup.inbound_region})` : 'MX Record', value: setup.mx, field: 'mx' });
   if (setup.return_path)
     records.push({ label: 'Return-Path (CNAME)', value: setup.return_path, field: 'return_path' });
 
-  const allOk = dnsStatus.spf === 'OK' && dnsStatus.dkim === 'OK' && dnsStatus.mx === 'OK';
+  const allOk = dnsStatus.spf === 'OK' && dnsStatus.dkim === 'OK' && (setup.region ? dnsStatus.return_path === 'OK' : dnsStatus.mx === 'OK');
 
   return (
     <div className="space-y-5 max-w-2xl">
@@ -135,6 +143,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
         reject them outright. Propagation is usually minutes but can take up to 48 hours, so it is
         normal for this step to stay amber for a while.
       </StepIntro>
+      {error && <Callout tone="danger">{error}</Callout>}
       {/* Verification token */}
       {setup.verification_token && (
         <div className="rounded-lg border border-amber/30 bg-amber/5 p-4">
@@ -147,7 +156,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
       )}
 
       {/* DNS Records */}
-      <div className="space-y-3">
+      {setup.records?.length ? <DnsRecords records={setup.records} statuses={dnsStatus} /> : <div className="space-y-3">
         {records.map((r) => {
           const status = dnsStatus[r.field as keyof typeof dnsStatus];
           return (
@@ -160,7 +169,7 @@ export default function StepDns({ state, updateState, onNext, onBack }: Props) {
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {/* Check DNS */}
       <div className="flex items-center gap-3">

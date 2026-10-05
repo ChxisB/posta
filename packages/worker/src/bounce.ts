@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { PostaConfig } from '@posta/core';
 import { getMainDb, getServerDb, createQueuedMessage } from '@posta/core';
 import { MessageDbProvisioner, MessageStore } from '@posta/message-db';
+import { findSendingDomain } from '@posta/aws';
 
 /**
  * Options for generating and processing a bounce (DSN) message.
@@ -55,6 +56,15 @@ export class BounceProcessor {
    */
   async processBounce(options: BounceOptions): Promise<number> {
     const returnPathDomain = this.config.dns.return_path_domain;
+    let sendingOptions = options;
+    let domainId: number | undefined;
+    if (this.config.posta.delivery_provider === 'ses') {
+      const inboundDomain = options.rcptTo.split('@')[1];
+      const domain = inboundDomain ? await findSendingDomain(getMainDb(this.config), options.serverId, `postmaster@${inboundDomain}`) : undefined;
+      if (!domain?.ses_region || !domain.verified_at) throw new Error('The receiving domain must be verified in SES to send a delivery failure notice');
+      sendingOptions = { ...options, routeDescription: `postmaster@${domain.name}` };
+      domainId = domain.id;
+    }
 
     // Open the server's MessageDB
     const client = getServerDb(this.config, options.serverId);
@@ -62,18 +72,19 @@ export class BounceProcessor {
     const msgStore = new MessageStore(msgDb);
 
     // Build the bounce DSN MIME message
-    const rawBounceMsg = this.buildBounceMessage(options, returnPathDomain);
+    const rawBounceMsg = this.buildBounceMessage(sendingOptions, returnPathDomain);
 
     // Store the raw bounce message in the partitioned raw tables
     const { tableName, headersId, bodyId } =
-      await msgStore.insertRawMessage(rawBounceMsg);
+      await msgStore.insertRawMessage(Buffer.from(rawBounceMsg, 'utf8'));
 
     // Create the bounce message record
     const msgId = await msgDb.insert('messages', {
       token: options.token,
       scope: 'outgoing',
       rcpt_to: options.mailFrom,
-      mail_from: options.routeDescription,
+      mail_from: sendingOptions.routeDescription,
+      domain_id: domainId ?? null,
       subject: `Mail Delivery Failed (${options.subject})`,
       message_id: `<${randomUUID()}@${returnPathDomain}>`,
       timestamp: Date.now() / 1000,

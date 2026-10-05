@@ -150,6 +150,7 @@ beforeAll(async () => {
   // from another test file before pointing it at this database.
   await closeAllDatabases();
   config = loadConfig();
+  config.posta.delivery_provider = 'smtp';
   const mainDb = await initializeMainDb(config);
 
   const org = await mainDb.get<{ id: number }>(
@@ -264,6 +265,30 @@ describe('receiving mail over SMTP', () => {
     expect(row.domain_id).toBe(domainId);
     expect(row.credential_id).toBeNull();
     expect(await queued(row.id)).toBeDefined();
+  });
+
+  it('keeps inbound SMTP working when SES sending is unverified or unavailable', async () => {
+    const mainDb = getMainDb(config);
+    await mainDb.run(`UPDATE domains SET inbound_verified_at = NOW(), verified_at = NULL, ses_region = 'eu-west-1' WHERE id = $1`, [domainId]);
+    config.posta.delivery_provider = 'ses';
+    try {
+      const id = newMessageId();
+      const client = await Client.connect(smtp.port);
+      expect(await client.send('EHLO sender.test')).toStartWith('250');
+      expect(await client.send('MAIL FROM:<someone@sender.test>')).toBe('250 OK');
+      expect(await client.send('RCPT TO:<support@posta.test>')).toBe('250 OK');
+      expect(await client.send('DATA')).toStartWith('354');
+      client.write(message(id));
+      expect(await client.reply()).toBe('250 OK');
+      client.close();
+      const [row] = await stored(id);
+      expect(row.scope).toBe('incoming');
+      expect(row.route_id).toBe(routeId);
+      expect(await queued(row.id)).toBeDefined();
+    } finally {
+      config.posta.delivery_provider = 'smtp';
+      await mainDb.run(`UPDATE domains SET verified_at = NOW(), inbound_verified_at = NULL, ses_region = NULL WHERE id = $1`, [domainId]);
+    }
   });
 
   it('refuses to relay for an unauthenticated client', async () => {

@@ -5,6 +5,10 @@ import { z } from 'zod';
  */
 export const PostaConfigSchema = z.object({
   posta: z.object({
+    delivery_provider: z.enum(['ses', 'smtp']).default('ses'),
+    // 'ses' receives mail through SES receipt rules for domains whose region has an inbound
+    // bucket; the SMTP server still takes the rest, so an install without buckets keeps working.
+    inbound_provider: z.enum(['ses', 'smtp']).default('ses'),
     web_hostname: z.string().default('posta.example.com'),
     web_protocol: z.string().default('https'),
     smtp_hostname: z.string().default('posta.example.com'),
@@ -28,6 +32,20 @@ export const PostaConfigSchema = z.object({
     allowed_request_destinations: z.array(z.string()).optional(),
     queued_message_lock_stale_days: z.number().int().default(1),
     batch_queued_messages: z.boolean().default(true),
+  }).default({}),
+
+  aws: z.object({
+    region: z.string().regex(/^[a-z]{2}(?:-[a-z]+)+-\d+$/).default('us-east-1'),
+    regions: z.array(z.string().regex(/^[a-z]{2}(?:-[a-z]+)+-\d+$/)).default([]),
+    configuration_set: z.string().min(1).default('posta'),
+    sns_topic_arns: z.array(z.string()).default([]),
+    sqs_queue_url: z.string().url().optional(),
+    max_send_rate: z.number().positive().default(14),
+    mail_from_subdomain: z.string().regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/).default('bounce'),
+    // Region -> S3 bucket that region's receipt rule writes raw mail to. The bucket is an
+    // allowlist: an inbound notification naming any other bucket is never fetched.
+    inbound_buckets: z.record(z.string().regex(/^[a-z]{2}(?:-[a-z]+)+-\d+$/), z.string().min(3)).default({}),
+    inbound_prefix: z.string().default('inbound/'),
   }).default({}),
 
   web_server: z.object({

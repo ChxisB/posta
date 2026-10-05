@@ -14,9 +14,10 @@ import { InvalidScopeError, and, scopeFor, where } from './scope';
  * else, can I read it, change it, or even detect that it exists?
  */
 
-const ADMIN = 'postgresql://postgres:postgres@localhost:5433/postgres';
+const BASE_URL = process.env.POSTA_TEST_DB_BASE_URL ?? 'postgresql://postgres:postgres@localhost:5433';
+const ADMIN = `${BASE_URL}/postgres`;
 const DB_NAME = `posta_iso_${Date.now()}`;
-const URL = `postgresql://postgres:postgres@localhost:5433/${DB_NAME}`;
+const URL = `${BASE_URL}/${DB_NAME}`;
 
 const ACME = scopeFor(1, 10);
 const RIVAL = scopeFor(2, 20);

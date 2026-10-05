@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { StepIntro } from './step-intro';
+import { INBOUND_SMTP, RegionPicker } from '@/components/domains/region-picker';
 
 interface Props {
   state: WizardState;
@@ -18,6 +19,8 @@ interface Props {
 export default function StepDomain({ state, updateState, onNext, onBack }: Props) {
   const isExisting = !!state.domainId;
   const [name, setName] = useState(state.domainName || '');
+  const [region, setRegion] = useState(state.domainRegion || '');
+  const [inboundRegion, setInboundRegion] = useState(state.domainInboundRegion || '');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +38,9 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
         if (data.domains?.length > 0) {
           const d = data.domains[0];
           setName(d.name ?? '');
-          updateState({ domainId: d.id, domainName: d.name ?? '' });
+          setRegion(d.ses_region ?? '');
+          setInboundRegion(d.ses_inbound_region ?? '');
+          updateState({ domainId: d.id, domainName: d.name ?? '', domainRegion: d.ses_region ?? '', domainInboundRegion: d.ses_inbound_region ?? '' });
         }
       } catch {}
       setPoolsLoading(false);
@@ -99,9 +104,11 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
       try {
         const data = await createDomain(state.orgPermalink, String(state.serverId), {
           name: name.trim(),
+          region: region || undefined,
+          inbound_region: inboundRegion || undefined,
         });
         const domain = data.domain;
-        updateState({ domainId: domain.id, domainName: domain.name });
+        updateState({ domainId: domain.id, domainName: domain.name, domainRegion: domain.ses_region ?? '', domainInboundRegion: domain.ses_inbound_region ?? '' });
         onNext();
       } catch (err: any) {
         setError(err.message || 'Failed to add domain');
@@ -148,6 +155,7 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
         <div className="relative">
           <Input
             className="w-full font-mono text-sm pr-10"
+            readOnly={isExisting && !!state.domainRegion}
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="example.com"
@@ -167,6 +175,17 @@ export default function StepDomain({ state, updateState, onNext, onBack }: Props
           The domain you want to send or receive email from.
         </p>
       </div>
+      {state.orgPermalink && <RegionPicker
+        org={state.orgPermalink}
+        value={region}
+        onChange={setRegion}
+        locked={isExisting && !!state.domainRegion}
+        inbound={{
+          value: isExisting && state.domainRegion ? (state.domainInboundRegion || INBOUND_SMTP) : inboundRegion,
+          onChange: setInboundRegion,
+          locked: isExisting && !!state.domainRegion,
+        }}
+      />}
       {error && <div className="text-sm text-red bg-red/10 rounded-lg px-3 py-2">{error}</div>}
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={loading || saving || !canSubmit}>

@@ -115,3 +115,23 @@ This document contains all the environment variables which are available for thi
 | `OIDC_TOKEN_ENDPOINT` | String | The token endpoint on the authorization server (only used when discovery is false) |  |
 | `OIDC_USERINFO_ENDPOINT` | String | The user info endpoint on the authorization server (only used when discovery is false) |  |
 | `OIDC_JWKS_URI` | String | The JWKS endpoint on the authorization server (only used when discovery is false) |  |
+
+## AWS delivery and inbound routing
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTA_DELIVERY_PROVIDER` | `ses` | `ses` for AWS delivery; `smtp` for legacy direct/relay delivery |
+| `AWS_REGION` | `us-east-1` | SQS queue region; sending fallback when `AWS_REGIONS` is unset |
+| `AWS_REGIONS` | `AWS_REGION` | Comma-separated selectable sending regions; first is the domain default |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` | AWS credential chain | Runtime credentials, including optional temporary session token |
+| `SES_CONFIGURATION_SET` | `posta` | Configuration set name, provisioned identically in each region |
+| `SNS_TOPIC_ARNS` | empty | Allowed SNS event topics across served regions; required before sending |
+| `SQS_QUEUE_URL` | unset | Queue polled by the worker for durable delivery events |
+| `SES_MAX_SEND_RATE` | `14` | Per-region rate cap, further limited by the region’s actual SES quota |
+| `SES_MAIL_FROM_SUBDOMAIN` | `bounce` | Sending return-path subdomain, separate from inbound MX |
+| `POSTA_MX_RECORDS` | YAML DNS values | Comma-separated public receiving hostnames, used for domains received by Posta’s own SMTP server |
+| `POSTA_INBOUND_PROVIDER` | `ses` | `ses` receives a domain through SES when its region has an inbound bucket; `smtp` always uses Posta’s SMTP server |
+| `SES_INBOUND_BUCKETS` | empty | Comma-separated `region=bucket` pairs, one S3 bucket per region that receives mail (for example `eu-west-1=posta-inbound-123456789012-eu-west-1`). A region without one cannot be chosen for receiving |
+| `SES_INBOUND_PREFIX` | `inbound/` | Key prefix SES writes under in every inbound bucket; must match the receipt rule |
+
+See [AWS setup and migration](aws-ses.md) for templates, multi-region configuration and rollback.

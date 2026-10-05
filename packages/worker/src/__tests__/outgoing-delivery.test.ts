@@ -26,7 +26,7 @@ const SERVER_URL = 'postgresql://postgres:postgres@localhost:5432';
 const DB_NAME = `posta_test_worker_delivery_${Date.now()}`;
 
 // Test files share a process, so put these back for the files that run after.
-const ENV_KEYS = ['POSTA_MAIN_DB_URL', 'POSTA_MESSAGE_DB_URL', 'POSTA_CONFIG_FILE_PATH', 'POSTA_SMTP_RELAYS'];
+const ENV_KEYS = ['POSTA_MAIN_DB_URL', 'POSTA_MESSAGE_DB_URL', 'POSTA_CONFIG_FILE_PATH', 'POSTA_SMTP_RELAYS', 'POSTA_DELIVERY_PROVIDER'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
 
 /** A relay that answers RCPT TO with whatever the current test sets. */
@@ -166,6 +166,7 @@ beforeAll(async () => {
   // from another test file before pointing it at this database.
   await closeAllDatabases();
   config = loadConfig();
+  config.posta.delivery_provider = 'smtp';
   const mainDb = await initializeMainDb(config);
 
   const org = await mainDb.get<{ id: number }>(

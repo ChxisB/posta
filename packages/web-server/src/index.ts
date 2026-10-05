@@ -11,6 +11,7 @@ import { currentUser } from './middleware/current-user';
 import { requireClerkAuth } from './middleware/require-auth';
 import { serverRoutes, credentialRoutes } from './routes/org/servers.routes';
 import { domainRoutes } from './routes/org/domains.routes';
+import { sesEventsRoutes } from './routes/ses-events.routes';
 import { routeRoutes } from './routes/org/routes.routes';
 import { endpointRoutes } from './routes/org/endpoints.routes';
 import { webhookRoutes } from './routes/org/webhooks.routes';
@@ -79,6 +80,7 @@ export const app = new Elysia()
 
   .use(wellKnownRoutes)
   .use(setupStatusRoutes)
+  .use(sesEventsRoutes)
   .use(apiAuth)
   .use(sendRoutes)
   .use(messagesRoutes)

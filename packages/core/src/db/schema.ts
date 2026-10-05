@@ -140,6 +140,49 @@ CREATE TABLE IF NOT EXISTS domains (
 CREATE INDEX IF NOT EXISTS idx_domains_uuid ON domains(uuid);
 CREATE INDEX IF NOT EXISTS idx_domains_server ON domains(server_id);
 
+-- Additive SES migration: existing domains keep their keys and inbound routes.
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS inbound_verified_at TIMESTAMPTZ;
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS ses_region TEXT;
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS ses_dkim_public_key TEXT;
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS ses_dkim_selector TEXT;
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS ses_mail_from_subdomain TEXT;
+-- The SES region whose receipt rules take this domain's mail; NULL means Posta's SMTP server does.
+ALTER TABLE domains ADD COLUMN IF NOT EXISTS ses_inbound_region TEXT;
+
+UPDATE domains SET inbound_verified_at = verified_at
+WHERE inbound_verified_at IS NULL AND ses_region IS NULL AND verified_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS ses_messages (
+    region TEXT NOT NULL,
+    provider_message_id TEXT NOT NULL,
+    server_id INTEGER NOT NULL,
+    message_id INTEGER NOT NULL,
+    accepted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (region, provider_message_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ses_messages_local ON ses_messages(server_id, message_id);
+
+CREATE TABLE IF NOT EXISTS ses_event_inbox (
+    topic_arn TEXT NOT NULL,
+    sns_message_id TEXT NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    processed_at TIMESTAMPTZ,
+    retry_after TIMESTAMPTZ,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    error TEXT,
+    PRIMARY KEY (topic_arn, sns_message_id)
+);
+-- 'event' rows are send feedback (bounces, deliveries); 'inbound' rows are received mail to fetch from S3.
+ALTER TABLE ses_event_inbox ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'event';
+CREATE INDEX IF NOT EXISTS idx_ses_inbox_pending ON ses_event_inbox(created_at) WHERE processed_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_ses_inbox_pending_kind ON ses_event_inbox(kind, created_at) WHERE processed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS ses_send_slots (
+    region TEXT PRIMARY KEY,
+    next_send_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Routes
 CREATE TABLE IF NOT EXISTS routes (
     id SERIAL PRIMARY KEY,

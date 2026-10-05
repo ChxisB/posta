@@ -10,3 +10,17 @@ node_modules
 Procfile.local
 Procfile*
 tmp/*
+.env
+.env.*
+!.env.example
+millionsend
+**/node_modules
+**/dist
+**/.next
+**/*.tsbuildinfo
+!config/posta/posta.yml
+**/.env
+**/.env.*
+!**/.env.example
+.turbo
+**/.turbo

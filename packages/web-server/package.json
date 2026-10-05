@@ -14,7 +14,9 @@
     "@clerk/backend": "^3.11.7",
     "@posta/core": "workspace:*",
     "@posta/message-db": "workspace:*",
-    "elysia": "^1.4.27"
+    "elysia": "^1.4.27",
+    "@posta/aws": "workspace:*",
+    "@aws-sdk/client-sns": "^3.922.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

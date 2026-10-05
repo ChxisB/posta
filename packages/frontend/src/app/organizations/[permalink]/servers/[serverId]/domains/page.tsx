@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { RegionPicker } from '@/components/domains/region-picker';
 import { CheckPill, FlagPill } from '@/components/ui/pill';
 import { useToast } from '@/components/providers/toast-provider';
 
@@ -21,6 +22,8 @@ interface Domain {
   id: number;
   name?: string;
   verified_at?: string | null;
+  ses_region?: string | null;
+  ses_inbound_region?: string | null;
   spf_status?: string;
   dkim_status?: string;
   mx_status?: string;
@@ -43,6 +46,8 @@ export default function DomainsPage({
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [name, setName] = useState('');
+  const [region, setRegion] = useState('');
+  const [inboundRegion, setInboundRegion] = useState('');
 
   const [pendingDelete, setPendingDelete] = useState<Domain | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -72,9 +77,10 @@ export default function DomainsPage({
     setCreating(true);
     setFormError(null);
     try {
-      await createDomain(permalink, serverId, { name });
+      await createDomain(permalink, serverId, { name, region: region || undefined, inbound_region: inboundRegion || undefined });
       setShowForm(false);
       setName('');
+      setInboundRegion('');
       toast('success', `${name} added. Publish its DNS records to verify it.`);
       await load();
     } catch (err) {
@@ -116,6 +122,14 @@ export default function DomainsPage({
         <FlagPill on={!!d.verified_at} onLabel="Verified" offLabel="Pending" tone="bad" />
       ),
     },
+    { key: 'region', header: 'AWS region', cell: (d) => <span className="font-mono text-xs">{d.ses_region ?? 'Not connected'}</span> },
+    {
+      key: 'receives',
+      header: 'Receives via',
+      cell: (d) => d.ses_inbound_region
+        ? <span className="font-mono text-xs">SES {d.ses_inbound_region}</span>
+        : <span className="text-xs text-muted">Posta SMTP</span>,
+    },
     { key: 'spf', header: 'SPF', cell: (d) => <CheckPill status={d.spf_status} /> },
     { key: 'dkim', header: 'DKIM', cell: (d) => <CheckPill status={d.dkim_status} /> },
     { key: 'mx', header: 'MX', cell: (d) => <CheckPill status={d.mx_status} /> },
@@ -145,7 +159,7 @@ export default function DomainsPage({
       <PageHeader
         breadcrumb={<BackLink href={base}>Server</BackLink>}
         title="Domains"
-        description="The domains this server may send as. Each one needs SPF, DKIM and MX records published before it will authenticate."
+        description="Choose an AWS region for each sending domain and publish its DNS records. Inbound mail is received by SES where a region is set up for it, and by Posta’s SMTP server otherwise."
         actions={
           <Button variant="primary" onClick={() => setShowForm((v) => !v)}>
             <Plus size={15} aria-hidden /> Add domain
@@ -158,7 +172,7 @@ export default function DomainsPage({
           {unverified === 1
             ? 'One domain has not verified yet.'
             : `${unverified} domains have not verified yet.`}{' '}
-          Mail sent from an unverified domain is likely to be rejected or filtered. Open a domain to
+          Sending is held until the domain is verified in SES. Open a domain to
           see which records are still missing.
         </Callout>
       )}
@@ -184,6 +198,12 @@ export default function DomainsPage({
                   required
                 />
               </Field>
+              <RegionPicker
+                org={permalink}
+                value={region}
+                onChange={setRegion}
+                inbound={{ value: inboundRegion, onChange: setInboundRegion }}
+              />
               <div className="flex gap-2">
                 <Button type="submit" variant="primary" loading={creating} disabled={!name.trim()}>
                   Add domain
@@ -232,9 +252,8 @@ export default function DomainsPage({
           title="Delete domain"
           description={
             <>
-              This removes <strong className="text-foreground">{pendingDelete.name}</strong> and its
-              DKIM key from this server. Mail can no longer be sent as this domain, and re-adding it
-              generates a new key that has to be published again.
+              This removes <strong className="text-foreground">{pendingDelete.name}</strong> from this server.
+              Sending and inbound routes for this domain will stop. Its AWS identity remains in your account until you remove it.
             </>
           }
           confirmLabel="Delete domain"

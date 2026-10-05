@@ -232,3 +232,18 @@ oidc:
   userinfo_endpoint: 
   # The JWKS endpoint on the authorization server (only used when discovery is false)
   jwks_uri: 
+
+# AWS SES delivery, and inbound mail received through SES.
+aws:
+  region: us-east-1
+  regions: [us-east-1, eu-west-1]
+  configuration_set: posta
+  sns_topic_arns: []
+  max_send_rate: 14
+  mail_from_subdomain: bounce
+  # One S3 bucket per region that receives mail. A region listed here can be chosen as a
+  # domain's receiving region; a domain in any other region is received by Posta's SMTP server.
+  inbound_buckets: {}
+  #   eu-west-1: posta-inbound-123456789012-eu-west-1
+  # Key prefix SES writes under; must match the receipt rule.
+  inbound_prefix: inbound/

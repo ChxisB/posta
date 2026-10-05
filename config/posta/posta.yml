@@ -3,6 +3,7 @@
 version: 2
 
 posta:
+  delivery_provider: "ses"
   web_hostname: "localhost"
   web_protocol: "http"
   smtp_hostname: "localhost"
@@ -60,3 +61,18 @@ smtp:
 smtp_client:
   open_timeout: 30
   read_timeout: 30
+
+# Credentials are supplied by the AWS default credential chain, never stored here.
+aws:
+  region: "us-east-1"             # SQS region
+  regions: ["us-east-1"]          # default sending region first
+  configuration_set: "posta"
+  sns_topic_arns: []
+  # sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/123456789012/posta-events"
+  max_send_rate: 14
+  mail_from_subdomain: "bounce"
+  # Receive mail through SES: one S3 bucket per receiving region (see doc/config/aws-ses.md).
+  # Regions without one are received by Posta's SMTP server.
+  # inbound_buckets:
+  #   us-east-1: "posta-inbound-123456789012-us-east-1"
+  inbound_prefix: "inbound/"

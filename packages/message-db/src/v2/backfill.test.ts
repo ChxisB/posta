@@ -12,9 +12,10 @@ import { scopeFor } from './scope';
  * seconds, an orphaned child row, and a re-run.
  */
 
-const ADMIN = 'postgresql://postgres:postgres@localhost:5433/postgres';
+const BASE_URL = process.env.POSTA_TEST_DB_BASE_URL ?? 'postgresql://postgres:postgres@localhost:5433';
+const ADMIN = `${BASE_URL}/postgres`;
 const DB_NAME = `posta_bf_${Date.now()}`;
-const URL = `postgresql://postgres:postgres@localhost:5433/${DB_NAME}`;
+const URL = `${BASE_URL}/${DB_NAME}`;
 
 const PLAN: BackfillPlan = { sourceSchema: 'posta_server_7', tenantId: 1, serverId: 7 };
 const SCOPE = scopeFor(PLAN.tenantId, PLAN.serverId);
