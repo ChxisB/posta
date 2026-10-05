@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
@@ -14,6 +14,7 @@
       "outputs": []
     },
     "test": {
+      "env": ["POSTA_MAIN_DB_URL", "POSTA_MESSAGE_DB_URL", "POSTA_TEST_DB_BASE_URL", "POSTA_DELIVERY_PROVIDER"],
       "inputs": ["src/**", "package.json", "tsconfig.json"],
       "outputs": []
     },

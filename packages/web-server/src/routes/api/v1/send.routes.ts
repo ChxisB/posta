@@ -1,3 +1,4 @@
+import { findSendingDomain } from '@posta/aws';
 import { Elysia, t } from 'elysia';
 import { requireApiAuth } from '../../../middleware/api-auth';
 
@@ -92,6 +93,12 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
       const db = await getDb();
       const provisioner = await getProvisioner();
       const rawMessage = Buffer.from(body.data, 'base64').toString('binary');
+      const mimeFrom = rawMessage.split(/\r?\n\r?\n/, 1)[0].match(/^From:\s*(.+)$/im)?.[1] ?? '';
+      const sendingDomain = await findSendingDomain(db, serverId, mimeFrom);
+      if (config.posta.delivery_provider === 'ses' && (!sendingDomain?.ses_region || !sendingDomain.verified_at)) {
+        return renderError('DomainNotVerified', { message: 'Provision and verify the From domain in SES before sending.' }, t0);
+      }
+
 
       const client = getServerDb(config, serverId);
       const msgDb = await provisioner.openServerDb(serverId, client);
@@ -122,6 +129,7 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
           status: 'Pending',
           received_with_ssl: false,
           bounce: body.bounce ?? false,
+          domain_id: sendingDomain?.id,
           credential_id: c.auth?.credential?.id ?? null,
         });
 
@@ -129,7 +137,7 @@ export const sendRoutes = new Elysia({ prefix: '/api/v1/send' })
 
         const { createQueuedMessage, allocateIpAddress } = await import('@posta/core');
         const ipAddressId = await allocateIpAddress(db, config.posta.use_ip_pools, serverId, body.bounce ? 'bounce' : 'outgoing', rcpt);
-        await createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
+        await createQueuedMessage(db, { serverId, messageId: msgId, domainId: sendingDomain?.id, priority: 0, ipAddressId });
 
         results[rcpt] = { id: msgId, token };
       }
@@ -231,12 +239,17 @@ async function handleSend(c: any): Promise<any> {
     const config = await getConfig();
     const db = await getDb();
     const provisioner = await getProvisioner();
+    const sendingDomain = await findSendingDomain(db, serverId, body.from);
+    const domainId = sendingDomain?.id;
+    if (config.posta.delivery_provider === 'ses' && (!sendingDomain?.ses_region || !sendingDomain.verified_at)) {
+      return renderError('DomainNotVerified', { message: 'Provision and verify the From domain in SES before sending.' }, t0);
+    }
     const mimeMessage = buildMimeMessage(body);
 
     const client = getServerDb(config, serverId);
     const msgDb = await provisioner.openServerDb(serverId, client);
     const store = new MessageStore(msgDb);
-    const raw = await store.insertRawMessage(mimeMessage);
+    const raw = await store.insertRawMessage(Buffer.from(mimeMessage, 'utf8'));
 
     const toAddresses = normalizeAddresses(body.to);
     const ccAddresses = normalizeAddresses(body.cc);
@@ -244,15 +257,6 @@ async function handleSend(c: any): Promise<any> {
     const allAddresses = [...toAddresses, ...ccAddresses, ...bccAddresses];
 
     const subject = body.subject ?? '';
-
-    let domainId: number | undefined;
-    if (body.from) {
-      const fromDomain = body.from.split('@')[1];
-      if (fromDomain) {
-        const domainRow = await db.get(`SELECT id FROM domains WHERE name = $1 AND server_id = $2`, [fromDomain, serverId]) as any;
-        domainId = domainRow?.id;
-      }
-    }
 
     const results: Record<string, { id: number; token: string }> = {};
     let firstMessageId: number | null = null;
@@ -280,7 +284,7 @@ async function handleSend(c: any): Promise<any> {
 
       const { createQueuedMessage, allocateIpAddress } = await import('@posta/core');
       const ipAddressId = await allocateIpAddress(db, config.posta.use_ip_pools, serverId, 'outgoing', address);
-      await createQueuedMessage(db, { serverId, messageId: msgId, priority: 0, ipAddressId });
+      await createQueuedMessage(db, { serverId, messageId: msgId, domainId, priority: 0, ipAddressId });
 
       results[address] = { id: msgId, token };
     }

@@ -29,3 +29,7 @@ Additionally, `HEALTH_SERVER_PORT` and `HEALTH_SERVER_BIND_ADDRESS`  can be used
 ## Legacy configuration
 
 Legacy configuration files from Posta v1 and v2 are still supported. If you wish to use a new configuration option that is not available in the legacy format, you will need to upgrade the file to version 2.
+
+## AWS SES delivery
+
+Outbound mail uses AWS SES by default, with one chosen region per domain. Incoming mail is received either through SES (S3 and SNS/SQS, no public port 25) or by Posta’s own SMTP server, per domain; both follow the same routes. See [AWS setup](aws-ses.md) for CloudFormation templates, region selection, delivery events, existing-domain conversion and rollback to SMTP.

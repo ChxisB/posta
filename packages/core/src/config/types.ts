@@ -4,6 +4,8 @@
  */
 export interface PostaConfig {
   posta: {
+    delivery_provider?: 'ses' | 'smtp';
+    inbound_provider?: 'ses' | 'smtp';
     web_hostname: string;
     web_protocol: string;
     smtp_hostname: string;
@@ -125,9 +127,22 @@ export interface PostaConfig {
     open_timeout: number;
     read_timeout: number;
   };
+
+  aws?: {
+    region: string;
+    regions: string[];
+    configuration_set: string;
+    sns_topic_arns: string[];
+    sqs_queue_url?: string;
+    max_send_rate: number;
+    mail_from_subdomain: string;
+    inbound_buckets: Record<string, string>;
+    inbound_prefix: string;
+  };
 }
 
 export interface RawConfig {
+  aws?: Record<string, unknown>;
   version?: number;
   posta?: Record<string, unknown>;
   web_server?: Record<string, unknown>;

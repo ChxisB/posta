@@ -6,6 +6,7 @@ import { checkWithRspamd, scanWithClamav, checkWithSpamAssassin } from '@posta/c
 import type { MessageDatabase } from '@posta/message-db';
 import { MessageStore, SuppressionStore } from '@posta/message-db';
 import { BounceProcessor } from '../bounce';
+import { findSendingDomain, getSesService, type SesService } from '@posta/aws';
 
 const MAX_ATTEMPTS = 18;
 const BATCH_SIZE = 5;
@@ -13,7 +14,7 @@ const BATCH_SIZE = 5;
 /**
  * ProcessQueuedMessages job.
  */
-export async function processQueuedMessagesJob(config: PostaConfig): Promise<boolean> {
+export async function processQueuedMessagesJob(config: PostaConfig, options: { ses?: SesService } = {}): Promise<boolean> {
   const mainDb = getMainDb(config);
   const locker = `worker-${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   const now = Date.now();
@@ -29,6 +30,7 @@ export async function processQueuedMessagesJob(config: PostaConfig): Promise<boo
         AND (retry_after IS NULL OR retry_after <= NOW())
       ORDER BY priority DESC, created_at ASC
       LIMIT $3
+      FOR UPDATE SKIP LOCKED
     )
   `, [locker, lockTime, BATCH_SIZE]);
 
@@ -40,7 +42,7 @@ export async function processQueuedMessagesJob(config: PostaConfig): Promise<boo
   if (messages.length === 0) return false;
 
   await Promise.allSettled(
-    messages.map((msg) => processMessage(config, msg, locker)),
+    messages.map((msg) => processMessage(config, msg, locker, options.ses)),
   );
 
   return true;
@@ -50,6 +52,7 @@ async function processMessage(
   config: PostaConfig,
   queuedMessage: any,
   locker: string,
+  ses?: SesService,
 ): Promise<void> {
   const mainDb = getMainDb(config);
   const startTime = Date.now();
@@ -75,8 +78,8 @@ async function processMessage(
 
     const message = rows[0];
 
-    if (message.scope === 'outgoing') {
-      await processOutgoing(config, msgDb, store, queuedMessage, message, locker, attemptNum, startTime);
+    if (message.scope === 'outgoing' || message.scope === 'bounce') {
+      await processOutgoing(config, msgDb, store, queuedMessage, message, locker, attemptNum, startTime, ses);
     } else {
       await processIncoming(config, msgDb, store, queuedMessage, message, locker, attemptNum, startTime);
     }
@@ -87,7 +90,7 @@ async function processMessage(
 }
 
 /**
- * Process outgoing message — enrich with Received/DKIM headers, then deliver via SMTP.
+ * Process outgoing messages through SES, or the configured legacy SMTP transport.
  */
 async function processOutgoing(
   config: PostaConfig,
@@ -98,6 +101,7 @@ async function processOutgoing(
   locker: string,
   attemptNum: number,
   startTime: number,
+  ses = getSesService(config),
 ): Promise<void> {
   const mainDb = getMainDb(config);
 
@@ -109,12 +113,19 @@ async function processOutgoing(
 
   // ── Check domain exists ──────────────────────────────
   if (message.domain_id) {
-    const domain = await mainDb.get(`SELECT id FROM domains WHERE id = $1`, [message.domain_id]) as any;
+    const domain = await mainDb.get(`SELECT id FROM domains WHERE id = $1 AND server_id = $2`, [message.domain_id, queuedMessage.server_id]) as any;
     if (!domain) {
       await insertDelivery(msgDb, message.id, 'HardFail', "Message's domain no longer exists");
       await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queuedMessage.id]);
       return;
     }
+  }
+
+  // A recorded SES acceptance must not be submitted again after a transport rollback.
+  if (config.posta.delivery_provider === 'smtp' && await mainDb.get(
+    `SELECT 1 FROM ses_messages WHERE server_id = $1 AND message_id = $2`, [queuedMessage.server_id, message.id])) {
+    await mainDb.run(`DELETE FROM queued_messages WHERE id = $1 AND locked_by = $2`, [queuedMessage.id, locker]);
+    return;
   }
 
   // ── Add tag from X-Posta-Tag header ─────────────────
@@ -254,6 +265,11 @@ async function processOutgoing(
       return;
     }
 
+    if (config.posta.delivery_provider === 'ses') {
+      await deliverViaSes(config, msgDb, mainDb, queuedMessage, message, rawMessage, ses, locker, attemptNum, startTime);
+      return;
+    }
+
     // ── Resolve source IP from IP pool ──────────────────
     let sourceIp = '127.0.0.1';
     if (queuedMessage.ip_address_id) {
@@ -342,6 +358,42 @@ async function processOutgoing(
     console.error(`[worker] outgoing delivery error for msg ${message.id}:`, err.message);
     await handleRetry(mainDb, queuedMessage, FailureReason.Timeout,
       err.message, attemptNum, startTime, locker);
+  }
+}
+
+/** SES acceptance is stored before queue removal; a retry reuses that receipt. */
+async function deliverViaSes(config: PostaConfig, msgDb: MessageDatabase, mainDb: ReturnType<typeof getMainDb>,
+  queued: any, message: any, raw: string, ses: SesService, locker: string, attempt: number, started: number): Promise<void> {
+  const headerFrom = raw.split(/\r?\n\r?\n/, 1)[0].match(/^From:\s*(.+)$/im)?.[1] ?? '';
+  const domain = await findSendingDomain(mainDb, queued.server_id, headerFrom);
+  if (!domain?.ses_region || !domain.verified_at || (message.domain_id && message.domain_id !== domain.id)) {
+    await insertDelivery(msgDb, message.id, 'Held', 'Provision and verify this sender domain in SES before sending.');
+    await mainDb.run(`DELETE FROM queued_messages WHERE id = $1`, [queued.id]);
+    return;
+  }
+  try {
+    let receipt = await mainDb.get<{ region: string; provider_message_id: string }>(
+      `SELECT region, provider_message_id FROM ses_messages WHERE server_id = $1 AND message_id = $2 ORDER BY accepted_at DESC LIMIT 1`,
+      [queued.server_id, message.id]);
+    if (!receipt) {
+      const sent = await ses.sendRaw({ domain, raw, recipient: message.rcpt_to, serverId: queued.server_id, messageId: message.id }, mainDb);
+      receipt = { region: sent.region, provider_message_id: sent.messageId };
+      await mainDb.run(`INSERT INTO ses_messages (region, provider_message_id, server_id, message_id) VALUES ($1, $2, $3, $4)
+        ON CONFLICT(region, provider_message_id) DO NOTHING`, [sent.region, sent.messageId, queued.server_id, message.id]);
+    }
+    // Do not overwrite a bounce/complaint event that raced the acceptance record.
+    await msgDb.run(`UPDATE messages SET status = CASE WHEN status IN ('HardFail', 'Bounced') THEN status ELSE 'Sent' END,
+      last_delivery_attempt = $1 WHERE id = $2`, [Date.now() / 1000, message.id]);
+    await msgDb.insert('deliveries', { message_id: message.id, status: 'Sent',
+      details: `Accepted by AWS SES in ${receipt.region} (${receipt.provider_message_id})`,
+      timestamp: Date.now() / 1000, time: (Date.now() - started) / 1000 });
+    await mainDb.run(`DELETE FROM queued_messages WHERE id = $1 AND locked_by = $2`, [queued.id, locker]);
+  } catch (error: any) {
+    const permanent = ['BadRequestException', 'MessageRejected', 'MailFromDomainNotVerifiedException', 'NotFoundException'].includes(error.name);
+    await insertDelivery(msgDb, message.id, permanent ? 'HardFail' : 'SoftFail', `SES: ${error.message}`);
+    // SES request failures say nothing about recipient validity; only bounce events suppress.
+    if (permanent) await recordFinalFailure(mainDb, queued, FailureReason.HardFail, error.message, attempt, started);
+    else await handleRetry(mainDb, queued, FailureReason.SoftFail, error.message, attempt, started, locker);
   }
 }
 
@@ -745,6 +797,7 @@ async function insertDelivery(
     timestamp: Date.now() / 1000,
     time: durationMs != null ? Math.floor(durationMs / 1000) : undefined,
   });
+  await msgDb.update('messages', { status }, { where: { id: messageId } });
 }
 
 // ─── Incoming Helper: Increment live stats ─────────────────
@@ -784,10 +837,16 @@ async function inspectMessage(
 
   console.log(`[worker] inspecting message ${message.id}`);
 
-  let spamScore = 0;
+  // Mail received through SES arrives with SES's own verdicts already recorded; they are
+  // weighed with the local inspectors' rather than overwritten by them.
+  const [sesVerdict] = await msgDb.query<{ score: number | string }>(
+    `SELECT COALESCE(SUM(score), 0) AS score FROM spam_checks WHERE message_id = $1 AND code = 'SES_SPAM_VERDICT'`,
+    [message.id],
+  );
+  let spamScore = Number(sesVerdict?.score ?? 0);
   let isSpam = false;
-  let isThreat = false;
-  let threatDetails: string | null = null;
+  let isThreat = !!message.threat;
+  let threatDetails: string | null = message.threat_details ?? null;
 
   // Load the raw message for inspection
   let rawMessage: string;

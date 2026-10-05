@@ -32,7 +32,7 @@ async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> 
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.error ?? body.message ?? 'API error', body.error);
+    throw new ApiError(res.status, body.message ?? body.error ?? 'API error', body.error);
   }
   return res.json();
 }
@@ -211,6 +211,8 @@ export async function checkDomainDns(orgPermalink: string, serverId: string, dom
     dkim_status: string;
     mx_status: string;
     return_path_status: string;
+    verified: boolean;
+    records?: Array<{ type: string; name: string; value: string; priority?: number; purpose: string; status?: string }>;
   }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}/check`, { method: 'POST' });
 }
 
@@ -397,6 +399,9 @@ export async function getDomainSetup(orgPermalink: string, serverId: string, dom
     mx: string;
     return_path: string;
     verification_token?: string;
+    region?: string;
+    inbound_region?: string | null;
+    records?: Array<{ type: string; name: string; value: string; priority?: number; purpose: string; status?: string }>;
   }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}/dns`);
 }
 
@@ -654,4 +659,20 @@ export async function sendTestMessage(
     `/org/${orgPermalink}/servers/${serverId}/messages`,
     { method: 'POST', body: JSON.stringify({ to, from }) },
   );
+}
+
+export async function getSesRegions(orgPermalink: string) {
+  return fetchApi<{
+    provider: string;
+    default_region: string | null;
+    inbound_provider: string;
+    inbound_regions: string[];
+    regions: Array<{ region: string; available: boolean; sandbox?: boolean; message?: string }>;
+  }>(`/org/${orgPermalink}/ses/regions`);
+}
+
+export async function provisionDomain(orgPermalink: string, serverId: string, domainId: string, region: string, inboundRegion?: string) {
+  return fetchApi<{ domain: any }>(`/org/${orgPermalink}/servers/${serverId}/domains/${domainId}/provision`, {
+    method: 'POST', body: JSON.stringify({ region, ...(inboundRegion ? { inbound_region: inboundRegion } : {}) }),
+  });
 }

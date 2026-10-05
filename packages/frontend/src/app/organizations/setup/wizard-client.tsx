@@ -35,6 +35,9 @@ export interface WizardState {
   serverName: string;
   domainId: number | null;
   domainName: string;
+  domainRegion?: string;
+  /** The region SES receives the domain's mail in; empty when Posta's SMTP server does. */
+  domainInboundRegion?: string;
   credentialId: number | null;
   credentialName: string;
   credentialType: string;

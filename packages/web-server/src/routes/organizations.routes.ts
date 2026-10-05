@@ -66,10 +66,10 @@ export const organizationRoutes = new Elysia({ prefix: '/organizations' })
     const { name, permalink } = c.body;
     const uuid = crypto.randomUUID().replace(/-/g, '');
     const result = await db.run(`
-      INSERT INTO organizations (name, permalink, uuid, created_at, updated_at)
-      VALUES ($1, $2, $3, NOW(), NOW())
+      INSERT INTO organizations (name, permalink, uuid, owner_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
       RETURNING id
-    `, [name, permalink, uuid]);
+    `, [name, permalink, uuid, c.user?.id ?? null]);
     c.set.status = 201;
     return { organization: { id: Number(result.lastInsertRowid), uuid, name, permalink } };
   }, {

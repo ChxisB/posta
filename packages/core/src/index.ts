@@ -17,6 +17,7 @@ export * from './types/index';
 // Phase 2 additions
 export { DnsResolver } from './dns/index';
 export { stripNameFromAddress } from './helpers';
+export { findInboundRoute, parseMessageSummary, type InboundRoute } from './inbound';
 export { allocateIpAddress } from './ip_pools';
 export { QueryString } from './query_string';
 export { HttpClient, BlockedDestinationError } from './http/index';

@@ -2,7 +2,7 @@ import { type Socket } from 'bun';
 import { readFileSync, existsSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
 import type { PostaConfig } from '@posta/core';
-import { getMainDb } from '@posta/core';
+import { findInboundRoute, getMainDb } from '@posta/core';
 import {
   SmtpStateMachine,
   type ReceivedMessage,
@@ -364,7 +364,7 @@ export class SmtpServer {
         return;
       }
 
-      const route = await this.findRoute(rcptTo);
+      const route = await findInboundRoute(getMainDb(this.config), rcptTo);
       if (route) {
         recipient.type = 'route';
         recipient.metadata = { serverId: route.server_id, domainId: route.domain_id, routeId: route.id };
@@ -403,30 +403,6 @@ export class SmtpServer {
       [serverId],
     );
     return Boolean(server?.suspended_at || server?.org_suspended_at);
-  }
-
-  /**
-   * The route that takes mail for this address: one named for its local part
-   * (ignoring any +tag), else the domain's catch-all.
-   */
-  private async findRoute(address: string): Promise<{ id: number; server_id: number; domain_id: number } | null> {
-    const at = address.lastIndexOf('@');
-    const name = address.slice(0, at).split('+')[0].toLowerCase();
-    const domain = address.slice(at + 1).toLowerCase();
-
-    const route = await getMainDb(this.config).get<{ id: number; server_id: number; domain_id: number }>(
-      `SELECT r.id, r.server_id, r.domain_id
-       FROM routes r
-       JOIN domains d ON d.id = r.domain_id
-       WHERE lower(d.name) = $1
-         AND d.verified_at IS NOT NULL
-         AND d.incoming = 1
-         AND (lower(r.name) = $2 OR r.name = '*')
-       ORDER BY (r.name = '*')
-       LIMIT 1`,
-      [domain, name],
-    );
-    return route ?? null;
   }
 
   /** The SMTP-IP credential covering this address, the most specific first. */

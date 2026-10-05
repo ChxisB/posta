@@ -1,6 +1,6 @@
 # Posta
 
-**Transactional email you run yourself.** Posta is a self-hosted mail delivery platform: an SMTP server, an HTTP send API, a delivery worker and a dashboard, written in TypeScript on Bun and PostgreSQL.
+**Transactional email you run yourself.** Posta is a self-hosted mail delivery platform: an SMTP server, an HTTP send API, an AWS SES delivery worker and a dashboard, written in TypeScript on Bun and PostgreSQL. Each domain can send from its own AWS region, and receive through SES in the same or another region, or on Posta’s own SMTP server.
 
 It's free and MIT-licensed. No message caps, no licence key, no phone-home.
 
@@ -44,8 +44,8 @@ The setup wizard creates an organisation, a mail server, a domain and its DNS re
 
 - **Sending.** An SMTP server and an HTTP API, with separate credentials for every mail server.
 - **Receiving.** Routes hand mail for your domains to an HTTP endpoint or forward it over SMTP. Spam scoring comes from Rspamd or SpamAssassin, and ClamAV scans attachments.
-- **Deliverability.** Posta generates the SPF, DKIM and MX records for each domain and checks DNS until they resolve. Outgoing mail is DKIM-signed, and hard bounces go on a suppression list.
-- **Control.** IP pools, with rules that choose a pool by sender or recipient. Send limits for each server, so one noisy app can't damage the others' reputation.
+- **Deliverability.** AWS SES signs and delivers outgoing mail. Posta provisions each domain in its chosen region and shows its DKIM, SPF, return-path and inbound MX records. SES can also receive a domain’s mail: it stores each message in S3 and Posta ingests it into the same routes as SMTP. SNS/SQS delivery events update message history; hard bounces and complaints go on the originating server’s suppression list.
+- **Control.** Choose an AWS region per domain. Region quotas and send rates are independent; Posta coordinates rate limits across workers and retries temporary failures. Legacy direct SMTP delivery and IP pools remain available with `POSTA_DELIVERY_PROVIDER=smtp`.
 - **Visibility.** A delivery history with the remote server's response to each attempt. Held messages can be released and failed ones retried. Signed webhooks fire for `MessageSent`, `MessageDelayed`, `MessageDeliveryFailed` and `MessageHeld`.
 - **Tracking.** Optional open and click tracking, served from a tracking domain of your own.
 
@@ -53,14 +53,14 @@ The [changelog](CHANGELOG.md) has the full list.
 
 ## Quick start
 
-You need Bun 1.3 or newer, PostgreSQL 16 (the Compose file runs one) and a free [Clerk](https://dashboard.clerk.com) application for signing in to the dashboard.
+You need Bun 1.3 or newer, PostgreSQL 16 (the Compose file runs one), an AWS account with SES access, and a free [Clerk](https://dashboard.clerk.com) application for signing in to the dashboard. Follow [AWS setup](doc/config/aws-ses.md) to provision SES, SNS and SQS in your chosen regions, then fill in the AWS values in `.env`.
 
 ```sh
 git clone https://github.com/ChxisB/posta.git
 cd posta
 bun install
 docker compose up -d postgres
-cp .env.example .env     # then set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY
+cp .env.example .env     # then set Clerk keys and the AWS values from the setup guide
 bun run start            # the API on 5001, SMTP on 2525 and the delivery worker
 bun run start:frontend   # the dashboard on http://localhost:3000
 ```
@@ -130,15 +130,15 @@ await transporter.sendMail({
 
 ```
 your app ── HTTP ──▶ API ────┐
-         ── SMTP ──▶ SMTP ───┴─▶ PostgreSQL ── LISTEN/NOTIFY ──▶ worker ──▶ recipient's mail server
+         ── SMTP ──▶ SMTP ───┴─▶ PostgreSQL ── LISTEN/NOTIFY ──▶ worker ──▶ AWS SES ──▶ recipient
                                                                    └──────▶ your webhooks
 ```
 
-The API and the SMTP server store each message and queue it in PostgreSQL. The worker picks it up as soon as it's queued, delivers it, records the outcome and calls your webhooks. Each mail server keeps its messages in a PostgreSQL schema of its own.
+The API and the SMTP server store each message and queue it in PostgreSQL. The worker picks it up as soon as it's queued and sends it through the sender domain’s SES region. SES events arrive through SNS/SQS, update delivery history and trigger webhooks. Incoming messages arrive over SMTP or, for domains received by SES, through S3 and SNS/SQS, and follow the same routes either way. Each mail server keeps its messages in a PostgreSQL schema of its own.
 
 ## Configuration
 
-Posta reads its settings from environment variables or a YAML file. See [the configuration guide](doc/config/configuration.md) and the [full list of environment variables](doc/config/environment-variables.md).
+Posta reads its settings from environment variables or a YAML file. See [AWS SES and multi-region setup](doc/config/aws-ses.md), [the configuration guide](doc/config/configuration.md) and the [full list of environment variables](doc/config/environment-variables.md).
 
 ## Contributing
 

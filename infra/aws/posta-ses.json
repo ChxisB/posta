@@ -1,0 +1,461 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Posta SES delivery events, shared SQS queue and inbound mail. Deploy once in the queue region.",
+  "Parameters": {
+    "ConfigurationSetName": {
+      "Type": "String",
+      "Default": "posta"
+    },
+    "TopicName": {
+      "Type": "String",
+      "Default": "posta-events"
+    },
+    "EnableInbound": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Receive mail for Posta domains in this region. Set to false in regions SES cannot receive in (ap-south-2, ap-southeast-5, ca-west-1, eu-central-2, me-central-1, GovCloud)."
+    },
+    "InboundBucketName": {
+      "Type": "String",
+      "Default": "",
+      "Description": "Bucket that holds received mail until Posta ingests it. Leave empty for posta-inbound-<account>-<region>."
+    },
+    "InboundPrefix": {
+      "Type": "String",
+      "Default": "inbound/",
+      "AllowedPattern": "[A-Za-z0-9._-]+/",
+      "Description": "Key prefix SES writes under. Must match aws.inbound_prefix (SES_INBOUND_PREFIX) in Posta."
+    },
+    "InboundRetentionDays": {
+      "Type": "Number",
+      "Default": 7,
+      "MinValue": 1,
+      "Description": "Days before an object is expired. Posta deletes mail once ingested; this only clears what was never picked up."
+    },
+    "ReceiptRuleSetName": {
+      "Type": "String",
+      "Default": "posta-inbound",
+      "Description": "Receipt rule set that holds the Posta rule."
+    },
+    "CreateReceiptRuleSet": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Set to false to add the Posta rule to a rule set that already exists (for example the one that is already active in this region)."
+    }
+  },
+  "Conditions": {
+    "InboundEnabled": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableInbound"
+        },
+        "true"
+      ]
+    },
+    "HasBucketName": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "InboundBucketName"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "CreateRuleSet": {
+      "Fn::And": [
+        {
+          "Condition": "InboundEnabled"
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "CreateReceiptRuleSet"
+            },
+            "true"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "EventsTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Ref": "TopicName"
+        }
+      }
+    },
+    "TopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "Topics": [
+          {
+            "Ref": "EventsTopic"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ses.amazonaws.com"
+              },
+              "Action": "sns:Publish",
+              "Resource": {
+                "Ref": "EventsTopic"
+              },
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ConfigurationSet": {
+      "Type": "AWS::SES::ConfigurationSet",
+      "Properties": {
+        "Name": {
+          "Ref": "ConfigurationSetName"
+        }
+      }
+    },
+    "EventDestination": {
+      "Type": "AWS::SES::ConfigurationSetEventDestination",
+      "DependsOn": "TopicPolicy",
+      "Properties": {
+        "ConfigurationSetName": {
+          "Ref": "ConfigurationSet"
+        },
+        "EventDestination": {
+          "Name": "posta-events",
+          "Enabled": true,
+          "MatchingEventTypes": [
+            "SEND",
+            "DELIVERY",
+            "DELIVERY_DELAY",
+            "BOUNCE",
+            "COMPLAINT",
+            "REJECT",
+            "RENDERING_FAILURE"
+          ],
+          "SnsDestination": {
+            "TopicARN": {
+              "Ref": "EventsTopic"
+            }
+          }
+        }
+      }
+    },
+    "EventsQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "posta-events",
+        "MessageRetentionPeriod": 1209600,
+        "VisibilityTimeout": 60,
+        "ReceiveMessageWaitTimeSeconds": 20
+      }
+    },
+    "QueuePolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "Queues": [
+          {
+            "Ref": "EventsQueue"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com"
+              },
+              "Action": "sqs:SendMessage",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "EventsQueue",
+                  "Arn"
+                ]
+              },
+              "Condition": {
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:sns:*:${AWS::AccountId}:${TopicName}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "QueueSubscription": {
+      "Type": "AWS::SNS::Subscription",
+      "DependsOn": "QueuePolicy",
+      "Properties": {
+        "TopicArn": {
+          "Ref": "EventsTopic"
+        },
+        "Protocol": "sqs",
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "EventsQueue",
+            "Arn"
+          ]
+        },
+        "RawMessageDelivery": false
+      }
+    },
+    "InboundBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Condition": "InboundEnabled",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Fn::If": [
+            "HasBucketName",
+            {
+              "Ref": "InboundBucketName"
+            },
+            {
+              "Fn::Sub": "posta-inbound-${AWS::AccountId}-${AWS::Region}"
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "expire-received-mail",
+              "Status": "Enabled",
+              "Prefix": {
+                "Ref": "InboundPrefix"
+              },
+              "ExpirationInDays": {
+                "Ref": "InboundRetentionDays"
+              },
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "InboundBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Condition": "InboundEnabled",
+      "Properties": {
+        "Bucket": {
+          "Ref": "InboundBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowSesToStoreReceivedMail",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ses.amazonaws.com"
+              },
+              "Action": "s3:PutObject",
+              "Resource": {
+                "Fn::Sub": [
+                  "${Bucket}/${InboundPrefix}*",
+                  {
+                    "Bucket": {
+                      "Fn::GetAtt": [
+                        "InboundBucket",
+                        "Arn"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "StringLike": {
+                  "AWS:SourceArn": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:receipt-rule-set/${ReceiptRuleSetName}:receipt-rule/*"
+                  }
+                }
+              }
+            },
+            {
+              "Sid": "RequireTls",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "InboundBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${Bucket}/*",
+                    {
+                      "Bucket": {
+                        "Fn::GetAtt": [
+                          "InboundBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "InboundRuleSet": {
+      "Type": "AWS::SES::ReceiptRuleSet",
+      "Condition": "CreateRuleSet",
+      "Properties": {
+        "RuleSetName": {
+          "Ref": "ReceiptRuleSetName"
+        }
+      }
+    },
+    "InboundRule": {
+      "Type": "AWS::SES::ReceiptRule",
+      "Condition": "InboundEnabled",
+      "DependsOn": [
+        "InboundBucketPolicy",
+        "TopicPolicy"
+      ],
+      "Properties": {
+        "RuleSetName": {
+          "Fn::If": [
+            "CreateRuleSet",
+            {
+              "Ref": "InboundRuleSet"
+            },
+            {
+              "Ref": "ReceiptRuleSetName"
+            }
+          ]
+        },
+        "Rule": {
+          "Name": "posta-inbound",
+          "Enabled": true,
+          "ScanEnabled": true,
+          "TlsPolicy": "Optional",
+          "Actions": [
+            {
+              "S3Action": {
+                "BucketName": {
+                  "Ref": "InboundBucket"
+                },
+                "ObjectKeyPrefix": {
+                  "Ref": "InboundPrefix"
+                },
+                "TopicArn": {
+                  "Ref": "EventsTopic"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "TopicArn": {
+      "Value": {
+        "Ref": "EventsTopic"
+      }
+    },
+    "ConfigurationSetName": {
+      "Value": {
+        "Ref": "ConfigurationSet"
+      }
+    },
+    "Region": {
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "QueueUrl": {
+      "Value": {
+        "Ref": "EventsQueue"
+      }
+    },
+    "QueueArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "EventsQueue",
+          "Arn"
+        ]
+      }
+    },
+    "InboundBucketName": {
+      "Condition": "InboundEnabled",
+      "Value": {
+        "Ref": "InboundBucket"
+      },
+      "Description": "Posta setting: SES_INBOUND_BUCKETS=<region>=<this bucket>"
+    },
+    "InboundMxHost": {
+      "Condition": "InboundEnabled",
+      "Value": {
+        "Fn::Sub": "inbound-smtp.${AWS::Region}.amazonaws.com"
+      },
+      "Description": "MX target Posta shows for domains received in this region."
+    },
+    "ActivateRuleSetCommand": {
+      "Condition": "InboundEnabled",
+      "Value": {
+        "Fn::Sub": "aws ses set-active-receipt-rule-set --region ${AWS::Region} --rule-set-name ${ReceiptRuleSetName}"
+      },
+      "Description": "CloudFormation cannot activate a rule set. Run this once. A region has one active set, so it replaces any other."
+    }
+  }
+}

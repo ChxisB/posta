@@ -6,6 +6,7 @@ import {
   sendServerSendLimitExceededEmail,
 } from '../mailers';
 import { maintainPartitionsTask } from './maintain-partitions';
+import { checkSesDomain } from '@posta/aws';
 
 export interface ScheduledTask {
   name: string;
@@ -50,8 +51,7 @@ const checkAllDnsTask: ScheduledTask = {
     const hourAgo = new Date(Date.now() - 3600000).toISOString();
 
     const domains = await mainDb.query(
-      `SELECT id, name, spf_status, dkim_status, mx_status, return_path_status
-       FROM domains WHERE dns_checked_at IS NOT NULL AND dns_checked_at <= $1`,
+      `SELECT * FROM domains WHERE dns_checked_at IS NULL OR dns_checked_at <= $1`,
       [hourAgo],
     ) as any[];
 
@@ -62,6 +62,11 @@ const checkAllDnsTask: ScheduledTask = {
     for (const domain of domains) {
       try {
         console.log(`[worker] checking DNS for domain: ${domain.name}`);
+
+        if (domain.ses_region) {
+          await checkSesDomain(config, mainDb, domain);
+          continue;
+        }
 
         // SPF — look for v=spf1 record
         let spfStatus = 'Unknown';

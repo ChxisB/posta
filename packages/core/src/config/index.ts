@@ -28,7 +28,7 @@ export function loadConfig(configFilePath?: string): PostaConfig {
       // Merge all known sections from YAML
       for (const key of ['posta', 'web_server', 'worker', 'main_db', 'message_db',
         'logging', 'gelf', 'smtp_server', 'dns', 'smtp',
-        'rspamd', 'spamd', 'clamav', 'smtp_client']) {
+        'rspamd', 'spamd', 'clamav', 'smtp_client', 'aws']) {
         if (parsed[key]) {
           raw[key] = { ...raw[key], ...parsed[key] as Record<string, any> };
         }
@@ -50,6 +50,25 @@ export function loadConfig(configFilePath?: string): PostaConfig {
  */
 function applyEnvOverrides(raw: Record<string, any>): void {
   const env = process.env;
+
+  if (env.POSTA_DELIVERY_PROVIDER) setNested(raw, ['posta', 'delivery_provider'], env.POSTA_DELIVERY_PROVIDER);
+  if (env.POSTA_INBOUND_PROVIDER) setNested(raw, ['posta', 'inbound_provider'], env.POSTA_INBOUND_PROVIDER);
+  if (env.AWS_REGION) setNested(raw, ['aws', 'region'], env.AWS_REGION);
+  const list = (value: string) => [...new Set(value.split(',').map((v) => v.trim()).filter(Boolean))];
+  // SES_INBOUND_BUCKETS=us-east-1=posta-inbound-us,eu-west-1=posta-inbound-eu
+  if (env.SES_INBOUND_BUCKETS) {
+    setNested(raw, ['aws', 'inbound_buckets'], Object.fromEntries(list(env.SES_INBOUND_BUCKETS).map((pair) => {
+      const [region, ...bucket] = pair.split('=');
+      return [region.trim(), bucket.join('=').trim()];
+    })));
+  }
+  if (env.SES_INBOUND_PREFIX !== undefined) setNested(raw, ['aws', 'inbound_prefix'], env.SES_INBOUND_PREFIX);
+  if (env.AWS_REGIONS) setNested(raw, ['aws', 'regions'], list(env.AWS_REGIONS));
+  if (env.SES_CONFIGURATION_SET) setNested(raw, ['aws', 'configuration_set'], env.SES_CONFIGURATION_SET);
+  if (env.SNS_TOPIC_ARNS) setNested(raw, ['aws', 'sns_topic_arns'], list(env.SNS_TOPIC_ARNS));
+  if (env.SQS_QUEUE_URL) setNested(raw, ['aws', 'sqs_queue_url'], env.SQS_QUEUE_URL);
+  if (env.SES_MAX_SEND_RATE) setNested(raw, ['aws', 'max_send_rate'], Number(env.SES_MAX_SEND_RATE));
+  if (env.SES_MAIL_FROM_SUBDOMAIN) setNested(raw, ['aws', 'mail_from_subdomain'], env.SES_MAIL_FROM_SUBDOMAIN);
 
   // General
   if (env.POSTA_WEB_HOSTNAME) setNested(raw, ['posta', 'web_hostname'], env.POSTA_WEB_HOSTNAME);
@@ -94,6 +113,7 @@ function applyEnvOverrides(raw: Record<string, any>): void {
   if (env.POSTA_MAX_MESSAGE_SIZE) setNested(raw, ['smtp_server', 'max_message_size'], parseInt(env.POSTA_MAX_MESSAGE_SIZE, 10));
 
   // DNS
+  if (env.POSTA_MX_RECORDS) setNested(raw, ['dns', 'mx_records'], list(env.POSTA_MX_RECORDS));
   if (env.POSTA_DKIM_IDENTIFIER) setNested(raw, ['dns', 'dkim_identifier'], env.POSTA_DKIM_IDENTIFIER);
 
   // SMTP client

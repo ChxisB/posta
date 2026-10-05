@@ -1,11 +1,11 @@
-import { loadConfig, initializeDatabase } from '@posta/core';
+import { loadConfig, initializeMainDb } from '@posta/core';
 import { SmtpServer } from './server';
 import { MessageQueuer } from './queue-message';
 
 const config = loadConfig();
 
 // Initialize database before starting the server
-await initializeDatabase(config);
+await initializeMainDb(config);
 
 const server = new SmtpServer(config);
 

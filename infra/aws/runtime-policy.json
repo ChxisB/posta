@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:GetAccount",
+        "ses:CreateEmailIdentity",
+        "ses:GetEmailIdentity",
+        "ses:PutEmailIdentityDkimSigningAttributes",
+        "ses:PutEmailIdentityMailFromAttributes"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage"
+      ],
+      "Resource": "arn:aws:sqs:*:ACCOUNT_ID:posta-events"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sns:ConfirmSubscription"
+      ],
+      "Resource": "arn:aws:sns:*:ACCOUNT_ID:posta-events"
+    },
+    {
+      "Sid": "ReadAndClearReceivedMail",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::posta-inbound-ACCOUNT_ID-*/inbound/*"
+    }
+  ]
+}
