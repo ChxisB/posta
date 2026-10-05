@@ -1,9 +1,10 @@
+import { findSendingDomain } from '@posta/aws';
 import {
   allocateIpAddress,
   createQueuedMessage,
   getMainDb,
   getServerDb,
-  stripNameFromAddress,
+  parseMessageSummary,
   type PostaConfig,
 } from '@posta/core';
 import { MessageDbProvisioner, MessageStore } from '@posta/message-db';
@@ -37,16 +38,20 @@ export class MessageQueuer {
   async queue(msg: ReceivedSmtpMessage): Promise<void> {
     const mainDb = getMainDb(this.config);
 
-    const separatorIndex = msg.rawMessage.search(/\r?\n\r?\n/);
-    const headers = separatorIndex >= 0 ? msg.rawMessage.slice(0, separatorIndex) : msg.rawMessage;
-    const messageId = headers.match(/^Message-ID:\s*(\S+)/im)?.[1] ?? `<${crypto.randomUUID()}@posta>`;
-    const subject = headers.match(/^Subject:\s*(.+)$/im)?.[1] ?? '';
-    const from = stripNameFromAddress(headers.match(/^From:\s*(.+)$/im)?.[1] ?? null);
+    const { messageId, subject, from } = parseMessageSummary(msg.rawMessage);
 
     const byServer = new Map<number, Recipient[]>();
     for (const recipient of msg.recipients) {
       const serverId = recipient.metadata.serverId as number;
       byServer.set(serverId, [...(byServer.get(serverId) ?? []), recipient]);
+    }
+
+    if (this.config.posta.delivery_provider === 'ses') {
+      for (const [serverId, recipients] of byServer) {
+        if (!recipients.some((recipient) => recipient.type === 'credential')) continue;
+        const domain = await findSendingDomain(mainDb, serverId, from ?? '');
+        if (!domain?.ses_region || !domain.verified_at) throw new Error('Provision and verify the From domain in SES before sending');
+      }
     }
 
     // Write every row before queueing any. If a write fails the client gets a

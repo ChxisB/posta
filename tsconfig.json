@@ -20,6 +20,7 @@
   },
   "include": [],
   "references": [
+    { "path": "packages/aws" },
     { "path": "packages/core" },
     { "path": "packages/message-db" },
     { "path": "packages/smtp-client" },

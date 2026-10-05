@@ -2,6 +2,8 @@ import type { PostaConfig } from '@posta/core';
 import { getMainDb, computeRetryDelay, BackoffStrategy, FailureReason } from '@posta/core';
 import type { FailureReasonType } from '@posta/core';
 import { EventEmitter } from 'events';
+import { processSesEventsJob, startSesQueue } from './ses-events';
+import { processSesInboundJob } from './ses-inbound';
 
 // ─── Public API ──────────────────────────────────────────
 
@@ -146,6 +148,8 @@ export async function runJobs(
   const jobs = [
     (await import('./jobs/process_queued_messages')).processQueuedMessagesJob,
     (await import('./jobs/process_webhook_requests')).processWebhookRequestsJob,
+    processSesEventsJob,
+    (config: PostaConfig) => processSesInboundJob(config),
   ];
 
   const workers = jobs.map((handler, i) => {
@@ -161,6 +165,8 @@ export async function runJobs(
     w.start();
     return w;
   });
+
+  const sesQueue = startSesQueue(config);
 
   // Wake every worker the instant something is enqueued. The trigger on
   // queued_messages raises this; see MAIN_DB_DDL.
@@ -184,12 +190,14 @@ export async function runJobs(
   // Handle graceful shutdown
   process.on('SIGTERM', async () => {
     console.log('[worker] received SIGTERM, draining...');
+    sesQueue.stop();
     await Promise.all(workers.map((w) => w.close(false)));
     process.exit(0);
   });
 
   process.on('SIGINT', async () => {
     console.log('[worker] received SIGINT, draining...');
+    sesQueue.stop();
     await Promise.all(workers.map((w) => w.close(true)));
     process.exit(0);
   });

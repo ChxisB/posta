@@ -504,4 +504,31 @@ export const ALL_MIGRATIONS: MessageDbMigration[] = [
       // No-op — PostgreSQL TEXT has no size limit
     },
   },
+  {
+    version: 21,
+    name: 'CreateSesEventReceipts',
+    up: async (db) => {
+      await db.exec(`CREATE TABLE IF NOT EXISTS ses_event_receipts (
+        topic_arn TEXT NOT NULL,
+        sns_message_id TEXT NOT NULL,
+        processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY(topic_arn, sns_message_id)
+      )`);
+    },
+  },
+  {
+    version: 22,
+    name: 'CreateSesInboundReceipts',
+    up: async (db) => {
+      await db.exec(`CREATE TABLE IF NOT EXISTS ses_inbound_receipts (
+        region TEXT NOT NULL,
+        ses_message_id TEXT NOT NULL,
+        recipient TEXT NOT NULL,
+        message_id INTEGER NOT NULL,
+        queued_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY(region, ses_message_id, recipient)
+      )`);
+    },
+  },
 ];

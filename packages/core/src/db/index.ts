@@ -66,7 +66,10 @@ export async function closeAllDatabases(): Promise<void> {
  */
 export async function initializeMainDb(config: PostaConfig): Promise<PgClient> {
   const client = getMainDb(config);
-  await client.exec(MAIN_DB_DDL);
+  await client.transaction(async (tx) => {
+    await tx.query('SELECT pg_advisory_xact_lock(482131465314)');
+    await tx.exec(MAIN_DB_DDL);
+  });
   console.log('[db] Main database initialized');
   return client;
 }

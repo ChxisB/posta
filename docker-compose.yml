@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -21,11 +19,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "5001:5001"   # HTTP API
+      - "3000:3000"   # Dashboard
       - "25:25"       # SMTP
     volumes:
       - ./config/posta:/app/config/posta:ro
@@ -34,6 +36,21 @@ services:
       - POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@postgres:5432/posta_main
       - PORT=5001
       - SMTP_PORT=25
+      - SMTP_BIND_ADDRESS=0.0.0.0
+      - POSTA_WEB_HOSTNAME=${POSTA_WEB_HOSTNAME:-localhost}
+      - POSTA_SMTP_HOSTNAME=${POSTA_SMTP_HOSTNAME:-localhost}
+      - POSTA_MX_RECORDS=${POSTA_MX_RECORDS:-}
+      - POSTA_DELIVERY_PROVIDER=${POSTA_DELIVERY_PROVIDER:-ses}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_REGIONS=${AWS_REGIONS:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - SES_CONFIGURATION_SET=${SES_CONFIGURATION_SET:-posta}
+      - SNS_TOPIC_ARNS=${SNS_TOPIC_ARNS:-}
+      - SQS_QUEUE_URL=${SQS_QUEUE_URL:-}
+      - SES_MAX_SEND_RATE=${SES_MAX_SEND_RATE:-14}
+      - SES_MAIL_FROM_SUBDOMAIN=${SES_MAIL_FROM_SUBDOMAIN:-bounce}
       - POSTA_CONFIG_FILE_PATH=/app/config/posta/posta.yml
       - POSTA_LOG_LEVEL=info
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}

@@ -4,6 +4,14 @@ Notable changes to Posta, newest first.
 
 ## Unreleased
 
+### AWS SES
+
+- Outgoing mail is delivered through AWS SES (SESv2 raw sending) instead of direct SMTP, with one chosen region per domain. Each region has an SNS topic feeding one shared SQS queue; delivery, delay, bounce, complaint and rejection events update message history, and hard bounces and complaints suppress the recipient. Set `POSTA_DELIVERY_PROVIDER=smtp` to keep the previous direct delivery.
+- Posta generates a 2048-bit DKIM key for each domain, uploads it to SES and publishes a custom MAIL FROM subdomain. Sending is paced per region against the SES quota.
+- Incoming mail can be received through SES: a domain's MX points to `inbound-smtp.<region>.amazonaws.com`, SES stores each message in an S3 bucket, and a worker ingests it through the same routes, spam handling and endpoints as mail received over SMTP. No public port 25 is needed. SES's spam and virus verdicts are kept with each message. A domain can send from one region and receive in another, which lets regions that cannot receive still send.
+- Domains in a region with no inbound bucket, and every existing domain, are still received by Posta's SMTP server. `POSTA_INBOUND_PROVIDER=smtp` turns SES receiving off for newly connected domains.
+- CloudFormation templates for the first region and for each additional region, and a least-privilege runtime IAM policy, are in `infra/aws`. SES allows one active receipt rule set per region and CloudFormation cannot activate it, so the guide gives the command; see `doc/config/aws-ses.md`.
+
 ## 0.1.0 – 2026-09-23
 
 This is Posta's first release: a self-hosted platform for sending and receiving email from your own apps, written in TypeScript on Bun and PostgreSQL. It runs from source, as the README describes. There's no container image yet; see Known issues.

@@ -58,10 +58,7 @@ class TxClient implements Queryable {
   }
 
   async exec(sql: string): Promise<void> {
-    const statements = sql
-      .split(';')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const statements = splitStatements(sql);
     for (const statement of statements) {
       await this.txSql.unsafe(statement);
     }

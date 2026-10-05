@@ -1,294 +1,215 @@
 import { Elysia, t } from 'elysia';
+import { DnsResolver, type PostaConfig, type Queryable } from '@posta/core';
+import {
+  INBOUND_SMTP, awsSettings, checkSesDomain, getSesService, inboundMxHost, inboundSettings, normalizeDomain, requireServedRegion,
+  resolveInboundRegion, sesDnsRecords, type SesDomain, type SesService,
+} from '@posta/aws';
 
-/**
- * Domain management routes.
- */
-export const domainRoutes = new Elysia({ prefix: '/org/:orgPermalink' })
+interface Dependencies { db: Queryable; config: PostaConfig; ses?: SesService; resolver?: Pick<DnsResolver, 'txt' | 'mx'> }
+const body = t.Object({ name: t.String(), region: t.Optional(t.String()), inbound_region: t.Optional(t.String()),
+  incoming: t.Optional(t.Boolean()), outgoing: t.Optional(t.Boolean()) });
+const safeDomain = (domain: any) => {
+  const { dkim_private_key, ...publicDomain } = domain;
+  return { ...publicDomain, region: domain.ses_region ?? null, inbound_region: domain.ses_inbound_region ?? null };
+};
 
-  // GET /org/:permalink/domains — List domains for org
-  .get('/domains', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const domains = await db.query(
-      `SELECT * FROM domains WHERE server_id IN (SELECT id FROM servers WHERE organization_id = (SELECT id FROM organizations WHERE permalink = $1))`,
-      [c.params.orgPermalink],
-    ) as any[];
-    c.set.status = 200;
-    return { domains };
-  }, { detail: { tags: ['Domains'], summary: 'List domains' } })
-
-  // POST /org/:permalink/domains — Create org-level domain
-  .post('/domains', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const { name, server_id } = c.body;
-
-    // Look up the organization
-    const org = await db.get(`SELECT id FROM organizations WHERE permalink = $1`, [c.params.orgPermalink]) as any;
-    if (!org) { c.set.status = 404; return { error: 'OrganizationNotFound' }; }
-
-    const uuid = crypto.randomUUID().replace(/-/g, '');
-    const verificationToken = crypto.randomUUID().replace(/-/g, '');
-    const result = await db.run(`
-      INSERT INTO domains (server_id, uuid, name, verification_token, owner_type, owner_id, dns_checked_at, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, 'Organization', $5, NOW(), NOW(), NOW())
-      RETURNING id
-    `, [server_id ?? null, uuid, name, verificationToken, org.id]);
-    c.set.status = 201;
-    return { domain: { id: Number(result.lastInsertRowid), uuid, name, owner_type: 'Organization', verification_token: verificationToken } };
-  }, {
-    body: t.Object({
-      name: t.String(),
-      server_id: t.Optional(t.Number()),
-    }),
-    detail: { tags: ['Domains'], summary: 'Create an org-level domain' },
-  })
-
-  // GET /org/:permalink/servers/:serverId/domains — List domains for a server
-  .get('/servers/:serverId/domains', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const domains = await db.query(`SELECT * FROM domains WHERE server_id = $1`, [c.params.serverId]) as any[];
-    c.set.status = 200;
-    return { domains };
-  }, { detail: { tags: ['Domains'], summary: 'List domains for a server' } })
-
-  // POST /org/:permalink/servers/:serverId/domains — Add domain
-  .post('/servers/:serverId/domains', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const { name } = c.body;
-    const uuid = crypto.randomUUID().replace(/-/g, '');
-    const verificationToken = crypto.randomUUID().replace(/-/g, '');
-    const result = await db.run(`
-      INSERT INTO domains (server_id, uuid, name, verification_token, dns_checked_at, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, NOW(), NOW(), NOW())
-      RETURNING id
-    `, [c.params.serverId, uuid, name, verificationToken]);
-    c.set.status = 201;
-    return { domain: { id: Number(result.lastInsertRowid), uuid, name, verification_token: verificationToken } };
-  }, {
-    body: t.Object({ name: t.String() }),
-    detail: { tags: ['Domains'], summary: 'Add a domain' },
-  })
-
-  // DELETE /org/:permalink/servers/:serverId/domains/:domainId
-  .delete('/servers/:serverId/domains/:domainId', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    await db.run(`DELETE FROM domains WHERE id = $1 AND server_id = $2`, [c.params.domainId, c.params.serverId]);
-    c.set.status = 200;
-    return { deleted: true };
-  }, { detail: { tags: ['Domains'], summary: 'Delete a domain' } })
-
-  // PATCH /org/:permalink/servers/:serverId/domains/:domainId — Update domain
-  .patch('/servers/:serverId/domains/:domainId', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const fields = Object.entries(c.body as Record<string, any>).filter(([_, v]) => v !== undefined);
-    if (fields.length === 0) { c.set.status = 200; return { domain: {} }; }
-    const values: any[] = fields.map(([_, v]) => v);
-    values.push(c.params.domainId);
-    const setClauses = fields.map(([k], i) => `${k} = $${i + 1}`);
-    await db.run(`UPDATE domains SET ${setClauses.join(', ')}, updated_at = NOW() WHERE id = $${values.length}`, values);
-    c.set.status = 200;
-    return { domain: { id: parseInt(c.params.domainId), ...c.body } };
-  }, {
-    body: t.Object({ name: t.Optional(t.String()) }),
-    detail: { tags: ['Domains'], summary: 'Update a domain' },
-  })
-
-  // GET /org/:permalink/servers/:serverId/domains/:domainId
-  .get('/servers/:serverId/domains/:domainId', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const domain = await db.get(`SELECT * FROM domains WHERE id = $1 AND server_id = $2`, [
-      c.params.domainId,
-      c.params.serverId,
-    ]) as any;
-    if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
-    c.set.status = 200;
-    return { domain };
-  }, { detail: { tags: ['Domains'], summary: 'Get a domain' } })
-
-  // POST /org/:permalink/servers/:serverId/domains/:domainId/verify
-  .post('/servers/:serverId/domains/:domainId/verify', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    await db.run(`UPDATE domains SET verified_at = NOW() WHERE id = $1`, [c.params.domainId]);
-    c.set.status = 200;
-    return { verified: true };
-  }, { detail: { tags: ['Domains'], summary: 'Verify a domain' } })
-
-  // GET /org/:permalink/servers/:serverId/domains/:domainId/verify — Get verification status
-  .get('/servers/:serverId/domains/:domainId/verify', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const db = await getDb();
-    const domain = await db.get(
-      `SELECT id, name, uuid, verification_token, verification_method, verified_at,
-              spf_status, spf_error, dkim_status, dkim_error,
-              mx_status, mx_error, return_path_status, return_path_error
-       FROM domains WHERE id = $1 AND server_id = $2`,
-      [c.params.domainId, c.params.serverId],
-    ) as any;
-    if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
-    c.set.status = 200;
-    return {
-      domain: {
-        id: domain.id,
-        name: domain.name,
-        uuid: domain.uuid,
-        verification_token: domain.verification_token,
-        verification_method: domain.verification_method,
-        verified: !!domain.verified_at,
-        verified_at: domain.verified_at ?? null,
-        spf_status: domain.spf_status ?? null,
-        spf_error: domain.spf_error ?? null,
-        dkim_status: domain.dkim_status ?? null,
-        dkim_error: domain.dkim_error ?? null,
-        mx_status: domain.mx_status ?? null,
-        mx_error: domain.mx_error ?? null,
-        return_path_status: domain.return_path_status ?? null,
-        return_path_error: domain.return_path_error ?? null,
-      },
-    };
-  }, { detail: { tags: ['Domains'], summary: 'Get domain verification status' } })
-
-  // GET /org/:permalink/servers/:serverId/domains/:domainId/dns — DNS setup instructions
-  .get('/servers/:serverId/domains/:domainId/dns', async (c: any) => {
+export function createDomainRoutes(deps?: Dependencies) {
+  const context = async () => {
+    if (deps) return { ...deps, ses: deps.ses ?? getSesService(deps.config) };
     const { getDb, getConfig } = await import('../../index');
-    const db = await getDb();
     const config = await getConfig();
-    const domain = await db.get(`SELECT name FROM domains WHERE id = $1`, [c.params.domainId]) as any;
-    const selector = (c.query.selector as string) ?? config.dns.dkim_identifier;
-    c.set.status = 200;
-    return {
-      domain: domain?.name ?? 'unknown',
-      spf: `v=spf1 include:${config.dns.spf_include} ~all`,
-      dkim: `${selector}._domainkey`,
-      mx: config.dns.mx_records.join(', '),
-      return_path: config.dns.return_path_domain,
-      track_domain: config.dns.track_domain,
-    };
-  }, { detail: { tags: ['Domains'], summary: 'Get DNS setup instructions' } })
-
-  // POST /org/:permalink/servers/:serverId/domains/:domainId/check — Check DNS
-  .post('/servers/:serverId/domains/:domainId/check', async (c: any) => {
-    const { getDb } = await import('../../index');
-    const { DnsResolver } = await import('@posta/core');
-    const db = await getDb();
-    const domain = await db.get(`SELECT * FROM domains WHERE id = $1`, [c.params.domainId]) as any;
+    return { db: await getDb(), config, ses: getSesService(config) };
+  };
+  const domainFor = async (c: any): Promise<SesDomain | undefined> => {
+    const { db } = await context();
+    return db.get<SesDomain>(`SELECT * FROM domains WHERE id = $1 AND server_id = $2`,
+      [c.params.domainId, c.params.serverId]);
+  };
+  const check = async (c: any) => {
+    const { db, config, ses } = await context();
+    const domain = await domainFor(c);
     if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
-
-    const domainName: string = domain.name;
-    const selector = domain.dkim_identifier_string ?? 'posta';
-
-    let resolver: InstanceType<typeof DnsResolver>;
-    try {
-      resolver = await DnsResolver.forDomain(domainName);
-    } catch {
-      // Fall back to local resolver if domain-specific lookup fails
-      try {
-        resolver = DnsResolver.local();
-      } catch {
-        c.set.status = 502;
-        return { error: 'DnsResolverUnavailable', message: 'Unable to initialize DNS resolver' };
-      }
+    if (domain.ses_region) {
+      try { return await checkSesDomain(config, db, domain, ses, deps?.resolver); }
+      catch (error: any) { c.set.status = 502; return { error: 'VerificationUnavailable', message: error.message }; }
     }
-
-    // Check SPF (TXT record containing v=spf1)
-    let spfStatus = 'Missing';
-    let spfError: string | null = null;
-    try {
-      const txtRecords = await resolver.txt(domainName);
-      const spfRecord = txtRecords.find((r) => r.toLowerCase().startsWith('v=spf1'));
-      if (spfRecord) {
-        spfStatus = 'OK';
-      } else {
-        spfStatus = 'Missing';
-        spfError = 'No SPF record found';
-      }
-    } catch (err: any) {
-      spfStatus = 'Error';
-      spfError = err.message ?? 'DNS lookup failed';
-    }
-
-    // Check DKIM (TXT record at selector._domainkey.domain)
-    let dkimStatus = 'Missing';
-    let dkimError: string | null = null;
-    try {
-      const dkimHost = `${selector}._domainkey.${domainName}`;
-      const dkimRecords = await resolver.txt(dkimHost);
-      if (dkimRecords.length > 0) {
-        dkimStatus = 'OK';
-      } else {
-        dkimStatus = 'Missing';
-        dkimError = `No DKIM record found at ${dkimHost}`;
-      }
-    } catch (err: any) {
-      dkimStatus = 'Error';
-      dkimError = err.message ?? 'DNS lookup failed';
-    }
-
-    // Check MX records
+    // Legacy/inbound-only domains must actually prove control of their TXT token.
+    const row = await db.get<any>(`SELECT verification_token FROM domains WHERE id = $1`, [domain.id]);
+    const resolver = deps?.resolver ?? DnsResolver.local();
+    let verified = false;
     let mxStatus = 'Missing';
-    let mxError: string | null = null;
     try {
-      const mxRecords = await resolver.mx(domainName);
-      if (mxRecords.length > 0) {
-        mxStatus = 'OK';
-      } else {
-        mxStatus = 'Missing';
-        mxError = 'No MX records found';
-      }
-    } catch (err: any) {
-      mxStatus = 'Error';
-      mxError = err.message ?? 'DNS lookup failed';
-    }
-
-    // Check return path (TXT record at rp.posta.domain or similar)
-    let returnPathStatus = 'Missing';
-    let returnPathError: string | null = null;
+      verified = (await resolver.txt(`${config.dns.domain_verify_prefix}.${domain.name}`)).includes(row.verification_token);
+    } catch {}
     try {
-      const rpHost = `rp.posta.${domainName}`;
-      const rpRecords = await resolver.txt(rpHost);
-      if (rpRecords.length > 0) {
-        returnPathStatus = 'OK';
-      } else {
-        returnPathStatus = 'Missing';
-        returnPathError = `No return path record found at ${rpHost}`;
+      const mx = await resolver.mx(domain.name);
+      mxStatus = config.dns.mx_records.every((expected) => mx.some((r) => r.exchange.replace(/\.$/, '') === expected.replace(/\.$/, ''))) ? 'OK' : 'Missing';
+    } catch {}
+    await db.run(`UPDATE domains SET verified_at = CASE WHEN $1 THEN COALESCE(verified_at, NOW()) ELSE NULL END,
+      inbound_verified_at = CASE WHEN $1 THEN COALESCE(inbound_verified_at, NOW()) ELSE NULL END,
+      mx_status = $2, dns_checked_at = NOW() WHERE id = $3`, [verified, mxStatus, domain.id]);
+    return { verified, mx_status: mxStatus };
+  };
+  const create = async (c: any) => {
+    const { db, config, ses } = await context();
+    try {
+      const name = normalizeDomain(c.body.name);
+      const sending = c.body.outgoing !== false;
+      const region = config.posta.delivery_provider === 'ses' && sending ? requireServedRegion(config, c.body.region) : null;
+      const receiving = c.body.incoming !== false;
+      if (c.body.inbound_region && c.body.inbound_region !== INBOUND_SMTP && (!region || !receiving)) throw new Error('inbound_region needs an incoming domain that sends through SES');
+      const inboundRegion = region && receiving
+        ? resolveInboundRegion(config, { requested: c.body.inbound_region, sendingRegion: region, served: awsSettings(config).regions })
+        : null;
+      const serverId = c.params.serverId ?? c.body.server_id ?? null;
+      if (serverId && !await db.get(`SELECT id FROM servers WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL`, [serverId, c.org.id])) {
+        c.set.status = 404; return { error: 'ServerNotFound' };
       }
-    } catch (err: any) {
-      returnPathStatus = 'Error';
-      returnPathError = err.message ?? 'DNS lookup failed';
+      const domain = await db.transaction(async (tx) => {
+        await tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [`ses-domain:${name}:${region}`]);
+        const duplicate = await tx.get(`SELECT id FROM domains WHERE lower(name) = $1 AND (ses_region = $2 OR server_id = $3)`, [name, region, serverId]);
+        if (duplicate) throw new Error('This domain already exists in that server or SES region');
+        const identity = region ? await ses.provision(name, region, inboundRegion) : null;
+        return tx.get<any>(`INSERT INTO domains (server_id, uuid, name, verification_token, owner_type, owner_id,
+          ses_region, ses_inbound_region, ses_dkim_public_key, ses_dkim_selector, ses_mail_from_subdomain, incoming, outgoing, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, 'Organization', $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()) RETURNING *`,
+          [serverId, crypto.randomUUID().replace(/-/g, ''), name, crypto.randomUUID().replace(/-/g, ''), c.org.id,
+            region, inboundRegion, identity?.publicKey ?? null, identity?.selector ?? null, identity?.mailFromSubdomain ?? null,
+            c.body.incoming === false ? 0 : 1, sending ? 1 : 0]);
+      });
+      c.set.status = 201;
+      return { domain: safeDomain(domain) };
+    } catch (error: any) {
+      c.set.status = error.$metadata ? 502 : 400;
+      return { error: 'DomainCreationFailed', message: error.message };
     }
+  };
 
-    // Persist results
-    await db.run(`
-      UPDATE domains SET
-        dns_checked_at = NOW(),
-        spf_status = $1, spf_error = $2,
-        dkim_status = $3, dkim_error = $4,
-        mx_status = $5, mx_error = $6,
-        return_path_status = $7, return_path_error = $8
-      WHERE id = $9
-    `, [
-      spfStatus, spfError,
-      dkimStatus, dkimError,
-      mxStatus, mxError,
-      returnPathStatus, returnPathError,
-      c.params.domainId,
-    ]);
+  return new Elysia({ prefix: '/org/:orgPermalink' })
+    .onBeforeHandle(async (c: any) => {
+      const { db } = await context();
+      if (!c.user) { c.set.status = 401; return { error: 'Unauthorized' }; }
+      const org = await db.get<any>(`SELECT * FROM organizations WHERE permalink = $1 AND deleted_at IS NULL`, [c.params.orgPermalink]);
+      if (!org) { c.set.status = 404; return { error: 'OrganizationNotFound' }; }
+      if (!c.user.admin && org.owner_id !== c.user.id && !await db.get(`SELECT id FROM organization_users WHERE organization_id = $1 AND user_id = $2`, [org.id, c.user.id])) {
+        c.set.status = 403; return { error: 'OrganizationAccessDenied' };
+      }
+      c.org = org;
+      if (c.params.serverId && !await db.get(`SELECT id FROM servers WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL`, [c.params.serverId, org.id])) {
+        c.set.status = 404; return { error: 'ServerNotFound' };
+      }
+    })
+    .get('/ses/regions', async () => {
+      const { config, ses } = await context();
+      const settings = awsSettings(config);
+      const regions = config.posta.delivery_provider === 'ses' ? settings.regions : [];
+      const inbound = inboundSettings(config);
+      return { provider: config.posta.delivery_provider, default_region: regions[0] ?? null,
+        inbound_provider: inbound.provider,
+        // Only regions with an inbound bucket can receive mail; the rest fall back to Posta's SMTP MX.
+        inbound_regions: inbound.provider === 'ses' ? regions.filter((region) => inbound.buckets[region]) : [],
+        regions: await Promise.all(regions.map(async (region) => {
+          try {
+            const account = await ses.account(region);
+            return { region, available: true, sandbox: !account.ProductionAccessEnabled,
+              sending_enabled: account.SendingEnabled, quota: account.SendQuota };
+          } catch (error: any) { return { region, available: false, message: error.message }; }
+        })) };
+    })
+    .get('/domains', async (c: any) => {
+      const { db } = await context();
+      const domains = await db.query(`SELECT * FROM domains WHERE (owner_type = 'Organization' AND owner_id = $1)
+        OR server_id IN (SELECT id FROM servers WHERE organization_id = $1)`, [c.org.id]);
+      return { domains: domains.map(safeDomain) };
+    })
+    .post('/domains', create, { body: t.Object({ ...body.properties, server_id: t.Optional(t.Number()) }) })
+    .get('/servers/:serverId/domains', async (c: any) => {
+      const { db } = await context();
+      return { domains: (await db.query(`SELECT * FROM domains WHERE server_id = $1`, [c.params.serverId])).map(safeDomain) };
+    })
+    .post('/servers/:serverId/domains', create, { body })
+    .get('/servers/:serverId/domains/:domainId', async (c: any) => {
+      const domain = await domainFor(c);
+      if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
+      return { domain: safeDomain(domain) };
+    })
+    .patch('/servers/:serverId/domains/:domainId', async (c: any) => {
+      const { db } = await context();
+      const domain = await domainFor(c);
+      if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
+      let name: string;
+      try { name = c.body.name ? normalizeDomain(c.body.name) : domain.name; }
+      catch (error: any) { c.set.status = 400; return { error: 'InvalidDomain', message: error.message }; }
+      if ((domain.ses_region && c.body.name && name !== domain.name)
+        || (c.body.region && c.body.region !== domain.ses_region)) {
+        c.set.status = 409; return { error: 'IdentityImmutable', message: 'A domain keeps its SES region. Add a new domain to use a different region.' };
+      }
+      const updated = await db.get(`UPDATE domains SET incoming = $2, outgoing = $3,
+        verified_at = CASE WHEN name <> $1 THEN NULL ELSE verified_at END,
+        inbound_verified_at = CASE WHEN name <> $1 THEN NULL ELSE inbound_verified_at END,
+        name = $1, updated_at = NOW()
+        WHERE id = $4 AND server_id = $5 RETURNING *`,
+        [name, c.body.incoming === undefined ? domain.incoming : Number(c.body.incoming),
+          c.body.outgoing === undefined ? domain.outgoing : Number(c.body.outgoing), domain.id, c.params.serverId]);
+      return { domain: safeDomain(updated) };
+    }, { body: t.Partial(body) })
+    .delete('/servers/:serverId/domains/:domainId', async (c: any) => {
+      const { db } = await context();
+      const domain = await domainFor(c);
+      if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
+      // Leave AWS identity removal to the operator; historical events still resolve.
+      await db.run(`DELETE FROM domains WHERE id = $1 AND server_id = $2`, [domain.id, c.params.serverId]);
+      return { deleted: true };
+    })
+    .post('/servers/:serverId/domains/:domainId/provision', async (c: any) => {
+      const { db, config, ses } = await context();
+      if (config.posta.delivery_provider !== 'ses') { c.set.status = 409; return { error: 'SesDisabled' }; }
+      try {
+        const selected = requireServedRegion(config, c.body.region);
+        const domain = await db.transaction(async (tx) => {
+          const domain = await tx.get<SesDomain>(`SELECT * FROM domains WHERE id = $1 AND server_id = $2 FOR UPDATE`, [c.params.domainId, c.params.serverId]);
+          if (!domain) throw new Error('Domain not found');
+          if (domain.ses_region) {
+            if (domain.ses_region !== selected) throw new Error('This domain is already assigned to another SES region');
+            return domain;
+          }
+          await tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [`ses-domain:${domain.name}:${selected}`]);
+          if (await tx.get(`SELECT id FROM domains WHERE lower(name) = $1 AND ses_region = $2 AND id <> $3`, [domain.name, selected, domain.id])) throw new Error('This domain already exists in that SES region');
+          if (c.body.inbound_region && c.body.inbound_region !== INBOUND_SMTP && domain.incoming === 0) throw new Error('inbound_region needs a domain that receives mail');
+          const inboundRegion = domain.incoming === 0 ? null
+            : resolveInboundRegion(config, { requested: c.body.inbound_region, sendingRegion: selected, served: awsSettings(config).regions });
+          const identity = await ses.provision(domain.name, selected, inboundRegion);
+          return tx.get(`UPDATE domains SET ses_region = $1, ses_inbound_region = $2, ses_dkim_public_key = $3, ses_dkim_selector = $4,
+            ses_mail_from_subdomain = $5, verified_at = NULL, dkim_status = NULL, spf_status = NULL,
+            return_path_status = NULL, dns_checked_at = NULL, updated_at = NOW() WHERE id = $6 RETURNING *`,
+            [selected, inboundRegion, identity.publicKey, identity.selector, identity.mailFromSubdomain, domain.id]);
+        });
+        return { domain: safeDomain(domain) };
+      } catch (error: any) { c.set.status = error.$metadata ? 502 : 400; return { error: 'ProvisionFailed', message: error.message }; }
+    }, { body: t.Object({ region: t.Optional(t.String()), inbound_region: t.Optional(t.String()) }) })
+    .post('/servers/:serverId/domains/:domainId/verify', check)
+    .post('/servers/:serverId/domains/:domainId/check', check)
+    .get('/servers/:serverId/domains/:domainId/verify', async (c: any) => {
+      const domain = await domainFor(c);
+      if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
+      return { domain: { ...safeDomain(domain), verified: !!domain.verified_at } };
+    })
+    .get('/servers/:serverId/domains/:domainId/dns', async (c: any) => {
+      const { config } = await context();
+      const domain = await domainFor(c);
+      if (!domain) { c.set.status = 404; return { error: 'DomainNotFound' }; }
+      if (domain.ses_region) return { domain: domain.name, region: domain.ses_region, inbound_region: domain.ses_inbound_region ?? null,
+        records: sesDnsRecords(config, domain), spf: 'v=spf1 include:amazonses.com ~all',
+        dkim: `v=DKIM1; k=rsa; p=${domain.ses_dkim_public_key}`,
+        mx: domain.ses_inbound_region ? inboundMxHost(domain.ses_inbound_region) : config.dns.mx_records.join(', '),
+        return_path: `${domain.ses_mail_from_subdomain}.${domain.name}` };
+      return { domain: domain.name, records: [
+        { type: 'TXT', name: `${config.dns.domain_verify_prefix}.${domain.name}`, value: (domain as any).verification_token, purpose: 'verification' },
+        ...config.dns.mx_records.map((value, i) => ({ type: 'MX', name: domain.name, value, priority: 10 + i * 10, purpose: 'mx' })),
+      ], spf: `v=spf1 include:${config.dns.spf_include} ~all`,
+        dkim: `${config.dns.dkim_identifier}._domainkey.${domain.name}`, mx: config.dns.mx_records.join(', '),
+        return_path: config.dns.return_path_domain, verification_token: (domain as any).verification_token };
+    });
+}
 
-    c.set.status = 200;
-    return {
-      spf_status: spfStatus,
-      spf_error: spfError,
-      dkim_status: dkimStatus,
-      dkim_error: dkimError,
-      mx_status: mxStatus,
-      mx_error: mxError,
-      return_path_status: returnPathStatus,
-      return_path_error: returnPathError,
-    };
-  }, { detail: { tags: ['Domains'], summary: 'Check domain DNS records' } });
+export const domainRoutes = createDomainRoutes();

@@ -13,7 +13,9 @@
   "dependencies": {
     "@posta/core": "workspace:*",
     "@posta/message-db": "workspace:*",
-    "@posta/smtp-client": "workspace:*"
+    "@posta/smtp-client": "workspace:*",
+    "@posta/aws": "workspace:*",
+    "@aws-sdk/client-sqs": "^3.922.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

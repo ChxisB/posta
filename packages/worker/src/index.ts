@@ -30,14 +30,3 @@ runJobs(config, { threadCount: 2, sleepTime: 5 });
 
 // Start tasks thread
 runScheduledTasks(config, { sleepTime: 60 });
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('[worker] received SIGTERM, shutting down...');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('[worker] received SIGINT, shutting down...');
-  process.exit(0);
-});

@@ -18,4 +18,5 @@ export async function useTestDatabase(name: string): Promise<void> {
   process.env.POSTA_MAIN_DB_URL = `${SERVER_URL}/${dbName}`;
   process.env.POSTA_MESSAGE_DB_URL = `${SERVER_URL}/${dbName}`;
   process.env.POSTA_CONFIG_FILE_PATH = '/dev/null';
+  process.env.POSTA_DELIVERY_PROVIDER = 'smtp';
 }

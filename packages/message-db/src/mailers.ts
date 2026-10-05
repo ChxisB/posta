@@ -44,7 +44,7 @@ async function storeAndQueue(
   const msgDb = await provisioner.openServerDb(serverId, client);
   const msgStore = new MessageStore(msgDb);
 
-  const { tableName, headersId, bodyId } = await msgStore.insertRawMessage(rawMessage);
+  const { tableName, headersId, bodyId } = await msgStore.insertRawMessage(Buffer.from(rawMessage, 'utf8'));
 
   const msgId = await msgDb.insert('messages', {
     token: randomUUID(),
