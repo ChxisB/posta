@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func TestUserAgentCarriesVersion(t *testing.T) {
 	c, rec := mockServer(t, 200, anyOK)
 	_, err := c.Usage.Get()
 	require.NoError(t, err)
-	assert.Equal(t, "millionsend-go/0.8.0", rec.Header.Get("User-Agent"))
+	assert.Equal(t, "posta-go/0.8.0", rec.Header.Get("User-Agent"))
 }
 
 func TestSendFullWireBody(t *testing.T) {
@@ -290,10 +290,10 @@ func TestContactsCreatePreferencesLink(t *testing.T) {
 
 	c, _ = mockServer(t, 422, `{"statusCode":422,"name":"validation_error","message":"APP_BASE_URL and MASTER_ENCRYPTION_KEY must be set to mint preference links"}`)
 	_, err = c.Contacts.CreatePreferencesLink(ContactAddress{Id: "c1"})
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 422, mse.StatusCode)
-	assert.Equal(t, "validation_error", mse.Name)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 422, apiErr.StatusCode)
+	assert.Equal(t, "validation_error", apiErr.Name)
 }
 
 func TestContactsSegmentsAddRemove(t *testing.T) {
@@ -541,13 +541,13 @@ func TestWebhooksRotate(t *testing.T) {
 }
 
 func TestApiKeys(t *testing.T) {
-	c, rec := mockServer(t, 200, `{"id":"k1","token":"ms_secret"}`)
+	c, rec := mockServer(t, 200, `{"id":"k1","token":"po_secret"}`)
 	created, err := c.ApiKeys.Create(&CreateApiKeyRequest{Name: "ci", Permission: "sending_access", DomainId: "d1"})
 	require.NoError(t, err)
 	assert.Equal(t, http.MethodPost, rec.Method)
 	assert.Equal(t, "/api-keys", rec.Path)
 	assert.JSONEq(t, `{"name":"ci","permission":"sending_access","domain_id":"d1"}`, string(rec.Body))
-	assert.Equal(t, "ms_secret", created.Token)
+	assert.Equal(t, "po_secret", created.Token)
 
 	c, rec = mockServer(t, 200, `{"object":"list","data":[{"id":"k1","name":"ci","created_at":"2026-01-01T00:00:00Z","last_used_at":null}],"has_more":false}`)
 	list, err := c.ApiKeys.List(&ListOptions{Limit: 2})

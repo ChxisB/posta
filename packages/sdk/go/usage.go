@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"context"
@@ -35,7 +35,7 @@ type UsageTeam struct {
 	Name string `json:"name"`
 }
 
-// UsageService covers GET /usage (a MillionSend extension).
+// UsageService covers GET /usage (a Posta extension).
 type UsageService struct{ client *Client }
 
 // Get fetches the plan, limits and today's send count.

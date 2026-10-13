@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"encoding/json"
@@ -39,7 +39,7 @@ func mockServer(t *testing.T, status int, respBody string) (*Client, *capturedRe
 		_, _ = io.WriteString(w, respBody)
 	}))
 	t.Cleanup(srv.Close)
-	c := NewClient("ms_test")
+	c := NewClient("po_test")
 	c.BaseURL = srv.URL
 	return c, captured
 }
@@ -57,13 +57,13 @@ func sampleEmail() *SendEmailRequest {
 }
 
 func TestNewClientDefaultsBaseURL(t *testing.T) {
-	t.Setenv("MILLIONSEND_BASE_URL", "")
-	c := NewClient("ms_test")
-	assert.Equal(t, "https://api.millionsend.com", c.BaseURL)
+	t.Setenv("POSTA_BASE_URL", "")
+	c := NewClient("po_test")
+	assert.Equal(t, "https://api.posta.example", c.BaseURL)
 }
 
 func TestExplicitBaseURLWinsOverEnv(t *testing.T) {
-	t.Setenv("MILLIONSEND_BASE_URL", "https://mail.example.com")
+	t.Setenv("POSTA_BASE_URL", "https://mail.example.com")
 	c, rec := mockServer(t, 200, `{}`) // mockServer sets BaseURL after NewClient
 	_, err := c.Emails.Get("e1")
 	require.NoError(t, err)
@@ -71,24 +71,24 @@ func TestExplicitBaseURLWinsOverEnv(t *testing.T) {
 }
 
 func TestNewClientEnvFallback(t *testing.T) {
-	t.Setenv("MILLIONSEND_API_KEY", "ms_env")
-	t.Setenv("MILLIONSEND_BASE_URL", "https://mail.example.com")
+	t.Setenv("POSTA_API_KEY", "po_env")
+	t.Setenv("POSTA_BASE_URL", "https://mail.example.com")
 	c := NewClient("")
 	assert.Equal(t, "https://mail.example.com", c.BaseURL)
 }
 
 func TestRefusesNonLoopbackHTTPUnlessAllowed(t *testing.T) {
-	c := NewClient("ms_test")
+	c := NewClient("po_test")
 	c.BaseURL = "http://mail.example.com"
 	_, err := c.Emails.Get("e1")
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Contains(t, mse.Message, "AllowInsecureHTTP")
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Contains(t, apiErr.Message, "AllowInsecureHTTP")
 
-	t.Setenv("MILLIONSEND_BASE_URL", "http://mail.example.com")
-	_, err = NewClient("ms_test").Emails.Get("e1")
-	require.ErrorAs(t, err, &mse)
-	assert.Contains(t, mse.Message, "AllowInsecureHTTP")
+	t.Setenv("POSTA_BASE_URL", "http://mail.example.com")
+	_, err = NewClient("po_test").Emails.Get("e1")
+	require.ErrorAs(t, err, &apiErr)
+	assert.Contains(t, apiErr.Message, "AllowInsecureHTTP")
 
 	// Opted in: the request goes out (and fails at the transport instead).
 	c.AllowInsecureHTTP = true
@@ -97,8 +97,8 @@ func TestRefusesNonLoopbackHTTPUnlessAllowed(t *testing.T) {
 		return nil, fmt.Errorf("sentinel")
 	})}
 	_, err = c.Emails.Get("e1")
-	require.ErrorAs(t, err, &mse)
-	assert.Contains(t, mse.Message, "sentinel")
+	require.ErrorAs(t, err, &apiErr)
+	assert.Contains(t, apiErr.Message, "sentinel")
 
 	// Loopback http is always fine (mockServer runs on 127.0.0.1).
 	lc, _ := mockServer(t, 200, `{}`)
@@ -111,13 +111,13 @@ type roundTripFunc func(*http.Request) (*http.Response, error)
 func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
 func TestFormattingRedactsAPIKey(t *testing.T) {
-	c := NewClient("ms_secret_key")
+	c := NewClient("po_secret_key")
 	for _, s := range []string{
 		fmt.Sprintf("%v", c), fmt.Sprintf("%+v", c), fmt.Sprintf("%#v", c),
 		fmt.Sprintf("%v", *c), fmt.Sprintf("%+v", *c), fmt.Sprintf("%#v", *c),
 		fmt.Sprint(c), fmt.Sprint(*c),
 	} {
-		assert.NotContains(t, s, "ms_secret_key")
+		assert.NotContains(t, s, "po_secret_key")
 	}
 }
 
@@ -133,10 +133,10 @@ func TestRequestHeaders(t *testing.T) {
 	c, rec := mockServer(t, 200, `{"id":"abc"}`)
 	_, err := c.Emails.Send(sampleEmail())
 	require.NoError(t, err)
-	assert.Equal(t, "Bearer ms_test", rec.Header.Get("Authorization"))
+	assert.Equal(t, "Bearer po_test", rec.Header.Get("Authorization"))
 	assert.Equal(t, "application/json", rec.Header.Get("Accept"))
 	assert.Equal(t, "application/json", rec.Header.Get("Content-Type"))
-	assert.Contains(t, rec.Header.Get("User-Agent"), "millionsend-go/")
+	assert.Contains(t, rec.Header.Get("User-Agent"), "posta-go/")
 }
 
 func TestCamelToSnakeMappingOmitsEmpty(t *testing.T) {
@@ -182,39 +182,39 @@ func TestErrorParsing(t *testing.T) {
 	c, _ := mockServer(t, 422, `{"statusCode":422,"name":"validation_error","message":"bad"}`)
 	_, err := c.Emails.Send(sampleEmail())
 	require.Error(t, err)
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 422, mse.StatusCode)
-	assert.Equal(t, "validation_error", mse.Name)
-	assert.Equal(t, "bad", mse.Message)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 422, apiErr.StatusCode)
+	assert.Equal(t, "validation_error", apiErr.Name)
+	assert.Equal(t, "bad", apiErr.Message)
 }
 
 func TestAllRecipientsSuppressedErrorName(t *testing.T) {
 	c, _ := mockServer(t, 422, `{"statusCode":422,"name":"all_recipients_suppressed","message":"All recipients are suppressed"}`)
 	_, err := c.Emails.Send(sampleEmail())
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 422, mse.StatusCode)
-	assert.Equal(t, "all_recipients_suppressed", mse.Name)
-	assert.Equal(t, "All recipients are suppressed", mse.Message)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 422, apiErr.StatusCode)
+	assert.Equal(t, "all_recipients_suppressed", apiErr.Name)
+	assert.Equal(t, "All recipients are suppressed", apiErr.Message)
 }
 
 func TestErrorFallbackForNonCanonicalBody(t *testing.T) {
 	c, _ := mockServer(t, 500, `gateway boom`)
 	_, err := c.Emails.Get("e1")
 	require.Error(t, err)
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 500, mse.StatusCode)
-	assert.Equal(t, "application_error", mse.Name)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 500, apiErr.StatusCode)
+	assert.Equal(t, "application_error", apiErr.Name)
 }
 
 func TestTransportErrorHasNullStatus(t *testing.T) {
-	c := NewClient("ms_test")
+	c := NewClient("po_test")
 	c.BaseURL = "http://127.0.0.1:1" // nothing listening: connection refused
 	_, err := c.Emails.Send(sampleEmail())
 	require.Error(t, err)
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 0, mse.StatusCode, "transport failures use statusCode null (0)")
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 0, apiErr.StatusCode, "transport failures use statusCode null (0)")
 }

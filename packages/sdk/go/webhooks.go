@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"context"

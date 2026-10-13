@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// Suppression origins. "unsubscribe" is a MillionSend addition for retained
+// Suppression origins. "unsubscribe" is a Posta addition for retained
 // one-click opt-outs.
 const (
 	SuppressionOriginBounce      = "bounce"

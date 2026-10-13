@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"fmt"
@@ -11,12 +11,12 @@ import (
 )
 
 // TestE2EContactLifecycle exercises the team-global contact lifecycle against
-// a real MillionSend instance. It runs only when MILLIONSEND_API_KEY is set
-// (and MILLIONSEND_BASE_URL for a self-hosted instance); otherwise it skips. No
+// a real Posta instance. It runs only when POSTA_API_KEY is set
+// (and POSTA_BASE_URL for a self-hosted instance); otherwise it skips. No
 // verified sender domain is required.
 func TestE2EContactLifecycle(t *testing.T) {
-	if os.Getenv("MILLIONSEND_API_KEY") == "" {
-		t.Skip("set MILLIONSEND_API_KEY to run the e2e test")
+	if os.Getenv("POSTA_API_KEY") == "" {
+		t.Skip("set POSTA_API_KEY to run the e2e test")
 	}
 	c := NewClient("") // reads key + base URL from the environment
 
@@ -33,7 +33,7 @@ func TestE2EContactLifecycle(t *testing.T) {
 	// Duplicate email (case-insensitive per team) is a 409 validation_error.
 	_, err = c.Contacts.Create(&CreateContactRequest{Email: email})
 	require.Error(t, err)
-	var dup *MillionSendError
+	var dup *PostaError
 	require.ErrorAs(t, err, &dup)
 	assert.Equal(t, 409, dup.StatusCode)
 
@@ -47,7 +47,7 @@ func TestE2EContactLifecycle(t *testing.T) {
 	// A missing contact surfaces as a typed error, never a panic.
 	_, err = c.Contacts.Get(ContactAddress{Email: "does-not-exist@example.com"})
 	require.Error(t, err)
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, "not_found", mse.Name)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, "not_found", apiErr.Name)
 }

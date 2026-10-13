@@ -1,4 +1,4 @@
-module github.com/MillionSend/millionsend-go
+module github.com/ChxisB/posta/packages/sdk/go
 
 go 1.21
 

@@ -1,31 +1,31 @@
-# MillionSend .NET SDK
+# Posta .NET SDK
 
-Official .NET SDK for [MillionSend](https://github.com/MillionSend/millionsend) — a
+Official .NET SDK for [Posta](https://github.com/ChxisB/posta) — a
 self-hostable, [Resend](https://resend.com)-wire-compatible email API.
 
 The API is wire-compatible with Resend, so migrating is mostly swapping the
-package. MillionSend Cloud works with just an API key; a self-hosted instance
+package. Posta Cloud works with just an API key; a self-hosted instance
 sets its origin. Targets **net8.0**.
 
 ## Install
 
 ```bash
-dotnet add package MillionSend
+dotnet add package Posta
 ```
 
 ## Quickstart
 
 ```csharp
-using MillionSend;
+using Posta;
 
-var client = new MillionSendClient("ms_123");                             // MillionSend Cloud
-// var client = new MillionSendClient("ms_123", "https://mail.acme.dev");   // self-hosted
+var client = new PostaClient("po_123");                             // Posta Cloud
+// var client = new PostaClient("po_123", "https://mail.acme.dev");   // self-hosted
 
 var res = await client.EmailSendAsync(new EmailMessage
 {
     From = "Acme <onboarding@acme.dev>",
     To = "success@simulator.amazonses.com",
-    Subject = "Hello from MillionSend",
+    Subject = "Hello from Posta",
     Html = "<strong>It works!</strong>",
 });
 
@@ -40,36 +40,36 @@ else
 
 ## Configuration
 
-Construct with the convenience constructor, or with `MillionSendClientOptions`:
+Construct with the convenience constructor, or with `PostaClientOptions`:
 
 ```csharp
-var client = new MillionSendClient(new MillionSendClientOptions
+var client = new PostaClient(new PostaClientOptions
 {
-    ApiToken = "ms_123",
+    ApiToken = "po_123",
     ApiUrl = "https://mail.acme.dev",
 });
 ```
 
-- `ApiToken` falls back to the `MILLIONSEND_API_KEY` environment variable. Missing
+- `ApiToken` falls back to the `POSTA_API_KEY` environment variable. Missing
   key → throws at construction.
-- `ApiUrl` falls back to `MILLIONSEND_BASE_URL`, then `https://api.millionsend.com`
-  (MillionSend Cloud). **Self-hosting? Set this to your deployment's origin.**
+- `ApiUrl` falls back to `POSTA_BASE_URL`, then `https://api.posta.example`
+  (Posta Cloud). **Self-hosting? Set this to your deployment's origin.**
 - Plain `http://` is only accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`);
   any other `http://` URL throws `ArgumentException` at construction, since the API key
   is sent as a bearer header. Set `AllowInsecureHttp = true` on the options to talk to a
   non-TLS instance elsewhere (e.g. inside a private network).
 
 You may pass your own `HttpClient` as the second argument (for proxies, custom
-handlers, or tests): `new MillionSendClient(options, httpClient)`.
+handlers, or tests): `new PostaClient(options, httpClient)`.
 
 ## Error handling
 
 No method throws for an API or transport error. Every call returns a
-`MillionSendResponse<T>`:
+`PostaResponse<T>`:
 
 - `Success` — `true` when the call succeeded.
 - `Content` — the deserialized response body on success.
-- `Exception` — a `MillionSendException` on failure, carrying `StatusCode`
+- `Exception` — a `PostaException` on failure, carrying `StatusCode`
   (`int?`), `ErrorName` (the stable snake_case discriminant, e.g.
   `validation_error`, `not_found`, `sending_paused`, `all_recipients_suppressed`),
   and `Message`.
@@ -165,11 +165,11 @@ await client.ContactRetrieveAsync(new ContactAddress { Email = "ada@acme.dev" })
 await client.ContactRetrieveAsync(new ContactAddress { Id = contactId });   // by id or email (email wins)
 await client.ContactUpdateAsync(new ContactUpdateOptions { Id = contactId, Unsubscribed = true });
 await client.ContactDeleteAsync(new ContactAddress { Email = "ada@acme.dev" });   // their emails stay in the log
-// Erase (MillionSend extension): also scrub the address from email history, event
+// Erase (Posta extension): also scrub the address from email history, event
 // payloads and API logs — a GDPR/LGPD erasure                                   // ?erase=true
 await client.ContactDeleteAsync(new ContactAddress { Email = "ada@acme.dev" }, new ContactDeleteOptions { Erase = true });
 await client.ContactListAsync(new ListOptions { Limit = 50 });
-// Bulk read (MillionSend extension): attach Properties and Topics to every row, so an
+// Bulk read (Posta extension): attach Properties and Topics to every row, so an
 // audience reads in one request per 100 contacts instead of one per contact   // ?include=properties,topics
 await client.ContactListAsync(new ContactListOptions { Limit = 100, Include = new() { ContactInclude.Properties, ContactInclude.Topics } });
 
@@ -189,7 +189,7 @@ foreach (var t in topics.Content!.Data)
 await client.ContactAddToSegmentAsync(new ContactAddress { Id = contactId }, segmentId);      // POST /contacts/{id}/segments/{segmentId}
 await client.ContactRemoveFromSegmentAsync(new ContactAddress { Id = contactId }, segmentId); // DELETE …
 
-// Bulk import (MillionSend extension): up to 1000 items per call
+// Bulk import (Posta extension): up to 1000 items per call
 var batch = await client.ContactBatchAsync(contacts, new ContactBatchOptions
 {
     OnConflict = ContactBatchOnConflict.Upsert,       // ?on_conflict=error|skip|upsert
@@ -197,7 +197,7 @@ var batch = await client.ContactBatchAsync(contacts, new ContactBatchOptions
 });
 Console.WriteLine($"{batch.Content!.Counts.Created} created, {batch.Content.Counts.Failed} failed");
 
-// Bulk lookup (MillionSend extension): up to 1000 contacts by id or email in one request,
+// Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
 // in request order; unknown entries are listed, not errors — one request against the rate limit
 var found = await client.ContactBatchGetAsync(                                 // POST /contacts/batch/get
     new[] { new ContactAddress { Id = contactId }, new ContactAddress { Email = "b@acme.dev" } },
@@ -205,13 +205,13 @@ var found = await client.ContactBatchGetAsync(                                 /
 found.Content!.Data;      // the contacts found: Id, Email, …, plus Properties/Topics per Include
 found.Content.Missing;    // [{ Index, Id?, Email? }] — request entries that matched nobody
 
-// Bulk delete (MillionSend extension): up to 1000 per call, by emails or by ids;
+// Bulk delete (Posta extension): up to 1000 per call, by emails or by ids;
 // the response lists only the rows actually deleted. Their emails stay in the log;
 // Erase also scrubs each address, as on a single delete          // POST /contacts/batch/remove
 await client.ContactBatchRemoveAsync(new[] { "a@acme.dev", "b@acme.dev" });
 await client.ContactBatchRemoveAsync(new[] { id1, id2 }, new ContactDeleteOptions { Erase = true });
 
-// Preference-center link (MillionSend extension): the contact's hosted preferences
+// Preference-center link (Posta extension): the contact's hosted preferences
 // page, the same one their unsubscribe links open. No expiry — hand it only to the
 // contact. 422 when the instance cannot build hosted links.   // POST /contacts/{id}/preferences-link
 var link = await client.ContactPreferencesLinkAsync(new ContactAddress { Email = "ada@acme.dev" });
@@ -274,9 +274,9 @@ await client.BroadcastCancelAsync(id); // scheduled only
 await client.BroadcastDeleteAsync(id); // draft only
 ```
 
-### Segments (MillionSend extension)
+### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a MillionSend
+Dynamic segments are a saved filter over the team's contacts — a Posta
 superset with no Resend equivalent.
 
 ```csharp
@@ -334,7 +334,7 @@ await client.DomainDeleteAsync(id);
 ```csharp
 var hook = await client.WebhookCreateAsync(new WebhookCreateOptions
 {
-    Endpoint = "https://acme.dev/hooks/millionsend",
+    Endpoint = "https://acme.dev/hooks/posta",
     Events = new() { "email.delivered", "email.bounced", "email.complained" },
 });
 Console.WriteLine(hook.Content!.SigningSecret);   // also returned by WebhookRetrieveAsync
@@ -344,7 +344,7 @@ await client.WebhookRetrieveAsync(id);
 await client.WebhookUpdateAsync(id, new WebhookUpdateOptions { Status = WebhookStatus.Disabled });
 await client.WebhookDeleteAsync(id);
 
-// Rotate the signing secret (MillionSend extension). For OverlapHours (0–72) every
+// Rotate the signing secret (Posta extension). For OverlapHours (0–72) every
 // delivery is signed with both secrets, so the receiver switches without a gap.
 var rotated = await client.WebhookRotateAsync(id, new WebhookRotateOptions { OverlapHours = 24 }); // POST /webhooks/{id}/rotate
 Console.WriteLine($"{rotated.Content!.SigningSecret} (old one signs until {rotated.Content.PreviousSecretExpiresAt})");
@@ -367,7 +367,7 @@ await client.ApiKeyDeleteAsync(key.Content.Id);
 
 ### Templates
 
-Addressed by id **or** alias. MillionSend templates have no draft/publish cycle:
+Addressed by id **or** alias. Posta templates have no draft/publish cycle:
 `TemplatePublishAsync` is a no-op kept for resend-dotnet compatibility.
 
 ```csharp
@@ -383,14 +383,14 @@ await client.TemplatePublishAsync("welcome");
 await client.TemplateDeleteAsync("welcome");
 ```
 
-### Usage (MillionSend extension)
+### Usage (Posta extension)
 
 ```csharp
 var usage = await client.UsageRetrieveAsync();   // GET /usage
 Console.WriteLine($"{usage.Content!.Today.EmailsSent}/{usage.Content.Limits.EmailsPerDay} today");
 ```
 
-### Deliverability (MillionSend extension)
+### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing window. Scores are
 0–10; `Score`/`Band` are `null` when there is not enough data yet.
@@ -404,8 +404,8 @@ if (res.Success)
 ## Migrating from Resend
 
 The `resend-dotnet` SDK exposes resources as `client.Emails.SendAsync(...)` and
-throws `ResendException`. MillionSend flattens the surface to
-`client.EmailSendAsync(...)` and returns a `MillionSendResponse<T>` (no throw).
+throws `ResendException`. Posta flattens the surface to
+`client.EmailSendAsync(...)` and returns a `PostaResponse<T>` (no throw).
 Method names and payload shapes otherwise line up. Notes:
 
 - **Idempotency**: both argument orders work — `EmailSendAsync(message, idempotencyKey: k)`
@@ -417,24 +417,24 @@ Method names and payload shapes otherwise line up. Notes:
   where resend-dotnet takes a `Guid`.
 - **No audiences**: contacts are team-global, one record per email address.
   The `/audiences/*` routes on the API are a compatibility shim and are not part
-  of this SDK; Resend's audience grouping maps to MillionSend's dynamic
+  of this SDK; Resend's audience grouping maps to Posta's dynamic
   **segments** (saved filters) above.
 - **Templates** exist but template-based *sending* does not yet: `EmailMessage.Template`
   is put on the wire and the server answers 422.
-- **MillionSend extensions** (no Resend counterpart): segments, contact batch import,
+- **Posta extensions** (no Resend counterpart): segments, contact batch import,
   batch get and batch remove, `include=` on contact lists, `erase` on contact deletes,
   contact preference links, webhook secret rotation, usage, email insights, deliverability.
 
 ## Development
 
 ```bash
-dotnet test          # unit tests (the e2e tests stay inert without MILLIONSEND_E2E)
+dotnet test          # unit tests (the e2e tests stay inert without POSTA_E2E)
 ```
 
-The e2e tests run only when `MILLIONSEND_E2E=1` opts in (plus the API key):
+The e2e tests run only when `POSTA_E2E=1` opts in (plus the API key):
 
 ```bash
-MILLIONSEND_E2E=1 MILLIONSEND_API_KEY=ms_... dotnet test --filter Category=e2e
+POSTA_E2E=1 POSTA_API_KEY=po_... dotnet test --filter Category=e2e
 ```
 
 ## License

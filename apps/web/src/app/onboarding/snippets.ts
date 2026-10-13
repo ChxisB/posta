@@ -77,9 +77,9 @@ Millionsend::Emails.send(
   html: ${q(p.html)}
 )`;
     case "go":
-      return `client := millionsend.NewClient(${q(p.apiKey)})${slashNote(p.comment)}
+      return `client := posta.NewClient(${q(p.apiKey)})${slashNote(p.comment)}
 
-sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
+sent, err := client.Emails.Send(&posta.SendEmailRequest{
     From:    ${q(p.from)},
     To:      []string{${q(p.to)}},
     Subject: ${q(p.subject)},
@@ -97,7 +97,7 @@ let email = CreateEmailBaseOptions::new(
 
 ms.emails.send(email).await?;`;
     case "java":
-      return `MillionSend ms = new MillionSend(${q(p.apiKey)});${slashNote(p.comment)}
+      return `Posta ms = new Posta(${q(p.apiKey)});${slashNote(p.comment)}
 
 CreateEmailOptions email = CreateEmailOptions.builder()
     .from(${q(p.from)})
@@ -108,7 +108,7 @@ CreateEmailOptions email = CreateEmailOptions.builder()
 
 ms.emails().send(email);`;
     case "dotnet":
-      return `var ms = new MillionSendClient(${q(p.apiKey)});${slashNote(p.comment)}
+      return `var ms = new PostaClient(${q(p.apiKey)});${slashNote(p.comment)}
 
 await ms.EmailSendAsync(new EmailMessage
 {

@@ -174,15 +174,15 @@ Millionsend::Emails.send(
 )`,
   },
   go: {
-    send: `client := millionsend.NewClient("po_xxxxxxxxx")
+    send: `client := posta.NewClient("po_xxxxxxxxx")
 
-sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
+sent, err := client.Emails.Send(&posta.SendEmailRequest{
     From:    "Acme <onboarding@yourdomain.com>",
     To:      []string{"success@simulator.amazonses.com"},
     Subject: "hello world",
     Html:    "<p>it works!</p>",
 })`,
-    batch: `batch, err := client.Batch.Send([]*millionsend.SendEmailRequest{
+    batch: `batch, err := client.Batch.Send([]*posta.SendEmailRequest{
     {
         From:    "Acme <onboarding@yourdomain.com>",
         To:      []string{"success+1@simulator.amazonses.com"},
@@ -233,7 +233,7 @@ ms.batch.send(emails).await?;`,
     .await?;`,
   },
   java: {
-    send: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    send: `Posta ms = new Posta("po_xxxxxxxxx");
 
 CreateEmailOptions email = CreateEmailOptions.builder()
     .from("Acme <onboarding@yourdomain.com>")
@@ -262,7 +262,7 @@ ms.emails().send(email);`,
 );`,
   },
   dotnet: {
-    send: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    send: `var ms = new PostaClient("po_xxxxxxxxx");
 
 await ms.EmailSendAsync(new EmailMessage
 {

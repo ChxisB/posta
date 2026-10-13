@@ -1,13 +1,13 @@
-// Package millionsend is the official Go client for the MillionSend API — a
+// Package posta is the official Go client for the Posta API — a
 // self-hostable, Resend-compatible email platform.
 //
 // It deliberately mirrors the shape of resend-go, so migrating is close to a
-// find-and-replace: swap the import and constructor. MillionSend Cloud works
+// find-and-replace: swap the import and constructor. Posta Cloud works
 // with just the API key; a self-hosted instance also sets Client.BaseURL.
 //
-//	client := millionsend.NewClient("ms_123")
+//	client := posta.NewClient("po_123")
 //	client.BaseURL = "https://mail.acme.dev" // self-hosted only
-//	res, err := client.Emails.Send(&millionsend.SendEmailRequest{
+//	res, err := client.Emails.Send(&posta.SendEmailRequest{
 //		From:    "Acme <onboarding@acme.dev>",
 //		To:      []string{"success@simulator.amazonses.com"},
 //		Subject: "Hello",
@@ -15,8 +15,8 @@
 //	})
 //
 // Every method returns (*T, error); on a non-2xx response the error is a
-// *MillionSendError carrying the API's { statusCode, name, message }.
-package millionsend
+// *PostaError carrying the API's { statusCode, name, message }.
+package posta
 
 import (
 	"bytes"
@@ -35,12 +35,12 @@ import (
 // Version is the SDK version, reported in the User-Agent.
 const Version = "0.8.0"
 
-const defaultBaseURL = "https://api.millionsend.com"
+const defaultBaseURL = "https://api.posta.example"
 
-// Client talks to a MillionSend instance. Construct it with NewClient and reuse
+// Client talks to a Posta instance. Construct it with NewClient and reuse
 // it; it is safe for concurrent use.
 type Client struct {
-	// BaseURL is the API origin, MillionSend Cloud by default (a trailing slash
+	// BaseURL is the API origin, Posta Cloud by default (a trailing slash
 	// is ignored). Exported so it can be overridden after construction,
 	// mirroring resend-go.
 	BaseURL string
@@ -71,20 +71,20 @@ type Client struct {
 }
 
 // NewClient returns a Client authenticating with apiKey. If apiKey is empty it
-// falls back to MILLIONSEND_API_KEY. BaseURL falls back to MILLIONSEND_BASE_URL,
-// then https://api.millionsend.com (MillionSend Cloud).
+// falls back to POSTA_API_KEY. BaseURL falls back to POSTA_BASE_URL,
+// then https://api.posta.example (Posta Cloud).
 func NewClient(apiKey string) *Client {
 	if apiKey == "" {
-		apiKey = os.Getenv("MILLIONSEND_API_KEY")
+		apiKey = os.Getenv("POSTA_API_KEY")
 	}
-	baseURL := os.Getenv("MILLIONSEND_BASE_URL")
+	baseURL := os.Getenv("POSTA_BASE_URL")
 	if baseURL == "" {
 		baseURL = defaultBaseURL
 	}
 	c := &Client{
 		BaseURL:    baseURL,
 		HTTPClient: &http.Client{Timeout: 30 * time.Second},
-		UserAgent:  "millionsend-go/" + Version,
+		UserAgent:  "posta-go/" + Version,
 		apiKey:     apiKey,
 	}
 	c.Emails = &EmailsService{client: c}
@@ -111,7 +111,7 @@ func NewClient(apiKey string) *Client {
 
 // String keeps the API key out of %v / %+v output (logs, panics).
 func (c Client) String() string {
-	return fmt.Sprintf("millionsend.Client{BaseURL:%q UserAgent:%q}", c.BaseURL, c.UserAgent)
+	return fmt.Sprintf("posta.Client{BaseURL:%q UserAgent:%q}", c.BaseURL, c.UserAgent)
 }
 
 // GoString keeps the API key out of %#v output.
@@ -152,7 +152,7 @@ const (
 )
 
 // ContactInclude is a facet Contacts.List, Segments.ListContacts and
-// Contacts.Batch.Get attach to each contact via WithInclude (MillionSend
+// Contacts.Batch.Get attach to each contact via WithInclude (Posta
 // extension).
 type ContactInclude string
 
@@ -255,7 +255,7 @@ type BatchError struct {
 }
 
 // Ptr returns a pointer to v — handy for the optional *string / *bool fields on
-// update requests, e.g. Unsubscribed: millionsend.Ptr(true).
+// update requests, e.g. Unsubscribed: posta.Ptr(true).
 func Ptr[T any](v T) *T { return &v }
 
 // marshalWithNulls marshals v, then writes an explicit JSON null for each key in
@@ -290,14 +290,14 @@ func (c *Client) do(ctx context.Context, p requestParams, out any) error {
 	if hasBody {
 		buf, err := json.Marshal(p.body)
 		if err != nil {
-			return &MillionSendError{Name: "application_error", Message: err.Error()}
+			return &PostaError{Name: "application_error", Message: err.Error()}
 		}
 		bodyReader = bytes.NewReader(buf)
 	}
 
 	base := strings.TrimRight(c.BaseURL, "/")
 	if !c.AllowInsecureHTTP && isInsecureHTTPURL(base) {
-		return &MillionSendError{
+		return &PostaError{
 			Name:    "application_error",
 			Message: "refusing to send the API key over plain http to " + base + "; use https, or set Client.AllowInsecureHTTP = true",
 		}
@@ -309,7 +309,7 @@ func (c *Client) do(ctx context.Context, p requestParams, out any) error {
 
 	req, err := http.NewRequestWithContext(ctx, p.method, u, bodyReader)
 	if err != nil {
-		return &MillionSendError{Name: "application_error", Message: err.Error()}
+		return &PostaError{Name: "application_error", Message: err.Error()}
 	}
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
 	req.Header.Set("Accept", "application/json")
@@ -328,13 +328,13 @@ func (c *Client) do(ctx context.Context, p requestParams, out any) error {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		// Never reached the API: StatusCode stays 0 (the wire's "statusCode: null").
-		return &MillionSendError{Name: "application_error", Message: err.Error()}
+		return &PostaError{Name: "application_error", Message: err.Error()}
 	}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &MillionSendError{Name: "application_error", Message: err.Error()}
+		return &PostaError{Name: "application_error", Message: err.Error()}
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -343,7 +343,7 @@ func (c *Client) do(ctx context.Context, p requestParams, out any) error {
 
 	if out != nil && len(data) > 0 {
 		if err := json.Unmarshal(data, out); err != nil {
-			return &MillionSendError{Name: "application_error", Message: err.Error()}
+			return &PostaError{Name: "application_error", Message: err.Error()}
 		}
 	}
 	return nil

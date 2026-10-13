@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"encoding/json"
@@ -77,10 +77,10 @@ func TestEmailsGetInsights(t *testing.T) {
 func TestEmailsGetInsightsNotFound(t *testing.T) {
 	c, _ := mockServer(t, 404, `{"statusCode":404,"name":"not_found","message":"Email not found"}`)
 	_, err := c.Emails.GetInsights("missing")
-	var mse *MillionSendError
-	require.ErrorAs(t, err, &mse)
-	assert.Equal(t, 404, mse.StatusCode)
-	assert.Equal(t, "not_found", mse.Name)
+	var apiErr *PostaError
+	require.ErrorAs(t, err, &apiErr)
+	assert.Equal(t, 404, apiErr.StatusCode)
+	assert.Equal(t, "not_found", apiErr.Name)
 }
 
 // Band/severity/status/guardrail_status are open sets on the wire: a value

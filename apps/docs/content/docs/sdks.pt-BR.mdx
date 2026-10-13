@@ -89,20 +89,20 @@ email = millionsend.Emails.send({
 
 ## Go
 
-[`millionsend-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go) — Go 1.21+.
+[`posta-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go) — Go 1.21+.
 
 ```sh
 go get github.com/ChxisB/posta/packages/sdk/go
 ```
 
 ```go
-client := millionsend.NewClient("po_123")
+client := posta.NewClient("po_123")
 client.BaseURL = "https://api.posta.example"
 
-sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
+sent, err := client.Emails.Send(&posta.SendEmailRequest{
     From:    "Acme <onboarding@acme.dev>",
     To:      []string{"success@simulator.amazonses.com"},
-    Subject: "Hello from MillionSend",
+    Subject: "Hello from Posta",
     Html:    "<strong>It works!</strong>",
 })
 ```
@@ -177,46 +177,46 @@ let sent = ms.emails.send(&SendEmailOptions {
 
 ## Java
 
-[`com.millionsend:millionsend-java` no Maven Central](https://central.sonatype.com/artifact/com.millionsend/millionsend-java) — Java 11+.
+[`io.github.tack-labs:posta-java` no Maven Central](https://central.sonatype.com/artifact/io.github.tack-labs/posta-java) — Java 11+.
 
 ```xml
 <dependency>
-  <groupId>com.millionsend</groupId>
-  <artifactId>millionsend-java</artifactId>
+  <groupId>io.github.tack-labs</groupId>
+  <artifactId>posta-java</artifactId>
   <version>0.9.0</version>
 </dependency>
 ```
 
 ```java
-MillionSend ms = new MillionSend("po_123", "https://api.posta.example");
+Posta ms = new Posta("po_123", "https://api.posta.example");
 
 CreateEmailResponse sent = ms.emails().send(
     CreateEmailOptions.builder()
         .from("Acme <onboarding@acme.dev>")
         .to("success@simulator.amazonses.com")
-        .subject("Hello from MillionSend")
+        .subject("Hello from Posta")
         .html("<strong>It works!</strong>")
         .build());
 ```
 
 ## .NET
 
-[`MillionSend` no NuGet](https://www.nuget.org/packages/MillionSend) — alvo net8.0.
+[`Posta` no NuGet](https://www.nuget.org/packages/Posta) — alvo net8.0.
 
 ```sh
-dotnet add package MillionSend
+dotnet add package Posta
 ```
 
 ```csharp
-using MillionSend;
+using Posta;
 
-var client = new MillionSendClient("po_123", "https://api.posta.example");
+var client = new PostaClient("po_123", "https://api.posta.example");
 
 var res = await client.EmailSendAsync(new EmailMessage
 {
     From = "Acme <onboarding@acme.dev>",
     To = "success@simulator.amazonses.com",
-    Subject = "Hello from MillionSend",
+    Subject = "Hello from Posta",
     Html = "<strong>It works!</strong>",
 });
 ```

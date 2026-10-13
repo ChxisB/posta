@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.millionsend</groupId>
-  <artifactId>millionsend-java</artifactId>
+  <groupId>io.github.tack-labs</groupId>
+  <artifactId>posta-java</artifactId>
   <version>0.8.0</version>
   <packaging>jar</packaging>
 
-  <name>millionsend-java</name>
-  <description>Official MillionSend SDK for Java — a Resend-compatible email API you can self-host.</description>
-  <url>https://github.com/MillionSend/millionsend-java</url>
+  <name>posta-java</name>
+  <description>Official Posta SDK for Java — a Resend-compatible email API you can self-host.</description>
+  <url>https://github.com/ChxisB/posta/tree/main/packages/sdk/java</url>
 
   <licenses>
     <license>
@@ -21,16 +21,16 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/MillionSend/millionsend-java.git</connection>
-    <url>https://github.com/MillionSend/millionsend-java</url>
+    <connection>scm:git:https://github.com/ChxisB/posta.git</connection>
+    <url>https://github.com/ChxisB/posta/tree/main/packages/sdk/java</url>
   </scm>
 
   <!-- Maven Central requires at least one developer entry. -->
   <developers>
     <developer>
-      <id>millionsend</id>
-      <name>MillionSend</name>
-      <url>https://github.com/MillionSend</url>
+      <id>tack-labs</id>
+      <name>Tack Labs</name>
+      <url>https://github.com/Tack-Labs</url>
     </developer>
   </developers>
 

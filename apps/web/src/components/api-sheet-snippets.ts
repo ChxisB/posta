@@ -83,17 +83,17 @@ contacts = Millionsend::Contacts.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("po_xxxxxxxxx")
+    list: `client := posta.NewClient("po_xxxxxxxxx")
 
-contacts, err := client.Contacts.List(&millionsend.ListOptions{Limit: 20})`,
-    create: `contact, err := client.Contacts.Create(&millionsend.CreateContactRequest{
+contacts, err := client.Contacts.List(&posta.ListOptions{Limit: 20})`,
+    create: `contact, err := client.Contacts.Create(&posta.CreateContactRequest{
     Email:     "success+ana@simulator.amazonses.com",
     FirstName: "Ana",
     LastName:  "Souza",
 })`,
     update: `unsubscribed := true
 
-updated, err := client.Contacts.Update(&millionsend.UpdateContactRequest{
+updated, err := client.Contacts.Update(&posta.UpdateContactRequest{
     Id:           "${ID}",
     Unsubscribed: &unsubscribed,
 })`,
@@ -124,7 +124,7 @@ ms.contacts.create(&contact).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    list: `Posta ms = new Posta("po_xxxxxxxxx");
 
 ListResponse<Contact> contacts = ms.contacts().list(
     ListOptions.builder().limit(20).build()
@@ -140,7 +140,7 @@ ListResponse<Contact> contacts = ms.contacts().list(
     .build());`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    list: `var ms = new PostaClient("po_xxxxxxxxx");
 
 var contacts = await ms.ContactListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.ContactAddAsync(new ContactCreateOptions
@@ -245,21 +245,21 @@ segments = Millionsend::Segments.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("po_xxxxxxxxx")
+    list: `client := posta.NewClient("po_xxxxxxxxx")
 
-segments, err := client.Segments.List(&millionsend.ListOptions{Limit: 20})`,
-    create: `segment, err := client.Segments.Create(&millionsend.CreateSegmentRequest{
+segments, err := client.Segments.List(&posta.ListOptions{Limit: 20})`,
+    create: `segment, err := client.Segments.Create(&posta.CreateSegmentRequest{
     Name: "Gmail users",
-    Filter: millionsend.SegmentFilter{
+    Filter: posta.SegmentFilter{
         Match: "all",
-        Conditions: []millionsend.SegmentCondition{
+        Conditions: []posta.SegmentCondition{
             {Field: "email", Op: "ends_with", Value: "@gmail.com"},
         },
     },
 })`,
     update: `segment, err := client.Segments.Update(
     "${ID}",
-    &millionsend.UpdateSegmentRequest{Name: "Gmail power users"},
+    &posta.UpdateSegmentRequest{Name: "Gmail power users"},
 )`,
   },
   rust: {
@@ -296,7 +296,7 @@ ms.segments.create(&segment).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    list: `Posta ms = new Posta("po_xxxxxxxxx");
 
 ListResponse<Segment> segments = ms.segments().list(
     ListOptions.builder().limit(20).build()
@@ -314,7 +314,7 @@ ListResponse<Segment> segments = ms.segments().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    list: `var ms = new PostaClient("po_xxxxxxxxx");
 
 var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.SegmentAddAsync(new SegmentCreateOptions
@@ -411,10 +411,10 @@ topics = Millionsend::Topics.list`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("po_xxxxxxxxx")
+    list: `client := posta.NewClient("po_xxxxxxxxx")
 
 topics, err := client.Topics.List()`,
-    create: `topic, err := client.Topics.Create(&millionsend.CreateTopicRequest{
+    create: `topic, err := client.Topics.Create(&posta.CreateTopicRequest{
     Name:                "Product updates",
     Description:         "New features and improvements",
     DefaultSubscription: "opt_in",
@@ -440,7 +440,7 @@ ms.topics.create(&topic).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    list: `Posta ms = new Posta("po_xxxxxxxxx");
 
 DataResponse<Topic> topics = ms.topics().list();`,
     create: `ms.topics().create(CreateTopicOptions.builder()
@@ -453,7 +453,7 @@ DataResponse<Topic> topics = ms.topics().list();`,
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    list: `var ms = new PostaClient("po_xxxxxxxxx");
 
 var topics = await ms.TopicListAsync();`,
     create: `await ms.TopicAddAsync(new TopicCreateOptions
@@ -550,10 +550,10 @@ broadcasts = Millionsend::Broadcasts.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("po_xxxxxxxxx")
+    list: `client := posta.NewClient("po_xxxxxxxxx")
 
-broadcasts, err := client.Broadcasts.List(&millionsend.ListOptions{Limit: 20})`,
-    create: `broadcast, err := client.Broadcasts.Create(&millionsend.CreateBroadcastRequest{
+broadcasts, err := client.Broadcasts.List(&posta.ListOptions{Limit: 20})`,
+    create: `broadcast, err := client.Broadcasts.Create(&posta.CreateBroadcastRequest{
     Name:      "Launch announcement",
     SegmentId: "${ID}",
     From:      "Acme <news@yourdomain.com>",
@@ -562,7 +562,7 @@ broadcasts, err := client.Broadcasts.List(&millionsend.ListOptions{Limit: 20})`,
 })`,
     send: `sent, err := client.Broadcasts.Send(
     "${ID}",
-    &millionsend.SendBroadcastRequest{ScheduledAt: "in 1 hour"},
+    &posta.SendBroadcastRequest{ScheduledAt: "in 1 hour"},
 )`,
   },
   rust: {
@@ -589,7 +589,7 @@ ms.broadcasts.create(&broadcast).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    list: `Posta ms = new Posta("po_xxxxxxxxx");
 
 ListResponse<Broadcast> broadcasts = ms.broadcasts().list(
     ListOptions.builder().limit(20).build()
@@ -607,7 +607,7 @@ ListResponse<Broadcast> broadcasts = ms.broadcasts().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    list: `var ms = new PostaClient("po_xxxxxxxxx");
 
 var broadcasts = await ms.BroadcastListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.BroadcastAddAsync(new BroadcastCreateOptions
@@ -698,16 +698,16 @@ webhooks = Millionsend::Webhooks.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("po_xxxxxxxxx")
+    list: `client := posta.NewClient("po_xxxxxxxxx")
 
-webhooks, err := client.Webhooks.List(&millionsend.ListOptions{Limit: 20})`,
-    create: `webhook, err := client.Webhooks.Create(&millionsend.CreateWebhookRequest{
+webhooks, err := client.Webhooks.List(&posta.ListOptions{Limit: 20})`,
+    create: `webhook, err := client.Webhooks.Create(&posta.CreateWebhookRequest{
     Endpoint: "https://example.com/webhooks/millionsend",
     Events:   []string{"email.delivered", "email.bounced"},
 })`,
     update: `updated, err := client.Webhooks.Update(
     "${ID}",
-    &millionsend.UpdateWebhookRequest{Status: "disabled"},
+    &posta.UpdateWebhookRequest{Status: "disabled"},
 )`,
   },
   rust: {
@@ -735,7 +735,7 @@ let webhooks = ms
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
+    list: `Posta ms = new Posta("po_xxxxxxxxx");
 
 ListResponse<Webhook> webhooks = ms.webhooks().list(
     ListOptions.builder().limit(20).build()
@@ -750,7 +750,7 @@ ListResponse<Webhook> webhooks = ms.webhooks().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
+    list: `var ms = new PostaClient("po_xxxxxxxxx");
 
 var webhooks = await ms.WebhookListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.WebhookCreateAsync(new WebhookCreateOptions

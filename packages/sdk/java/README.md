@@ -1,10 +1,10 @@
-# millionsend-java
+# posta-java
 
-Official Java SDK for [MillionSend](https://github.com/MillionSend/millionsend) — a self-hostable, Resend-compatible email API on AWS SES.
+Official Java SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of [`resend-java`](https://github.com/resend/resend-java), so migrating is
-mostly a find-and-replace: swap the dependency and the class name. MillionSend
+mostly a find-and-replace: swap the dependency and the class name. Posta
 Cloud works with just the key; a self-hosted instance also sets its origin.
 
 ## Install
@@ -13,8 +13,8 @@ Maven:
 
 ```xml
 <dependency>
-  <groupId>com.millionsend</groupId>
-  <artifactId>millionsend-java</artifactId>
+  <groupId>io.github.tack-labs</groupId>
+  <artifactId>posta-java</artifactId>
   <version>0.8.0</version>
 </dependency>
 ```
@@ -22,7 +22,7 @@ Maven:
 Gradle:
 
 ```groovy
-implementation 'com.millionsend:millionsend-java:0.8.0'
+implementation 'io.github.tack-labs:posta-java:0.8.0'
 ```
 
 Requires Java 11+.
@@ -30,24 +30,24 @@ Requires Java 11+.
 ## Quickstart
 
 ```java
-import com.millionsend.MillionSend;
-import com.millionsend.MillionSendException;
-import com.millionsend.model.CreateEmailOptions;
-import com.millionsend.model.CreateEmailResponse;
+import io.github.tacklabs.posta.Posta;
+import io.github.tacklabs.posta.PostaException;
+import io.github.tacklabs.posta.model.CreateEmailOptions;
+import io.github.tacklabs.posta.model.CreateEmailResponse;
 
-MillionSend ms = new MillionSend("ms_123");                          // MillionSend Cloud
-// MillionSend ms = new MillionSend("ms_123", "https://mail.acme.dev"); // self-hosted
+Posta ms = new Posta("po_123");                          // Posta Cloud
+// Posta ms = new Posta("po_123", "https://mail.acme.dev"); // self-hosted
 
 try {
   CreateEmailResponse sent = ms.emails().send(
       CreateEmailOptions.builder()
           .from("Acme <onboarding@acme.dev>")
           .to("success@simulator.amazonses.com")
-          .subject("Hello from MillionSend")
+          .subject("Hello from Posta")
           .html("<strong>It works!</strong>")
           .build());
   System.out.println("sent " + sent.getId());
-} catch (MillionSendException e) {
+} catch (PostaException e) {
   System.err.println(e.getName() + ": " + e.getMessage());
 }
 ```
@@ -55,19 +55,19 @@ try {
 ## Configuration
 
 ```java
-new MillionSend();                       // apiKey + baseUrl from the environment
-new MillionSend(apiKey);                 // baseUrl from MILLIONSEND_BASE_URL or MillionSend Cloud
-new MillionSend(apiKey, baseUrl);        // explicit base URL (self-hosted)
-new MillionSend(apiKey, baseUrl, true);  // also accept a non-loopback http:// base URL
+new Posta();                       // apiKey + baseUrl from the environment
+new Posta(apiKey);                 // baseUrl from POSTA_BASE_URL or Posta Cloud
+new Posta(apiKey, baseUrl);        // explicit base URL (self-hosted)
+new Posta(apiKey, baseUrl, true);  // also accept a non-loopback http:// base URL
 ```
 
-- `apiKey` falls back to `MILLIONSEND_API_KEY`. A missing key throws `IllegalArgumentException` at construction.
-- `baseUrl` falls back to `MILLIONSEND_BASE_URL`, then MillionSend Cloud (`https://api.millionsend.com`). Self-hosting? Set it to your instance's origin.
+- `apiKey` falls back to `POSTA_API_KEY`. A missing key throws `IllegalArgumentException` at construction.
+- `baseUrl` falls back to `POSTA_BASE_URL`, then Posta Cloud (`https://api.posta.example`). Self-hosting? Set it to your instance's origin.
 - Plain `http://` is only accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`); any other `http://` URL throws `IllegalArgumentException` at construction, since the API key is sent as a bearer header. Pass `allowInsecureHttp = true` (third constructor argument) to talk to a non-TLS instance elsewhere (e.g. inside a private network).
 
 ## Error handling
 
-Every call throws a single checked `MillionSendException` on a non-2xx response.
+Every call throws a single checked `PostaException` on a non-2xx response.
 It carries the API's error shape:
 
 - `getName()` — a stable snake_case code you can switch on (`validation_error`, `not_found`, `restricted_api_key`, `sending_paused`, `all_recipients_suppressed`, …)
@@ -77,7 +77,7 @@ It carries the API's error shape:
 ```java
 try {
   ms.emails().get(id);
-} catch (MillionSendException e) {
+} catch (PostaException e) {
   if ("not_found".equals(e.getName())) {
     // …
   }
@@ -100,8 +100,8 @@ on templates) are forwarded as-is and answered with a 422.
 `RequestOptions` (the same builder shape as `resend-java`):
 
 ```java
-import com.millionsend.core.RequestOptions;
-import com.millionsend.model.BatchValidation;
+import io.github.tacklabs.posta.core.RequestOptions;
+import io.github.tacklabs.posta.model.BatchValidation;
 
 RequestOptions opts = RequestOptions.builder()
     .idempotencyKey("order-123")                   // Idempotency-Key (setIdempotencyKey also works)
@@ -122,7 +122,7 @@ ms.emails().list(ListOptions.builder().limit(50).build()); // GET /emails
 ms.emails().update(id, UpdateEmailOptions.builder().scheduledAt("2026-09-01T09:00:00Z").build());
 ms.emails().getInsights(id);                // GET /emails/{id}/insights (404 not_found until computed)
 ms.emails().cancel(id);                     // POST /emails/{id}/cancel (scheduled only)
-ms.emails().remove(id);                     // DELETE /emails/{id} (MillionSend extension)
+ms.emails().remove(id);                     // DELETE /emails/{id} (Posta extension)
 ```
 
 Send options are camelCase and mapped to the wire: `replyTo` → `reply_to`,
@@ -163,7 +163,7 @@ ms.contacts().remove(ContactAddress.email("ada@acme.dev"));   // the contact's e
 ms.contacts().remove(RemoveContactOptions.builder()
     .email("ada@acme.dev").erase(true).build());           // ?erase=true — also scrubs the address from history
 ms.contacts().list(ListOptions.builder().limit(50).build());
-// Bulk read (MillionSend extension): attach properties and topic subscriptions to every item,
+// Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact
 ms.contacts().list(ListContactsOptions.builder().limit(100)
     .include(ContactInclude.PROPERTIES, ContactInclude.TOPICS).build()); // ?include=properties,topics
@@ -176,7 +176,7 @@ topics.getData().get(0).getSubscription(); // effective choice: the contact's ow
 topics.getData().get(0).isExplicit();      // false when it is the topic default
 topics.getData().get(0).getVisibility();   // "public" | "private" — the hosted page lists public topics only
 
-// Preference-center link (MillionSend extension): the contact's hosted preference page,
+// Preference-center link (Posta extension): the contact's hosted preference page,
 // the same one their emails' unsubscribe links open. No expiry — show it only to the contact.
 PreferencesLink link = ms.contacts().preferencesLink(ContactAddress.email("ada@acme.dev")); // POST /contacts/{idOrEmail}/preferences-link
 link.getUrl();                                                    // 422 when the instance cannot build hosted links
@@ -185,7 +185,7 @@ link.getUrl();                                                    // 422 when th
 ms.contacts().segments().add(contactIdOrEmail, segmentId);     // POST /contacts/{id}/segments/{segmentId}
 ms.contacts().segments().remove(contactIdOrEmail, segmentId);  // DELETE …
 
-// Bulk creation (MillionSend extension): up to 1000 per call
+// Bulk creation (Posta extension): up to 1000 per call
 CreateBatchContactsResponse res = ms.contacts().batch().create(items,
     ConflictMode.UPSERT,                                        // ?on_conflict=error|skip|upsert
     RequestOptions.builder().batchValidation(BatchValidation.PERMISSIVE).build());
@@ -193,14 +193,14 @@ res.getData();     // [{ index, id, status: created|updated|skipped }]
 res.getCounts();   // created / updated / skipped / failed
 res.getErrors();   // permissive mode: rejected items
 
-// Bulk lookup (MillionSend extension): up to 1000 contacts by id or email in one request,
+// Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
 // in request order; unknown entries are listed, not errors — one request against the rate limit
 BatchGetContactsResponse found = ms.contacts().batch().get(
     List.of(ContactAddress.id(contactId), ContactAddress.email(email)), ContactInclude.TOPICS);
 found.getData();    // [{ object: "contact", id, email, ..., topics }] — the contacts found
 found.getMissing(); // [{ index, email }] — request entries that matched nobody
 
-// Bulk removal (MillionSend extension): up to 1000 per call, by ids or by emails;
+// Bulk removal (Posta extension): up to 1000 per call, by ids or by emails;
 // their emails stay in the log unless erase also scrubs the addresses from history
 ms.contacts().batch().remove(RemoveContactsOptions.builder().emails(List.of(a, b)).build()); // or .ids(...)
 ms.contacts().batch().remove(RemoveContactsOptions.builder().ids(List.of(a)).erase(true).build());
@@ -253,9 +253,9 @@ ms.broadcasts().cancel(id);    // scheduled only
 ms.broadcasts().remove(id);    // draft only
 ```
 
-### Segments (MillionSend extension)
+### Segments (Posta extension)
 
-Dynamic segments are a saved filter over your contacts — a MillionSend
+Dynamic segments are a saved filter over your contacts — a Posta
 superset with no Resend equivalent.
 
 ```java
@@ -303,7 +303,7 @@ ms.domains().remove(id);
 
 ```java
 CreateWebhookResponse w = ms.webhooks().create(CreateWebhookOptions.builder()
-    .endpoint("https://acme.dev/hooks/millionsend")
+    .endpoint("https://acme.dev/hooks/posta")
     .events(WebhookEvent.EMAIL_DELIVERED, WebhookEvent.EMAIL_BOUNCED)
     .build());
 w.getSigningSecret();           // verify payload signatures with this
@@ -312,7 +312,7 @@ ms.webhooks().list();
 ms.webhooks().update(id, UpdateWebhookOptions.builder().status("disabled").build());
 ms.webhooks().remove(id);
 
-// Rotate the signing secret (MillionSend extension)
+// Rotate the signing secret (Posta extension)
 RotateWebhookResponse r = ms.webhooks().rotate(id);                    // minted secret, default overlap
 ms.webhooks().rotate(id, RotateWebhookOptions.builder()
     .signingSecret("whsec_...")   // bring your own; omit to mint
@@ -325,7 +325,7 @@ r.getPreviousSecretExpiresAt();   // when the previous secret stops signing; nul
 During the overlap every delivery carries both signatures, so a receiver
 holding either verifies. `deliverability.*`, `quota.*`, `contact.unsubscribed`,
 `contact.resubscribed`, `contact.topic_opt_in`, `contact.topic_opt_out` and
-`suppression.*` events are MillionSend extensions.
+`suppression.*` events are Posta extensions.
 
 ### API keys
 
@@ -352,7 +352,7 @@ ms.templates().duplicate(id);
 ms.templates().remove(id);
 ```
 
-### Deliverability (MillionSend extension)
+### Deliverability (Posta extension)
 
 The account deliverability score over the trailing 30 days.
 
@@ -366,7 +366,7 @@ report.getGuardrailStatus();  // "ok" | "warning" | "paused"
 Bands, check severities/statuses and the guardrail status are plain strings
 (the server may add values over time), and check ids are an open set.
 
-### Usage (MillionSend extension)
+### Usage (Posta extension)
 
 ```java
 UsageReport u = ms.usage().get();
@@ -380,12 +380,12 @@ u.getToday().getEmailsSent();
 ```diff
 - import com.resend.Resend;
 - Resend resend = new Resend("re_123");
-+ import com.millionsend.MillionSend;
-+ MillionSend ms = new MillionSend("ms_123");
++ import io.github.tacklabs.posta.Posta;
++ Posta ms = new Posta("po_123");
 ```
 
 Self-hosting? Pass your instance's origin as the second argument (or set
-`MILLIONSEND_BASE_URL`).
+`POSTA_BASE_URL`).
 
 Accessor and method names match (`resend.emails().send(...)` →
 `ms.emails().send(...)`, `resend.suppressions().batch().add(...)` →
@@ -393,10 +393,10 @@ Accessor and method names match (`resend.emails().send(...)` →
 `webhooks()`, `templates()`, `contactProperties()`, `broadcasts()`, `topics()`).
 Notes:
 
-- **No audiences**: contacts are team-global, so there is no `.audiences()` resource and no `audienceId` anywhere. The server keeps `/audiences/*` only as a compatibility shim; it is not part of this SDK. `.segments()` is MillionSend's dynamic-filter feature, not Resend's audience alias.
+- **No audiences**: contacts are team-global, so there is no `.audiences()` resource and no `audienceId` anywhere. The server keeps `/audiences/*` only as a compatibility shim; it is not part of this SDK. `.segments()` is Posta's dynamic-filter feature, not Resend's audience alias.
 - **Request options** use the same `RequestOptions` builder shape (`setIdempotencyKey`, `add(header, value)`), plus `batchValidation(...)`.
-- Errors throw `MillionSendException` (in place of Resend's `ResendException`) with the same `{ statusCode, name, message }` fields.
-- **MillionSend extensions** (no Resend counterpart): `segments()`, `deliverability()`, `usage()`, `contacts().batch()`, `contacts().preferencesLink()`, `webhooks().rotate()`, `emails().remove()`, `emails().getInsights()`, `Email.getScore()`.
+- Errors throw `PostaException` (in place of Resend's `ResendException`) with the same `{ statusCode, name, message }` fields.
+- **Posta extensions** (no Resend counterpart): `segments()`, `deliverability()`, `usage()`, `contacts().batch()`, `contacts().preferencesLink()`, `webhooks().rotate()`, `emails().remove()`, `emails().getInsights()`, `Email.getScore()`.
 
 ## Build & test
 
@@ -405,8 +405,8 @@ mvn test          # unit tests over a mocked HTTP layer
 mvn verify        # + build the jar
 ```
 
-The integration test in `E2ETest` runs only when `MILLIONSEND_API_KEY` is set
-(and `MILLIONSEND_BASE_URL` for a self-hosted instance); it is skipped otherwise.
+The integration test in `E2ETest` runs only when `POSTA_API_KEY` is set
+(and `POSTA_BASE_URL` for a self-hosted instance); it is skipped otherwise.
 
 ## Releasing
 

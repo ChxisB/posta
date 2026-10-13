@@ -1,4 +1,4 @@
-package millionsend
+package posta
 
 import (
 	"context"
@@ -362,7 +362,7 @@ func (s *ContactsService) CreatePreferencesLink(addr ContactAddress) (*ContactPr
 }
 
 // ContactsBatchService covers POST /contacts/batch, /contacts/batch/get and
-// /contacts/batch/remove (MillionSend extensions: Resend imports contacts via
+// /contacts/batch/remove (Posta extensions: Resend imports contacts via
 // CSV only and reads and deletes them one at a time).
 type ContactsBatchService struct{ client *Client }
 
