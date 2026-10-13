@@ -1,0 +1,39 @@
+{
+    "name": "millionsend/millionsend-php",
+    "description": "Official PHP SDK for MillionSend — a self-hostable, Resend-compatible email API.",
+    "type": "library",
+    "keywords": ["email", "millionsend", "ses", "transactional-email", "resend-compatible"],
+    "license": "MIT",
+    "homepage": "https://github.com/MillionSend/millionsend-php",
+    "version": "0.8.0",
+    "support": {
+        "issues": "https://github.com/MillionSend/millionsend-php/issues",
+        "source": "https://github.com/MillionSend/millionsend-php"
+    },
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.5"
+    },
+    "require-dev": {
+        "laravel/pint": "1.30.4",
+        "pestphp/pest": "^2.34",
+        "phpstan/phpstan": "2.2.15"
+    },
+    "autoload": {
+        "psr-4": { "MillionSend\\": "src/" }
+    },
+    "scripts": {
+        "test": "pest",
+        "lint": [
+            "pint --test",
+            "phpstan analyse"
+        ],
+        "lint:fix": "pint"
+    },
+    "config": {
+        "allow-plugins": { "pestphp/pest-plugin": true },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,0 +1,301 @@
+---
+title: Webhooks
+description: Signed event deliveries for the email lifecycle, following the Standard Webhooks spec.
+---
+
+Webhooks push email lifecycle events to your endpoints as they happen. Create
+endpoints in the dashboard, choose which event types each one receives, and
+inspect every delivery (payload, response, attempts) in the per-endpoint
+delivery log.
+
+## Event types
+
+| Event | Fired when |
+| --- | --- |
+| `email.sent` | SES accepted the message for delivery. |
+| `email.delivered` | The recipient server accepted it. |
+| `email.delivery_delayed` | Delivery is being retried (e.g. mailbox full, greylisting). |
+| `email.bounced` | The message bounced. `data.bounce.type` says how: `Permanent` is a hard bounce, and the address is also [suppressed](/concepts/suppressions); `Transient` or `Undetermined` means SES gave up after retrying (a full mailbox, a domain that never resolves), and the address is not suppressed. |
+| `email.complained` | The recipient marked it as spam. Also suppressed. |
+| `email.opened` | A person loaded the tracking pixel (requires open tracking on the [domain](/concepts/domains)). `data.open` carries the fetch's `ipAddress`, `userAgent` and `timestamp`. A click on a message with no open yet also records one, with `data.open.reason: "click"`: a person cannot click what they never rendered, and for Apple Mail readers it is the only open that can ever be seen. |
+| `email.clicked` | A person clicked a rewritten link (requires click tracking). `data.click` carries `link`, `ipAddress`, `userAgent` and `timestamp`, as Resend's does. A link a machine followed — a security gateway, a link preview, a fetch seconds after delivery — is recorded as `email.prefetched` instead. |
+| `email.prefetched` | The pixel was fetched, or a link followed, by a machine — Apple Mail Privacy Protection, Gmail's prefetch, a security scanner, a browser identity no real browser sends, a fetch within seconds of delivery, or every link of the message within a second; `data.open.reason` or `data.click.reason` says which (see [open-rate accuracy](/concepts/domains#open-rate-accuracy)). A click recorded before the rest of its burst arrived is re-recorded here with the same `data.click.timestamp` its `email.clicked` carried: treat that as the retraction of the click and of any `email.opened` with `data.open.reason: "click"` stamped one millisecond before it. Opt-in: delivered only to endpoints that name it, never to "all events". |
+| `email.received` | A message reached one of your [receiving domains](/concepts/receiving) and was stored, once per message, as soon as it is visible: mail an [inbox](/concepts/inboxes) holds in quarantine or while it is screened, and infected mail, fire it only once delivered or released. `data.email_id` is a received email: read it with `GET /emails/receiving/{id}`. See [the payload](#received-mail) below. |
+
+Team-level events carry no email; `data` describes the team's standing instead:
+
+| Event | Fired when | `data` |
+| --- | --- | --- |
+| `deliverability.warning` | The team's hard-bounce or complaint rate crossed the risk line (once per episode). | `{ metric, rate, limit, window_days, dashboard_url }` |
+| `deliverability.paused` | The rate crossed the pause line; new sends are refused until it recovers. | same as above |
+| `quota.warning` | 80% of the cap is used: today's daily cap on Free and Starter, the billing period's included volume on Pro and Scale (once per UTC day or per period, cloud only). | `{ used, limit, period, resets_at, dashboard_url }` — `period` is `"day"` or `"month"`; `resets_at` is the next UTC midnight or the period's end. On a day, `ceiling` is where parking begins; on a month, `overage` says whether sends past `limit` bill or are refused. |
+| `quota.reached` | The cap is used. Daily plans pass up to 50% more, then park until midnight UTC; monthly plans bill overage when it is on, otherwise refuse API sends and park broadcasts until the period renews. | same as above |
+| `quota.paused` | Daily plans only: 50% past the cap, new sends are parked until midnight UTC, or until a plan upgrade releases them (once per UTC day, cloud only). | same as above, always `period: "day"` |
+
+Audience events fire when a contact or the suppression list changes, whoever
+changed it. `data` carries the contact in Resend's shape — `id`, `email`,
+`first_name`, `last_name`, `unsubscribed`, `created_at`, `updated_at` — plus
+`source`: `api`, `dashboard`, `hosted_page` (the preference center) or
+`one_click` (an RFC 8058 header post). Resend emits only `contact.created`,
+`contact.updated` and `contact.deleted`; the rest are MillionSend extensions.
+
+| Event | Fired when | Extra `data` |
+| --- | --- | --- |
+| `contact.created` | A contact was added: API, batch, CSV import or dashboard. | |
+| `contact.updated` | Name, properties or the unsubscribed flag changed through the API or the dashboard. A write that restates the stored values (a full re-import, say) emits nothing and leaves `updated_at` untouched. | |
+| `contact.deleted` | A contact was deleted. After an erasure (`erase=true` on the API, or the dashboard's erase action) the stored `email` reads `[erased]`; key on `id`. | |
+| `contact.unsubscribed` | The contact opted out of all marketing email. | |
+| `contact.resubscribed` | An explicit re-subscribe (`unsubscribed: false`). | |
+| `contact.topic_opt_in` / `contact.topic_opt_out` | The contact's effective subscription to a topic flipped. | `topic_id`, `topic_name` |
+| `suppression.added` / `suppression.removed` | An address joined or left the [suppression list](/concepts/suppressions). Bounce and complaint rows come from SES, with `source: null`. | `data` is `{ id, email, origin, source, created_at }` |
+
+### Received mail
+
+`email.received` carries Resend's metadata-only payload: no body, headers or
+attachment sizes, and `from` is the bare address. `received_for` lists the
+addresses at your domains the message was delivered to, Bcc recipients
+included. When a later delivery of the same message reaches more of your
+addresses, another `email.received` with the same `email_id` lists only those.
+
+```json title="email.received"
+{
+  "type": "email.received",
+  "created_at": "2026-10-11T14:37:40.951Z",
+  "data": {
+    "email_id": "4ef9a417-02e9-4d39-ad75-9611e0fcc33c",
+    "created_at": "2026-10-11T14:37:40.951Z",
+    "from": "ada@example.org",
+    "to": ["support@inbound.example.com"],
+    "bcc": [],
+    "cc": [],
+    "received_for": ["support@inbound.example.com"],
+    "message_id": "<CAF1x7Qm9@mail.example.org>",
+    "subject": "Order #1042",
+    "attachments": [
+      {
+        "id": "b344102e-962e-8943-aef6-271c7743e1dd",
+        "filename": "invoice.pdf",
+        "content_type": "application/pdf",
+        "content_disposition": "attachment",
+        "content_id": null
+      }
+    ]
+  }
+}
+```
+
+### Inbox events
+
+[Inboxes](/concepts/inboxes) emit Resend's `inbox.*` events, plus two of
+MillionSend's own. They are **opt-in**: an endpoint gets them only by naming
+them, never through "all events".
+
+| Event | Fired when | `data`, besides `source` and `inbox_id` |
+| --- | --- | --- |
+| `inbox.created` | An inbox was created. | `inbox` |
+| `inbox.updated` | An inbox's name, from name, expiry or safety settings changed. | `inbox` |
+| `inbox.deleted` | An inbox was deleted, by a person, the API, an expiry or its domain's deletion. | |
+| `inbox.expired` | An inbox reached its `expires_at`; `inbox.deleted` follows. MillionSend's own. | `inbox`, as it was |
+| `inbox.thread.created` | A thread got its first message: the first one delivered or released, or the first one the inbox sent. | `thread_id`, `email_id`, `thread`, `email` |
+| `inbox.thread.folder.updated` | A thread moved folders, by hand or when new mail brought it back to `inbox`. | `from`, `to`, `thread_id`, `thread` |
+| `inbox.thread.labels.updated` | A label was put on or taken off a thread; one label per event. | `added`, `removed`, `thread_id`, `thread` |
+| `inbox.email.received` | A received message was delivered or released into a thread. | `thread_id`, `email_id`, `thread`, `email` |
+| `inbox.email.sent` | The inbox's send was accepted. | `thread_id`, `email_id`, `thread`, `email` |
+| `inbox.email.quarantined` | A received message was quarantined. MillionSend's own. | `thread_id`, `email_id`, `reason`, `sender_trust`, `from`, `subject`, `received_at` |
+| `inbox.draft.created` | A draft was created, including a send held for approval. | `draft_id`, `draft`; `thread_id` and `thread` on reply drafts |
+| `inbox.draft.updated` | A draft changed. | same as created |
+| `inbox.draft.sent` | A draft was sent; it fires before `inbox.email.sent`. | `thread_id`, `email_id`, `draft_id`, `thread`, `draft` |
+| `inbox.draft.deleted` | A draft was deleted, rejected or expired. | `draft_id`; `thread_id` and `thread` on reply drafts |
+
+- `source` is `api` (an API key or an MCP client), `dashboard` or `system`
+  (mail arriving, sends, expiries). It is never `agent`.
+- `inbox` is the [inbox object](/concepts/inboxes#create-an-inbox),
+  `thread` is `{ object, id, subject, folder, labels, read }`, `email` a
+  thread email and `draft` a draft. `email` and `draft` never carry `html`,
+  `text`, `extracted_text`, codes or links: fetch the content with the API.
+- The objects are taken when the event happens, not when it is delivered,
+  so a quick second change doesn't rewrite the first event.
+- Keys that don't apply are left out, never sent as `null`.
+
+```json title="inbox.email.received"
+{
+  "type": "inbox.email.received",
+  "created_at": "2026-10-12T14:03:12.301Z",
+  "data": {
+    "source": "system",
+    "inbox_id": "7eeb9517-aed7-40d7-ad65-500be42ed147",
+    "thread_id": "b9e1837b-c150-45c6-a055-73b02ec9f1dc",
+    "email_id": "155252fb-e93e-45ee-8c19-5080a929c28b",
+    "thread": {
+      "object": "inbox_thread",
+      "id": "b9e1837b-c150-45c6-a055-73b02ec9f1dc",
+      "subject": "Where is my order?",
+      "folder": "inbox",
+      "labels": [],
+      "read": false
+    },
+    "email": {
+      "id": "155252fb-e93e-45ee-8c19-5080a929c28b",
+      "direction": "inbound",
+      "from": "Maria Silva <maria@example.org>",
+      "to": ["orders@inbound.example.com"],
+      "cc": [],
+      "bcc": [],
+      "reply_to": [],
+      "subject": "Where is my order?",
+      "message_id": "<CAF7c1f0a2e5d3b@mail.example.org>",
+      "attachments": [],
+      "read": false,
+      "received_at": "2026-10-12T14:03:11.229Z"
+    }
+  }
+}
+```
+
+```json title="inbox.email.quarantined"
+{
+  "type": "inbox.email.quarantined",
+  "created_at": "2026-10-12T14:05:40.017Z",
+  "data": {
+    "source": "system",
+    "inbox_id": "7eeb9517-aed7-40d7-ad65-500be42ed147",
+    "thread_id": "6581da0f-148e-49c7-8ba3-b1c2fcabc5ef",
+    "email_id": "6166ec82-4ea7-481a-a78d-42c6f84af265",
+    "reason": "injection",
+    "sender_trust": "external",
+    "from": "billing@example.net",
+    "subject": "Invoice overdue",
+    "received_at": "2026-10-12T14:05:38.442Z"
+  }
+}
+```
+
+**Only some inboxes.** `POST /webhooks` and `PATCH /webhooks/{id}` take
+`inbox_ids`, up to 100 inboxes of the team (`null`, the default, means every
+inbox), and webhook objects return it. Such an endpoint gets inbox events
+and `email.received` only for those inboxes, so mail at a catch-all address
+doesn't reach it. In the dashboard: **Only these inboxes**.
+
+<Callout type="warn">
+Resend's .NET and Rust SDKs don't know the `inbox.*` event types: reading a
+webhook subscribed to one through `GET /webhooks` fails in both, and the .NET
+webhook parser throws on these payloads. Resend's own inbox events do the
+same today. Read such endpoints and their deliveries with a MillionSend SDK or
+plain HTTP.
+</Callout>
+
+## Signatures (Standard Webhooks)
+
+Deliveries are signed following the
+[Standard Webhooks](https://www.standardwebhooks.com) spec — the same scheme
+Resend and Svix use, so existing verification code works unchanged.
+
+Each endpoint has a `whsec_...` secret, shown once at creation. Every request
+carries:
+
+```
+webhook-id: <message id>
+webhook-timestamp: <unix seconds>
+webhook-signature: v1,<base64 HMAC-SHA256>
+```
+
+The same three values are also sent as `svix-id`, `svix-timestamp` and
+`svix-signature` — the names Resend's docs tell receivers to read. One
+signature, two header names: a handler written for either family verifies
+without changes.
+
+The signed content is `{webhook-id}.{webhook-timestamp}.{raw body}`. During a
+[secret rotation](#rotating-the-secret) the header carries two space-separated
+`v1,…` candidates, new secret first; a verifier accepts if any of them matches,
+which every Standard Webhooks library does. Verify with one, e.g. in Node:
+
+```ts
+import { Webhook } from "standardwebhooks";
+
+const wh = new Webhook("whsec_...");
+const event = wh.verify(rawBody, {
+  "webhook-id": req.headers["webhook-id"],
+  "webhook-timestamp": req.headers["webhook-timestamp"],
+  "webhook-signature": req.headers["webhook-signature"],
+});
+```
+
+Always verify against the **raw** request body, and reject stale timestamps.
+
+## Bringing your own secret
+
+`POST /webhooks` accepts an optional `signing_secret`: `whsec_` followed by
+standard base64 of 24–64 bytes — the format Resend and Svix issue. Pass the
+secret your receiver already verifies with and the endpoint keeps working
+without a redeploy; omit it and MillionSend generates one. Anything else is
+rejected with `422 signing_secret must be whsec_ followed by base64 of 24-64
+bytes`.
+
+To carry a secret over from another provider, read it from their API or
+dashboard (Resend returns it on `GET /webhooks/{id}`) and create the endpoint
+here with the same value:
+
+```sh
+curl -X POST "https://api.millionsend.com/webhooks" \
+  -H "Authorization: Bearer ms_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpoint": "https://example.com/webhooks/email",
+    "events": ["email.delivered", "email.bounced"],
+    "signing_secret": "whsec_..."
+  }'
+```
+
+The secret is returned on create and on `GET /webhooks/{id}`, never in list
+rows.
+
+## Rotating the secret
+
+`POST /webhooks/{id}/rotate` (or **Rotate secret** in the dashboard) mints a
+new secret, or takes the one in `signing_secret`, and returns it. For
+`overlap_hours` (default 24, up to 72) the previous secret keeps signing too:
+every delivery in that window carries both signatures, so a receiver holding
+either one verifies. Switch the receiver at any point in the window; after it
+only the new secret signs. `0` drops the old secret at once, for a leaked one.
+`GET /webhooks/{id}` reports the window's end as `previous_secret_expires_at`,
+and a second rotation inside the window replaces the previous secret.
+
+```sh
+curl -X POST "https://api.millionsend.com/webhooks/{id}/rotate" \
+  -H "Authorization: Bearer ms_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "overlap_hours": 24 }'
+# → { "object": "webhook", "id": "...", "signing_secret": "whsec_...", "previous_secret_expires_at": "..." }
+```
+
+## Delivery
+
+A delivery is successful on any 2xx response. Each endpoint has its own
+queue, started in due order with up to eight requests in flight at up to
+**50 requests per second**; a burst of events waits in the queue rather than
+hitting the receiver all at once.
+
+A failed attempt (non-2xx, timeout, connection error) is retried on a fixed
+schedule: **5 s, 5 min, 30 min, 2 h, 5 h, 10 h** — six attempts over about
+18 hours. A `429` with a `Retry-After` header is honoured (up to an hour)
+and does not count as an attempt: it is the receiver asking for room, not
+failing. An event still undelivered **24 hours** after it was queued is
+dropped as `exhausted` without another attempt.
+
+After **20 consecutive exhausted deliveries** the endpoint is disabled
+automatically and receives nothing further until you re-enable it from its
+page; events that happen in the meantime are not replayed. Team owners are
+emailed when an endpoint's deliveries start failing (the last ten settled
+deliveries all exhausted), when it is disabled, and — at most once a day —
+when its backlog is more than six hours old. The dashboard shows each
+endpoint's queue depth and how long its oldest delivery has been waiting.
+
+A reconcile job re-arms queues lost to crashes, so delivery is
+at-least-once — make handlers idempotent, keyed on `webhook-id`. Delivery
+rows (payload, response, attempts) are kept for
+`WEBHOOK_DELIVERY_RETENTION_DAYS` (default 30) and then purged.
+
+Subscribe each endpoint only to the events it needs. A full contact
+re-import emits nothing for contacts that did not change, but every new
+contact is one `contact.created` delivery — an endpoint subscribed to "all
+events" receives all of them.

@@ -1,34 +1,56 @@
-# Bun runs backend TypeScript; Node runs Next.js.
-FROM node:22-bookworm-slim AS node
-FROM oven/bun:1.3-slim AS base
+# syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+
+FROM node:24-slim@sha256:3638d9a6fe4030bd716be989438248074489337ba3275657f93595428be4fc03 AS deps
 WORKDIR /app
-COPY --from=node /usr/local/bin/node /usr/local/bin/node
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN corepack enable pnpm
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# pnpm fetch populates the store from the lockfile alone, so this layer only
+# invalidates when dependencies change, not on every source edit.
+RUN pnpm fetch
 
-FROM base AS deps
-COPY package.json bun.lock turbo.json tsconfig.json ./
-COPY packages/ packages/
-RUN bun install --frozen-lockfile
-
-FROM deps AS builder
+FROM deps AS build
 COPY . .
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ARG NEXT_PUBLIC_API_URL=http://localhost:5001
-ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
-    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-RUN bun run typecheck && bun run build
+RUN pnpm install --frozen-lockfile --offline
+# Optional upload of the dashboard's browser source maps to the error
+# tracker (SELF_HOSTING.md, "Error tracking"). Without the secret the build
+# is unchanged. The secret never enters the cache key; these args do, so a
+# build that sets them is not served a layer built without the upload.
+ARG SENTRY_URL
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
+  pnpm --filter @millionsend/web build
+RUN pnpm --filter @millionsend/docs build
+# The webpack cache is build-only (hundreds of MB), and the runtime never
+# needs dev tooling (drizzle-kit, vitest, biome, typescript): a fresh
+# prod-only install from the same store leaves none of it behind. (`pnpm
+# prune --prod` is not workspace-aware — it empties the packages' own
+# node_modules — and a re-link over the existing tree keeps the orphans.)
+RUN rm -rf apps/*/.next/cache node_modules apps/*/node_modules packages/*/node_modules \
+  && CI=true pnpm install --prod --frozen-lockfile --offline
 
-FROM base AS runtime
-# Workspace package entry points use src/*.ts, so keep the source trees.
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY config/ ./config/
-COPY scripts/ ./scripts/
-RUN chmod +x scripts/*.sh
-ENV POSTA_CONFIG_FILE_PATH=/app/config/posta/posta.yml NODE_ENV=production PORT=5001
-EXPOSE 5001 3000 25 9090
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-  CMD bun -e 'fetch("http://localhost:5001/health").then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))'
-ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+# The runtime keeps the full workspace (source + node_modules): api and worker
+# run TypeScript directly via tsx (which resolves NodeNext ".js" specifiers to
+# .ts sources), and workspace packages export TS source, so there is no pruned
+# "dist" to copy. The image is larger than a bundled build; that is the
+# accepted tradeoff for zero build tooling in the backends.
+FROM node:24-slim@sha256:3638d9a6fe4030bd716be989438248074489337ba3275657f93595428be4fc03 AS runtime
+WORKDIR /app
+ARG GIT_SHA=unknown
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV MILLIONSEND_REVISION=$GIT_SHA
+RUN groupadd --system millionsend && useradd --system --gid millionsend millionsend
+# Root-owned tree: the process that runs this source cannot rewrite it. Only
+# Next's runtime caches (image optimizer, fetch cache) and the docs' MDX
+# index, which fumadocs regenerates on every start, need to be writable.
+# Mode 1777 rather than ownership: a tmpfs mounted over these paths (the
+# compose files do, for a read-only rootfs) inherits the mode, not the owner.
+COPY --from=build /app /app
+RUN install -d -m 1777 apps/web/.next/cache apps/docs/.next/cache \
+  && chown -R millionsend:millionsend apps/docs/.source && chmod 1777 apps/docs/.source
+USER millionsend
+EXPOSE 3000 3001 3002
+# ENTRYPOINT (not CMD) so `docker compose run millionsend setup` reaches
+# start.mjs as argv instead of replacing the command.
+ENTRYPOINT ["node", "scripts/start.mjs"]

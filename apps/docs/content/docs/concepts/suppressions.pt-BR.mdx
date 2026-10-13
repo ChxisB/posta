@@ -1,0 +1,113 @@
+---
+title: Supressões
+description: Proteção automática para a sua reputação de remetente.
+---
+
+A lista de supressão protege sua reputação de remetente — e sua capacidade de
+envio — garantindo que você nunca envie repetidamente para um endereço que
+teve hard bounce ou marcou você como spam.
+
+## Como endereços são suprimidos
+
+- **Hard bounce** — o servidor de destino rejeitou o endereço
+  permanentemente.
+- **Reclamação** — o destinatário marcou uma mensagem como spam.
+- **Descadastro** — o destinatário saiu de todo e-mail de marketing, pelo
+  header de um clique ou pela página de preferências hospedada. Além de marcar
+  o contato, a saída fica registrada aqui para sobreviver à exclusão e à
+  reimportação do contato; só um `PATCH /contacts/{id}` explícito com
+  `unsubscribed: false` a remove. Diferente das outras origens, cobre apenas
+  e-mail de marketing (veja abaixo).
+- **Manual** — você adicionou o endereço, no painel ou pela API.
+
+Bounces e reclamações chegam como eventos do SES e suprimem o endereço
+automaticamente. Supressões são por equipe.
+
+## O que a supressão faz
+
+- **Envios transacionais** (`POST /emails` e o relay SMTP, sem `topic_id`):
+  destinatários suprimidos por bounce, reclamação ou entrada manual são
+  removidos de `to`/`cc`/`bcc`. Se *todos* os destinatários em `to` estiverem
+  suprimidos, o envio é rejeitado com `422 all_recipients_suppressed`
+  (mensagem `All recipients are suppressed`). Uma entrada de **descadastro**
+  não se aplica aqui: quem saiu do marketing continua recebendo redefinições
+  de senha, recibos e outras mensagens da conta — o mesmo significado que o
+  Resend dá a `unsubscribed` ("descadastrado de todos os Broadcasts").
+- **Envios com tópico** (`POST /emails` com `topic_id`) e **transmissões**: toda
+  entrada se aplica, descadastros incluídos, mais a saída do destinatário
+  daquele tópico; as transmissões pulam esses contatos no fan-out.
+
+Uma lista importada com `origin: "unsubscribe"` bloqueia, portanto, apenas
+envios com tópico e transmissões. Importe com `manual` para bloquear todo envio.
+
+Toda mudança na lista publica um evento de webhook `suppression.added` ou
+`suppression.removed` — veja [Webhooks](/pt-BR/concepts/webhooks#tipos-de-evento).
+
+## Revisando e removendo
+
+O painel lista cada endereço suprimido com o motivo e a data. Você pode
+remover um endereço para permitir envios de novo — faça isso apenas quando
+souber que a causa foi corrigida (ex.: uma caixa que sempre existiu mas era
+rejeitada por um servidor mal configurado). A re-supressão é automática no
+próximo bounce ou reclamação.
+
+## A lista de supressão do próprio SES
+
+Além desta lista por equipe, o Amazon SES mantém uma lista de supressão da
+conta, por região, compartilhada por todas as equipes da instância. O
+assistente de configuração a define para apenas bounces: uma caixa que deu
+hard bounce está morta para todo mundo, então o SES pode recusá-la para a
+conta inteira, mas uma denúncia de spam diz respeito ao e-mail de um remetente
+e fica só na lista daquela equipe aqui. Um envio que o SES recusa por causa da
+própria lista aparece como bounce permanente com o subtipo
+`OnAccountSuppressionList`, e só o console do SES remove essa entrada.
+
+## API
+
+Os endpoints `/suppressions` espelham a superfície `suppressions` do Resend,
+então os métodos `suppressions.*` do SDK do Resend funcionam como estão. Cada
+entrada é lida como `{ id, email, origin, source_id, created_at }`, onde
+`origin` é `bounce`, `complaint`, `manual` ou `unsubscribe` e `source_id` é o
+e-mail cujo bounce ou reclamação a criou.
+
+- `GET /suppressions?origin=bounce` — listagem com paginação por cursor,
+  opcionalmente filtrada por origem.
+- `GET /suppressions/{id}` e `DELETE /suppressions/{id}` — o segmento de
+  caminho é o id da supressão ou o endereço de e-mail.
+- `POST /suppressions` com `{ "email": "...", "origin": "manual" }` — bloqueia
+  o endereço. `origin` é opcional (`bounce`, `complaint`, `manual` ou
+  `unsubscribe`, padrão `manual`) e permite que uma importação de outro
+  provedor preserve o histórico de bounces e reclamações, ou que uma lista de
+  opt-outs migrada mantenha seu motivo. Idempotente: um endereço já suprimido
+  por qualquer motivo mantém sua entrada e sua origem, e o id existente é
+  retornado.
+- `POST /suppressions/batch/add` com `{ "emails": [...], "origin": "bounce" }`
+  e `POST /suppressions/batch/remove` com `{ "emails": [...] }` ou
+  `{ "ids": [...] }` — até 1000 entradas por chamada (o Resend limita a 100).
+  O add aplica o único `origin` opcional a todas as linhas que cria e retorna
+  um id por endereço distinto, na ordem de entrada; o remove lista só as
+  linhas de fato removidas.
+
+Três particularidades do MillionSend: `origin` no add é aceito (o tipo do SDK
+do Resend não tem esse campo, então envie por uma requisição crua),
+`origin: "unsubscribe"` é um valor a mais que o Resend não tem (a união de
+tipos do SDK dele não o inclui) e se comporta como um opt-out de um clique —
+só uma nova inscrição explícita do contato o remove —, e um
+endereço cujos dados pessoais foram apagados (LGPD/GDPR) continua bloqueando
+envios mas some da listagem e das buscas por e-mail — fica acessível só pelo
+id, com `"[erased]"` como e-mail, e suprimir o endereço de novo retorna esse
+id sem restaurá-lo.
+
+## Por que isso importa
+
+O SES acompanha taxas de bounce e reclamação e pausa remetentes que cruzam
+seus limites. A página de métricas do MillionSend acompanha suas taxas contra
+esses limites, e o [envio de transmissões](/pt-BR/concepts/broadcasts#proteções)
+é bloqueado automaticamente quando uma taxa cruza o limite de pausa.
+
+<Callout type="info">
+Na Nuvem, o volume de envio é regido pelos limites do seu plano.
+Auto-hospedado, os limites são as cotas e a reputação da sua própria conta
+AWS SES — cruzar os limites do SES pode pausar a conta inteira, que é
+exatamente do que a supressão protege você.
+</Callout>

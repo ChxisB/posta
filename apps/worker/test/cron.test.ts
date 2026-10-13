@@ -1,0 +1,1574 @@
+import { DAY_MS, dailyCeiling, SYSTEM_MAIL_TAG, teamRung, utcDay } from "@millionsend/core";
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { eq, sql } from "drizzle-orm";
+import { afterEach, beforeEach, expect, it } from "vitest";
+import {
+  drainQuotaParked,
+  purgeExpiredApiRequests,
+  purgeExpiredEmailBodies,
+  purgeExpiredEmailMetadata,
+  purgeExpiredSessions,
+  purgeStaleHourlyUsage,
+  reconcileBillingPlans,
+  reconcileStalledSends,
+  stripExpiredEventPayloads,
+} from "../src/handlers/cron.js";
+
+let db: Db;
+let close: () => Promise<void>;
+let teamId: string;
+
+beforeEach(async () => {
+  // Fresh database per test: drain math depends on exact counter state.
+  ({ db, close } = await createTestDb());
+  teamId = await createTeam(db, "cron-team");
+});
+afterEach(() => close());
+
+const today = () => utcDay();
+
+// Sends pass this far over the nominal daily cap before parking.
+const FREE_CEILING = dailyCeiling(teamRung("free", null).included);
+
+async function insertParked(
+  createdAt: Date,
+  subject = "parked",
+  over: Partial<typeof schema.emails.$inferInsert> = {},
+): Promise<string> {
+  const [row] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject,
+      latestStatus: "queued_quota",
+      createdAt,
+      ...over,
+    })
+    .returning({ id: schema.emails.id });
+  if (!row) throw new Error("insert failed");
+  return row.id;
+}
+
+async function statusOf(emailId: string): Promise<string> {
+  const [row] = await db
+    .select({ s: schema.emails.latestStatus })
+    .from(schema.emails)
+    .where(eq(schema.emails.id, emailId));
+  return row?.s ?? "missing";
+}
+
+it("drain reserves against the NEW day's cap — parking is not a quota bypass", async () => {
+  // Free ceiling is 150 (100 + tolerance); today's counter already holds one less
+  // → only ONE parked email may drain, oldest first.
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), accepted: FREE_CEILING - 1 });
+  const oldest = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const middle = await insertParked(new Date("2026-08-13T02:00:00Z"));
+  const newest = await insertParked(new Date("2026-08-13T03:00:00Z"));
+
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: true,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  });
+
+  expect(result).toEqual({ drained: 1, stillParked: 2 });
+  expect(enqueued).toEqual([oldest]);
+  expect(await statusOf(oldest)).toBe("queued");
+  expect(await statusOf(middle)).toBe("queued_quota");
+  expect(await statusOf(newest)).toBe("queued_quota");
+  const [counter] = await db
+    .select()
+    .from(schema.usageCounters)
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(counter?.accepted).toBe(FREE_CEILING);
+});
+
+it("holds only the rows of a region whose SES quota is full; domain-less rows count as the default region", async () => {
+  const [held, open] = await db
+    .insert(schema.domains)
+    .values([
+      { teamId, name: "us.acme.dev", region: "us-east-1" },
+      { teamId, name: "br.acme.dev", region: "sa-east-1" },
+    ])
+    .returning({ id: schema.domains.id });
+  if (!held || !open) throw new Error("domain insert failed");
+  const inUs = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  await db.update(schema.emails).set({ domainId: held.id }).where(eq(schema.emails.id, inUs));
+  const inBr = await insertParked(new Date("2026-08-13T02:00:00Z"));
+  await db.update(schema.emails).set({ domainId: open.id }).where(eq(schema.emails.id, inBr));
+  const platform = await insertParked(new Date("2026-08-13T03:00:00Z"));
+
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: false,
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+  const full = new Set(["us-east-1"]);
+  const sesQuota = { regions: ["sa-east-1", "us-east-1"], exhausted: (r: string) => full.has(r) };
+  expect(await drainQuotaParked(db, { ...deps, sesQuota })).toEqual({ drained: 2, stillParked: 1 });
+  expect(enqueued).toEqual([inBr, platform]);
+  expect(await statusOf(inUs)).toBe("queued_quota");
+
+  // Every region full: nothing moves and nothing is walked.
+  full.add("sa-east-1");
+  const back = await insertParked(new Date("2026-08-13T04:00:00Z"));
+  expect(await drainQuotaParked(db, { ...deps, sesQuota })).toEqual({ drained: 0, stillParked: 2 });
+  expect(await statusOf(back)).toBe("queued_quota");
+});
+
+it("self-host drain (no caps) releases everything", async () => {
+  const a = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const b = await insertParked(new Date("2026-08-13T02:00:00Z"));
+
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  });
+
+  expect(result).toEqual({ drained: 2, stillParked: 0 });
+  expect(enqueued).toEqual([a, b]);
+});
+
+it("a failed page enqueue re-parks that whole page and releases its reservations, then rethrows", async () => {
+  const a = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const b = await insertParked(new Date("2026-08-13T02:00:00Z"));
+
+  const batches: string[][] = [];
+  await expect(
+    drainQuotaParked(db, {
+      isCloud: true,
+      enqueueSends: async (batch) => {
+        batches.push(batch.map((j) => j.emailId));
+        throw new Error("queue down");
+      },
+    }),
+  ).rejects.toThrow("1 email(s) failed");
+
+  // Both rows moved in one page, so one statement carried both and both go back.
+  expect(batches).toEqual([[a, b]]);
+  expect(await statusOf(a)).toBe("queued_quota");
+  expect(await statusOf(b)).toBe("queued_quota");
+  const [counter] = await db
+    .select()
+    .from(schema.usageCounters)
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(counter?.accepted).toBe(0);
+});
+
+it("a failed page enqueue never refunds a row a racing send lane already claimed", async () => {
+  const a = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const b = await insertParked(new Date("2026-08-13T02:00:00Z"));
+
+  await expect(
+    drainQuotaParked(db, {
+      isCloud: true,
+      enqueueSends: async () => {
+        // A send lane picked `a` up between the move and the enqueue failure.
+        await db
+          .update(schema.emails)
+          .set({ latestStatus: "sent", sentAt: new Date() })
+          .where(eq(schema.emails.id, a));
+        throw new Error("queue down");
+      },
+    }),
+  ).rejects.toThrow("1 email(s) failed");
+
+  expect(await statusOf(a)).toBe("sent");
+  expect(await statusOf(b)).toBe("queued_quota");
+  // Only b's reservation goes back; a's send happened and stays charged.
+  const [counter] = await db
+    .select()
+    .from(schema.usageCounters)
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(counter?.accepted).toBe(1);
+});
+
+it("a failed page enqueue leaves a row a send lane has claimed but not yet sent alone", async () => {
+  const a = await insertParked(new Date("2026-08-13T01:00:00Z"));
+
+  await expect(
+    drainQuotaParked(db, {
+      isCloud: true,
+      enqueueSends: async () => {
+        // The lane's claim: sent_at set while SES is still being called.
+        await db.update(schema.emails).set({ sentAt: new Date() }).where(eq(schema.emails.id, a));
+        throw new Error("queue down");
+      },
+    }),
+  ).rejects.toThrow("1 email(s) failed");
+
+  // Not re-parked under the lane, and its reservation stays charged.
+  expect(await statusOf(a)).toBe("queued");
+  const [counter] = await db
+    .select()
+    .from(schema.usageCounters)
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(counter?.accepted).toBe(1);
+});
+
+// A full page of 500 parked rows each moves through its own transaction:
+// slow on PGlite under a loaded CI runner, so this one gets a longer budget.
+it("a failed page enqueue ends the run instead of walking the remaining pages", {
+  timeout: 60_000,
+}, async () => {
+  const base = Date.parse("2026-08-13T00:00:00Z");
+  // One row more than a page, so a second page exists to be skipped.
+  await db.insert(schema.emails).values(
+    Array.from({ length: 501 }, (_, i) => ({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: `parked ${i}`,
+      latestStatus: "queued_quota" as const,
+      createdAt: new Date(base + i * 1000),
+    })),
+  );
+
+  let calls = 0;
+  await expect(
+    drainQuotaParked(db, {
+      isCloud: false,
+      enqueueSends: async () => {
+        calls += 1;
+        throw new Error("queue down");
+      },
+    }),
+  ).rejects.toThrow("1 email(s) failed");
+  expect(calls).toBe(1);
+  const [parked] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.emails)
+    .where(eq(schema.emails.latestStatus, "queued_quota"));
+  expect(parked?.n).toBe(501);
+});
+
+it("drain passes a scheduled email's due time through to the queue", async () => {
+  const now = new Date(`${today()}T00:00:00Z`);
+  const due = new Date(now.getTime() + 3_600_000);
+  const [row] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "scheduled",
+      latestStatus: "queued_quota",
+      scheduledAt: due,
+    })
+    .returning({ id: schema.emails.id });
+  if (!row) throw new Error("insert failed");
+
+  const enqueued: { id: string; startAfter?: Date }[] = [];
+  await drainQuotaParked(db, {
+    isCloud: false,
+    now,
+    enqueueSends: async (batch) => {
+      for (const j of batch) {
+        enqueued.push({ id: j.emailId, ...(j.startAfter ? { startAfter: j.startAfter } : {}) });
+      }
+    },
+  });
+  expect(enqueued).toEqual([{ id: row.id, startAfter: due }]);
+});
+
+it("reconcile re-enqueues stale queued emails but never claimed or fresh ones", async () => {
+  const now = new Date();
+  const old = (mins: number) => new Date(now.getTime() - mins * 60 * 1000);
+  const base = {
+    teamId,
+    from: "a@acme.dev",
+    to: ["r@example.com"] as string[],
+    subject: "s",
+  };
+  const [stale] = await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued" as const, createdAt: old(30) })
+    .returning({ id: schema.emails.id });
+  // Claimed: a previous attempt may already be at SES — must NOT resend.
+  await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued" as const, createdAt: old(30), sentAt: now });
+  // Fresh: its original job is presumably still queued.
+  await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued" as const, createdAt: now });
+  // Parked: quota drain's business, not reconcile's.
+  await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued_quota" as const, createdAt: old(30) });
+  // Scheduled for later: waiting by design, its job is due with it.
+  await db.insert(schema.emails).values({
+    ...base,
+    latestStatus: "queued" as const,
+    createdAt: old(30),
+    scheduledAt: old(-60),
+  });
+  // Scheduled for a time that has passed: lost like any other stale row.
+  const [due] = await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued" as const, createdAt: old(45), scheduledAt: old(5) })
+    .returning({ id: schema.emails.id });
+
+  const enqueued: string[] = [];
+  const count = await reconcileStalledSends(db, {
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    now,
+  });
+  expect(count).toBe(2);
+  expect(enqueued).toEqual([due?.id, stale?.id]);
+});
+
+it("reconcile pages through a backlog larger than one batch, each row once, one enqueue per page", async () => {
+  const now = new Date();
+  const createdAt = new Date(now.getTime() - 30 * 60 * 1000);
+  await db.insert(schema.emails).values(
+    Array.from({ length: 1001 }, (_, i) => ({
+      teamId,
+      from: "a@acme.dev",
+      to: [`r${i}@example.com`],
+      subject: "s",
+      latestStatus: "queued" as const,
+      createdAt,
+    })),
+  );
+  const enqueued: string[] = [];
+  const pages: number[] = [];
+  const count = await reconcileStalledSends(db, {
+    enqueueSends: async (batch) => {
+      pages.push(batch.length);
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    now,
+  });
+  expect(count).toBe(1001);
+  expect(new Set(enqueued).size).toBe(1001);
+  expect(pages).toEqual([1000, 1]);
+});
+
+it("retention purge nulls only expired bodies and stamps bodyPurgedAt", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  const body = {
+    bodyCiphertext: Buffer.from("ct"),
+    bodyIv: Buffer.from("iv"),
+    bodyWrappedDek: Buffer.from("dek"),
+    bodyKeyVersion: 1,
+    attachments: "sealed-attachments-blob",
+  };
+  const [old] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "old",
+      latestStatus: "delivered",
+      createdAt: new Date("2026-07-01T00:00:00Z"),
+      ...body,
+    })
+    .returning({ id: schema.emails.id });
+  const [fresh] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "fresh",
+      latestStatus: "delivered",
+      createdAt: new Date("2026-08-01T00:00:00Z"),
+      ...body,
+    })
+    .returning({ id: schema.emails.id });
+  if (!old || !fresh) throw new Error("insert failed");
+
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(1);
+
+  const [oldRow] = await db.select().from(schema.emails).where(eq(schema.emails.id, old.id));
+  expect(oldRow?.bodyCiphertext).toBeNull();
+  expect(oldRow?.bodyIv).toBeNull();
+  expect(oldRow?.bodyWrappedDek).toBeNull();
+  expect(oldRow?.bodyKeyVersion).toBeNull();
+  // Attachments are content: purged with the body.
+  expect(oldRow?.attachments).toBeNull();
+  expect(oldRow?.bodyPurgedAt).toEqual(now);
+  // Metadata survives the content purge (separate lifecycles).
+  expect(oldRow?.subject).toBe("old");
+  expect(oldRow?.to).toEqual(["r@example.com"]);
+
+  const [freshRow] = await db.select().from(schema.emails).where(eq(schema.emails.id, fresh.id));
+  expect(freshRow?.bodyCiphertext).not.toBeNull();
+  expect(freshRow?.attachments).toBe("sealed-attachments-blob");
+
+  // An old-but-still-future-scheduled email keeps its body — the send needs it.
+  const [scheduled] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "future",
+      latestStatus: "queued",
+      createdAt: new Date("2026-07-01T00:00:00Z"),
+      scheduledAt: new Date("2026-08-15T00:00:00Z"),
+      ...body,
+    })
+    .returning({ id: schema.emails.id });
+  if (!scheduled) throw new Error("insert failed");
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(0);
+  const [scheduledRow] = await db
+    .select()
+    .from(schema.emails)
+    .where(eq(schema.emails.id, scheduled.id));
+  expect(scheduledRow?.bodyCiphertext).not.toBeNull();
+
+  // Second run: already-purged rows are not re-stamped. Same fixed clock —
+  // the wall clock must never enter this test or the absolute fixture dates
+  // silently expire.
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(0);
+});
+
+it("api-request purge deletes old rows but not fresh ones, honoring the instance override", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  const insertRequest = async (createdAt: Date) => {
+    const [row] = await db
+      .insert(schema.apiRequests)
+      .values({ teamId, method: "POST", path: "/emails", statusCode: 200, createdAt })
+      .returning({ id: schema.apiRequests.id });
+    if (!row) throw new Error("insert failed");
+    return row.id;
+  };
+  const old = await insertRequest(new Date("2026-07-01T00:00:00Z"));
+  const fresh = await insertRequest(new Date("2026-08-01T00:00:00Z"));
+
+  expect(await purgeExpiredApiRequests(db, { defaultRetentionDays: 30, now })).toBe(1);
+  const remaining = await db.select({ id: schema.apiRequests.id }).from(schema.apiRequests);
+  expect(remaining.map((r) => r.id)).toEqual([fresh]);
+  expect(remaining.map((r) => r.id)).not.toContain(old);
+
+  // Second run with the same fixed clock: nothing left to purge.
+  expect(await purgeExpiredApiRequests(db, { defaultRetentionDays: 30, now })).toBe(0);
+
+  // Same effective window as email bodies: the instance setting wins.
+  await db.insert(schema.instanceSettings).values({ emailRetentionDays: 10 });
+  expect(await purgeExpiredApiRequests(db, { defaultRetentionDays: 30, now })).toBe(1);
+  expect(await db.select().from(schema.apiRequests)).toHaveLength(0);
+});
+
+it("retention purge prefers the instance setting over the env-derived default", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  // 20 days old: kept under the 30-day default, expired under a 10-day override.
+  await db.insert(schema.emails).values({
+    teamId,
+    from: "a@acme.dev",
+    to: ["r@example.com"],
+    subject: "override",
+    latestStatus: "delivered",
+    createdAt: new Date("2026-07-25T00:00:00Z"),
+    bodyCiphertext: Buffer.from("ct"),
+    bodyIv: Buffer.from("iv"),
+    bodyWrappedDek: Buffer.from("dek"),
+    bodyKeyVersion: 1,
+  });
+
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(0);
+  await db.insert(schema.instanceSettings).values({ emailRetentionDays: 10 });
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(1);
+});
+
+it("reconcile fails a claim that never reached SES (worker killed mid-send) with an event", async () => {
+  const now = new Date();
+  const old = (mins: number) => new Date(now.getTime() - mins * 60 * 1000);
+  const base = { teamId, from: "a@acme.dev", to: ["r@example.com"], subject: "s" };
+  const [interrupted] = await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued", createdAt: old(60), sentAt: old(30) })
+    .returning({ id: schema.emails.id });
+  // A fresh claim is a send in progress; hands off.
+  const [inFlight] = await db
+    .insert(schema.emails)
+    .values({ ...base, latestStatus: "queued", createdAt: old(60), sentAt: old(1) })
+    .returning({ id: schema.emails.id });
+  if (!interrupted || !inFlight) throw new Error("insert failed");
+
+  await reconcileStalledSends(db, { enqueueSends: async () => {}, now });
+
+  expect(await statusOf(interrupted.id)).toBe("failed");
+  expect(await statusOf(inFlight.id)).toBe("queued");
+  const events = await db
+    .select()
+    .from(schema.emailEvents)
+    .where(eq(schema.emailEvents.emailId, interrupted.id));
+  expect(events.map((e) => [e.type, e.data?.reason])).toEqual([["failed", "send_interrupted"]]);
+});
+
+it("metadata purge deletes whole expired rows (events cascade) and old deliveries, keeping fresh and future-scheduled ones", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  const base = { teamId, from: "a@acme.dev", to: ["r@example.com"], subject: "s" };
+  const insert = async (createdAt: Date, scheduledAt?: Date) => {
+    const [row] = await db
+      .insert(schema.emails)
+      .values({ ...base, latestStatus: "delivered", createdAt, scheduledAt: scheduledAt ?? null })
+      .returning({ id: schema.emails.id });
+    if (!row) throw new Error("insert failed");
+    return row.id;
+  };
+  const old = await insert(new Date("2025-01-01T00:00:00Z"));
+  const fresh = await insert(new Date("2026-08-01T00:00:00Z"));
+  const future = await insert(new Date("2025-01-01T00:00:00Z"), new Date("2026-09-01T00:00:00Z"));
+  await db
+    .insert(schema.emailEvents)
+    .values({ emailId: old, type: "delivered", occurredAt: now, data: { eventType: "Delivery" } });
+  const [endpoint] = await db
+    .insert(schema.webhookEndpoints)
+    .values({
+      teamId,
+      url: "https://hooks.example.com",
+      secretCiphertext: Buffer.from("c"),
+      secretIv: Buffer.from("i"),
+      secretWrappedDek: Buffer.from("d"),
+      secretKeyVersion: 1,
+      secretLast4: "abcd",
+    })
+    .returning({ id: schema.webhookEndpoints.id });
+  if (!endpoint) throw new Error("insert failed");
+  const delivery = (createdAt: Date, emailId: string | null) => ({
+    endpointId: endpoint.id,
+    emailId,
+    messageId: `msg_${createdAt.getTime()}`,
+    eventType: "email.delivered",
+    payload: { type: "email.delivered" },
+    createdAt,
+  });
+  await db
+    .insert(schema.webhookDeliveries)
+    .values([delivery(new Date("2025-01-01T00:00:00Z"), old), delivery(now, fresh)]);
+
+  expect(await purgeExpiredEmailMetadata(db, { retentionDays: 365, now })).toEqual({
+    emails: 1,
+    deliveries: 1,
+    broadcasts: 0,
+  });
+  const remaining = await db.select({ id: schema.emails.id }).from(schema.emails);
+  expect(remaining.map((r) => r.id).sort()).toEqual([fresh, future].sort());
+  expect(await db.select().from(schema.emailEvents)).toHaveLength(0);
+  expect(await db.select().from(schema.webhookDeliveries)).toHaveLength(1);
+  expect(await purgeExpiredEmailMetadata(db, { retentionDays: 365, now })).toEqual({
+    emails: 0,
+    deliveries: 0,
+    broadcasts: 0,
+  });
+});
+
+it("payload strip nulls expired event data and drops delivery data/response on the body window", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  const [email] = await db
+    .insert(schema.emails)
+    .values({ teamId, from: "a@acme.dev", to: ["r@example.com"], subject: "s" })
+    .returning({ id: schema.emails.id });
+  if (!email) throw new Error("insert failed");
+  await db.insert(schema.emailEvents).values([
+    {
+      emailId: email.id,
+      type: "bounced",
+      occurredAt: new Date("2026-07-01T00:00:00Z"),
+      data: {
+        eventType: "Bounce",
+        bounce: { bouncedRecipients: [{ emailAddress: "r@example.com" }] },
+      },
+    },
+    {
+      emailId: email.id,
+      type: "delivered",
+      occurredAt: new Date("2026-08-10T00:00:00Z"),
+      data: { eventType: "Delivery" },
+    },
+  ]);
+  const [endpoint] = await db
+    .insert(schema.webhookEndpoints)
+    .values({
+      teamId,
+      url: "https://hooks.example.com",
+      secretCiphertext: Buffer.from("c"),
+      secretIv: Buffer.from("i"),
+      secretWrappedDek: Buffer.from("d"),
+      secretKeyVersion: 1,
+      secretLast4: "abcd",
+    })
+    .returning({ id: schema.webhookEndpoints.id });
+  if (!endpoint) throw new Error("insert failed");
+  const [oldDelivery] = await db
+    .insert(schema.webhookDeliveries)
+    .values({
+      endpointId: endpoint.id,
+      emailId: email.id,
+      messageId: "msg_old",
+      eventType: "email.bounced",
+      payload: { type: "email.bounced", test: "true", data: { to: ["r@example.com"] } },
+      lastResponseBody: "r@example.com",
+      createdAt: new Date("2026-07-01T00:00:00Z"),
+    })
+    .returning({ id: schema.webhookDeliveries.id });
+  if (!oldDelivery) throw new Error("insert failed");
+
+  expect(await stripExpiredEventPayloads(db, { defaultRetentionDays: 30, now })).toEqual({
+    events: 1,
+    deliveries: 1,
+  });
+  const events = await db
+    .select({ type: schema.emailEvents.type, data: schema.emailEvents.data })
+    .from(schema.emailEvents)
+    .orderBy(schema.emailEvents.occurredAt);
+  expect(events).toEqual([
+    { type: "bounced", data: null },
+    { type: "delivered", data: { eventType: "Delivery" } },
+  ]);
+  const [row] = await db
+    .select()
+    .from(schema.webhookDeliveries)
+    .where(eq(schema.webhookDeliveries.id, oldDelivery.id));
+  expect(row?.payload).toEqual({ type: "email.bounced", test: "true" });
+  expect(row?.lastResponseBody).toBeNull();
+  // Already-stripped rows are not rewritten on the next run.
+  expect(await stripExpiredEventPayloads(db, { defaultRetentionDays: 30, now })).toEqual({
+    events: 0,
+    deliveries: 0,
+  });
+});
+
+it("session purge drops only expired sessions", async () => {
+  const now = new Date("2026-08-14T00:00:00Z");
+  await db.insert(schema.user).values({ id: "u1", name: "u1", email: "u1@example.com" });
+  await db.insert(schema.session).values([
+    { id: "s-old", token: "t-old", userId: "u1", expiresAt: new Date("2026-08-01T00:00:00Z") },
+    { id: "s-live", token: "t-live", userId: "u1", expiresAt: new Date("2026-09-01T00:00:00Z") },
+  ]);
+  expect(await purgeExpiredSessions(db, now)).toBe(1);
+  expect(
+    (await db.select({ id: schema.session.id }).from(schema.session)).map((r) => r.id),
+  ).toEqual(["s-live"]);
+});
+
+it("billing reconcile visits only teams with a Stripe customer and isolates failures", async () => {
+  const withStripe = await createTeam(db, "stripe-team");
+  await db
+    .update(schema.teams)
+    .set({ stripeCustomerId: "cus_1" })
+    .where(eq(schema.teams.id, withStripe));
+  const failing = await createTeam(db, "failing-team");
+  await db
+    .update(schema.teams)
+    .set({ stripeCustomerId: "cus_2" })
+    .where(eq(schema.teams.id, failing));
+  const visited: string[] = [];
+  const result = await reconcileBillingPlans(db, {
+    reconcileTeam: async (id) => {
+      visited.push(id);
+      if (id === failing) throw new Error("stripe down");
+    },
+  });
+  expect(result).toEqual({ reconciled: 1, failed: 1 });
+  expect(visited.sort()).toEqual([withStripe, failing].sort());
+});
+
+it("billing reconcile reports a plan it moved, with the row before and after", async () => {
+  const teamId = await createTeam(db, "lapsed-team");
+  const periodEnd = new Date("2026-08-30T00:00:00Z");
+  await db
+    .update(schema.teams)
+    .set({ stripeCustomerId: "cus_9", plan: "pro", currentPeriodEnd: periodEnd })
+    .where(eq(schema.teams.id, teamId));
+  const moves: { team: string; before: string; after: string }[] = [];
+  const deps = {
+    // Stands in for Stripe answering that the subscription is gone.
+    reconcileTeam: async (id: string) => {
+      await db
+        .update(schema.teams)
+        .set({ plan: "free", currentPeriodEnd: null })
+        .where(eq(schema.teams.id, id));
+    },
+    onPlanMoved: async (
+      team: { id: string; name: string },
+      before: { plan: string; currentPeriodEnd: Date | null },
+      after: { plan: string },
+    ) => {
+      moves.push({
+        team: team.name,
+        before: `${before.plan}:${before.currentPeriodEnd?.toISOString()}`,
+        after: after.plan,
+      });
+    },
+  };
+  await reconcileBillingPlans(db, deps);
+  expect(moves).toEqual([
+    { team: "lapsed-team", before: `pro:${periodEnd.toISOString()}`, after: "free" },
+  ]);
+  // Nothing moved the second time: nothing to report.
+  await reconcileBillingPlans(db, deps);
+  expect(moves).toHaveLength(1);
+});
+
+it("drain on a monthly plan releases while the period has room and holds at the included volume until overage is on", async () => {
+  const included = teamRung("pro", 100_000).included;
+  const periodStart = new Date(Date.now() - 10 * DAY_MS);
+  const periodEnd = new Date(Date.now() + 20 * DAY_MS);
+  await db
+    .update(schema.teams)
+    .set({
+      plan: "pro",
+      planQuota: included,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodEnd,
+      overageEnabled: false,
+    })
+    .where(eq(schema.teams.id, teamId));
+  await db.insert(schema.usagePeriods).values({ teamId, periodStart, accepted: included - 1 });
+  const oldest = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const middle = await insertParked(new Date("2026-08-13T02:00:00Z"));
+  const newest = await insertParked(new Date("2026-08-13T03:00:00Z"));
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: true,
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+
+  // One slot left in the period, no tolerance: exactly one row moves.
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 1, stillParked: 2 });
+  expect(enqueued).toEqual([oldest]);
+  expect(await statusOf(middle)).toBe("queued_quota");
+  const [period] = await db
+    .select({ accepted: schema.usagePeriods.accepted })
+    .from(schema.usagePeriods)
+    .where(eq(schema.usagePeriods.teamId, teamId));
+  expect(period?.accepted).toBe(included);
+  // At the volume with overage off nothing else moves, however many runs.
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 0, stillParked: 2 });
+
+  // Overage on: the rest go out and the period counter keeps growing.
+  await db.update(schema.teams).set({ overageEnabled: true }).where(eq(schema.teams.id, teamId));
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 2, stillParked: 0 });
+  expect(enqueued).toEqual([oldest, middle, newest]);
+  const [after] = await db
+    .select({ accepted: schema.usagePeriods.accepted })
+    .from(schema.usagePeriods)
+    .where(eq(schema.usagePeriods.teamId, teamId));
+  expect(after?.accepted).toBe(included + 2);
+});
+
+it("billing reconcile reports a rung change within one plan", async () => {
+  const teamId = await createTeam(db, "rung-team");
+  await db
+    .update(schema.teams)
+    .set({ stripeCustomerId: "cus_10", plan: "pro", planQuota: 100_000 })
+    .where(eq(schema.teams.id, teamId));
+  const moves: { before: number | null; after: number | null }[] = [];
+  const deps = {
+    reconcileTeam: async (id: string) => {
+      await db.update(schema.teams).set({ planQuota: 200_000 }).where(eq(schema.teams.id, id));
+    },
+    onPlanMoved: async (
+      _team: { id: string; name: string },
+      before: { planQuota: number | null },
+      after: { planQuota: number | null },
+    ) => {
+      moves.push({ before: before.planQuota, after: after.planQuota });
+    },
+  };
+  await reconcileBillingPlans(db, deps);
+  await reconcileBillingPlans(db, deps);
+  expect(moves).toEqual([{ before: 100_000, after: 200_000 }]);
+});
+
+it("holds every parked email while SES's own 24-hour quota is full", async () => {
+  await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: true,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    sesQuota: { regions: ["us-east-1"], exhausted: () => true },
+  });
+  expect(result).toEqual({ drained: 0, stillParked: 1 });
+  expect(enqueued).toEqual([]);
+});
+
+it("purges bodies in bounded batches when the backlog exceeds one batch", async () => {
+  const teamId = await createTeam(db, "purge-batches");
+  const now = new Date("2026-09-01T00:00:00Z");
+  await db.insert(schema.emails).values(
+    Array.from({ length: 1200 }, (_, i) => ({
+      teamId,
+      from: "a@acme.dev",
+      to: [`r${i}@example.com`],
+      subject: "old",
+      latestStatus: "delivered" as const,
+      createdAt: new Date("2026-07-01T00:00:00Z"),
+      bodyCiphertext: Buffer.from("x"),
+      bodyIv: Buffer.from("y"),
+      bodyWrappedDek: Buffer.from("z"),
+      bodyKeyVersion: 1,
+    })),
+  );
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(1200);
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(0);
+});
+
+it("records a broadcast's results before its emails age out, so the campaign keeps its numbers", async () => {
+  const teamId = await createTeam(db, "broadcast-freeze");
+  const now = new Date("2026-09-01T00:00:00Z");
+  const sentAt = new Date("2026-07-01T00:00:00Z");
+  const [broadcast] = await db
+    .insert(schema.broadcasts)
+    .values({ teamId, from: "a@acme.dev", subject: "July news", status: "sent", sentAt })
+    .returning({ id: schema.broadcasts.id });
+  if (!broadcast) throw new Error("broadcast insert failed");
+  await db.insert(schema.emails).values(
+    (["delivered", "opened", "bounced"] as const).map((latestStatus, i) => ({
+      teamId,
+      broadcastId: broadcast.id,
+      from: "a@acme.dev",
+      to: [`r${i}@example.com`],
+      subject: "July news",
+      latestStatus,
+      createdAt: sentAt,
+    })),
+  );
+
+  const first = await purgeExpiredEmailMetadata(db, { retentionDays: 30, now });
+  expect(first).toMatchObject({ emails: 3, broadcasts: 1 });
+  const [row] = await db
+    .select({
+      total: schema.broadcasts.recipientCount,
+      delivered: schema.broadcasts.deliveredCount,
+      bounced: schema.broadcasts.bouncedCount,
+      complained: schema.broadcasts.complainedCount,
+    })
+    .from(schema.broadcasts)
+    .where(eq(schema.broadcasts.id, broadcast.id));
+  expect(row).toEqual({ total: 3, delivered: 2, bounced: 1, complained: 0 });
+  expect(
+    await db
+      .select({ id: schema.emails.id })
+      .from(schema.emails)
+      .where(eq(schema.emails.teamId, teamId)),
+  ).toHaveLength(0);
+  // Already recorded: the next run leaves it alone.
+  expect((await purgeExpiredEmailMetadata(db, { retentionDays: 30, now })).broadcasts).toBe(0);
+});
+
+it("keeps a scheduled email until its delivery day has also left the window", async () => {
+  const teamId = await createTeam(db, "purge-scheduled");
+  const now = new Date("2026-09-01T00:00:00Z");
+  const old = new Date("2026-07-01T00:00:00Z");
+  const body = {
+    bodyCiphertext: Buffer.from("x"),
+    bodyIv: Buffer.from("y"),
+    bodyWrappedDek: Buffer.from("z"),
+    bodyKeyVersion: 1,
+  };
+  const [dueYesterday, longPast] = await db
+    .insert(schema.emails)
+    .values([
+      // Created 62 days ago, scheduled for yesterday: a queued send that the
+      // tick after its due time must not strip or delete.
+      {
+        teamId,
+        from: "a@acme.dev",
+        to: ["r@example.com"],
+        subject: "s",
+        createdAt: old,
+        scheduledAt: new Date("2026-08-31T00:00:00Z"),
+        ...body,
+      },
+      {
+        teamId,
+        from: "a@acme.dev",
+        to: ["r@example.com"],
+        subject: "s",
+        createdAt: old,
+        scheduledAt: old,
+        ...body,
+      },
+    ])
+    .returning({ id: schema.emails.id });
+  if (!dueYesterday || !longPast) throw new Error("insert failed");
+  expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(1);
+  expect((await purgeExpiredEmailMetadata(db, { retentionDays: 30, now })).emails).toBe(1);
+  const left = await db
+    .select({ id: schema.emails.id })
+    .from(schema.emails)
+    .where(eq(schema.emails.teamId, teamId));
+  expect(left.map((r) => r.id)).toEqual([dueYesterday.id]);
+});
+
+it("drain terminates when an exhausted team's parked rows share one created_at", async () => {
+  await db.insert(schema.usageCounters).values({ teamId, day: today(), accepted: FREE_CEILING });
+  await insertParked(new Date("2026-08-13T01:00:00Z"));
+  await insertParked(new Date("2026-08-13T01:00:00Z"));
+  // Rows written by one statement share one now(); PGlite's now() is
+  // millisecond-only, so the microsecond fraction is pinned by hand.
+  await db.execute(sql`update ${schema.emails} set created_at = '2026-08-13T01:00:00.000123Z'`);
+  const result = await drainQuotaParked(db, { isCloud: true, enqueueSends: async () => {} });
+  expect(result).toEqual({ drained: 0, stillParked: 2 });
+});
+
+it("drain keeps releasing other teams' rows once one team is found exhausted", async () => {
+  await db.insert(schema.usageCounters).values({ teamId, day: today(), accepted: FREE_CEILING });
+  const other = await createTeam(db, "cron-other");
+  const at = (h: number) => new Date(`2026-08-13T0${h}:00:00Z`);
+  await insertParked(at(1));
+  await db.insert(schema.emails).values([
+    {
+      teamId: other,
+      from: "b@other.dev",
+      to: ["r@example.com"],
+      subject: "s",
+      latestStatus: "queued_quota",
+      createdAt: at(2),
+    },
+    {
+      teamId: other,
+      from: "b@other.dev",
+      to: ["r@example.com"],
+      subject: "s",
+      latestStatus: "queued_quota",
+      createdAt: at(4),
+    },
+  ]);
+  await insertParked(at(3));
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: true,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  });
+  expect(result).toEqual({ drained: 2, stillParked: 2 });
+  const released = await db
+    .select({ teamId: schema.emails.teamId })
+    .from(schema.emails)
+    .where(eq(schema.emails.latestStatus, "queued"));
+  expect(released.map((r) => r.teamId)).toEqual([other, other]);
+});
+
+it("hourly usage purge drops rows older than 45 days in batches and reports the driver's count", async () => {
+  const now = new Date("2026-09-08T12:00:00Z");
+  const stale = new Date(now.getTime() - 46 * DAY_MS);
+  const rows = Array.from({ length: 1001 }, (_, i) => ({
+    teamId,
+    hour: new Date(stale.getTime() - i * 60 * 60 * 1000),
+    sent: 1,
+  }));
+  rows.push({ teamId, hour: new Date(now.getTime() - 44 * DAY_MS), sent: 1 });
+  await db.insert(schema.usageCountersHourly).values(rows);
+  expect(await purgeStaleHourlyUsage(db, now)).toBe(1001);
+  expect(await purgeStaleHourlyUsage(db, now)).toBe(0);
+  const left = await db.select().from(schema.usageCountersHourly);
+  expect(left).toHaveLength(1);
+});
+
+it("drain leaves a suspended team's rows parked until the operator reinstates it", async () => {
+  const parked = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  await db
+    .update(schema.teams)
+    .set({ suspendedAt: new Date(), suspensionReason: "manual" })
+    .where(eq(schema.teams.id, teamId));
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: true,
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 0, stillParked: 1 });
+  expect(await statusOf(parked)).toBe("queued_quota");
+
+  await db
+    .update(schema.teams)
+    .set({ suspendedAt: null, suspensionReason: null })
+    .where(eq(schema.teams.id, teamId));
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 1, stillParked: 0 });
+  expect(enqueued).toEqual([parked]);
+});
+
+it("drain leaves a row due on a later UTC day parked until that day comes", async () => {
+  const tomorrow = new Date(`${utcDay(Date.now() + DAY_MS)}T12:00:00Z`);
+  const later = await insertParked(new Date("2026-08-13T01:00:00Z"), "later", {
+    scheduledAt: tomorrow,
+  });
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: true,
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+  // Today has the whole free cap to spare, and still nothing moves.
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 0, stillParked: 1 });
+  expect(await statusOf(later)).toBe("queued_quota");
+
+  expect(
+    await drainQuotaParked(db, { ...deps, now: new Date(`${utcDay(tomorrow)}T00:05:00Z`) }),
+  ).toEqual({ drained: 1, stillParked: 0 });
+  expect(enqueued).toEqual([later]);
+});
+
+it("drain releases nothing of a team past the deliverability pause line until its rates recover", async () => {
+  // 10% hard bounces over 200 sends: past the volume floor and the event minimum.
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), sent: 200, hardBounced: 20 });
+  const [bc] = await db
+    .insert(schema.broadcasts)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      subject: "s",
+      status: "sending",
+      scheduledAt: new Date(),
+    })
+    .returning({ id: schema.broadcasts.id });
+  const plain = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const bulk = await insertParked(new Date("2026-08-13T00:30:00Z"), "bulk", {
+    broadcastId: bc?.id,
+  });
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: true,
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 0, stillParked: 2 });
+  expect(enqueued).toEqual([]);
+
+  await db
+    .update(schema.usageCounters)
+    .set({ hardBounced: 0 })
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 2, stillParked: 0 });
+  expect(enqueued.sort()).toEqual([plain, bulk].sort());
+});
+
+it("drain holds a young domain's warm-up mail while its team is past the pause line", async () => {
+  await db.insert(schema.instanceSettings).values({ id: 1, warmupEnabled: true });
+  const [domain] = await db
+    .insert(schema.domains)
+    .values({
+      teamId,
+      name: "news.paused-warmup.com",
+      region: "us-east-1",
+      status: "verified",
+      registeredAt: new Date("2026-10-09T09:00:00Z"),
+    })
+    .returning({ id: schema.domains.id });
+  if (!domain) throw new Error("domain insert failed");
+  const held = await insertParked(new Date("2026-10-09T10:00:00Z"), "warming", {
+    domainId: domain.id,
+    parkReason: "warmup",
+  });
+  // 10% hard bounces over 200 sends: past the volume floor and the event minimum.
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), sent: 200, hardBounced: 20 });
+  const enqueued: string[] = [];
+  const deps = {
+    isCloud: false,
+    now: new Date("2026-10-10T00:15:00Z"),
+    enqueueSends: async (batch: readonly { emailId: string }[]) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  };
+  // The warm-up has room on its second day; the pause alone holds the row.
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 0, stillParked: 1 });
+  expect(await statusOf(held)).toBe("queued_quota");
+
+  await db
+    .update(schema.usageCounters)
+    .set({ hardBounced: 0 })
+    .where(eq(schema.usageCounters.teamId, teamId));
+  expect(await drainQuotaParked(db, deps)).toEqual({ drained: 1, stillParked: 0 });
+  expect(enqueued).toEqual([held]);
+});
+
+it("drain releases the account mail of a team past the pause line, off the System plan, and holds the rest", async () => {
+  // 10% hard bounces over 200 sends: past the volume floor and the event minimum.
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), sent: 200, hardBounced: 20 });
+  const account = { tags: { [SYSTEM_MAIL_TAG]: "password_reset" } };
+  const first = await insertParked(new Date("2026-08-13T00:00:00Z"), "reset", account);
+  // More than a page of the team's other mail between the two, so the last
+  // reset comes on a page whose query already leaves the held team out.
+  await db.insert(schema.emails).values(
+    Array.from({ length: 500 }, (_, i) => ({
+      teamId,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "held",
+      latestStatus: "queued_quota" as const,
+      createdAt: new Date(Date.parse("2026-08-13T01:00:00Z") + i * 1000),
+    })),
+  );
+  const last = await insertParked(new Date("2026-08-14T00:00:00Z"), "reset", account);
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  });
+  expect(result).toEqual({ drained: 2, stillParked: 500 });
+  expect(enqueued).toEqual([first, last]);
+});
+
+it("drain holds a paused team's broadcast rows and releases its transactional ones", async () => {
+  const [bc] = await db
+    .insert(schema.broadcasts)
+    .values({ teamId, from: "a@acme.dev", subject: "s", html: "<p>x</p>" })
+    .returning({ id: schema.broadcasts.id });
+  const plain = await insertParked(new Date("2026-08-13T01:00:00Z"));
+  const [bulk] = await db
+    .insert(schema.emails)
+    .values({
+      teamId,
+      broadcastId: bc?.id,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "bulk",
+      latestStatus: "queued_quota",
+      createdAt: new Date("2026-08-13T00:30:00Z"),
+    })
+    .returning({ id: schema.emails.id });
+  await db
+    .update(schema.teams)
+    .set({ broadcastsPausedByOperatorAt: new Date() })
+    .where(eq(schema.teams.id, teamId));
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: true,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+  });
+  expect(result).toEqual({ drained: 1, stillParked: 1 });
+  expect(enqueued).toEqual([plain]);
+  expect(await statusOf(bulk?.id ?? "")).toBe("queued_quota");
+});
+
+/** A sending broadcast of `team` with `parked` parked rows in the region's domain, oldest first from `from`. */
+async function seedPacedBroadcast(
+  team: string,
+  domainId: string,
+  parked: number,
+  from: Date,
+  scheduledAt = from,
+): Promise<{ id: string; rows: string[] }> {
+  const [broadcast] = await db
+    .insert(schema.broadcasts)
+    .values({ teamId: team, from: "a@acme.dev", subject: "paced", status: "sending", scheduledAt })
+    .returning({ id: schema.broadcasts.id });
+  if (!broadcast) throw new Error("broadcast insert failed");
+  const rows: string[] = [];
+  for (let i = 0; i < parked; i++) {
+    rows.push(
+      await insertParked(new Date(from.getTime() + i * 1000), "bulk", {
+        teamId: team,
+        domainId,
+        broadcastId: broadcast.id,
+      }),
+    );
+  }
+  return { id: broadcast.id, rows };
+}
+
+async function seedRegionDomain(team: string, region = "us-east-1"): Promise<string> {
+  const [domain] = await db
+    .insert(schema.domains)
+    .values({ teamId: team, name: `${region}.${team.slice(0, 6)}.dev`, region })
+    .returning({ id: schema.domains.id });
+  if (!domain) throw new Error("domain insert failed");
+  return domain.id;
+}
+
+it("drain releases transactional rows first, then broadcast rows only into the region's room", async () => {
+  const domainId = await seedRegionDomain(teamId);
+  const t0 = new Date("2026-08-13T01:00:00Z");
+  const bulk = await seedPacedBroadcast(teamId, domainId, 3, t0);
+  // Younger than every bulk row, yet released first.
+  const reset = await insertParked(new Date("2026-08-13T02:00:00Z"), "reset", { domainId });
+  const enqueued: string[] = [];
+  const noted: [string, number][] = [];
+  const finalized: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    sesQuota: {
+      regions: ["us-east-1"],
+      exhausted: () => false,
+      room: () => 2,
+      noteBulkQueued: (region, n) => {
+        noted.push([region, n]);
+      },
+    },
+    finalize: async (id) => {
+      finalized.push(id);
+    },
+  });
+  expect(result).toEqual({ drained: 3, stillParked: 1 });
+  expect(enqueued).toEqual([reset, bulk.rows[0], bulk.rows[1]]);
+  expect(await statusOf(bulk.rows[2] ?? "")).toBe("queued_quota");
+  expect(noted).toEqual([["us-east-1", 2]]);
+  expect(finalized).toEqual([bulk.id]);
+});
+
+it("drain splits a run's slice round-robin between the broadcasts still waiting, oldest scheduled first", async () => {
+  const domainId = await seedRegionDomain(teamId);
+  const first = await seedPacedBroadcast(teamId, domainId, 4, new Date("2026-08-13T01:00:00Z"));
+  const second = await seedPacedBroadcast(teamId, domainId, 4, new Date("2026-08-13T02:00:00Z"));
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 6 },
+  });
+  expect(result).toEqual({ drained: 6, stillParked: 2 });
+  expect(enqueued).toEqual([...first.rows.slice(0, 3), ...second.rows.slice(0, 3)]);
+  // A broadcast that needs less than its share passes the rest down.
+  const third = await seedPacedBroadcast(teamId, domainId, 1, new Date("2026-08-13T03:00:00Z"));
+  enqueued.length = 0;
+  expect(
+    await drainQuotaParked(db, {
+      isCloud: false,
+      enqueueSends: async (batch) => {
+        enqueued.push(...batch.map((j) => j.emailId));
+      },
+      sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 10 },
+    }),
+  ).toEqual({ drained: 3, stillParked: 0 });
+  expect(enqueued).toEqual([first.rows[3], second.rows[3], third.rows[0]]);
+});
+
+it("drain moves nothing of a broadcast in a region with no room, at its total, or held", async () => {
+  const domainId = await seedRegionDomain(teamId);
+  const bulk = await seedPacedBroadcast(teamId, domainId, 2, new Date("2026-08-13T01:00:00Z"));
+  const reset = await insertParked(new Date("2026-08-13T02:00:00Z"), "reset", { domainId });
+  const deps = { isCloud: false, enqueueSends: async () => {} };
+  expect(
+    await drainQuotaParked(db, {
+      ...deps,
+      sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 0 },
+    }),
+  ).toEqual({ drained: 1, stillParked: 2 });
+  expect(await statusOf(reset)).toBe("queued");
+  expect(await statusOf(bulk.rows[0] ?? "")).toBe("queued_quota");
+  expect(
+    await drainQuotaParked(db, {
+      ...deps,
+      sesQuota: { regions: ["us-east-1"], exhausted: () => true, room: () => 100 },
+    }),
+  ).toEqual({ drained: 0, stillParked: 2 });
+  expect(
+    await drainQuotaParked(db, {
+      ...deps,
+      sesQuota: {
+        regions: ["us-east-1"],
+        exhausted: () => false,
+        room: () => 100,
+        paused: () => true,
+      },
+    }),
+  ).toEqual({ drained: 0, stillParked: 2 });
+});
+
+it("drain still releases the plan-parked rows of a broadcast that already reads sent", async () => {
+  const domainId = await seedRegionDomain(teamId);
+  const bulk = await seedPacedBroadcast(teamId, domainId, 2, new Date("2026-08-13T01:00:00Z"));
+  await db
+    .update(schema.broadcasts)
+    .set({ status: "sent", sentAt: new Date(), recipientCount: 2 })
+    .where(eq(schema.broadcasts.id, bulk.id));
+  const enqueued: string[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async (batch) => {
+      enqueued.push(...batch.map((j) => j.emailId));
+    },
+    sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 5_000 },
+  });
+  expect(result).toEqual({ drained: 2, stillParked: 0 });
+  expect(enqueued.sort()).toEqual([...bulk.rows].sort());
+});
+
+it("drain caps a throttled team at one cadence of rows per run", async () => {
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), sent: 2_000, hardBounced: 90 });
+  const domainId = await seedRegionDomain(teamId);
+  const [broadcast] = await db
+    .insert(schema.broadcasts)
+    .values({
+      teamId,
+      from: "a@acme.dev",
+      subject: "paced",
+      status: "sending",
+      scheduledAt: new Date(),
+    })
+    .returning({ id: schema.broadcasts.id });
+  if (!broadcast) throw new Error("broadcast insert failed");
+  const from = new Date("2026-08-13T01:00:00Z");
+  await db.insert(schema.emails).values(
+    Array.from({ length: 950 }, (_, i) => ({
+      teamId,
+      domainId,
+      broadcastId: broadcast.id,
+      from: "a@acme.dev",
+      to: ["r@example.com"],
+      subject: "bulk",
+      latestStatus: "queued_quota" as const,
+      createdAt: new Date(from.getTime() + i * 1000),
+    })),
+  );
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    enqueueSends: async () => {},
+    sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 5_000 },
+  });
+  // 15 minutes at one row a second: the rest waits for the next run.
+  expect(result).toEqual({ drained: 900, stillParked: 50 });
+}, 60_000);
+
+it("drain gives a throttled team one cadence of rows per run, spaced on the rows themselves", async () => {
+  // 90/2000 = 4.5% hard bounces: over the warning line, under the pause line.
+  await db
+    .insert(schema.usageCounters)
+    .values({ teamId, day: today(), sent: 2_000, hardBounced: 90 });
+  const domainId = await seedRegionDomain(teamId);
+  const bulk = await seedPacedBroadcast(teamId, domainId, 3, new Date("2026-08-13T01:00:00Z"));
+  const now = new Date("2026-08-14T12:00:00Z");
+  const jobs: { emailId: string; startAfter?: Date | undefined }[] = [];
+  const result = await drainQuotaParked(db, {
+    isCloud: false,
+    now,
+    enqueueSends: async (batch) => {
+      jobs.push(...batch.map((j) => ({ emailId: j.emailId, startAfter: j.startAfter })));
+    },
+    sesQuota: { regions: ["us-east-1"], exhausted: () => false, room: () => 5_000 },
+  });
+  expect(result).toEqual({ drained: 3, stillParked: 0 });
+  expect(jobs.map((j) => j.startAfter?.getTime())).toEqual([
+    now.getTime(),
+    now.getTime() + 1_000,
+    now.getTime() + 2_000,
+  ]);
+  const rows = await db
+    .select({ scheduledAt: schema.emails.scheduledAt })
+    .from(schema.emails)
+    .where(eq(schema.emails.broadcastId, bulk.id))
+    .orderBy(schema.emails.createdAt);
+  expect(rows.map((r) => r.scheduledAt?.getTime())).toEqual(
+    jobs.map((j) => j.startAfter?.getTime()),
+  );
+});
+
+it("drain releases a young domain's parked mail only as its warm-up allows, whatever parked it", async () => {
+  await db.insert(schema.instanceSettings).values({ id: 1, warmupEnabled: true });
+  const [domain] = await db
+    .insert(schema.domains)
+    .values({
+      teamId,
+      name: "news.fresh-drain.com",
+      region: "us-east-1",
+      status: "verified",
+      registeredAt: new Date("2026-10-09T09:00:00Z"),
+    })
+    .returning({ id: schema.domains.id });
+  if (!domain) throw new Error("domain insert failed");
+  // The registration day's 100 already went out.
+  await db
+    .insert(schema.domainWarmupUsage)
+    .values({ registrableDomain: "fresh-drain.com", day: "2026-10-09", accepted: 100 });
+  const warmupParked: string[] = [];
+  for (let i = 0; i < 150; i++) {
+    warmupParked.push(
+      await insertParked(new Date(Date.UTC(2026, 9, 9, 10, 0, i)), "held", {
+        domainId: domain.id,
+        parkReason: "warmup",
+      }),
+    );
+  }
+  // Parked by the plan, not the warm-up: its release still passes the warm-up.
+  const planParked = await insertParked(new Date("2026-10-09T11:00:00Z"), "plan", {
+    domainId: domain.id,
+  });
+  const enqueued: string[] = [];
+  const drain = (now: string) =>
+    drainQuotaParked(db, {
+      isCloud: false,
+      now: new Date(now),
+      enqueueSends: async (batch) => {
+        enqueued.push(...batch.map((j) => j.emailId));
+      },
+    });
+
+  expect(await drain("2026-10-09T15:00:00Z")).toEqual({ drained: 0, stillParked: 151 });
+  // A new UTC day, still under 24 hours old: another 100, oldest first.
+  expect(await drain("2026-10-10T00:15:00Z")).toEqual({ drained: 100, stillParked: 51 });
+  expect(enqueued).toEqual(warmupParked.slice(0, 100));
+  // Past 24 hours the same day's cap is 300: the rest goes.
+  expect(await drain("2026-10-10T09:15:00Z")).toEqual({ drained: 51, stillParked: 0 });
+  expect(enqueued.slice(100)).toEqual([...warmupParked.slice(100), planParked]);
+  const reasons = await db
+    .select({ reason: schema.emails.parkReason })
+    .from(schema.emails)
+    .where(eq(schema.emails.teamId, teamId));
+  expect(reasons.every((r) => r.reason === null)).toBe(true);
+}, 60_000);
+
+it("drain leaves a young domain's mail due on a later day to that day's warm-up", async () => {
+  await db.insert(schema.instanceSettings).values({ id: 1, warmupEnabled: true });
+  const [domain] = await db
+    .insert(schema.domains)
+    .values({
+      teamId,
+      name: "news.stacked-drain.com",
+      region: "us-east-1",
+      status: "verified",
+      registeredAt: new Date("2026-10-09T09:00:00Z"),
+    })
+    .returning({ id: schema.domains.id });
+  if (!domain) throw new Error("domain insert failed");
+  // Over its delivery day's cap at accept: the earlier days' room must not
+  // carry it, or their caps would all land on that one instant.
+  const due = await insertParked(new Date("2026-10-09T10:00:00Z"), "scheduled", {
+    domainId: domain.id,
+    parkReason: "warmup",
+    scheduledAt: new Date("2026-10-11T12:00:00Z"),
+  });
+  const enqueued: string[] = [];
+  const drain = (now: string) =>
+    drainQuotaParked(db, {
+      isCloud: false,
+      now: new Date(now),
+      enqueueSends: async (batch) => {
+        enqueued.push(...batch.map((j) => j.emailId));
+      },
+    });
+
+  expect(await drain("2026-10-09T15:00:00Z")).toEqual({ drained: 0, stillParked: 1 });
+  expect(await drain("2026-10-10T15:00:00Z")).toEqual({ drained: 0, stillParked: 1 });
+  expect(await drain("2026-10-11T00:15:00Z")).toEqual({ drained: 1, stillParked: 0 });
+  expect(enqueued).toEqual([due]);
+  expect(
+    await db
+      .select({ day: schema.domainWarmupUsage.day, accepted: schema.domainWarmupUsage.accepted })
+      .from(schema.domainWarmupUsage),
+  ).toEqual([{ day: "2026-10-11", accepted: 1 }]);
+});
+
+it("drain releases a team's warm-up mail oldest first across its young domains, within their shared limit", async () => {
+  await db.insert(schema.instanceSettings).values({ id: 1, warmupEnabled: true });
+  const domains = await db
+    .insert(schema.domains)
+    .values(
+      ["news.pool-one.com", "news.pool-two.com"].map((name) => ({
+        teamId,
+        name,
+        region: "us-east-1",
+        status: "verified" as const,
+        registeredAt: new Date("2026-10-09T09:00:00Z"),
+      })),
+    )
+    .returning({ id: schema.domains.id });
+  const parked: string[] = [];
+  for (let i = 0; i < 150; i++) {
+    parked.push(
+      await insertParked(new Date(Date.UTC(2026, 9, 9, 10, 0, i)), "held", {
+        domainId: domains[i % 2]?.id,
+        parkReason: "warmup",
+      }),
+    );
+  }
+  const enqueued: string[] = [];
+  const drain = (now: string) =>
+    drainQuotaParked(db, {
+      isCloud: false,
+      now: new Date(now),
+      enqueueSends: async (batch) => {
+        enqueued.push(...batch.map((j) => j.emailId));
+      },
+    });
+
+  // A new UTC day, both still under 24 hours old: one day's 100 between them.
+  expect(await drain("2026-10-10T00:15:00Z")).toEqual({ drained: 100, stillParked: 50 });
+  expect(enqueued).toEqual(parked.slice(0, 100));
+  // Past 24 hours the shared limit is 300: the rest goes.
+  expect(await drain("2026-10-10T09:15:00Z")).toEqual({ drained: 50, stillParked: 0 });
+  expect(enqueued.slice(100)).toEqual(parked.slice(100));
+}, 60_000);
+
+it("drain holds a young domain at its own cap while the team's older warming domain goes on, within their shared limit", async () => {
+  // Small caps: 2 a day on the registration day, 5 from day 7.
+  await db.insert(schema.instanceSettings).values({
+    id: 1,
+    warmupEnabled: true,
+    warmupCapFirstDay: 2,
+    warmupCapFirstMonth: 5,
+  });
+  const domains = await db
+    .insert(schema.domains)
+    .values(
+      [
+        ["news.cap-fresh.com", "2026-10-09T23:00:00Z"],
+        ["news.cap-older.com", "2026-09-30T00:00:00Z"],
+      ].map(([name, registeredAt]) => ({
+        teamId,
+        name: name ?? "",
+        region: "us-east-1",
+        status: "verified" as const,
+        registeredAt: new Date(registeredAt ?? ""),
+      })),
+    )
+    .returning({ id: schema.domains.id });
+  const parked: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    parked.push(
+      await insertParked(new Date(Date.UTC(2026, 9, 9, 10, 0, i)), "held", {
+        domainId: domains[i % 2]?.id,
+        parkReason: "warmup",
+      }),
+    );
+  }
+  const enqueued: string[] = [];
+  expect(
+    await drainQuotaParked(db, {
+      isCloud: false,
+      now: new Date("2026-10-10T00:15:00Z"),
+      enqueueSends: async (batch) => {
+        enqueued.push(...batch.map((j) => j.emailId));
+      },
+    }),
+  ).toEqual({ drained: 5, stillParked: 5 });
+  // The fresh domain's own 2, then the older one's rows up to the shared 5.
+  expect(enqueued).toEqual([0, 1, 2, 3, 5].map((i) => parked[i]));
+});

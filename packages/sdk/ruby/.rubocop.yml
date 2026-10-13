@@ -1,0 +1,52 @@
+AllCops:
+  TargetRubyVersion: 3.0
+  NewCops: enable
+  SuggestExtensions: false
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/HashAlignment:
+  EnforcedHashRocketStyle: [key, table]
+
+# Specs inline whole URLs and JSON bodies; wrapping them hurts more than it helps.
+Layout/LineLength:
+  Enabled: false
+
+# Size thresholds would demand refactors rather than catch bugs.
+Metrics:
+  Enabled: false
+
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+
+# ENV[] returning nil for an unset variable is the intended fallback.
+Style/FetchEnvVar:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: diff_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: diff_comma
+
+# These rewrites change behavior for some caller inputs: Hash#except also drops the string
+# keys of a HashWithIndifferentAccess, compact keeps [key, nil] pairs in an array, and
+# freezing USER_AGENT breaks callers that append to it.
+Style/CollectionCompact:
+  Enabled: false
+
+Style/HashExcept:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false

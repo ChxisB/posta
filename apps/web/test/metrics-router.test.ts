@@ -1,0 +1,386 @@
+import { utcDay as coreUtcDay, DAY_MS } from "@millionsend/core";
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createCaller } from "@/server/routers";
+
+function utcDay(offsetDays: number): string {
+  return coreUtcDay(Date.now() - offsetDays * DAY_MS);
+}
+
+let db: Db;
+let close: () => Promise<void>;
+
+beforeEach(async () => {
+  ({ db, close } = await createTestDb());
+});
+
+afterEach(async () => {
+  await close();
+});
+
+function callerFor(teamId: string) {
+  return createCaller({
+    db,
+    session: { user: { id: "u1", email: "u1@example.com", name: "u1" } },
+    teamId,
+    role: "owner",
+  });
+}
+
+type Counts = Partial<{
+  accepted: number;
+  sent: number;
+  delivered: number;
+  bounced: number;
+  hardBounced: number;
+  complained: number;
+  opened: number;
+  clicked: number;
+  prefetched: number;
+}>;
+
+/** A day's counters as the writers leave them: the daily row plus one hourly row at noon UTC. */
+async function insertCounter(teamId: string, day: string, counts: Counts): Promise<void> {
+  await db.insert(schema.usageCounters).values({ teamId, day, ...counts });
+  await insertHour(teamId, `${day}T12:00:00Z`, counts);
+}
+
+async function insertHour(teamId: string, hour: string, counts: Counts): Promise<void> {
+  await db.insert(schema.usageCountersHourly).values({ teamId, hour: new Date(hour), ...counts });
+}
+
+describe("metrics.window", () => {
+  it("zero-fills the default 15-day window, sums totals, excludes older rows", async () => {
+    const teamId = await createTeam(db, "acme");
+    await insertCounter(teamId, utcDay(0), { accepted: 10, sent: 9, delivered: 8, bounced: 1 });
+    await insertCounter(teamId, utcDay(3), { accepted: 5, sent: 5, delivered: 4, complained: 1 });
+    await insertCounter(teamId, utcDay(16), { accepted: 99, sent: 99, delivered: 99 });
+
+    const result = await callerFor(teamId).metrics.window();
+
+    expect(result.days).toHaveLength(15);
+    expect(result.days[0]?.day).toBe(utcDay(14));
+    expect(result.days[14]).toEqual({
+      day: utcDay(0),
+      accepted: 10,
+      sent: 9,
+      delivered: 8,
+      bounced: 1,
+      hardBounced: 0,
+      complained: 0,
+      opened: 0,
+      clicked: 0,
+      prefetched: 0,
+    });
+    // Days without a counter row come back as zeros.
+    expect(result.days[13]).toEqual({
+      day: utcDay(1),
+      accepted: 0,
+      sent: 0,
+      delivered: 0,
+      bounced: 0,
+      hardBounced: 0,
+      complained: 0,
+      opened: 0,
+      clicked: 0,
+      prefetched: 0,
+    });
+    expect(result.totals).toEqual({
+      accepted: 15,
+      sent: 14,
+      delivered: 12,
+      bounced: 1,
+      hardBounced: 0,
+      complained: 1,
+      opened: 0,
+      clicked: 0,
+      prefetched: 0,
+    });
+  });
+
+  it("sums hours into the viewer's calendar days, so late-evening sends stay on the viewer's day", async () => {
+    const teamId = await createTeam(db, "acme");
+    // 00:30 UTC on the 7th is 21:30 on the 6th in São Paulo.
+    await insertHour(teamId, "2026-09-07T00:00:00Z", { sent: 7, delivered: 7 });
+    await insertHour(teamId, "2026-09-06T18:00:00Z", { sent: 3, delivered: 3 });
+
+    const utc = await callerFor(teamId).metrics.window({ days: 30, tz: "UTC" });
+    const saoPaulo = await callerFor(teamId).metrics.window({
+      days: 30,
+      tz: "America/Sao_Paulo",
+    });
+    const on = (r: typeof utc, day: string) => r.days.find((d) => d.day === day)?.sent ?? 0;
+    // Only meaningful while the window reaches these dates.
+    if (utc.days.some((d) => d.day === "2026-09-06")) {
+      expect(on(utc, "2026-09-06")).toBe(3);
+      expect(on(utc, "2026-09-07")).toBe(7);
+      expect(on(saoPaulo, "2026-09-06")).toBe(10);
+      expect(on(saoPaulo, "2026-09-07")).toBe(0);
+    }
+    expect(utc.totals.sent).toBe(saoPaulo.totals.sent);
+    expect(saoPaulo.today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("refuses a timezone it does not know, and takes the names browsers actually send", async () => {
+    const teamId = await createTeam(db, "acme");
+    await expect(callerFor(teamId).metrics.window({ tz: "Mars/Olympus" })).rejects.toThrow();
+    // Current IANA names, fixed offsets and old aliases are absent from
+    // Intl.supportedValuesOf but every formatter accepts them.
+    for (const tz of ["Asia/Kolkata", "Etc/GMT+3", "US/Eastern", "UTC"]) {
+      expect((await callerFor(teamId).metrics.window({ tz })).days).toHaveLength(15);
+    }
+  });
+
+  it("steps calendar days, so a DST transition inside the window neither skips nor doubles a day", async () => {
+    const teamId = await createTeam(db, "acme");
+    const nowSpy = vi.spyOn(Date, "now");
+    try {
+      // 23:30 in New York on the night the clocks fell back: a 25-hour day.
+      nowSpy.mockReturnValue(Date.parse("2026-11-03T04:30:00Z"));
+      const fall = await callerFor(teamId).metrics.window({ days: 5, tz: "America/New_York" });
+      expect(fall.days.map((d) => d.day)).toEqual([
+        "2026-10-29",
+        "2026-10-30",
+        "2026-10-31",
+        "2026-11-01",
+        "2026-11-02",
+      ]);
+      // 00:30 the morning after the clocks sprang forward: a 23-hour day behind.
+      nowSpy.mockReturnValue(Date.parse("2026-03-09T04:30:00Z"));
+      const spring = await callerFor(teamId).metrics.window({ days: 5, tz: "America/New_York" });
+      expect(spring.days.map((d) => d.day)).toEqual([
+        "2026-03-05",
+        "2026-03-06",
+        "2026-03-07",
+        "2026-03-08",
+        "2026-03-09",
+      ]);
+      expect(spring.today).toBe("2026-03-09");
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it("honors a custom window size", async () => {
+    const teamId = await createTeam(db, "acme");
+    await insertCounter(teamId, utcDay(6), { sent: 3, delivered: 3 });
+    await insertCounter(teamId, utcDay(7), { sent: 4, delivered: 4 });
+
+    const result = await callerFor(teamId).metrics.window({ days: 7 });
+
+    expect(result.days).toHaveLength(7);
+    expect(result.days[0]?.day).toBe(utcDay(6));
+    expect(result.totals.sent).toBe(3);
+  });
+
+  it("sums all-time delivered across rows outside the window", async () => {
+    const teamId = await createTeam(db, "acme");
+    await insertCounter(teamId, utcDay(0), { delivered: 100 });
+    await insertCounter(teamId, utcDay(40), { delivered: 250 });
+
+    const result = await callerFor(teamId).metrics.window();
+
+    expect(result.totals.delivered).toBe(100);
+    expect(result.allTimeDelivered).toBe(350);
+  });
+
+  it("sums all-time delivered past int4 range without overflowing", async () => {
+    const teamId = await createTeam(db, "acme");
+    // Two near-max int4 rows push the SUM past 2^31 - 1.
+    await insertCounter(teamId, utcDay(0), { delivered: 2_000_000_000 });
+    await insertCounter(teamId, utcDay(1), { delivered: 2_000_000_000 });
+
+    const result = await callerFor(teamId).metrics.window();
+
+    expect(result.allTimeDelivered).toBe(4_000_000_000);
+  });
+
+  it("scopes both the window and the all-time sum to the caller's team", async () => {
+    const teamA = await createTeam(db, "team-a");
+    const teamB = await createTeam(db, "team-b");
+    await insertCounter(teamA, utcDay(0), { sent: 2, delivered: 2 });
+    await insertCounter(teamB, utcDay(0), { sent: 7, delivered: 7 });
+    await insertCounter(teamB, utcDay(40), { delivered: 9 });
+
+    const result = await callerFor(teamA).metrics.window();
+
+    expect(result.totals).toEqual({
+      accepted: 0,
+      sent: 2,
+      delivered: 2,
+      bounced: 0,
+      hardBounced: 0,
+      complained: 0,
+      opened: 0,
+      clicked: 0,
+      prefetched: 0,
+    });
+    expect(result.allTimeDelivered).toBe(2);
+  });
+
+  it("carries prefetched beside opened without folding it into the open rate", async () => {
+    const teamId = await createTeam(db);
+    await insertCounter(teamId, utcDay(0), { delivered: 10, opened: 4, prefetched: 3 });
+    const result = await callerFor(teamId).metrics.window();
+    expect(result.days[14]).toMatchObject({ opened: 4, prefetched: 3 });
+    expect(result.totals.prefetched).toBe(3);
+    expect(result.totals.opened / result.totals.delivered).toBeCloseTo(0.4);
+  });
+
+  it("returns opened and clicked per day and in the window totals", async () => {
+    const teamId = await createTeam(db, "acme");
+    await insertCounter(teamId, utcDay(0), { delivered: 10, opened: 6, clicked: 2 });
+    await insertCounter(teamId, utcDay(2), { delivered: 4, opened: 1, clicked: 1 });
+
+    const result = await callerFor(teamId).metrics.window();
+
+    expect(result.days[14]).toMatchObject({ day: utcDay(0), opened: 6, clicked: 2 });
+    expect(result.days[12]).toMatchObject({ day: utcDay(2), opened: 1, clicked: 1 });
+    expect(result.totals.opened).toBe(7);
+    expect(result.totals.clicked).toBe(3);
+    // Engagement rate the page renders: opened / delivered, clicked / delivered.
+    expect(result.totals.opened / result.totals.delivered).toBeCloseTo(0.5);
+    expect(result.totals.clicked / result.totals.delivered).toBeCloseTo(3 / 14);
+  });
+});
+
+describe("metrics.health", () => {
+  it("pauses when the hard-bounce rate crosses the SES enforcement line", async () => {
+    const teamId = await createTeam(db, "acme");
+    // 120/2000 = 6% > 5% pause line, over the floor and the minimum count.
+    await insertCounter(teamId, utcDay(0), { sent: 2000, bounced: 120, hardBounced: 120 });
+
+    const result = await callerFor(teamId).metrics.health();
+
+    expect(result.status).toBe("paused");
+    expect(result.bounceRate).toBeCloseTo(0.06);
+    expect(result.reasons).toContainEqual({
+      metric: "bounce",
+      rate: 0.06,
+      tier: "paused",
+      windowDays: 2,
+    });
+    expect(result.thresholds).toEqual({
+      warnBounce: 0.04,
+      warnComplaint: 0.0005,
+      pauseBounce: 0.05,
+      pauseComplaint: 0.001,
+    });
+  });
+
+  it("stays ok below the volume floor regardless of rate", async () => {
+    const teamId = await createTeam(db, "acme");
+    await insertCounter(teamId, utcDay(0), { sent: 99, bounced: 50, hardBounced: 50 });
+
+    const result = await callerFor(teamId).metrics.health();
+
+    expect(result.status).toBe("ok");
+    expect(result.reasons).toEqual([]);
+  });
+});
+
+describe("metrics.accountScore", () => {
+  it("withholds the outcome sub-score under the sends floor and reports the shape", async () => {
+    const teamId = await createTeam(db, "acme");
+    await db
+      .insert(schema.usageCounters)
+      .values({ teamId, day: utcDay(0), sent: 40, complained: 1, hardBounced: 2 });
+
+    const result = await callerFor(teamId).metrics.accountScore();
+
+    expect(result).toMatchObject({
+      windowDays: 30,
+      scoreVersion: 1,
+      sent: 40,
+      contentRecipients: 0,
+      insufficientOutcomeData: true,
+      outcomeScoreTenths: null,
+      contentScoreTenths: null,
+      scoreTenths: null,
+      band: null,
+      guardrailStatus: "ok",
+    });
+    expect(result.complaintRate).toBeCloseTo(1 / 40);
+    expect(result.hardBounceRate).toBeCloseTo(2 / 40);
+  });
+
+  it("blends content and outcome into a banded headline once data suffices", async () => {
+    const teamId = await createTeam(db, "acme");
+    await db.insert(schema.usageCounters).values({ teamId, day: utcDay(0), sent: 1000 });
+    const [email] = await db
+      .insert(schema.emails)
+      .values({
+        teamId,
+        from: "sender@acme.test",
+        to: ["ada@example.com"],
+        subject: "hello",
+        sentAt: new Date(),
+      })
+      .returning({ id: schema.emails.id });
+    if (!email) throw new Error("email insert failed");
+    await db.insert(schema.emailInsights).values({
+      teamId,
+      emailId: email.id,
+      marketing: false,
+      checks: [],
+      scoreTenths: 80,
+      scoreVersion: 1,
+    });
+
+    const result = await callerFor(teamId).metrics.accountScore();
+
+    expect(result.contentScoreTenths).toBe(80);
+    expect(result.outcomeScoreTenths).toBe(100);
+    // min(0.4 × 80 + 0.6 × 100, 100 + 15) = 92
+    expect(result.scoreTenths).toBe(92);
+    expect(result.band).toBe("excellent");
+    expect(result.insufficientOutcomeData).toBe(false);
+  });
+});
+
+describe("metrics.accountScoreDetails", () => {
+  it("lists failing checks weighted by recipients with their cost and lift", async () => {
+    const teamId = await createTeam(db, "acme");
+    await db.insert(schema.usageCounters).values({ teamId, day: utcDay(0), sent: 1000 });
+    const [email] = await db
+      .insert(schema.emails)
+      .values({
+        teamId,
+        from: "sender@acme.test",
+        to: ["ada@example.com", "bob@example.com"],
+        subject: "hello",
+        sentAt: new Date(),
+      })
+      .returning({ id: schema.emails.id });
+    if (!email) throw new Error("email insert failed");
+    await db.insert(schema.emailInsights).values({
+      teamId,
+      emailId: email.id,
+      marketing: false,
+      checks: [
+        { id: "plain_text", severity: "major", status: "fail", penaltyHundredths: 100 },
+        { id: "dmarc_record", severity: "critical", status: "pass", penaltyHundredths: 0 },
+      ],
+      scoreTenths: 90,
+      scoreVersion: 1,
+    });
+
+    const result = await callerFor(teamId).metrics.accountScoreDetails();
+
+    expect(result.scoreTenths).toBe(96);
+    expect(result.blendTenths).toBe(96);
+    expect(result.governorCapTenths).toBe(115);
+    expect(result.factors).toEqual([
+      {
+        id: "plain_text",
+        severity: "major",
+        emails: 1,
+        recipients: 2,
+        penaltyTenths: 10,
+        liftTenths: 4,
+      },
+    ]);
+  });
+});

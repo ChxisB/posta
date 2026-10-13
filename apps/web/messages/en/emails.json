@@ -1,0 +1,386 @@
+{
+  "held": {
+    "label": "Delayed",
+    "body": "Delivery is paused for now and resumes automatically. You don't need to do anything."
+  },
+  "list": {
+    "title": "Emails",
+    "suppressionList": "Suppression list",
+    "apiDocs": "Emails API",
+    "searchPlaceholder": "Search…",
+    "allStatuses": "All statuses",
+    "statusCount": "{count} statuses",
+    "allApiKeys": "All API keys",
+    "range": {
+      "h24": "Last 24 hours",
+      "d7": "Last 7 days",
+      "d15": "Last 15 days",
+      "d30": "Last 30 days",
+      "all": "All time"
+    },
+    "to": "To",
+    "status": "Status",
+    "subject": "Subject",
+    "loadMore": "Load more",
+    "empty": "No emails yet.",
+    "emptyHint": "Send your first email through the API — <code>POST /emails</code>.",
+    "pageOf": "Page 1 – {pages} of {total} emails",
+    "pageSize": "{count} items",
+    "noMatch": "No emails match your filters.",
+    "statusFilter": "Status \"{status}\"",
+    "clearFilters": "Clear filters",
+    "loadError": "Couldn't load emails.",
+    "retry": "Retry",
+    "capBanner": {
+      "reached": "Today's {limit}-email limit reached.",
+      "queued": "{count} emails queued — they'll send in {duration}.",
+      "upgrade": "Upgrade for a higher cap →",
+      "reachedMonth": "Monthly quota of {limit} emails reached.",
+      "queuedMonth": "{count} emails queued — they'll send when the period renews on {date}, or as soon as overage is on."
+    },
+    "allDomains": "All domains",
+    "when": "When",
+    "whenWaiting": "Waiting",
+    "whenQueued": "Queued",
+    "whenScheduled": "Scheduled · {date}",
+    "createdAt": "Created {date}",
+    "broadcastChip": "Broadcast",
+    "queuedBroadcast": "Queued in broadcast",
+    "source": {
+      "label": "Source",
+      "transactional": "Transactional",
+      "broadcast": "Broadcasts",
+      "all": "All"
+    },
+    "hiddenBroadcasts": "{count} broadcast emails are not shown in this list.",
+    "showBroadcasts": "Show broadcasts →",
+    "noTransactional": "No transactional emails found.",
+    "inBroadcasts": "{count} results in broadcasts."
+  },
+  "detail": {
+    "breadcrumb": "Email details",
+    "notFound": "Email not found.",
+    "statusIn": "{status} in {duration}",
+    "from": "From",
+    "subject": "Subject",
+    "to": "To",
+    "cc": "CC",
+    "bcc": "BCC",
+    "id": "ID",
+    "replyTo": "Reply-to",
+    "tags": "Tags",
+    "apiKey": "API key",
+    "events": "Email events",
+    "noEvents": "0 events.",
+    "eventsStalled": "No other events will show — SES can only push delivery events to a public https URL, and this deployment doesn't have one. Re-run setup to create the SQS events queue the worker polls instead; new emails then get events within seconds. Emails sent before that stay as they are.",
+    "event": {
+      "rendering_failure": "Rendering failure",
+      "prefetched": "Prefetched",
+      "unsubscribed": "Unsubscribed"
+    },
+    "prefetchedHint": "The tracking image or a link was fetched by a mail client or security scanner before anyone opened the message. Not counted as an open or a click.",
+    "openFromClick": "from click",
+    "prefetchReason": {
+      "apple_mpp": "Apple Mail privacy",
+      "gmail_prefetch": "Gmail prefetch",
+      "scanner": "security scanner",
+      "spoofed_ua": "spoofed browser",
+      "before_delivery": "before delivery",
+      "timing": "seconds after delivery",
+      "burst": "two links within a quarter second"
+    },
+    "suppressedLine": "future sends blocked",
+    "delayType": {
+      "InternalFailure": "internal SES failure",
+      "General": "SMTP failure",
+      "MailboxFull": "mailbox full",
+      "SpamDetected": "spam detected",
+      "RecipientServerError": "recipient server error",
+      "IPFailure": "sending IP blocked or throttled",
+      "TransientCommunicationFailure": "connection failure",
+      "BYOIPHostNameLookupUnavailable": "hostname lookup failed (BYOIP)",
+      "Undetermined": "reason undetermined",
+      "SendingDeferral": "deferred by SES"
+    },
+    "retriesUntil": "retries until {time}",
+    "bounceBanner": {
+      "hard": "Hard bounce — this address can't receive mail.",
+      "suppressed": "It was added to your <link>suppression list</link>."
+    },
+    "preview": "Preview",
+    "plainText": "Plain text",
+    "html": "HTML",
+    "formatted": "Formatted",
+    "insights": "Insights",
+    "bodyPurged": "Body purged after retention window.",
+    "noHtml": "No HTML body.",
+    "noText": "No plain-text body.",
+    "previewLight": "Light",
+    "previewDark": "Dark",
+    "hiddenBySupportView": "Email content is hidden in support view",
+    "broadcast": "Broadcast",
+    "pending": {
+      "accepted": "Accepted",
+      "fromApi": "Accepted for sending",
+      "fromBroadcast": "Created by the broadcast",
+      "scheduled": "Scheduled",
+      "queued": "Queued",
+      "queuedBody": "Goes out in moments.",
+      "plan": "Held by the plan limit",
+      "planBody": "Goes out when the limit renews, {date}.",
+      "raiseLimit": "Raise limit",
+      "waitingCapacity": "Waiting for capacity",
+      "pacedBody": "The broadcast goes out in waves within the daily capacity. Your transactional email is not held behind it.",
+      "expected": "Expected send",
+      "window": "between {from} and {to}",
+      "until": "by about {to}",
+      "estimate": "estimate",
+      "notSentYet": "Not sent yet. Delivery events show up here as soon as the provider answers.",
+      "waiting": "Waiting to send",
+      "waitingBody": "Goes out as soon as sending capacity frees up.",
+      "warmup": "Warming up the domain",
+      "warmupBody": "New domains ramp up gradually to protect deliverability. Goes out as the daily volume allows."
+    },
+    "headers": "Headers",
+    "noHeaders": "No headers."
+  },
+  "insights": {
+    "outOfTen": "/ 10",
+    "reportFrom": "Report from {date}",
+    "empty": "No insights for this email.",
+    "emptyHint": "It was sent before insights existed, or it hasn't been sent yet. Earlier emails are not analyzed retroactively.",
+    "groups": {
+      "attention": "Needs attention",
+      "improvements": "Improvements",
+      "great": "Doing great",
+      "notChecked": "Not checked"
+    },
+    "notCheckedWhy": "DNS state unavailable at send time.",
+    "notApplicableToggle": "{count, plural, one {# check not applicable} other {# checks not applicable}}",
+    "byDesign": "by design",
+    "byDesignNote": "MillionSend enforces this structurally — it cannot fail here.",
+    "adviceLabel": "What to do",
+    "detailLabel": "Detail",
+    "kb": "{kb} KB",
+    "check": {
+      "dmarc_record": {
+        "title": "DMARC record",
+        "description": "Your sending domain publishes a DMARC policy. Google, Yahoo and Microsoft require one for bulk senders, and p=none already satisfies them.",
+        "advice": "Add a _dmarc TXT record to your domain. Start at p=none, watch the reports, then tighten."
+      },
+      "auth_alignment": {
+        "title": "SPF and DKIM alignment",
+        "description": "SPF and DKIM pass and align with your From domain — the base requirement of every major mailbox provider.",
+        "advice": "Nothing to do — MillionSend verifies SPF and DKIM on your domain before any send leaves."
+      },
+      "list_unsubscribe": {
+        "title": "One-click unsubscribe headers",
+        "description": "The message carries List-Unsubscribe and List-Unsubscribe-Post headers. Gmail and Yahoo require one-click unsubscribe for bulk senders.",
+        "advice": "Send marketing through broadcasts or topics — MillionSend injects both headers automatically."
+      },
+      "link_domains_match": {
+        "title": "Links match your domain",
+        "description": "At least one link points at your sending domain. A message whose links all go to third-party domains matches a common phishing shape.",
+        "advice": "Link to your own domain at least once, or send from the domain you link to."
+      },
+      "no_shorteners": {
+        "title": "No link shorteners",
+        "description": "Shortened links (bit.ly, tinyurl and similar) hide the destination and are heavily abused. With click tracking on, a shortener becomes a tracking-wrapped double redirect — a documented phishing pattern for Gmail. youtu.be is YouTube's own share domain and only counts while click tracking would wrap it.",
+        "advice": "Use full destination URLs — youtube.com/watch instead of youtu.be. Click tracking already reports what was clicked."
+      },
+      "body_size": {
+        "title": "HTML size",
+        "description": "Gmail clips messages whose HTML exceeds 102KB — everything past the clip point, unsubscribe footer included, hides behind \"View entire message\".",
+        "advice": "Keep the HTML under 102KB: fewer inlined styles, shorter content, nothing embedded."
+      },
+      "plain_text": {
+        "title": "Plain-text version",
+        "description": "The message ships a text/plain part alongside the HTML. HTML-only mail scores worse with spam filters and breaks in text-only clients.",
+        "advice": "Provide a text body with every HTML send."
+      },
+      "visible_unsubscribe": {
+        "title": "Visible unsubscribe link",
+        "description": "The body contains an unsubscribe link placed before Gmail's clip point. Recipients who can't find it press \"Report spam\" instead.",
+        "advice": "Put an unsubscribe link in the footer and keep it inside the first 102KB of HTML."
+      },
+      "phishing_links": {
+        "title": "No phishing-pattern links",
+        "description": "No link text naming a different domain than its destination, no links to raw IP addresses, no http links claiming to be https — the patterns phishing filters match on.",
+        "advice": "Make link text agree with the destination and never link to bare IPs."
+      },
+      "no_reply_from": {
+        "title": "Replyable From address",
+        "description": "The From address is not a no-reply mailbox. Replies are an engagement signal mailbox providers count in your favor.",
+        "advice": "Send from a monitored address; if you must use no-reply, set a Reply-To."
+      },
+      "svg_images": {
+        "title": "No SVG images",
+        "description": "SVG does not render in most email clients — Gmail and Outlook show a blank where the image should be.",
+        "advice": "Export images as PNG or JPEG."
+      },
+      "attachments_marketing": {
+        "title": "No attachments",
+        "description": "Marketing mail with attachments raises spam and malware scores; bulk senders almost never attach files.",
+        "advice": "Host the file and link to it instead."
+      },
+      "image_text_ratio": {
+        "title": "Text alongside images",
+        "description": "The message has real visible text next to its images. Image-heavy mail with almost no text is a classic spam signature and unreadable while images are blocked.",
+        "advice": "Write the message as text; use images to support it, not replace it."
+      },
+      "tracking_unbranded": {
+        "title": "Branded tracking domain",
+        "description": "Open and click tracking rewrite links through a tracking host. On a branded subdomain the links stay on your domain; on a shared host your mail borrows someone else's reputation.",
+        "advice": "Verify a tracking subdomain for your domain so tracked links stay yours."
+      },
+      "root_domain_send": {
+        "title": "Marketing on a subdomain",
+        "description": "Marketing sent from your root domain ties its reputation to all your mail, transactional included.",
+        "advice": "Send marketing from a dedicated subdomain such as news.yourdomain.com."
+      },
+      "insecure_links": {
+        "title": "HTTPS links",
+        "description": "Every link uses https. Plain-http links get flagged by security scanners and can be tampered with in transit.",
+        "advice": "Serve link targets over https and update the URLs."
+      },
+      "subject_lint": {
+        "title": "Subject line",
+        "description": "The subject avoids all-caps and runs of !!! or ??? — both trip content filters.",
+        "advice": "Sentence-case the subject and drop the repeated punctuation."
+      },
+      "image_alt_text": {
+        "title": "Image alt text",
+        "description": "Every image carries alt text — what recipients see while images load or stay blocked, and what screen readers read.",
+        "advice": "Give each meaningful image an alt attribute."
+      },
+      "images_offsite": {
+        "title": "Images on your domain",
+        "description": "Images load from your sending domain. Third-party image hosts tie the message's rendering to servers you don't control.",
+        "advice": "Host images on your own domain."
+      },
+      "reply_to_present": {
+        "title": "Reply-To with no-reply From",
+        "description": "Sending from a no-reply address with a Reply-To header set, so replies still reach a real mailbox.",
+        "advice": "Keep a Reply-To on every send from a no-reply address."
+      }
+    },
+    "handoffLabel": "Hand it to your agent",
+    "handoffHint": "A ready-made instruction with the check, the reason and the fix.",
+    "copyForAgent": "Copy instructions",
+    "agentPrompt": "In our MillionSend integration, the email \"{subject}\" (id {id}) fails the deliverability check \"{title}\".\n\n{description}\n\nWhat to do: {advice}{detail}\n\nFind the code or template that sends this email and apply the fix. Keep the change minimal and explain what you changed."
+  },
+  "bouncedDrawer": {
+    "title": "Bounced details",
+    "type": "Type",
+    "subtype": "Subtype",
+    "code": "Code",
+    "smtpResponse": "SMTP response",
+    "whatToDo": "What to do",
+    "copyReady": "Copy-ready",
+    "apple": {
+      "title": "Add to Apple Developer Portal",
+      "intro": "In the <link>Apple Developer Portal</link>, go to:",
+      "steps": {
+        "one": "Certificates, Identifiers & Profiles",
+        "two": "Services",
+        "three": "Sign in with Apple for Email Communication",
+        "four": "Email Sources"
+      },
+      "domains": "Domains and subdomains",
+      "addresses": "Email addresses",
+      "hint": "Register every domain and subdomain you send from, and every From address, exactly as used. Relay addresses only accept mail from registered senders.",
+      "article": "How to stop bounces to @privaterelay.appleid.com recipients"
+    },
+    "acceptedThenBounced": "The recipient's server accepted this message first (see the delivered event) and returned it afterwards from inside its own system — a forward, a full mailbox or an auto-reply read as a bounce. Nothing retries it."
+  },
+  "occurrencesDrawer": {
+    "title": "{label} — {count, plural, one {# event} other {# events}}",
+    "subtitle": "Newest first · offset from send"
+  },
+  "suppressedDrawer": {
+    "title": "Suppressed details",
+    "origin": "Origin",
+    "added": "Added",
+    "recipient": "Recipient",
+    "blocked": "Sends to this address are blocked to protect your domain reputation. The API returns <code>422 suppressed_recipient</code>.",
+    "suggestedActions": "Suggested actions",
+    "step1": "Confirm the mailbox exists now — removing early usually re-bounces.",
+    "step2": "Then remove the suppression; the next send goes through normally.",
+    "remove": "Remove email address"
+  },
+  "suppressions": {
+    "title": "Suppressions",
+    "searchPlaceholder": "Search…",
+    "allOrigins": "All origins",
+    "statsBlocked": "{count} addresses blocked",
+    "reasonCount": {
+      "hard_bounce": "{count} bounce",
+      "complaint": "{count} complaint",
+      "manual": "{count} manual",
+      "one_click_unsubscribe": "{count} unsubscribe"
+    },
+    "email": "Email",
+    "origin": "Origin",
+    "added": "Added",
+    "add": "Add email address",
+    "addTitle": "Add email address",
+    "addBody": "Emails to this address will not be sent.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "ada@example.com",
+    "invalidEmail": "Enter a valid email address.",
+    "addConfirm": "Add",
+    "remove": "Remove email address",
+    "removeTitle": "Remove email address",
+    "removeBody": "{email} can receive emails again after removal.",
+    "removeConfirm": "Remove",
+    "empty": "No suppressed addresses yet.",
+    "emptyHint": "Hard bounces and complaints are added automatically.",
+    "loadMore": "Load more",
+    "noMatch": "No suppressions match your filters.",
+    "clearFilters": "Clear filters",
+    "loadError": "Couldn't load suppressions.",
+    "retry": "Retry",
+    "pageOf": "Page 1 – {pages} of {total} suppressions",
+    "pageSize": "{count} items",
+    "reason": {
+      "hard_bounce": "Bounce",
+      "complaint": "Complaint",
+      "manual": "Manual",
+      "one_click_unsubscribe": "Unsubscribe"
+    },
+    "detail": {
+      "breadcrumb": "Suppression details",
+      "notFound": "Suppression not found.",
+      "origin": "Origin",
+      "recipient": "Recipient",
+      "added": "Added",
+      "details": "Details",
+      "removeNote": "Removing an address that bounced permanently will likely bounce again — remove it only after the mailbox is fixed."
+    },
+    "removeDialog": {
+      "title": "Remove email address",
+      "body": "{email} can receive email again. A hard-bounced address usually bounces again."
+    }
+  },
+  "apiSheet": {
+    "title": "Emails API",
+    "send": "Send email",
+    "batch": "Send batch emails",
+    "retrieve": "Retrieve email",
+    "keyHint": "Replace ms_xxxxxxxxx with an API key from the API Keys page. Every SDK also honors the MILLIONSEND_API_KEY and MILLIONSEND_BASE_URL environment variables."
+  },
+  "unsubscribedDrawer": {
+    "title": "Unsubscribed details",
+    "scope": "Scope",
+    "global": "All emails",
+    "topic": "Topic",
+    "via": "Via",
+    "source": {
+      "one_click": "One-click header (List-Unsubscribe)",
+      "hosted_page": "Hosted unsubscribe page"
+    },
+    "when": "When",
+    "recipient": "Recipient",
+    "note": "The recipient opted out using this email's unsubscribe link. Account messages still arrive; broadcasts to this scope stop."
+  }
+}

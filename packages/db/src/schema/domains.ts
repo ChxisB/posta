@@ -1,0 +1,109 @@
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  jsonb,
+  pgEnum,
+  pgTable,
+  smallint,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { teams } from "./teams.js";
+
+/** One expected DNS record's live verdict, snapshotted at verification time. */
+export interface DomainDnsRecord {
+  group: string;
+  name: string;
+  type: string;
+  status: "found" | "mismatch" | "missing" | "unknown";
+}
+
+export const domainStatusEnum = pgEnum("domain_status", [
+  "pending",
+  "verified",
+  "temporary_failure",
+  "failed",
+]);
+
+export const tlsModeEnum = pgEnum("tls_mode", ["opportunistic", "enforced"]);
+
+/** Where a domain's registration date came from; "unknown" when no source had one. */
+export const domainAgeSourceEnum = pgEnum("domain_age_source", ["rdap", "whois", "ct", "unknown"]);
+
+export const domains = pgTable(
+  "domains",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    region: text("region").notNull(),
+    status: domainStatusEnum("status").notNull().default("pending"),
+    // BYODKIM: only the selector and public half are stored — the private key
+    // is uploaded to SES at create time and never persisted anywhere. Nullable
+    // only so bare fixture inserts stay cheap; the create flow always sets both.
+    dkimSelector: text("dkim_selector"),
+    dkimPublicKey: text("dkim_public_key"),
+    mailFromSubdomain: text("mail_from_subdomain").notNull().default("send"),
+    trackingSubdomain: text("tracking_subdomain"),
+    // The 72h auto-unset clock for a branded tracking subdomain: stamped when a
+    // subdomain is adopted, cleared once its CNAME resolves (or on unset). While
+    // set, an unresolved subdomain past 72h is unset by the worker, mirroring how
+    // a never-verified domain is reaped. NULL = nothing pending to reap.
+    trackingSubdomainSetAt: timestamp("tracking_subdomain_set_at", { withTimezone: true }),
+    // Both tracking kinds are off by default, as the Domains docs promise.
+    clickTracking: boolean("click_tracking").notNull().default(false),
+    openTracking: boolean("open_tracking").notNull().default(false),
+    tlsMode: tlsModeEnum("tls_mode").notNull().default("opportunistic"),
+    sesConfigurationSet: text("ses_configuration_set"),
+    // Stamped once the identity (and shared configuration set) are associated
+    // with the team's SES tenant; sends carry TenantName only after that, since
+    // SES rejects a tenant send whose resources are not associated. NULL = the
+    // hourly tenants.sync backfill still has to do it.
+    sesTenantAssociatedAt: timestamp("ses_tenant_associated_at", { withTimezone: true }),
+    // The configuration set associated alongside the identity (NULL = none was).
+    // A send names TenantName only while this matches the set it will use;
+    // tenants.sync re-associates rows whose value drifted from the env.
+    sesTenantConfigSet: text("ses_tenant_config_set"),
+    // Per-record snapshot persisted by every verification pass so send-time
+    // insights never do live DNS.
+    dnsRecords: jsonb("dns_records").$type<DomainDnsRecord[]>(),
+    // null = no valid DMARC record found, or never checked.
+    dmarcPolicy: text("dmarc_policy").$type<"none" | "quarantine" | "reject">(),
+    dmarcCheckedAt: timestamp("dmarc_checked_at", { withTimezone: true }),
+    // When the registrable domain (the name a registry sold) was registered,
+    // written by the domain.age job off the send path; null until a source
+    // had a date. Drives the new-domain warm-up.
+    registeredAt: timestamp("registered_at", { withTimezone: true }),
+    ageSource: domainAgeSourceEnum("age_source"),
+    ageCheckedAt: timestamp("age_checked_at", { withTimezone: true }),
+    // Early graduation: the warm-up tier clean sends earned ahead of the
+    // calendar, and when, which starts the next clean window.
+    warmupTier: smallint("warmup_tier"),
+    warmupTierAt: timestamp("warmup_tier_at", { withTimezone: true }),
+    // Operator override: no warm-up for this domain row.
+    warmupTrustedAt: timestamp("warmup_trusted_at", { withTimezone: true }),
+    // Inbound mail (Resend's capabilities.receiving) at this name, enabled
+    // only once the domain is verified.
+    receivingEnabled: boolean("receiving_enabled").notNull().default(false),
+    // When receiving was last switched on; null while it is off.
+    receivingEnabledAt: timestamp("receiving_enabled_at", { withTimezone: true }),
+    // Mail to an address without an inbox is stored (on) or refused at RCPT
+    // (off). Paid plans only on cloud; a stored true is honored after a downgrade.
+    receivingCatchAll: boolean("receiving_catch_all").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("domains_team_name_idx").on(t.teamId, t.name),
+    // Mail for a name can belong to one team only: the MX routes on the
+    // recipient's domain, so a second team receiving the same name would read
+    // the first team's mail. Names are stored lowercase, so the column itself
+    // is the key, and the MX's lookup by name rides this index.
+    uniqueIndex("domains_receiving_name_idx").on(t.name).where(sql`${t.receivingEnabled}`),
+  ],
+);

@@ -1,0 +1,18 @@
+/* MillionSend type — one quiet system grotesque for everything (headings carry
+   weight, not a second family; the wordmark is an outlined SVG); mono for data. */
+:root {
+  --ms-font-sans:
+    -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+  --ms-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ms-fs-micro: 11px; /* uppercase metadata labels; letter-spacing .08em */
+  --ms-fs-badge: 12px; /* status badges, pills */
+  --ms-fs-label: 13px; /* table headers and cells, form labels, timestamps */
+  --ms-fs-ui: 14px; /* nav, buttons */
+  --ms-fs-body: 15px; /* body copy, input values */
+  --ms-fs-input-touch: 16px; /* text fields on touch screens only (DESIGN.md Controls) */
+  --ms-fs-section: 17px; /* card section headings */
+  --ms-fs-h2: 22px; /* card titles, drawer titles */
+  --ms-fs-h1: 30px; /* page titles */
+  --ms-fs-kpi: 40px; /* metric numbers (digits style) */
+  --ms-fs-price: 44px; /* plan prices (digits style) */
+}

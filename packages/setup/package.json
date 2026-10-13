@@ -1,0 +1,44 @@
+{
+  "name": "@millionsend/setup",
+  "version": "0.9.1",
+  "description": "Self-hosting setup wizard: .env with generated secrets, the AWS resources (IAM, SNS, SES), and the Docker launch — end to end from an empty directory",
+  "license": "AGPL-3.0",
+  "type": "module",
+  "bin": {
+    "millionsend-setup": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MillionSend/millionsend.git",
+    "directory": "packages/setup"
+  },
+  "homepage": "https://github.com/MillionSend/millionsend/blob/main/SELF_HOSTING.md",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/index.js --banner:js='#!/usr/bin/env node' '--external:@aws-sdk/*'",
+    "prepublishOnly": "pnpm build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-iam": "^3.1130.0",
+    "@aws-sdk/client-s3": "^3.1130.0",
+    "@aws-sdk/client-sesv2": "^3.1130.0",
+    "@aws-sdk/client-sns": "^3.1130.0",
+    "@aws-sdk/client-sqs": "^3.1130.0",
+    "@aws-sdk/client-sts": "^3.1130.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

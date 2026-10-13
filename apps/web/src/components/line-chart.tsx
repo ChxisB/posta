@@ -1,0 +1,339 @@
+"use client";
+
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { axisLabels } from "@/lib/chart-axis";
+import {
+  type ChartPointer,
+  placeChartTip,
+  trackedPointer,
+  viewportSize,
+} from "@/lib/panel-placement";
+
+export interface LineChartSeries {
+  key: string;
+  label: string;
+  /** CSS color — --ms-* token vars expected. */
+  color: string;
+  values: number[];
+  /** Subtle area fill under this series (the chart's one filled band). */
+  area?: boolean;
+}
+
+/* Plot frame: the left edge is full-bleed so the plot starts on the card's
+   own padding; the right edge reserves a gutter sized to the widest y tick
+   label so the axis never overlaps the series. */
+const PAD = { top: 12, bottom: 24, left: 0 };
+/** Axis labels are 10px mono: about this wide per glyph. */
+const GLYPH_W = 6.2;
+
+/** 1/2/5×10^k ceiling so gridline ticks land on round numbers. */
+function niceStep(raw: number): number {
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const unit = raw / mag;
+  return (unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 5 ? 5 : 10) * mag;
+}
+
+/**
+ * Floating hover panel shared by every chart (the line chart, both
+ * sparklines, the metrics rate bars). It never covers the pointer or the
+ * hovered point: placeChartTip sets it above the plot, centred on the
+ * pointer, and keeps it off a finger (panel-placement.ts). Portaled
+ * and fixed like tooltip.tsx, so no card or dialog clips it; measured after
+ * render and re-placed on scroll. pointer-events: none keeps hover tracking
+ * simple.
+ */
+export function ChartTip({
+  plot,
+  pointer,
+  children,
+}: {
+  /** The element the pointer is tracked on; the tip keeps clear of it. */
+  plot: React.RefObject<HTMLElement | null>;
+  /** Relative to the plot's box (trackedPointer). */
+  pointer: ChartPointer;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const tip = ref.current;
+    const box = plot.current;
+    if (!tip || !box) return;
+    const place = () => {
+      const rect = box.getBoundingClientRect();
+      const placed = placeChartTip(
+        rect,
+        { x: rect.left + pointer.x, y: rect.top + pointer.y, touch: pointer.touch },
+        { width: tip.offsetWidth, height: tip.offsetHeight },
+        viewportSize(),
+      );
+      tip.style.left = `${placed.left}px`;
+      tip.style.top = `${placed.top}px`;
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    return () => window.removeEventListener("scroll", place, true);
+  });
+  return createPortal(
+    <div
+      ref={ref}
+      style={{
+        position: "fixed",
+        left: 0,
+        top: 0,
+        // Above a chart dialog: ties with its overlay resolve by DOM order, as for .ms-tooltip.
+        zIndex: "var(--ms-z-modal)",
+        background: "var(--ms-panel)",
+        border: "1px solid var(--ms-line-strong)",
+        borderRadius: 8,
+        padding: "7px 10px",
+        minWidth: 132,
+        pointerEvents: "none",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
+
+/**
+ * Multi-series daily line chart, pure SVG: straight segments, dashed
+ * horizontal gridlines with right-side round-tick labels, thinned localized
+ * x-axis day labels, and a pointer-tracked hover (column band snapped to
+ * the nearest day, a dot per series, floating clamped tooltip). Width follows
+ * the container via ResizeObserver. No transitions, so reduced-motion needs
+ * no special casing.
+ */
+export function LineChart({
+  days,
+  series,
+  height = 228,
+  formatDay,
+  formatValue,
+  partialNote,
+}: {
+  days: string[];
+  series: LineChartSeries[];
+  height?: number;
+  /** Localized short-day label for the axis and tooltip (a calendar date, no zone shift). */
+  formatDay: (day: string) => string;
+  formatValue: (value: number) => string;
+  /**
+   * Set when the newest day is still in progress: its segment draws dashed
+   * and the tooltip's day label carries this note ("so far").
+   */
+  partialNote?: string | undefined;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [hover, setHover] = useState<{ index: number; pointer: ChartPointer } | null>(null);
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => setWidth(el.clientWidth));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const n = days.length;
+  const plotH = height - PAD.top - PAD.bottom;
+  const baseline = PAD.top + plotH;
+
+  const peak = Math.max(1, ...series.flatMap((s) => s.values));
+  // Floor of 1: these are counts — a quiet window must not grow 0.5 ticks.
+  const step = Math.max(1, niceStep(peak / 4));
+  const top = step * Math.ceil(peak / step);
+  const ticks = Array.from({ length: Math.round(top / step) }, (_, i) => (i + 1) * step);
+
+  // Right gutter sized to the widest tick label.
+  const gutter = Math.ceil(8 + Math.max(...ticks.map((t) => formatValue(t).length)) * GLYPH_W);
+  const plotW = width - PAD.left - gutter;
+  const plotEnd = PAD.left + plotW;
+
+  const x = (i: number) => (n <= 1 ? PAD.left + plotW / 2 : PAD.left + (i * plotW) / (n - 1));
+  const y = (v: number) => PAD.top + plotH * (1 - v / top);
+  const point = (i: number, v: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
+
+  // Thin from the right so the newest day always keeps its label. The slot
+  // width follows the widest label: hourly grains print far wider than days.
+  const labelW = 12 + Math.max(0, ...days.map((d) => formatDay(d).length)) * GLYPH_W;
+  const labelStep = Math.max(1, Math.ceil((n * labelW) / Math.max(1, plotW)));
+
+  function track(event: React.PointerEvent<HTMLDivElement>) {
+    if (n === 0 || plotW <= 0) return;
+    const pointer = trackedPointer(event);
+    const frac = n <= 1 ? 0 : (pointer.x - PAD.left) / plotW;
+    const index = Math.min(n - 1, Math.max(0, Math.round(frac * (n - 1))));
+    setHover({ index, pointer });
+  }
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{ position: "relative", height, touchAction: "pan-y" }}
+      onPointerMove={track}
+      onPointerDown={track}
+      onPointerLeave={() => setHover(null)}
+      onPointerCancel={() => setHover(null)}
+    >
+      {width > 0 && n > 0 ? (
+        <svg width={width} height={height} aria-hidden="true" style={{ display: "block" }}>
+          {hover
+            ? // Hovered-day column band, drawn first so gridlines and series
+              // stay legible over it. One day-pitch wide, clamped to the plot.
+              (() => {
+                const pitch = n <= 1 ? plotW : plotW / (n - 1);
+                const left = Math.max(0, x(hover.index) - pitch / 2);
+                return (
+                  <rect
+                    x={left}
+                    y={0}
+                    width={Math.min(plotEnd - left, pitch)}
+                    height={baseline}
+                    fill="var(--ms-panel-raised)"
+                  />
+                );
+              })()
+            : null}
+          {ticks.map((tick) => (
+            <g key={tick}>
+              <line
+                x1={PAD.left}
+                x2={plotEnd}
+                y1={y(tick)}
+                y2={y(tick)}
+                stroke="var(--ms-line)"
+                strokeDasharray="3 4"
+              />
+              <text
+                x={width}
+                y={y(tick) + 3}
+                fontSize={10}
+                fontFamily="var(--ms-font-mono)"
+                fill="var(--ms-faint)"
+                textAnchor="end"
+              >
+                {formatValue(tick)}
+              </text>
+            </g>
+          ))}
+          <line
+            x1={PAD.left}
+            x2={plotEnd}
+            y1={baseline}
+            y2={baseline}
+            stroke="var(--ms-line-strong)"
+          />
+          {axisLabels(n, labelStep, x, (i) => formatDay(days[i] ?? "").length * GLYPH_W, {
+            start: PAD.left,
+            end: plotEnd,
+          }).map(({ index, x: labelX, anchor }) => (
+            <text
+              key={days[index]}
+              x={labelX}
+              y={height - 6}
+              fontSize={10}
+              fontFamily="var(--ms-font-mono)"
+              fill="var(--ms-faint)"
+              textAnchor={anchor}
+            >
+              {formatDay(days[index] ?? "")}
+            </text>
+          ))}
+          {series.map((s) =>
+            s.area ? (
+              <path
+                key={`${s.key}-area`}
+                d={`M${s.values.map((v, i) => point(i, v)).join(" L")} L${x(n - 1).toFixed(1)},${baseline} L${x(0).toFixed(1)},${baseline} Z`}
+                fill={`color-mix(in srgb, ${s.color} 13%, transparent)`}
+              />
+            ) : null,
+          )}
+          {series.map((s) => (
+            <polyline
+              key={s.key}
+              // An in-progress last day keeps its point but not the solid
+              // line into it: that segment is drawn dashed below.
+              points={s.values
+                .slice(0, partialNote && n > 1 ? n - 1 : n)
+                .map((v, i) => point(i, v))
+                .join(" ")}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={1.5}
+              strokeLinejoin="round"
+            />
+          ))}
+          {partialNote && n > 1
+            ? series.map((s) => (
+                <line
+                  key={`${s.key}-partial`}
+                  x1={x(n - 2)}
+                  y1={y(s.values[n - 2] ?? 0)}
+                  x2={x(n - 1)}
+                  y2={y(s.values[n - 1] ?? 0)}
+                  stroke={s.color}
+                  strokeWidth={1.5}
+                  strokeDasharray="3 3"
+                  strokeLinecap="round"
+                />
+              ))
+            : null}
+          {hover
+            ? series.map((s) => (
+                <circle
+                  key={`${s.key}-dot`}
+                  cx={x(hover.index)}
+                  cy={y(s.values[hover.index] ?? 0)}
+                  r={3}
+                  fill={s.color}
+                  stroke="var(--ms-panel)"
+                  strokeWidth={1.5}
+                />
+              ))
+            : null}
+        </svg>
+      ) : null}
+      {hover ? (
+        <ChartTip plot={wrapRef} pointer={hover.pointer}>
+          <div
+            className="ms-mono"
+            style={{ fontSize: 11, color: "var(--ms-muted)", marginBottom: 4 }}
+          >
+            {formatDay(days[hover.index] ?? "")}
+            {partialNote && hover.index === n - 1 ? ` · ${partialNote}` : ""}
+          </div>
+          {series.map((s) => (
+            <div
+              key={s.key}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                fontSize: 12,
+                lineHeight: 1.8,
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: s.color,
+                  flex: "none",
+                }}
+              />
+              <span style={{ color: "var(--ms-muted)" }}>{s.label}</span>
+              <span className="ms-mono" style={{ marginLeft: "auto", color: "var(--ms-bone)" }}>
+                {formatValue(s.values[hover.index] ?? 0)}
+              </span>
+            </div>
+          ))}
+        </ChartTip>
+      ) : null}
+    </div>
+  );
+}

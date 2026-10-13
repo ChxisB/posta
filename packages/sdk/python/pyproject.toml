@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "millionsend"
+version = "0.8.0"
+description = "Official Python SDK for MillionSend — a self-hostable, Resend-compatible email API."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "MillionSend" }]
+keywords = ["millionsend", "email", "resend", "ses", "transactional"]
+dependencies = ["requests>=2.32.4"]
+
+[project.urls]
+Homepage = "https://github.com/MillionSend/millionsend-python"
+Repository = "https://github.com/MillionSend/millionsend-python"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff==0.16.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["millionsend"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 110
+# The README's Python samples keep their hand-aligned comments.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+ignore = [
+    # Public signatures keep typing.Optional/Dict/List; rewriting the annotations changes them.
+    "FA100",
+    "UP006",
+    "UP035",
+    # __all__ is grouped by purpose (config, resources, errors), not alphabetized.
+    "RUF022",
+]

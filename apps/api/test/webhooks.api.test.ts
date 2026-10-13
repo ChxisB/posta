@@ -1,0 +1,503 @@
+import { randomBytes } from "node:crypto";
+import {
+  decryptWebhookSigningSecrets,
+  EnvKeyring,
+  generateApiKey,
+  signWebhook,
+  verifyWebhookSignature,
+} from "@millionsend/core";
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { createApi } from "../src/app.js";
+
+let db: Db;
+let close: () => Promise<void>;
+let app: ReturnType<typeof createApi>;
+let keyring: EnvKeyring;
+let teamId: string;
+let fullKey: string;
+let sendKey: string;
+let otherTeamKey: string;
+
+function call(token: string, method: string, path: string, body?: unknown) {
+  return app.request(path, {
+    method,
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...(body !== undefined ? { "content-type": "application/json" } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+}
+
+async function insertKey(
+  team: string,
+  overrides: Partial<typeof schema.apiKeys.$inferInsert> = {},
+) {
+  const key = generateApiKey();
+  await db.insert(schema.apiKeys).values({
+    teamId: team,
+    name: "seed",
+    tokenPrefix: key.tokenPrefix,
+    keyHash: key.keyHash,
+    last4: key.last4,
+    ...overrides,
+  });
+  return key.token;
+}
+
+async function createWebhook(body: unknown): Promise<{ id: string; signing_secret: string }> {
+  const res = await call(fullKey, "POST", "/webhooks", body);
+  expect(res.status).toBe(200);
+  return (await res.json()) as { id: string; signing_secret: string };
+}
+
+beforeAll(async () => {
+  ({ db, close } = await createTestDb());
+  teamId = await createTeam(db, "webhooks-team");
+  const otherTeamId = await createTeam(db, "webhooks-other-team");
+  fullKey = await insertKey(teamId);
+  sendKey = await insertKey(teamId, { permission: "sending_access" });
+  otherTeamKey = await insertKey(otherTeamId);
+  keyring = EnvKeyring.fromBase64(randomBytes(32).toString("base64"));
+  app = createApi({ db, keyring, isCloud: false, enqueueEmailSend: async () => {} });
+});
+afterAll(() => close());
+
+describe("POST /webhooks", () => {
+  it("creates an endpoint, storing the secret only encrypted", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks",
+      events: ["email.delivered", "email.bounced", "email.delivered"],
+    });
+    expect(created.signing_secret).toMatch(/^whsec_/);
+
+    const [row] = await db
+      .select()
+      .from(schema.webhookEndpoints)
+      .where(eq(schema.webhookEndpoints.id, created.id));
+    expect(row).toMatchObject({
+      teamId,
+      url: "https://example.com/hooks",
+      status: "enabled",
+      // Duplicates collapse.
+      events: ["email.delivered", "email.bounced"],
+      secretLast4: created.signing_secret.slice(-4),
+    });
+    // No column of the persisted row contains the plaintext secret.
+    for (const [column, value] of Object.entries(row ?? {})) {
+      expect(String(value), `column ${column}`).not.toContain(created.signing_secret);
+    }
+    // The secret signs verifiable Standard Webhooks signatures.
+    const headers = {
+      msgId: "msg_test",
+      timestamp: Math.floor(Date.now() / 1000),
+      payload: '{"type":"email.delivered"}',
+    };
+    const signed = signWebhook(created.signing_secret, headers);
+    expect(
+      verifyWebhookSignature(
+        created.signing_secret,
+        {
+          id: signed["webhook-id"],
+          timestamp: signed["webhook-timestamp"],
+          signature: signed["webhook-signature"],
+        },
+        headers.payload,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps signing_secret out of the request log", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/logged",
+      events: ["email.sent"],
+    });
+    await vi.waitFor(async () => {
+      const logs = await db
+        .select()
+        .from(schema.apiRequests)
+        .where(eq(schema.apiRequests.path, "/webhooks"));
+      const entry = logs.find((l) => l.method === "POST" && l.statusCode === 200);
+      expect(entry).toBeDefined();
+      expect(entry?.responseBody).toMatchObject({ signing_secret: "[redacted]" });
+      expect(JSON.stringify(logs)).not.toContain(created.signing_secret);
+    });
+  });
+
+  it("stores and returns a caller-supplied signing_secret", async () => {
+    const carried = `whsec_${randomBytes(32).toString("base64")}`;
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/carried",
+      events: ["email.sent"],
+      signing_secret: carried,
+    });
+    expect(created.signing_secret).toBe(carried);
+
+    const got = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(got.signing_secret).toBe(carried);
+
+    const [row] = await db
+      .select()
+      .from(schema.webhookEndpoints)
+      .where(eq(schema.webhookEndpoints.id, created.id));
+    expect(row?.secretLast4).toBe(carried.slice(-4));
+    for (const [column, value] of Object.entries(row ?? {})) {
+      expect(String(value), `column ${column}`).not.toContain(carried);
+    }
+  });
+
+  it("422s a malformed signing_secret with a precise message", async () => {
+    for (const bad of [
+      "MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw",
+      "whsec_short",
+      `whsec_${randomBytes(65).toString("base64")}`,
+      "whsec_-_v7-_v7-_v7-_v7-_v7-_v7-_v7-_v7",
+    ]) {
+      const res = await call(fullKey, "POST", "/webhooks", {
+        endpoint: "https://example.com/hooks/bad-secret",
+        events: ["email.sent"],
+        signing_secret: bad,
+      });
+      expect(res.status, bad).toBe(422);
+      expect(await res.json()).toEqual({
+        statusCode: 422,
+        name: "validation_error",
+        message: "signing_secret must be whsec_ followed by base64 of 24-64 bytes",
+      });
+    }
+  });
+
+  it("subscribes to email.received on create and on update", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/inbound",
+      events: ["email.received"],
+    });
+    const patched = await call(fullKey, "PATCH", `/webhooks/${created.id}`, {
+      events: ["email.received", "email.delivered"],
+    });
+    expect(patched.status).toBe(200);
+    const got = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(got.events).toEqual(["email.received", "email.delivered"]);
+  });
+
+  it("422s http endpoints, unknown events, and empty events", async () => {
+    for (const body of [
+      { endpoint: "http://example.com/hooks", events: ["email.sent"] },
+      { endpoint: "https://example.com/hooks", events: ["domain.created"] },
+      { endpoint: "https://example.com/hooks", events: [] },
+      { endpoint: "https://example.com/hooks" },
+    ]) {
+      const res = await call(fullKey, "POST", "/webhooks", body);
+      expect(res.status, JSON.stringify(body)).toBe(422);
+    }
+  });
+});
+
+describe("GET /webhooks and GET /webhooks/{id}", () => {
+  it("get returns the signing secret; list rows never do", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/get",
+      events: ["email.opened"],
+    });
+
+    const got = await call(fullKey, "GET", `/webhooks/${created.id}`);
+    expect(got.status).toBe(200);
+    expect(await got.json()).toEqual({
+      object: "webhook",
+      id: created.id,
+      endpoint: "https://example.com/hooks/get",
+      status: "enabled",
+      events: ["email.opened"],
+      inbox_ids: null,
+      created_at: expect.any(String),
+      signing_secret: created.signing_secret,
+      previous_secret_expires_at: null,
+    });
+
+    const list = await call(fullKey, "GET", "/webhooks?limit=100");
+    const listBody = (await list.json()) as {
+      object: string;
+      data: Record<string, unknown>[];
+      has_more: boolean;
+    };
+    expect(listBody.object).toBe("list");
+    const row = listBody.data.find((r) => r.id === created.id);
+    expect(row).toBeDefined();
+    expect(Object.keys(row ?? {}).sort()).toEqual([
+      "created_at",
+      "endpoint",
+      "events",
+      "id",
+      "inbox_ids",
+      "status",
+    ]);
+    expect(JSON.stringify(listBody)).not.toContain(created.signing_secret);
+  });
+
+  it("paginates with keyset cursors", async () => {
+    const first = await call(fullKey, "GET", "/webhooks?limit=1");
+    const firstBody = (await first.json()) as { data: { id: string }[]; has_more: boolean };
+    expect(firstBody.data).toHaveLength(1);
+    expect(firstBody.has_more).toBe(true);
+
+    const next = await call(fullKey, "GET", `/webhooks?limit=100&after=${firstBody.data[0]?.id}`);
+    const nextBody = (await next.json()) as { data: { id: string }[] };
+    expect(nextBody.data.some((r) => r.id === firstBody.data[0]?.id)).toBe(false);
+  });
+
+  it("serializes dashboard states: null events stay null, auto_disabled reads disabled", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/dash",
+      events: ["email.sent"],
+    });
+    await db
+      .update(schema.webhookEndpoints)
+      .set({ events: null, status: "auto_disabled" })
+      .where(eq(schema.webhookEndpoints.id, created.id));
+
+    const got = await call(fullKey, "GET", `/webhooks/${created.id}`);
+    expect(await got.json()).toMatchObject({ events: null, status: "disabled" });
+  });
+
+  it("404s a foreign team's webhook", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/foreign",
+      events: ["email.sent"],
+    });
+    expect((await call(otherTeamKey, "GET", `/webhooks/${created.id}`)).status).toBe(404);
+  });
+});
+
+describe("PATCH /webhooks/{id}", () => {
+  it("updates endpoint, events, and status independently", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/patch",
+      events: ["email.sent"],
+    });
+
+    const res = await call(fullKey, "PATCH", `/webhooks/${created.id}`, {
+      endpoint: "https://example.com/hooks/patched",
+      events: ["email.bounced", "email.complained"],
+      status: "disabled",
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ object: "webhook", id: created.id });
+
+    const got = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(got).toMatchObject({
+      endpoint: "https://example.com/hooks/patched",
+      events: ["email.bounced", "email.complained"],
+      status: "disabled",
+    });
+
+    // Re-enable only; other fields untouched. An empty body is a valid no-op.
+    await call(fullKey, "PATCH", `/webhooks/${created.id}`, { status: "enabled" });
+    expect((await call(fullKey, "PATCH", `/webhooks/${created.id}`, {})).status).toBe(200);
+    const after = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(after).toMatchObject({
+      endpoint: "https://example.com/hooks/patched",
+      status: "enabled",
+    });
+  });
+
+  it("422s bad updates and 404s foreign ids", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/patch-bad",
+      events: ["email.sent"],
+    });
+    for (const body of [
+      { endpoint: "http://plain.example.com" },
+      { events: ["nope"] },
+      { events: [] },
+      { status: "auto_disabled" },
+    ]) {
+      const res = await call(fullKey, "PATCH", `/webhooks/${created.id}`, body);
+      expect(res.status, JSON.stringify(body)).toBe(422);
+    }
+    expect(
+      (await call(otherTeamKey, "PATCH", `/webhooks/${created.id}`, { status: "disabled" })).status,
+    ).toBe(404);
+  });
+});
+
+describe("DELETE /webhooks/{id}", () => {
+  it("hard-deletes the endpoint and its deliveries", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/doomed",
+      events: ["email.sent"],
+    });
+    await db.insert(schema.webhookDeliveries).values({
+      endpointId: created.id,
+      messageId: "msg_doomed",
+      eventType: "email.sent",
+      payload: { type: "email.sent" },
+    });
+
+    const res = await call(fullKey, "DELETE", `/webhooks/${created.id}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ object: "webhook", id: created.id, deleted: true });
+
+    expect((await call(fullKey, "GET", `/webhooks/${created.id}`)).status).toBe(404);
+    const deliveries = await db
+      .select()
+      .from(schema.webhookDeliveries)
+      .where(eq(schema.webhookDeliveries.endpointId, created.id));
+    expect(deliveries).toHaveLength(0);
+
+    expect((await call(fullKey, "DELETE", `/webhooks/${created.id}`)).status).toBe(404);
+  });
+
+  it("404s a foreign team's webhook without deleting it", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/kept",
+      events: ["email.sent"],
+    });
+    expect((await call(otherTeamKey, "DELETE", `/webhooks/${created.id}`)).status).toBe(404);
+    expect((await call(fullKey, "GET", `/webhooks/${created.id}`)).status).toBe(200);
+  });
+});
+
+describe("permission confinement", () => {
+  it("403s a sending_access key on every /webhooks route", async () => {
+    for (const [method, path, body] of [
+      ["GET", "/webhooks", undefined],
+      ["POST", "/webhooks", { endpoint: "https://example.com/x", events: ["email.sent"] }],
+      ["GET", `/webhooks/${crypto.randomUUID()}`, undefined],
+      ["PATCH", `/webhooks/${crypto.randomUUID()}`, { status: "disabled" }],
+      ["DELETE", `/webhooks/${crypto.randomUUID()}`, undefined],
+    ] as const) {
+      const res = await call(sendKey, method, path, body);
+      expect(res.status, `${method} ${path}`).toBe(403);
+      expect(await res.json()).toMatchObject({ statusCode: 403, name: "restricted_api_key" });
+    }
+  });
+});
+
+describe("POST /webhooks/{id}/rotate", () => {
+  async function endpointRow(id: string) {
+    const [row] = await db
+      .select()
+      .from(schema.webhookEndpoints)
+      .where(eq(schema.webhookEndpoints.id, id));
+    if (!row) throw new Error("endpoint row missing");
+    return row;
+  }
+
+  it("mints a new secret, keeps the old one signing through the overlap, and reports the window", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/rotate",
+      events: ["email.sent"],
+    });
+    const res = await call(fullKey, "POST", `/webhooks/${created.id}/rotate`, {});
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      signing_secret: string;
+      previous_secret_expires_at: string | null;
+    };
+    expect(body.signing_secret).not.toBe(created.signing_secret);
+    expect(body.signing_secret.startsWith("whsec_")).toBe(true);
+    const until = new Date(body.previous_secret_expires_at ?? 0).getTime() - Date.now();
+    expect(until).toBeGreaterThan(23 * 3_600_000);
+    expect(until).toBeLessThanOrEqual(24 * 3_600_000);
+
+    const secrets = await decryptWebhookSigningSecrets(await endpointRow(created.id), keyring);
+    expect(secrets).toEqual([body.signing_secret, created.signing_secret]);
+    const params = { msgId: "msg_r", timestamp: Math.floor(Date.now() / 1000), payload: "{}" };
+    const headers = signWebhook(secrets, params);
+    for (const secret of [body.signing_secret, created.signing_secret]) {
+      expect(
+        verifyWebhookSignature(
+          secret,
+          {
+            id: params.msgId,
+            timestamp: headers["webhook-timestamp"],
+            signature: headers["webhook-signature"],
+          },
+          params.payload,
+        ),
+      ).toBe(true);
+    }
+
+    const got = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(got.signing_secret).toBe(body.signing_secret);
+    expect(got.previous_secret_expires_at).toBe(body.previous_secret_expires_at);
+
+    // Past the window only the current secret signs.
+    const past = new Date(Date.now() + 25 * 3_600_000);
+    expect(
+      await decryptWebhookSigningSecrets(await endpointRow(created.id), keyring, past),
+    ).toEqual([body.signing_secret]);
+  });
+
+  it("chains two racing rotations instead of both copying the same outgoing secret", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/rotate-race",
+      events: ["email.sent"],
+    });
+    const [a, b] = (await Promise.all([
+      call(fullKey, "POST", `/webhooks/${created.id}/rotate`, {}),
+      call(fullKey, "POST", `/webhooks/${created.id}/rotate`, {}),
+    ]).then((rs) => Promise.all(rs.map((r) => r.json())))) as { signing_secret: string }[];
+    const secrets = await decryptWebhookSigningSecrets(await endpointRow(created.id), keyring);
+    // Whichever landed second is current and the other is previous; both
+    // minted secrets sign, and the original one is gone.
+    expect([...secrets].sort()).toEqual([a?.signing_secret, b?.signing_secret].sort());
+    expect(secrets).not.toContain(created.signing_secret);
+  });
+
+  it("takes a caller-supplied secret and a zero overlap; 422s bad input; 404s foreign ids", async () => {
+    const created = await createWebhook({
+      endpoint: "https://example.com/hooks/rotate-byo",
+      events: ["email.sent"],
+    });
+    const mine = `whsec_${randomBytes(32).toString("base64")}`;
+    const res = await call(fullKey, "POST", `/webhooks/${created.id}/rotate`, {
+      signing_secret: mine,
+      overlap_hours: 0,
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      object: "webhook",
+      id: created.id,
+      signing_secret: mine,
+      previous_secret_expires_at: null,
+    });
+    expect(await decryptWebhookSigningSecrets(await endpointRow(created.id), keyring)).toEqual([
+      mine,
+    ]);
+    const got = (await (await call(fullKey, "GET", `/webhooks/${created.id}`)).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(got.previous_secret_expires_at).toBeNull();
+
+    for (const body of [{ signing_secret: "whsec_short" }, { overlap_hours: 100 }]) {
+      expect((await call(fullKey, "POST", `/webhooks/${created.id}/rotate`, body)).status).toBe(
+        422,
+      );
+    }
+    expect((await call(otherTeamKey, "POST", `/webhooks/${created.id}/rotate`, {})).status).toBe(
+      404,
+    );
+    expect((await call(sendKey, "POST", `/webhooks/${created.id}/rotate`, {})).status).toBe(403);
+  });
+});

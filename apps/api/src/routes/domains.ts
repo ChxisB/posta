@@ -1,0 +1,1027 @@
+import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
+import { trackingCnameTarget } from "@millionsend/config";
+import {
+  apiRequestActor,
+  associateDomainTenant,
+  clearTrackingClock,
+  createFixedWindowLimiter,
+  DOMAIN_CREATE_LIMIT_PER_HOUR,
+  deleteInboxes,
+  failQueuedEmailsForDomain,
+  fetchTeamStanding,
+  inboxActorFromAuth,
+  isIdentitySharedByOtherDomains,
+  isLoopbackUrl,
+  isOperatorTeam,
+  isReservedSenderDomain,
+  linkTeam,
+  PLAN_DOMAIN_LIMIT,
+  recordAudit,
+  SILENT_SUSPENSIONS,
+  setDomainReceiving,
+} from "@millionsend/core";
+import {
+  combineRecordStatus,
+  type RecordStatus,
+  sesGateFromRecordStatus,
+} from "@millionsend/core/domain-status";
+import { registrableDomain } from "@millionsend/core/org-domain";
+import { type Db, schema } from "@millionsend/db";
+import {
+  checkDnsRecordsDetailed,
+  checkReceivingMx,
+  computeDomainVerification,
+  createDomainIdentity,
+  DKIM_SELECTOR,
+  type DmarcPolicy,
+  type DnsChecklistRow,
+  type DnsResolver,
+  deleteDomainIdentity,
+  disassociateIdentity,
+  dnsChecklist,
+  generateDkimKeyPair,
+  type LiveDnsCheck,
+  nodeDnsResolver,
+  provisionDomainTenant,
+  receivingDnsRecord,
+  SES_REGIONS,
+  type SesIdentityClient,
+  verificationDbPatch,
+} from "@millionsend/ses";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import { type ApiDeps, type Env, errorBody, isUniqueViolation, keysetPage } from "../app.js";
+import {
+  createDomainRequestSchema,
+  createDomainResponseSchema,
+  errorSchema,
+  getDomainResponseSchema,
+  listDomainsResponseSchema,
+  listQuerySchema,
+  removeDomainResponseSchema,
+  updateDomainRequestSchema,
+} from "../schemas.js";
+
+/**
+ * SES/DNS access seam (mirrors the dashboard router's DomainsSesDeps in
+ * apps/web/src/server/routers/domains.ts): handlers only see this interface,
+ * so tests inject fakes instead of stubbing the AWS SDK or node:dns.
+ */
+export interface DomainsSesDeps {
+  clientForRegion(region: string): SesIdentityClient;
+  /** Live per-record DNS lookups; omitted falls back to node:dns/promises. */
+  dns?: DnsResolver | undefined;
+  /**
+   * The SES regions this deployment serves (servedRegions()), the default
+   * first: the only regions a create accepts. Absent, every SES region is
+   * offered — the docs generator's case.
+   */
+  regions?: readonly string[] | undefined;
+  /** The AUTH_EMAIL_FROM sender; in cloud its domain is reserved for system mail. */
+  authEmailFrom?: string | undefined;
+  /** The ONBOARDING_EMAIL_FROM sender; reserved in cloud the same way. */
+  onboardingEmailFrom?: string | undefined;
+  /** The NOTIFICATIONS_EMAIL_FROM sender; reserved in cloud the same way. */
+  notificationsEmailFrom?: string | undefined;
+  /** Present = one SES tenant per team (SES_TENANTS); the shared configuration set to associate. */
+  tenants?: { configurationSet?: string | undefined } | undefined;
+}
+
+type DomainRow = typeof schema.domains.$inferSelect;
+
+/**
+ * The SDK's DomainStatus union has no temporary_failure (that value exists
+ * only per-record); SES is still retrying verification, so it reads as
+ * pending on the wire.
+ */
+const wireDomainStatus = (status: string): string =>
+  status === "temporary_failure" ? "pending" : status;
+
+// SES-checklist group → the SDK's record discriminant. DMARC and Tracking are
+// a deliberate superset: the SDK union omits them, but hiding rows the
+// dashboard shows would make the two surfaces disagree.
+const RECORD_KIND: Record<DnsChecklistRow["group"], string> = {
+  verification: "DKIM",
+  sending: "SPF",
+  dmarc: "DMARC",
+  tracking: "Tracking",
+};
+
+/** The dashboard badge's verdict in the SDK's record-status vocabulary. */
+const WIRE_RECORD_STATUS: Record<RecordStatus, string> = {
+  verified: "verified",
+  pending: "pending",
+  missing: "not_started",
+  mismatch: "failed",
+};
+
+type WireVerdict = {
+  status: string;
+  detail?: string | undefined;
+  inherited_from?: string;
+  policy?: DmarcPolicy;
+};
+
+const liveDetail = (row: DnsChecklistRow): string | undefined =>
+  row.live === "mismatch" && row.found
+    ? `A different value is published: ${row.found}`
+    : row.live === "missing"
+      ? "No record at this name."
+      : undefined;
+
+/**
+ * DKIM/MAIL FROM read exactly what the dashboard badge shows (live DNS gated
+ * by SES). DMARC and the tracking CNAME have no SES gate, so live DNS decides;
+ * DMARC found only at the organizational domain still reads verified, since
+ * that is the policy receivers apply, and names the record that answered.
+ */
+function wireVerdict(row: DnsChecklistRow, domainName: string): WireVerdict {
+  if (row.group === "dmarc") {
+    if (row.live === "found") {
+      return row.inherited
+        ? {
+            status: "verified",
+            inherited_from: row.inherited.name,
+            policy: row.inherited.policy,
+            detail: `No record at this name; receivers apply ${row.inherited.name} (p=${row.inherited.policy}), which covers this subdomain.`,
+          }
+        : { status: "verified" };
+    }
+    if (row.live === "unknown") return { status: "pending" };
+    const root = `_dmarc.${registrableDomain(domainName)}`;
+    return {
+      status: "not_started",
+      detail: `No DMARC policy at this name${root === row.name ? "" : ` or at ${root}`}; recommended, not required for sending.`,
+    };
+  }
+  if (row.group === "tracking") {
+    return { status: row.live === "found" ? "verified" : "pending", detail: liveDetail(row) };
+  }
+  const verdict = combineRecordStatus({
+    live: row.live,
+    sesGate: sesGateFromRecordStatus(row.status),
+  });
+  return {
+    status: WIRE_RECORD_STATUS[verdict],
+    detail:
+      verdict === "pending" && row.live === "found"
+        ? "Record found in DNS; the provider has not confirmed it yet (usually minutes, up to 72 hours)."
+        : liveDetail(row),
+  };
+}
+
+/**
+ * The domain's DNS checklist in the SDK's record shape. `checked` false = SES
+ * not asked and no DNS resolved (the create response): every row reads
+ * not_started with nothing to explain.
+ */
+function wireRecords(rows: DnsChecklistRow[], domainName: string, checked: boolean) {
+  return rows.map((row) => {
+    const { status, detail, ...inherited }: WireVerdict = checked
+      ? wireVerdict(row, domainName)
+      : { status: "not_started" };
+    return {
+      record: RECORD_KIND[row.group],
+      name: row.name,
+      type: row.type,
+      ttl: "Auto",
+      status,
+      value: row.value,
+      ...(row.priority !== undefined ? { priority: row.priority } : {}),
+      ...(checked && row.live ? { live: row.live } : {}),
+      ...(detail ? { detail } : {}),
+      ...inherited,
+    };
+  });
+}
+
+/**
+ * The Receiving record (Resend's ReceivingRecord) as its live MX check reads.
+ * It never gates sending; `found` means senders try this MX first.
+ */
+function receivingWireRecord(domainName: string, mxHost: string, live: LiveDnsCheck) {
+  const record = receivingDnsRecord(domainName, mxHost);
+  const detail =
+    live.status === "mismatch" && live.found
+      ? `Senders try a lower-numbered MX first, so mail does not reach this one. Published: ${live.found.split("\n").join(", ")}`
+      : live.status === "missing"
+        ? "No MX record at this name."
+        : undefined;
+  return {
+    record: "Receiving",
+    name: record.name,
+    type: record.type,
+    ttl: "Auto",
+    status:
+      live.status === "found"
+        ? "verified"
+        : live.status === "mismatch"
+          ? "failed"
+          : live.status === "missing"
+            ? "not_started"
+            : "pending",
+    value: record.value,
+    priority: record.priority,
+    live: live.status,
+    ...(detail ? { detail } : {}),
+  };
+}
+
+/** `receives`: this instance receives mail at all (RECEIVING_MX_HOST); otherwise no domain does. */
+const toWire = (row: DomainRow, receives: boolean) => ({
+  id: row.id,
+  name: row.name,
+  status: wireDomainStatus(row.status),
+  created_at: row.createdAt.toISOString(),
+  region: row.region,
+  open_tracking: row.openTracking,
+  click_tracking: row.clickTracking,
+  tracking_subdomain: row.trackingSubdomain,
+  capabilities: {
+    sending: "enabled",
+    receiving: receives && row.receivingEnabled ? "enabled" : "disabled",
+  },
+  receiving_catch_all: row.receivingCatchAll,
+});
+
+/**
+ * The 422 message for a capabilities value this deployment refuses, or null.
+ * Sending is always on, and receiving needs an instance that receives mail.
+ */
+function capabilitiesError(
+  deps: Pick<ApiDeps, "receiving">,
+  capabilities: { sending?: string | undefined; receiving?: string | undefined } | undefined,
+): string | null {
+  if (capabilities?.sending === "disabled") {
+    return "capabilities.sending cannot be disabled: receive-only domains are not supported";
+  }
+  if (capabilities?.receiving === "enabled" && !deps.receiving) {
+    return "Receiving is not available on this instance (RECEIVING_MX_HOST is not set)";
+  }
+  return null;
+}
+
+/**
+ * The guardrails on tracking settings, shared by create (no stored row: every
+ * `current` value is off) and update (stored row + patch; `undefined` = field
+ * not sent). Returns the 422 message, or null when the request is allowed.
+ */
+function trackingSettingsError(
+  deps: Pick<ApiDeps, "appBaseUrl" | "trackingSubdomains" | "isCloud">,
+  input: {
+    open?: boolean | undefined;
+    click?: boolean | undefined;
+    subdomain?: string | null | undefined;
+  },
+  current: { open: boolean; click: boolean; subdomain: string | null; mailFromSubdomain: string },
+): string | null {
+  // Tracking is app-layer: open pixels, rewritten links, and the branded
+  // CNAME all point at APP_BASE_URL. A host recipients cannot reach makes
+  // the toggle meaningless, so enabling is refused — disabling is always
+  // allowed.
+  const enabling = input.open === true || input.click === true || Boolean(input.subdomain);
+  if (enabling && !deps.appBaseUrl) {
+    return "APP_BASE_URL is not set. Tracking URLs are served from it. Set it, restart, and try again.";
+  }
+  if (enabling && isLoopbackUrl(deps.appBaseUrl)) {
+    return "APP_BASE_URL is a loopback address recipients cannot reach, so tracking cannot be enabled";
+  }
+  // Clearing is always allowed; adopting one needs a deployment that can
+  // terminate TLS for the customer's own hostname.
+  if (input.subdomain && deps.trackingSubdomains === false) {
+    return "Branded tracking subdomains are not available on this deployment";
+  }
+  // The tracking CNAME and the MAIL FROM (return-path) record would collide
+  // on the same host, so they must be different labels.
+  if (input.subdomain && input.subdomain === current.mailFromSubdomain) {
+    return "The tracking subdomain must be different from the return-path subdomain";
+  }
+  // Cloud serves tracking only from the domain's own subdomain (the worker
+  // ships clean links without one), so a request that would leave either
+  // kind on with no subdomain is refused instead of persisted as
+  // enabled-but-unserved. Turning tracking off is always allowed.
+  const keepsSubdomain =
+    input.subdomain !== undefined ? Boolean(input.subdomain) : Boolean(current.subdomain);
+  const leavesTrackingOn = (input.open ?? current.open) || (input.click ?? current.click);
+  const enablingKind = input.open === true || input.click === true;
+  const clearingSubdomain = input.subdomain !== undefined && !input.subdomain;
+  if (
+    deps.isCloud &&
+    !keepsSubdomain &&
+    (enablingKind || (clearingSubdomain && leavesTrackingOn))
+  ) {
+    return deps.trackingSubdomains === false
+      ? "Tracking is served from the domain's own tracking subdomain, and this deployment cannot serve one, so tracking cannot be turned on."
+      : 'Tracking is served from the domain\'s own tracking subdomain, so it cannot be on without one. Pass tracking_subdomain (a label such as "links") in the same request — the response includes the CNAME record to add — or turn both tracking kinds off first.';
+  }
+  return null;
+}
+
+/**
+ * The SES regions this deployment provisions identities in, the default
+ * first — the list the dashboard form reads as system.features.regions.
+ * Configuration sets, SNS topics and tenants are regional, so a domain
+ * anywhere else would verify but never send or report events.
+ */
+export function servedRegions(
+  ses: Pick<DomainsSesDeps, "regions">,
+): readonly [string, ...string[]] {
+  const [first, ...rest] = ses.regions ?? [];
+  return first ? [first, ...rest] : SES_REGIONS;
+}
+
+export function registerDomainRoutes(
+  app: OpenAPIHono<Env>,
+  deps: ApiDeps,
+  ses: DomainsSesDeps,
+): void {
+  const db = deps.db;
+  const receives = deps.receiving !== undefined;
+  const jsonErr = (description: string) => ({
+    content: { "application/json": { schema: errorSchema } },
+    description,
+  });
+  const idParam = z.object({ id: z.uuid() });
+  const d = schema.domains;
+
+  // Only the docs generator registers routes with no regions configured; its
+  // published schema then lists every region a deployment may serve.
+  const regions = servedRegions(ses);
+  const createRequestSchema = createDomainRequestSchema(regions);
+
+  const findDomain = async (teamId: string, id: string): Promise<DomainRow | undefined> =>
+    (
+      await db
+        .select()
+        .from(d)
+        .where(and(eq(d.id, id), eq(d.teamId, teamId)))
+    )[0];
+
+  // Identity creation is the one route that provisions a shared AWS resource;
+  // cloud caps it per team so one tenant cannot burn the account's
+  // CreateEmailIdentity throttle for everyone.
+  const createLimited = createFixedWindowLimiter(DOMAIN_CREATE_LIMIT_PER_HOUR, 3_600_000);
+
+  const queueDomainAge = async (domainId: string) => {
+    try {
+      await deps.enqueueDomainAge?.(domainId);
+    } catch (err) {
+      console.warn("domain.age enqueue failed; the worker's sweep asks later", err);
+    }
+  };
+
+  // Engagement tracking is app-layer: the branded CNAME points at THIS app
+  // host, not SES — so it only exists once APP_BASE_URL names a real host, and
+  // only where this deployment can actually serve a customer hostname.
+  const trackingCname = (
+    domain: DomainRow,
+  ): { type: "CNAME"; name: string; value: string } | null =>
+    domain.trackingSubdomain && deps.appBaseUrl && deps.trackingSubdomains !== false
+      ? {
+          type: "CNAME",
+          name: `${domain.trackingSubdomain}.${domain.name}`,
+          value: trackingCnameTarget(deps.appBaseUrl),
+        }
+      : null;
+
+  /**
+   * The shared source of truth the dashboard verify and the worker cron also
+   * run — SES status + live DNS folded into the strict stored status — plus a
+   * live check of the tracking CNAME, which never gates status so
+   * computeDomainVerification omits it. Every single-domain read runs this, so
+   * the API describes each record the way the dashboard table does.
+   */
+  async function liveChecklist(domain: DomainRow) {
+    const resolver = ses.dns ?? nodeDnsResolver;
+    const tracking = trackingCname(domain);
+    const mxHost = domain.receivingEnabled ? deps.receiving?.mxHost : undefined;
+    const [result, trackingCheck, receivingCheck] = await Promise.all([
+      computeDomainVerification(ses.clientForRegion(domain.region), resolver, domain),
+      tracking ? checkDnsRecordsDetailed([tracking], resolver).then(([check]) => check) : undefined,
+      mxHost ? checkReceivingMx(domain.name, mxHost, resolver) : undefined,
+    ]);
+    const rows = dnsChecklist({
+      domain,
+      verification: result.verification,
+      tracking,
+      live:
+        tracking && trackingCheck
+          ? [...result.liveDns, { ...tracking, ...trackingCheck }]
+          : result.liveDns,
+    });
+    return {
+      result,
+      records: [
+        ...wireRecords(rows, domain.name, true),
+        ...(mxHost && receivingCheck
+          ? [receivingWireRecord(domain.name, mxHost, receivingCheck)]
+          : []),
+      ],
+      trackingFound: trackingCheck?.status === "found",
+    };
+  }
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/domains",
+      request: {
+        body: { content: { "application/json": { schema: createRequestSchema } } },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: createDomainResponseSchema } },
+          description: "Domain created",
+        },
+        403: jsonErr("Plan domain limit reached"),
+        409: jsonErr("Domain already added"),
+        422: jsonErr("Validation error"),
+        429: jsonErr("Too many domains created recently"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const body = c.req.valid("json");
+      const region = body.region ?? regions[0];
+      const isOperator = deps.isCloud && (await isOperatorTeam(db, auth.teamId));
+      if (
+        isReservedSenderDomain(body.name, {
+          isCloud: deps.isCloud,
+          authEmailFrom: ses.authEmailFrom,
+          onboardingEmailFrom: ses.onboardingEmailFrom,
+          notificationsEmailFrom: ses.notificationsEmailFrom,
+          isOperator,
+        })
+      ) {
+        return c.json(
+          errorBody(422, "validation_error", "This domain cannot be added as a sender"),
+          422,
+        );
+      }
+      // Checked before the SES identity exists, like tracking below.
+      const capabilityError = capabilitiesError(deps, body.capabilities);
+      if (capabilityError) return c.json(errorBody(422, "validation_error", capabilityError), 422);
+      if (body.capabilities?.receiving === "enabled") {
+        return c.json(
+          errorBody(
+            422,
+            "validation_error",
+            "Receiving needs a verified domain, and a new domain is not verified yet: add it, verify it, then set capabilities.receiving to enabled with PATCH /domains/{id}",
+          ),
+          422,
+        );
+      }
+      // Checked before the SES identity exists: a refused tracking setting
+      // must not leave a half-created domain behind.
+      const trackingError = trackingSettingsError(
+        deps,
+        {
+          open: body.open_tracking,
+          click: body.click_tracking,
+          subdomain: body.tracking_subdomain,
+        },
+        { open: false, click: false, subdomain: null, mailFromSubdomain: body.custom_return_path },
+      );
+      if (trackingError) {
+        return c.json(errorBody(422, "validation_error", trackingError), 422);
+      }
+      const [existing] = await db
+        .select({ id: d.id })
+        .from(d)
+        .where(and(eq(d.teamId, auth.teamId), eq(d.name, body.name)));
+      if (existing) return c.json(errorBody(409, "conflict", "domain already added"), 409);
+      if (deps.isCloud) {
+        // Every cloud tenant shares the SES account, so a domain another team
+        // holds is taken in every served region: in the same region adopting
+        // it would re-key their DKIM, and in another it would let a second
+        // team stand up the same sender elsewhere.
+        const [taken] = await db.select({ id: d.id }).from(d).where(eq(d.name, body.name));
+        if (taken) return c.json(errorBody(409, "conflict", "domain already registered"), 409);
+        const limit = PLAN_DOMAIN_LIMIT[auth.plan];
+        const [owned] = await db.select({ n: count() }).from(d).where(eq(d.teamId, auth.teamId));
+        if (limit !== null && (owned?.n ?? 0) >= limit) {
+          return c.json(
+            errorBody(403, "plan_limit_reached", `Your plan allows up to ${limit} domains`),
+            403,
+          );
+        }
+        if (createLimited(auth.teamId)) {
+          return c.json(errorBody(429, "rate_limit_exceeded", "Too many domains created"), 429);
+        }
+      }
+
+      // BYODKIM: the private key lives only in this block — handed to SES,
+      // then dereferenced. It must never be stored, returned, or logged.
+      let dkim: ReturnType<typeof generateDkimKeyPair> | null = generateDkimKeyPair();
+      const dkimPublicKey = dkim.publicKeyB64;
+      try {
+        await createDomainIdentity(ses.clientForRegion(region), {
+          domain: body.name,
+          mailFromSubdomain: body.custom_return_path,
+          dkim: { selector: DKIM_SELECTOR, privateKeyB64: dkim.privateKeyB64 },
+          // Self-host: the whole AWS account is the operator's, so an
+          // identity with no row (partial earlier create) is safe to adopt.
+          adoptExisting: !deps.isCloud,
+        });
+      } catch (error) {
+        if ((error as { name?: string }).name === "AlreadyExistsException") {
+          return c.json(errorBody(409, "conflict", "domain already registered"), 409);
+        }
+        throw error;
+      }
+      dkim = null;
+
+      let row: DomainRow | undefined;
+      try {
+        [row] = await db
+          .insert(d)
+          .values({
+            teamId: auth.teamId,
+            name: body.name,
+            region,
+            mailFromSubdomain: body.custom_return_path,
+            dkimSelector: DKIM_SELECTOR,
+            dkimPublicKey,
+            openTracking: body.open_tracking ?? false,
+            clickTracking: body.click_tracking ?? false,
+            trackingSubdomain: body.tracking_subdomain ?? null,
+            // Same 72h auto-unset clock a later adopt would arm.
+            trackingSubdomainSetAt: body.tracking_subdomain ? new Date() : null,
+          })
+          .returning();
+      } catch (error) {
+        // The pre-check above races with concurrent submits: the losing
+        // insert hits the (teamId, name) unique index, which is the same
+        // "already added" condition, not an internal failure.
+        if (isUniqueViolation(error)) {
+          return c.json(errorBody(409, "conflict", "domain already added"), 409);
+        }
+        throw error;
+      }
+      if (!row) throw new Error("domain insert returned no row");
+      if (ses.tenants) {
+        const configurationSet = ses.tenants.configurationSet;
+        await associateDomainTenant(db, {
+          domainId: row.id,
+          teamId: auth.teamId,
+          name: row.name,
+          region,
+          configurationSet,
+          provision: () =>
+            provisionDomainTenant(ses.clientForRegion(region), {
+              teamId: auth.teamId,
+              region,
+              domain: row.name,
+              configurationSet,
+            }),
+        });
+      }
+      await recordAudit(db, {
+        teamId: auth.teamId,
+        actor: apiRequestActor(auth),
+        action: "domain.created",
+        target: { type: "domain", id: row.id },
+        metadata: { name: row.name, region },
+      });
+      await queueDomainAge(row.id);
+      await linkTeam(db, { teamId: auth.teamId, trigger: "domain" });
+      return c.json(
+        {
+          ...toWire(row, receives),
+          records: wireRecords(
+            dnsChecklist({ domain: row, verification: null, tracking: trackingCname(row) }),
+            row.name,
+            false,
+          ),
+        },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/domains",
+      request: { query: listQuerySchema },
+      responses: {
+        200: {
+          content: { "application/json": { schema: listDomainsResponseSchema } },
+          description: "Domains",
+        },
+        422: jsonErr("Validation error"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const page = await keysetPage({
+        query: c.req.valid("query"),
+        createdAt: d.createdAt,
+        id: d.id,
+        loadCursor: async (id) =>
+          (
+            await db
+              .select({ createdAt: d.createdAt, id: d.id })
+              .from(d)
+              .where(and(eq(d.id, id), eq(d.teamId, auth.teamId)))
+          )[0],
+        loadRows: (cond, descending, take) =>
+          db
+            .select()
+            .from(d)
+            .where(and(eq(d.teamId, auth.teamId), cond))
+            .orderBy(
+              ...(descending ? [desc(d.createdAt), desc(d.id)] : [asc(d.createdAt), asc(d.id)]),
+            )
+            .limit(take),
+      });
+      if (page === "bad_cursor") {
+        return c.json(
+          errorBody(
+            422,
+            "validation_error",
+            "invalid pagination cursor: after and before take the id of an item this list returned",
+          ),
+          422,
+        );
+      }
+      return c.json(
+        {
+          object: "list" as const,
+          data: page.rows.map((row) => toWire(row, receives)),
+          has_more: page.hasMore,
+        },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/domains/{id}",
+      request: { params: idParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: getDomainResponseSchema } },
+          description: "Domain with its DNS records",
+        },
+        404: jsonErr("Not found"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const domain = await findDomain(auth.teamId, c.req.valid("param").id);
+      if (!domain) return c.json(errorBody(404, "not_found", "Domain not found"), 404);
+      // A read reports the fresh verdict without persisting the domain status —
+      // verify and the reverify sweep own that. The tracking clock is the one
+      // exception: a CNAME seen live must open the branded-host gate, or the
+      // row reads verified while sends still ship untracked.
+      const { records, trackingFound } = await liveChecklist(domain);
+      if (trackingFound) await clearTrackingClock(db, domain);
+      return c.json({ object: "domain" as const, ...toWire(domain, receives), records }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/domains/{id}/verify",
+      request: { params: idParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: getDomainResponseSchema } },
+          description: "Verification result: the domain with per-record status",
+        },
+        404: jsonErr("Not found"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const domain = await findDomain(auth.teamId, c.req.valid("param").id);
+      if (!domain) return c.json(errorBody(404, "not_found", "Domain not found"), 404);
+      const { result, records, trackingFound } = await liveChecklist(domain);
+      const { status } = result;
+      const now = new Date();
+      await db
+        .update(d)
+        .set({
+          status,
+          lastCheckedAt: now,
+          ...verificationDbPatch(result, now),
+          ...(status === "verified" && !domain.verifiedAt ? { verifiedAt: now } : {}),
+        })
+        .where(and(eq(d.id, domain.id), eq(d.teamId, auth.teamId)));
+      if (trackingFound) await clearTrackingClock(db, domain);
+      if (status === "verified" && domain.status !== "verified") {
+        await recordAudit(db, {
+          teamId: auth.teamId,
+          actor: apiRequestActor(auth),
+          action: "domain.verified",
+          target: { type: "domain", id: domain.id },
+          metadata: { name: domain.name },
+        });
+        await queueDomainAge(domain.id);
+      }
+      // Full object with per-record status — the promised "fresh status"
+      // without a get_domain round-trip. Additive over the SDK's { id }.
+      return c.json(
+        { object: "domain" as const, ...toWire({ ...domain, status }, receives), records },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/domains/{id}",
+      request: {
+        params: idParam,
+        body: { content: { "application/json": { schema: updateDomainRequestSchema } } },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: getDomainResponseSchema } },
+          description: "Domain updated; full object with records",
+        },
+        403: jsonErr("Catch-all receiving needs a paid plan"),
+        404: jsonErr("Not found"),
+        409: jsonErr("Another team receives mail for this domain"),
+        422: jsonErr("Validation error"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const body = c.req.valid("json");
+      if (body.tls !== undefined) {
+        return c.json(errorBody(422, "validation_error", "tls is not supported"), 422);
+      }
+      const capabilityError = capabilitiesError(deps, body.capabilities);
+      if (capabilityError) return c.json(errorBody(422, "validation_error", capabilityError), 422);
+      const domain = await findDomain(auth.teamId, c.req.valid("param").id);
+      if (!domain) return c.json(errorBody(404, "not_found", "Domain not found"), 404);
+
+      const trackingError = trackingSettingsError(
+        deps,
+        {
+          open: body.open_tracking,
+          click: body.click_tracking,
+          subdomain: body.tracking_subdomain,
+        },
+        {
+          open: domain.openTracking,
+          click: domain.clickTracking,
+          subdomain: domain.trackingSubdomain,
+          mailFromSubdomain: domain.mailFromSubdomain,
+        },
+      );
+      if (trackingError) {
+        return c.json(errorBody(422, "validation_error", trackingError), 422);
+      }
+      const wantReceiving = body.capabilities?.receiving;
+      const wantCatchAll = body.receiving_catch_all;
+      if (wantCatchAll === true && !domain.receivingCatchAll) {
+        const receivingAfter =
+          wantReceiving !== undefined ? wantReceiving === "enabled" : domain.receivingEnabled;
+        if (!receives || !receivingAfter) {
+          return c.json(
+            errorBody(422, "validation_error", "Catch-all needs receiving enabled on this domain"),
+            422,
+          );
+        }
+        // A stored true outlives a downgrade; only turning it on needs the plan.
+        if (deps.isCloud && auth.plan === "free") {
+          return c.json(
+            errorBody(403, "plan_limit_reached", "Catch-all receiving needs a paid plan"),
+            403,
+          );
+        }
+      }
+
+      // Before the tracking write: the receiving switch is the one change here
+      // that can still be refused, and a refusal must leave nothing applied.
+      let receiving: Pick<DomainRow, "receivingEnabled" | "receivingEnabledAt"> | undefined;
+      if (wantReceiving !== undefined) {
+        const result = await setDomainReceiving(db, {
+          teamId: auth.teamId,
+          domainId: domain.id,
+          enabled: wantReceiving === "enabled",
+        });
+        if (!result.ok) {
+          if (result.reason === "not_found") {
+            return c.json(errorBody(404, "not_found", "Domain not found"), 404);
+          }
+          return result.reason === "taken"
+            ? c.json(
+                errorBody(409, "conflict", "Another team already receives mail for this domain"),
+                409,
+              )
+            : c.json(
+                errorBody(
+                  422,
+                  "validation_error",
+                  "Receiving can be enabled only on a verified domain; verify the domain first",
+                ),
+                422,
+              );
+        }
+        if (result.changed) {
+          await recordAudit(db, {
+            teamId: auth.teamId,
+            actor: apiRequestActor(auth),
+            action: result.receivingEnabled
+              ? "domain.receiving_enabled"
+              : "domain.receiving_disabled",
+            target: { type: "domain", id: domain.id },
+            metadata: { name: domain.name },
+          });
+        }
+        receiving = {
+          receivingEnabled: result.receivingEnabled,
+          receivingEnabledAt: result.receivingEnabledAt,
+        };
+      }
+
+      const set: Partial<
+        Pick<
+          typeof schema.domains.$inferInsert,
+          "openTracking" | "clickTracking" | "trackingSubdomain" | "trackingSubdomainSetAt"
+        >
+      > = {};
+      if (body.open_tracking !== undefined) set.openTracking = body.open_tracking;
+      if (body.click_tracking !== undefined) set.clickTracking = body.click_tracking;
+      if (body.tracking_subdomain !== undefined) {
+        const nextSubdomain = body.tracking_subdomain || null;
+        set.trackingSubdomain = nextSubdomain;
+        // Same 72h auto-unset clock as the dashboard: arm on adopt/change,
+        // clear on removal, leave a re-save of the same value alone.
+        if (nextSubdomain === null) {
+          set.trackingSubdomainSetAt = null;
+        } else if (nextSubdomain !== domain.trackingSubdomain) {
+          set.trackingSubdomainSetAt = new Date();
+        }
+      }
+      if (Object.keys(set).length > 0) {
+        await db
+          .update(d)
+          .set(set)
+          .where(and(eq(d.id, domain.id), eq(d.teamId, auth.teamId)));
+      }
+      const catchAllChanged =
+        wantCatchAll !== undefined && wantCatchAll !== domain.receivingCatchAll;
+      if (catchAllChanged) {
+        await db
+          .update(d)
+          .set({ receivingCatchAll: wantCatchAll })
+          .where(and(eq(d.id, domain.id), eq(d.teamId, auth.teamId)));
+        await recordAudit(db, {
+          teamId: auth.teamId,
+          actor: apiRequestActor(auth),
+          action: wantCatchAll ? "domain.catch_all_enabled" : "domain.catch_all_disabled",
+          target: { type: "domain", id: domain.id },
+          metadata: { name: domain.name },
+        });
+      }
+      // Full object so the caller sees the settings it just changed —
+      // additive over the SDK's { id }. Records are read the same way GET
+      // reads them, for the subdomain that was just set.
+      const updated = {
+        ...domain,
+        ...receiving,
+        receivingCatchAll: catchAllChanged ? wantCatchAll : domain.receivingCatchAll,
+        openTracking: set.openTracking ?? domain.openTracking,
+        clickTracking: set.clickTracking ?? domain.clickTracking,
+        trackingSubdomain:
+          set.trackingSubdomain !== undefined ? set.trackingSubdomain : domain.trackingSubdomain,
+        trackingSubdomainSetAt:
+          set.trackingSubdomainSetAt !== undefined
+            ? set.trackingSubdomainSetAt
+            : domain.trackingSubdomainSetAt,
+      };
+      const { records } = await liveChecklist(updated);
+      return c.json({ object: "domain" as const, ...toWire(updated, receives), records }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/domains/{id}",
+      request: { params: idParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: removeDomainResponseSchema } },
+          description: "Domain deleted",
+        },
+        403: jsonErr("Team suspended, or not available for this team"),
+        404: jsonErr("Not found"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      // Same lock as the dashboard delete: a suspended team keeps its domains.
+      const suspended = (await fetchTeamStanding(db, auth.teamId))?.suspended;
+      if (suspended) {
+        return c.json(
+          SILENT_SUSPENSIONS.includes(suspended.reason)
+            ? errorBody(
+                403,
+                "forbidden",
+                "This isn't available for this team right now. Contact support if you need help.",
+              )
+            : errorBody(
+                403,
+                "team_suspended",
+                "This team is suspended by the instance operator. Its domains cannot be deleted until it is reinstated; contact support.",
+              ),
+          403,
+        );
+      }
+      const domain = await findDomain(auth.teamId, c.req.valid("param").id);
+      if (!domain) return c.json(errorBody(404, "not_found", "Domain not found"), 404);
+      // The SES identity is shared by every row with the same (name, region):
+      // it goes only with the last of them.
+      if (!(await isIdentitySharedByOtherDomains(db, domain))) {
+        try {
+          // Detach whenever tenants are on, not only when the row is marked:
+          // the marker means the whole association (identity AND configuration
+          // set) succeeded, but the identity is attached as soon as its own
+          // association call returned — and SES refuses to delete an attached
+          // identity. A tenant or association that is not there is tolerated.
+          if (ses.tenants) {
+            await disassociateIdentity(ses.clientForRegion(domain.region), {
+              tenantName: domain.teamId,
+              region: domain.region,
+              identity: domain.name,
+            });
+          }
+          await deleteDomainIdentity(ses.clientForRegion(domain.region), { domain: domain.name });
+        } catch (error) {
+          // An identity already gone from SES must not block removing the row.
+          if ((error as { name?: string }).name !== "NotFoundException") throw error;
+        }
+      }
+      // The domain's inboxes go first, each with its keys revoked and its
+      // inbox.deleted event (api_keys.inbox_id is restrict, never widened).
+      const i = schema.inboxes;
+      const inboxIds = (
+        await db
+          .select({ id: i.id })
+          .from(i)
+          .where(and(eq(i.teamId, auth.teamId), eq(i.domainId, domain.id)))
+      ).map((row) => row.id);
+      if (inboxIds.length > 0) {
+        await deleteInboxes(
+          db,
+          {
+            sharedInboxDomain: deps.sharedInboxDomain ?? null,
+            receivingEnabled: receives,
+            enqueueWebhookDeliveries: deps.enqueueWebhookDeliveries,
+          },
+          {
+            teamId: auth.teamId,
+            inboxIds,
+            actor: inboxActorFromAuth(auth),
+            reason: "domain_deleted",
+          },
+        );
+      }
+      await db.transaction(async (tx) => {
+        const txDb = tx as unknown as Db;
+        await failQueuedEmailsForDomain(txDb, { teamId: auth.teamId, domainId: domain.id });
+        // An inbox created since the step above: its keys must not block the cascade.
+        await txDb
+          .update(schema.apiKeys)
+          .set({ revokedAt: new Date(), inboxId: null })
+          .where(
+            and(
+              eq(schema.apiKeys.teamId, auth.teamId),
+              inArray(
+                schema.apiKeys.inboxId,
+                txDb.select({ id: i.id }).from(i).where(eq(i.domainId, domain.id)),
+              ),
+            ),
+          );
+        // api_keys.domainId is ON DELETE restrict (a scoped key must never
+        // silently widen to all domains): revoke every scoped key and drop its
+        // FK first — a revoked key never authenticates, and clearing domainId
+        // frees the delete. Same guards as the dashboard delete.
+        await txDb
+          .update(schema.apiKeys)
+          .set({ revokedAt: new Date(), domainId: null })
+          .where(
+            and(eq(schema.apiKeys.teamId, auth.teamId), eq(schema.apiKeys.domainId, domain.id)),
+          );
+        await txDb.delete(d).where(and(eq(d.id, domain.id), eq(d.teamId, auth.teamId)));
+      });
+      await recordAudit(db, {
+        teamId: auth.teamId,
+        actor: apiRequestActor(auth),
+        action: "domain.deleted",
+        target: { type: "domain", id: domain.id },
+        metadata: { name: domain.name },
+      });
+      return c.json({ object: "domain" as const, id: domain.id, deleted: true as const }, 200);
+    },
+  );
+}

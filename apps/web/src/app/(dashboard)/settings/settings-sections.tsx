@@ -1,0 +1,1159 @@
+"use client";
+
+import { CUSTOMER_TEXT_MAX } from "@millionsend/core/customer-text";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useRef, useState } from "react";
+import { Breakable } from "@/components/breakable";
+import { confirmDialog } from "@/components/confirm-dialog";
+import { CopyChip } from "@/components/copy-chip";
+import { ChevronGlyph } from "@/components/icons/nav-icons";
+import { KvRow } from "@/components/kv-row";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { RelativeTime } from "@/components/relative-time";
+import { SectionCard } from "@/components/section-card";
+import { Select } from "@/components/select";
+import { Skeleton, SkeletonBadge, SkeletonChip } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { Table } from "@/components/table";
+import { TeamLogo } from "@/components/team-logo";
+import { toast } from "@/components/toast";
+import { authClient } from "@/lib/auth-client";
+import { UPDATES_URL } from "@/lib/docs-links";
+import { formatDayTime, formatMmSs } from "@/lib/format";
+import { TEAM_LOGO_ACCEPT, TEAM_LOGO_MAX_BYTES } from "@/lib/image-type";
+import { isAppLocale, LOCALES } from "@/lib/locale-cookie";
+import { removeTeamLogo, uploadTeamLogo } from "@/lib/team-logo-api";
+import { useTRPC } from "@/lib/trpc";
+import { guardMessage, trpcErrorCode } from "@/lib/trpc-error";
+import { useCountdown } from "@/lib/use-countdown";
+import { useSwitchLocale } from "@/lib/use-switch-locale";
+import { useTeamRole } from "@/lib/use-team-role";
+import { ListFooter } from "../emails/list-parts";
+
+function TeamSection({ billing }: { billing: boolean }) {
+  const t = useTranslations("settings");
+  const common = useTranslations("common");
+  const trpc = useTRPC();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: team } = useQuery(trpc.settings.team.get.queryOptions());
+  const { data: teamList } = useQuery(trpc.team.list.queryOptions());
+  const activeRole = useTeamRole();
+  const activeTeamId = teamList?.activeTeamId;
+  const canManageLogo = activeRole === "owner" || activeRole === "admin";
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+
+  async function runLogoChange(op: (teamId: string) => Promise<unknown>) {
+    const teamId = teamList?.activeTeamId;
+    if (!teamId || logoBusy) return;
+    setLogoBusy(true);
+    setLogoError(false);
+    try {
+      await op(teamId);
+      await queryClient.invalidateQueries(trpc.settings.team.get.queryFilter());
+      await queryClient.invalidateQueries(trpc.team.list.queryFilter());
+      // Sidebar shows the logo from the server layout.
+      router.refresh();
+    } catch {
+      setLogoError(true);
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+  const rename = useMutation(
+    trpc.settings.team.rename.mutationOptions({
+      onSuccess: async () => {
+        setDraft(null);
+        await queryClient.invalidateQueries(trpc.settings.team.get.queryFilter());
+        // Sidebar shows the team name from the server layout.
+        router.refresh();
+      },
+    }),
+  );
+  if (!team) {
+    // Mirrors the loaded card with its real labels and wrappers — only the
+    // values wait on data, so field spacing, the 30px input/button row and
+    // the slug/plan line boxes match the loaded card exactly.
+    return (
+      <SectionCard title={t("team.title")}>
+        <div
+          className="ms-kpi-row"
+          style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}
+        >
+          <div style={{ display: "grid", gap: 20, maxWidth: 420, alignContent: "start" }}>
+            <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+              {/* span, not label: there is no control to label yet. Metrics mirror .ms-field label. */}
+              <span
+                style={{
+                  display: "block",
+                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--ms-muted)",
+                  marginBottom: 6,
+                }}
+              >
+                {t("team.name")}
+              </span>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <Skeleton width={200} height={30} radius="var(--ms-r-input)" />
+                <Skeleton width={56} height={30} radius="var(--ms-r-input)" />
+              </div>
+            </div>
+            <div className="ms-field" style={{ minWidth: 0 }}>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--ms-muted)",
+                  marginBottom: 6,
+                }}
+              >
+                {t("team.id")}
+              </span>
+              <SkeletonChip width={300} />
+            </div>
+          </div>
+          {billing ? (
+            <div className="ms-field">
+              <span
+                style={{
+                  display: "block",
+                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--ms-muted)",
+                  marginBottom: 6,
+                }}
+              >
+                {t("team.plan")}
+              </span>
+              <div style={{ height: 30, display: "flex", alignItems: "center" }}>
+                <SkeletonBadge width={48} />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </SectionCard>
+    );
+  }
+
+  const name = draft ?? team.name;
+  return (
+    <SectionCard title={t("team.title")}>
+      {/* Name over logo on the left, plan beside them; the columns stack on narrow screens. */}
+      <div
+        className="ms-kpi-row"
+        style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}
+      >
+        <div style={{ display: "grid", gap: 20, maxWidth: 420, alignContent: "start" }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              rename.mutate({ name });
+            }}
+          >
+            <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+              <label htmlFor="settings-team-name">{t("team.name")}</label>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  id="settings-team-name"
+                  type="text"
+                  className="ms-input"
+                  style={{ flex: 1, minWidth: 0, maxWidth: 420 }}
+                  required
+                  maxLength={CUSTOMER_TEXT_MAX}
+                  disabled={rename.isPending}
+                  value={name}
+                  onChange={(e) => setDraft(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="ms-btn ms-btn-secondary"
+                  disabled={rename.isPending}
+                >
+                  <BtnSpinner on={rename.isPending} />
+                  {t("team.save")}
+                </button>
+                {rename.isSuccess && draft === null ? (
+                  <span style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+                    ✓ {t("team.saved")}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            {rename.isError ? (
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  color: "var(--ms-danger)",
+                  fontSize: "var(--ms-fs-label)",
+                }}
+              >
+                {trpcErrorCode(rename.error) === "BAD_REQUEST"
+                  ? common("nameRule", { max: CUSTOMER_TEXT_MAX })
+                  : t("team.error")}
+              </p>
+            ) : null}
+          </form>
+          {/* minWidth 0: the uuid chip does not wrap, so without this the field's
+              min-content pins the card wider than a phone viewport. */}
+          <div className="ms-field" style={{ minWidth: 0 }}>
+            {/* span, not label: the id is read-only, so there is no control to label. */}
+            <span
+              style={{
+                display: "block",
+                fontSize: "var(--ms-fs-label)",
+                color: "var(--ms-muted)",
+                marginBottom: 6,
+              }}
+            >
+              {t("team.id")}
+            </span>
+            {/* The id rides the team list, which resolves independently of the
+                card's own query, so the loaded card can still be waiting on it. */}
+            {activeTeamId ? <CopyChip value={activeTeamId} /> : <SkeletonChip width={300} />}
+          </div>
+          {team.logoUploadsEnabled && canManageLogo ? (
+            <div className="ms-field" style={{ maxWidth: 420 }}>
+              {/* span, not label: the controls are buttons, not a labelable input. Metrics mirror .ms-field label. */}
+              <span
+                style={{
+                  display: "block",
+                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--ms-muted)",
+                  marginBottom: 6,
+                }}
+              >
+                {t("team.logo.label")}
+              </span>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept={TEAM_LOGO_ACCEPT}
+                style={{ display: "none" }}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  // Re-selecting the same file must fire change again.
+                  event.target.value = "";
+                  if (!file) return;
+                  if (file.size > TEAM_LOGO_MAX_BYTES) {
+                    setLogoError(true);
+                    return;
+                  }
+                  void runLogoChange((teamId) => uploadTeamLogo(teamId, file));
+                }}
+              />
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <TeamLogo name={team.name} logoUrl={team.logoUrl} size={30} />
+                <button
+                  type="button"
+                  className="ms-btn ms-btn-secondary"
+                  disabled={logoBusy || !teamList}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  <BtnSpinner on={logoBusy} />
+                  {team.logoUrl ? t("team.logo.replace") : t("team.logo.upload")}
+                </button>
+                {team.logoUrl ? (
+                  <button
+                    type="button"
+                    className="ms-btn ms-btn-secondary"
+                    disabled={logoBusy}
+                    onClick={async () => {
+                      const ok = await confirmDialog({
+                        title: t("team.logo.removeTitle"),
+                        message: t("team.logo.removeBody"),
+                        confirmLabel: t("team.logo.remove"),
+                        danger: true,
+                      });
+                      if (ok) void runLogoChange((teamId) => removeTeamLogo(teamId));
+                    }}
+                  >
+                    {t("team.logo.remove")}
+                  </button>
+                ) : null}
+              </div>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "var(--ms-muted)",
+                  fontSize: "var(--ms-fs-label)",
+                }}
+              >
+                {t("team.logo.hint")}
+              </p>
+              {logoError ? (
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    color: "var(--ms-danger)",
+                    fontSize: "var(--ms-fs-label)",
+                  }}
+                >
+                  {t("team.logo.error")}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+        {billing ? (
+          <div className="ms-field">
+            <span
+              style={{
+                display: "block",
+                fontSize: "var(--ms-fs-label)",
+                color: "var(--ms-muted)",
+                marginBottom: 6,
+              }}
+            >
+              {t("team.plan")}
+            </span>
+            <div style={{ height: 30, display: "flex", alignItems: "center" }}>
+              {/* The pill is the way into billing; a paid plan reads as a success, the system team as information. */}
+              <Link
+                href="/settings/billing"
+                className={`ms-badge ${team.plan === "free" ? "ms-badge-neutral" : team.plan === "system" ? "ms-badge-info" : "ms-badge-success"}`}
+                style={{ textDecoration: "none" }}
+              >
+                {t(`plans.${team.plan}`)}
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </SectionCard>
+  );
+}
+
+function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useTranslations("settings");
+  const common = useTranslations("common");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"member" | "admin">("member");
+
+  const create = useMutation(
+    trpc.settings.invitations.create.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries(trpc.settings.invitations.list.queryFilter()),
+    }),
+  );
+
+  const { reset } = create;
+  const close = useCallback(() => {
+    onClose();
+    setEmail("");
+    setRole("member");
+    reset();
+  }, [onClose, reset]);
+
+  // Shared by the form submit and the modal's ⌘↵ shortcut; in the created
+  // state the primary action is just dismissing.
+  const confirm = () => {
+    if (create.data) {
+      close();
+      return;
+    }
+    if (email.trim().length === 0 || create.isPending) return;
+    create.mutate({ email, role });
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={close}
+      onConfirm={confirm}
+      title={
+        create.data
+          ? t(create.data.emailed ? "invitations.created.sentTitle" : "invitations.created.title")
+          : t("invitations.invite.title")
+      }
+    >
+      {create.data ? (
+        <form
+          // minmax(0, 1fr): the accept URL chip must ellipsize, not widen the
+          // grid past the dialog and drag the footer along.
+          style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12, marginTop: 12 }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            close();
+          }}
+        >
+          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+            {t(
+              create.data.emailed
+                ? "invitations.created.emailedBody"
+                : "invitations.created.bodyTtl",
+              {
+                email: create.data.email,
+              },
+            )}
+          </p>
+          <CopyChip value={create.data.acceptUrl} />
+          {create.data.emailed ? null : (
+            <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+              {t(
+                create.data.noSender
+                  ? "invitations.created.noSender"
+                  : "invitations.created.sendFailed",
+              )}
+            </p>
+          )}
+          <ModalFooter>
+            <button type="submit" className="ms-btn ms-btn-primary">
+              {t("invitations.created.done")} <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      ) : (
+        <form
+          style={{ display: "grid", gap: 14, marginTop: 12 }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            confirm();
+          }}
+        >
+          <div className="ms-field">
+            <label htmlFor="invite-email">{t("invitations.invite.email")}</label>
+            <input
+              id="invite-email"
+              type="email"
+              className="ms-input"
+              style={{ width: "100%" }}
+              required
+              value={email}
+              disabled={create.isPending}
+              placeholder={t("invitations.invite.emailPlaceholder")}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
+          <div className="ms-field">
+            <label htmlFor="invite-role">{t("invitations.invite.role")}</label>
+            <Select
+              id="invite-role"
+              width="100%"
+              value={role}
+              disabled={create.isPending}
+              onChange={(value) => setRole(value === "admin" ? "admin" : "member")}
+              ariaLabel={t("invitations.invite.role")}
+              options={[
+                { value: "member", label: t("members.roles.member") },
+                { value: "admin", label: t("members.roles.admin") },
+              ]}
+            />
+          </div>
+          {create.isError ? (
+            <p style={{ margin: 0, color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+              {trpcErrorCode(create.error) === "TOO_MANY_REQUESTS" ||
+              trpcErrorCode(create.error) === "CONFLICT"
+                ? create.error.message
+                : guardMessage(create.error, t("invitations.invite.error"))}
+            </p>
+          ) : null}
+          <ModalFooter>
+            <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
+              {common("cancel")} <span className="ms-keycap">Esc</span>
+            </button>
+            <button
+              type="submit"
+              className="ms-btn ms-btn-primary"
+              disabled={email.trim().length === 0 || create.isPending}
+            >
+              <BtnSpinner on={create.isPending} />
+              {t("invitations.invite.submit")} <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
+function PendingInvitations() {
+  const t = useTranslations("settings");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: invitations } = useQuery(trpc.settings.invitations.list.queryOptions());
+  const [error, setError] = useState<string | null>(null);
+  const refresh = () => queryClient.invalidateQueries(trpc.settings.invitations.list.queryFilter());
+  const revoke = useMutation(
+    trpc.settings.invitations.revoke.mutationOptions({ onSuccess: refresh }),
+  );
+  const resend = useMutation(
+    trpc.settings.invitations.resend.mutationOptions({
+      onSuccess: () => {
+        setError(null);
+        refresh();
+      },
+      onError: (e) => setError(e.message),
+    }),
+  );
+
+  if (!invitations || invitations.length === 0) return null;
+  const busy = revoke.isPending || resend.isPending;
+
+  return (
+    <div style={{ marginTop: 20 }}>
+      <div className="ms-microlabel" style={{ marginBottom: 8 }}>
+        {t("invitations.pending.title")}
+      </div>
+      <Table style={{ whiteSpace: "nowrap" }}>
+        <thead>
+          <tr>
+            <th>{t("invitations.pending.email")}</th>
+            <th>{t("members.role")}</th>
+            <th>{t("invitations.pending.expires")}</th>
+            <th className="right" aria-label={t("invitations.pending.actions")} />
+          </tr>
+        </thead>
+        <tbody>
+          {invitations.map((invite) => (
+            <tr key={invite.id}>
+              <td className="ms-mono ms-cell-wrap">
+                <Breakable text={invite.email} />
+              </td>
+              <td>{t(`members.roles.${invite.role}`)}</td>
+              <td>
+                {new Date(invite.expiresAt).getTime() <= Date.now() ? (
+                  <span className="ms-badge ms-badge-warn">{t("invitations.pending.expired")}</span>
+                ) : (
+                  <RelativeTime date={invite.expiresAt} />
+                )}
+              </td>
+              <td className="right" style={{ whiteSpace: "nowrap" }}>
+                <button
+                  type="button"
+                  className="ms-btn ms-btn-secondary"
+                  disabled={busy}
+                  style={{ marginRight: 8 }}
+                  onClick={() => resend.mutate({ id: invite.id })}
+                >
+                  {t("invitations.pending.resend")}
+                </button>
+                <button
+                  type="button"
+                  className="ms-btn ms-btn-secondary"
+                  disabled={busy}
+                  onClick={async () => {
+                    const ok = await confirmDialog({
+                      title: t("invitations.pending.revokeTitle"),
+                      message: t("invitations.pending.revokeBody", { email: invite.email }),
+                      confirmLabel: t("invitations.pending.revoke"),
+                      danger: true,
+                    });
+                    if (ok) revoke.mutate({ id: invite.id });
+                  }}
+                >
+                  {t("invitations.pending.revoke")}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+      {error ? (
+        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+          {t("invitations.pending.resendError", { reason: error })}
+        </p>
+      ) : null}
+      <ListFooter
+        left={t("invitations.pending.pageOf", { pages: 1, total: invitations.length })}
+        singlePage
+      />
+    </div>
+  );
+}
+
+type MemberRole = "owner" | "admin" | "member";
+
+function MembersSection() {
+  const t = useTranslations("settings");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: members } = useQuery(trpc.settings.members.list.queryOptions());
+  const role = useTeamRole();
+  const canManage = role === "owner" || role === "admin";
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = () => queryClient.invalidateQueries(trpc.settings.members.list.queryFilter());
+  const updateRole = useMutation(
+    trpc.settings.members.updateRole.mutationOptions({
+      onSuccess: refresh,
+      onError: (e) => setError(e.message),
+    }),
+  );
+  const remove = useMutation(
+    trpc.settings.members.remove.mutationOptions({
+      onSuccess: refresh,
+      onError: (e) => setError(e.message),
+    }),
+  );
+  const leave = useMutation(
+    trpc.settings.members.leave.mutationOptions({
+      // The selection cookie now points at a team the user left; a full
+      // navigation lets the layout resolve the next membership (or onboarding).
+      onSuccess: () => window.location.assign("/emails"),
+      onError: (e) => setError(e.message),
+    }),
+  );
+  const busy = updateRole.isPending || remove.isPending || leave.isPending;
+
+  // The server refuses both; hiding the button avoids offering a dead end.
+  const cannotLeave =
+    !members ||
+    members.length === 1 ||
+    (role === "owner" && members.filter((m) => m.role === "owner").length === 1);
+
+  // Admins never touch the owner role, in either direction.
+  const roleOptions = (["owner", "admin", "member"] as const)
+    .filter((r) => role === "owner" || r !== "owner")
+    .map((r) => ({ value: r, label: t(`members.roles.${r}`) }));
+
+  async function confirmRemove(member: { userId: string; email: string }) {
+    const ok = await confirmDialog({
+      title: t("members.removeTitle"),
+      message: t("members.removeBody", { email: member.email }),
+      confirmLabel: t("members.remove"),
+      danger: true,
+    });
+    if (ok) remove.mutate({ userId: member.userId });
+  }
+
+  async function confirmLeave() {
+    const ok = await confirmDialog({
+      title: t("members.leaveTitle"),
+      message: t("members.leaveBody"),
+      confirmLabel: t("members.leave"),
+      danger: true,
+    });
+    if (ok) leave.mutate();
+  }
+
+  return (
+    <SectionCard
+      title={t("members.title")}
+      action={
+        canManage ? (
+          <button
+            type="button"
+            className="ms-btn ms-btn-primary"
+            onClick={() => setInviteOpen(true)}
+          >
+            {t("invitations.invite.trigger")}
+          </button>
+        ) : null
+      }
+    >
+      <Table style={{ whiteSpace: "nowrap" }}>
+        <thead>
+          <tr>
+            <th>{t("members.name")}</th>
+            <th>{t("members.email")}</th>
+            <th>{t("members.role")}</th>
+            <th className="right" aria-label={t("members.actions")} />
+          </tr>
+        </thead>
+        {!members ? (
+          <tbody>
+            <tr>
+              <td>
+                <Skeleton width={110} height={13} />
+              </td>
+              <td>
+                <Skeleton width={180} height={13} />
+              </td>
+              <td>
+                <Skeleton width={52} />
+              </td>
+              <td />
+            </tr>
+          </tbody>
+        ) : (
+          <tbody>
+            {members.map((m) => {
+              const editable = canManage && !m.self && (role === "owner" || m.role !== "owner");
+              return (
+                <tr key={m.userId}>
+                  <td className="ms-cell-wrap">{m.name}</td>
+                  <td className="ms-mono ms-cell-wrap">
+                    <Breakable text={m.email} />
+                  </td>
+                  <td>
+                    {editable ? (
+                      <Select
+                        width={140}
+                        value={m.role}
+                        disabled={busy}
+                        onChange={(value) =>
+                          updateRole.mutate({ userId: m.userId, role: value as MemberRole })
+                        }
+                        ariaLabel={t("members.role")}
+                        options={roleOptions}
+                      />
+                    ) : (
+                      t(`members.roles.${m.role}`)
+                    )}
+                  </td>
+                  <td className="right">
+                    {m.self ? (
+                      cannotLeave ? null : (
+                        <button
+                          type="button"
+                          className="ms-btn ms-btn-secondary"
+                          disabled={busy}
+                          onClick={() => void confirmLeave()}
+                        >
+                          {t("members.leave")}
+                        </button>
+                      )
+                    ) : editable ? (
+                      <button
+                        type="button"
+                        className="ms-btn ms-btn-secondary"
+                        disabled={busy}
+                        onClick={() => void confirmRemove(m)}
+                      >
+                        {t("members.remove")}
+                      </button>
+                    ) : null}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        )}
+      </Table>
+      {error ? (
+        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+          {t("members.error", { reason: error })}
+        </p>
+      ) : null}
+      {members ? (
+        <ListFooter left={t("members.pageOf", { pages: 1, total: members.length })} singlePage />
+      ) : null}
+      {canManage ? <PendingInvitations /> : null}
+      <InviteDialog open={inviteOpen} onClose={() => setInviteOpen(false)} />
+    </SectionCard>
+  );
+}
+
+function SupportEndsAt({ expiresAt }: { expiresAt: Date }) {
+  const locale = useLocale();
+  const left = formatMmSs(useCountdown(expiresAt));
+  return (
+    <>
+      {formatDayTime(expiresAt, locale)} · {left}
+    </>
+  );
+}
+
+/**
+ * The operator's read-only look at this team, for its owners and admins:
+ * who, since when, until when and why, with the way to end it. Absent
+ * while the instance has the feature off.
+ */
+function SupportAccessSection() {
+  const t = useTranslations("settings.supportAccess");
+  const actors = useTranslations("settings.audit.actors");
+  const locale = useLocale();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const role = useTeamRole();
+  const canManage = role === "owner" || role === "admin";
+  // The card reads the active team only, so it names it: an owner of several
+  // teams switches to see the others.
+  const { data: teamList } = useQuery(trpc.team.list.queryOptions());
+  const team = teamList?.teams.find((m) => m.teamId === teamList.activeTeamId)?.teamName ?? "";
+  const current = useQuery(
+    trpc.team.supportView.current.queryOptions(undefined, {
+      enabled: canManage,
+      // A session an operator opens shows up without a reload.
+      refetchInterval: 30_000,
+    }),
+  );
+  const end = useMutation(
+    trpc.team.supportView.end.mutationOptions({
+      onSuccess: () => {
+        toast(t("ended"));
+        void queryClient.invalidateQueries(trpc.team.supportView.current.queryFilter());
+      },
+      onError: (e) => toast(t("error", { reason: e.message }), "danger"),
+    }),
+  );
+  if (!canManage || !current.data?.enabled) return null;
+  const live = current.data.live;
+  return (
+    <SectionCard
+      title={t("title")}
+      action={
+        live ? (
+          <button
+            type="button"
+            className="ms-btn ms-btn-destructive"
+            disabled={end.isPending}
+            onClick={() => end.mutate()}
+          >
+            <BtnSpinner on={end.isPending} />
+            {t("end")}
+          </button>
+        ) : null
+      }
+    >
+      <p style={{ margin: "0 0 14px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+        {t("intro")}
+      </p>
+      {live ? (
+        <dl className="ms-kv">
+          <KvRow label={t("operator")}>{actors("operator")}</KvRow>
+          <KvRow label={t("started")}>{formatDayTime(live.startedAt, locale)}</KvRow>
+          <KvRow label={t("expires")}>
+            <SupportEndsAt expiresAt={live.expiresAt} />
+          </KvRow>
+          <KvRow label={t("reason")}>{t(`reasons.${live.reason}`)}</KvRow>
+          <KvRow label={t("reference")}>{live.reference ?? "—"}</KvRow>
+        </dl>
+      ) : (
+        <p style={{ margin: 0, color: "var(--ms-bone)", fontSize: "var(--ms-fs-ui)" }}>
+          {t("none", { team })}
+        </p>
+      )}
+    </SectionCard>
+  );
+}
+
+function LanguageSection() {
+  const t = useTranslations("settings");
+  const locale = useLocale();
+  const switchLocale = useSwitchLocale();
+
+  return (
+    <SectionCard title={t("language.title")}>
+      <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+        <label htmlFor="settings-locale">{t("language.label")}</label>
+        <Select
+          id="settings-locale"
+          width={260}
+          value={locale}
+          onChange={(value) => {
+            if (!isAppLocale(value)) return;
+            switchLocale(value);
+          }}
+          ariaLabel={t("language.label")}
+          options={LOCALES.map((value) => ({ value, label: t(`language.${value}`) }))}
+        />
+      </div>
+    </SectionCard>
+  );
+}
+
+/** One numeric override field: empty = no override, hint shows the effective value. */
+function InstanceField({
+  id,
+  label,
+  min,
+  max,
+  value,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  value: string;
+  disabled: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="number"
+        className="ms-input ms-number"
+        style={{ width: "100%" }}
+        min={min}
+        max={max}
+        step={1}
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function InstanceSection() {
+  const t = useTranslations("settings");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data } = useQuery(trpc.system.instanceSettings.get.queryOptions());
+  const operator = useQuery(trpc.system.operator.queryOptions());
+  const [rateDraft, setRateDraft] = useState<string | null>(null);
+  const [retentionDraft, setRetentionDraft] = useState<string | null>(null);
+  const save = useMutation(
+    trpc.system.instanceSettings.update.mutationOptions({
+      onSuccess: async () => {
+        setRateDraft(null);
+        setRetentionDraft(null);
+        await queryClient.invalidateQueries(trpc.system.instanceSettings.get.queryFilter());
+      },
+    }),
+  );
+  if (!data) {
+    // Mirrors the loaded card with its real subtitle wrapper and field
+    // labels, so line boxes and the 30px inputs land where the data does.
+    // The save-button row is omitted: canEdit is unknown until load.
+    return (
+      <SectionCard title={t("instance.title")}>
+        <p style={{ margin: "-8px 0 16px", fontSize: "var(--ms-fs-label)", display: "flex" }}>
+          <Skeleton width={260} height="1lh" />
+        </p>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          {[t("instance.rateLabel"), t("instance.retentionLabel"), t("instance.reserveLabel")].map(
+            (label) => (
+              <div key={label} className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+                {/* span, not label: there is no control to label yet. Metrics mirror .ms-field label. */}
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "var(--ms-fs-label)",
+                    color: "var(--ms-muted)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {label}
+                </span>
+                <Skeleton width="100%" height={30} radius="var(--ms-r-input)" />
+              </div>
+            ),
+          )}
+        </div>
+      </SectionCard>
+    );
+  }
+
+  // Fields show the EFFECTIVE value (db, env, or default) — saving writes
+  // what is shown, so what you see is always what runs.
+  const rate = rateDraft ?? String(data.sesMaxSendRate.value);
+  const retention = retentionDraft ?? String(data.emailRetentionDays.value);
+  const clean = rateDraft === null && retentionDraft === null;
+
+  return (
+    <SectionCard title={t("instance.title")}>
+      <p
+        style={{
+          margin: "-8px 0 16px",
+          color: "var(--ms-muted)",
+          fontSize: "var(--ms-fs-label)",
+        }}
+      >
+        {t("instance.subtitle")}
+      </p>
+      <p
+        style={{ margin: "-8px 0 16px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}
+      >
+        {t.rich("instance.updates", {
+          link: (chunks) => (
+            <a href={UPDATES_URL} target="_blank" rel="noopener noreferrer">
+              {chunks}
+            </a>
+          ),
+        })}
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate({
+            sesMaxSendRate: rate.trim() === "" ? null : Number(rate),
+            emailRetentionDays: retention.trim() === "" ? null : Number(retention),
+          });
+        }}
+      >
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <InstanceField
+            id="settings-instance-rate"
+            label={t("instance.rateLabel")}
+            min={1}
+            max={200}
+            value={rate}
+            disabled={!data.canEdit || save.isPending}
+            onChange={setRateDraft}
+          />
+          <InstanceField
+            id="settings-instance-retention"
+            label={t("instance.retentionLabel")}
+            min={1}
+            max={3650}
+            value={retention}
+            disabled={!data.canEdit || save.isPending}
+            onChange={setRetentionDraft}
+          />
+          <InstanceField
+            id="settings-instance-reserve"
+            label={t("instance.reserveLabel")}
+            min={5}
+            max={90}
+            value={String(data.sesTransactionalReserve.value)}
+            disabled
+            onChange={() => {}}
+          />
+        </div>
+        <p style={{ margin: "8px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+          {t.rich("instance.reserveNote", {
+            link: (chunks) =>
+              operator.data?.isOperator ? <Link href="/console/regions">{chunks}</Link> : chunks,
+          })}
+        </p>
+        {data.canEdit ? (
+          <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 16 }}>
+            <button type="submit" className="ms-btn ms-btn-secondary" disabled={save.isPending}>
+              <BtnSpinner on={save.isPending} />
+              {t("instance.save")}
+            </button>
+            {save.isSuccess && clean ? (
+              <span style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+                ✓ {t("instance.saved")}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+        {save.isError ? (
+          <p
+            style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}
+          >
+            {t("instance.error")}
+          </p>
+        ) : null}
+      </form>
+    </SectionCard>
+  );
+}
+
+function DangerSection() {
+  const t = useTranslations("settings.danger");
+  const trpc = useTRPC();
+  const { data: teamList } = useQuery(trpc.team.list.queryOptions());
+  const active = teamList?.teams.find((m) => m.teamId === teamList.activeTeamId);
+  const role = useTeamRole();
+  const [error, setError] = useState<string | null>(null);
+  const [accountBusy, setAccountBusy] = useState(false);
+
+  const deleteTeam = useMutation(
+    trpc.settings.team.delete.mutationOptions({
+      onSuccess: () => window.location.assign("/emails"),
+      onError: (e) => setError(e.message),
+    }),
+  );
+
+  async function confirmDeleteTeam() {
+    if (!active) return;
+    const ok = await confirmDialog({
+      title: t("deleteTeam"),
+      message: t("deleteTeamBody", { name: active.teamName }),
+      confirmLabel: t("deleteTeam"),
+      danger: true,
+      typeToConfirm: true,
+    });
+    if (ok) deleteTeam.mutate();
+  }
+
+  async function confirmDeleteAccount() {
+    const ok = await confirmDialog({
+      title: t("deleteAccount"),
+      message: t("deleteAccountBody"),
+      confirmLabel: t("deleteAccount"),
+      danger: true,
+      typeToConfirm: true,
+    });
+    if (!ok) return;
+    setAccountBusy(true);
+    setError(null);
+    // Server-side: sessions are revoked and a sole owner is refused.
+    const result = await authClient.deleteUser();
+    if (result.error) {
+      setError(result.error.message ?? t("deleteAccountError"));
+      setAccountBusy(false);
+      return;
+    }
+    window.location.assign("/login");
+  }
+
+  const busy = deleteTeam.isPending || accountBusy;
+  return (
+    // Collapsed by default: the irreversible actions stay out of reach until
+    // the operator opens the zone.
+    <details className="ms-card ms-card-danger" style={{ padding: 24 }}>
+      <summary
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          cursor: "pointer",
+          listStyle: "none",
+        }}
+      >
+        <h2
+          className="ms-display"
+          style={{ fontSize: "var(--ms-fs-h2)", color: "var(--ms-bone)", margin: 0 }}
+        >
+          {t("title")}
+        </h2>
+        <span className="ms-danger-chevron" style={{ display: "flex", color: "var(--ms-muted)" }}>
+          <ChevronGlyph direction="down" />
+        </span>
+      </summary>
+      <div className="ms-actions" style={{ marginTop: 18 }}>
+        {role === "owner" ? (
+          <button
+            type="button"
+            className="ms-btn ms-btn-destructive"
+            disabled={busy}
+            onClick={() => void confirmDeleteTeam()}
+          >
+            <BtnSpinner on={deleteTeam.isPending} />
+            {t("deleteTeam")}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className="ms-btn ms-btn-destructive"
+          disabled={busy}
+          onClick={() => void confirmDeleteAccount()}
+        >
+          <BtnSpinner on={accountBusy} />
+          {t("deleteAccount")}
+        </button>
+      </div>
+      <p style={{ margin: "8px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+        {t("hint")}
+      </p>
+      {error ? (
+        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+          {error}
+        </p>
+      ) : null}
+    </details>
+  );
+}
+
+export function SettingsSections({ showInstance }: { showInstance: boolean }) {
+  return (
+    // minmax(0, 1fr): an implicit auto track grows to the widest card's
+    // min-content (the members table), pushing the page past a phone viewport.
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
+      <TeamSection billing={!showInstance} />
+      <MembersSection />
+      <SupportAccessSection />
+      {showInstance ? <InstanceSection /> : null}
+      <LanguageSection />
+      <DangerSection />
+    </div>
+  );
+}

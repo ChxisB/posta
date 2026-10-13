@@ -1,0 +1,158 @@
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import { TRPCError } from "@trpc/server";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import { mailyDocumentSchema } from "@/lib/email-doc";
+import { resolveEditorSave } from "../email-content";
+import { beforeCursor, createdAtCursorField, cursorSchema, paginate } from "../keyset";
+import { router, teamProcedure } from "../trpc";
+
+const nameSchema = z.string().trim().min(1).max(200);
+// "" clears the field — stored as null, never as an empty string.
+const subjectSchema = z.string().trim().max(998);
+const bodySchema = z.string().max(500_000);
+// Maily editor source of truth; null clears it back to a legacy raw-HTML row.
+const documentSchema = mailyDocumentSchema.nullable();
+
+type TemplateRow = typeof schema.templates.$inferSelect;
+
+async function getOwnTemplate(ctx: { db: Db; teamId: string }, id: string): Promise<TemplateRow> {
+  const t = schema.templates;
+  const [row] = await ctx.db
+    .select()
+    .from(t)
+    .where(and(eq(t.id, id), eq(t.teamId, ctx.teamId)))
+    .limit(1);
+  if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+  return row;
+}
+
+export const templatesRouter = router({
+  list: teamProcedure
+    .input(
+      z.object({
+        cursor: cursorSchema.optional(),
+        limit: z.number().int().min(1).max(50).default(25),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const t = schema.templates;
+      // Templates page on (updatedAt desc, id desc): a template you just
+      // edited surfaces first. The keyset helpers are column-agnostic, so
+      // updatedAt rides in their createdAt slot.
+      const keys = { createdAt: t.updatedAt, id: t.id };
+      const filters = [eq(t.teamId, ctx.teamId)];
+      if (input.cursor) {
+        const cursorFilter = beforeCursor(keys, input.cursor);
+        if (cursorFilter) filters.push(cursorFilter);
+      }
+      const rows = await ctx.db
+        .select({
+          id: t.id,
+          name: t.name,
+          updatedAt: t.updatedAt,
+          // Mirrors lib/email-doc isMailyDoc: anything but a Tiptap doc node
+          // is html authored outside the block editor, shown as such in the list.
+          htmlAuthored: sql<boolean>`${t.document} is null or ${t.document}->>'type' is distinct from 'doc'`,
+          cursorCreatedAt: createdAtCursorField(keys),
+        })
+        .from(t)
+        .where(and(...filters))
+        .orderBy(desc(t.updatedAt), desc(t.id))
+        .limit(input.limit + 1);
+      return paginate(rows, input.limit);
+    }),
+
+  get: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
+    const template = await getOwnTemplate(ctx, input.id);
+    // The composer copies a template's body into the broadcast it sends, and
+    // no column records which template a broadcast came from, so a template's
+    // text cannot be told apart from the text of mail already delivered. A
+    // support view, which never sees sent content, therefore sees none of it.
+    if (!ctx.supportView) return { ...template, hiddenBySupportView: false };
+    return { ...template, html: null, text: null, document: null, hiddenBySupportView: true };
+  }),
+
+  create: teamProcedure
+    .input(
+      z.object({
+        name: nameSchema,
+        subject: subjectSchema.optional(),
+        html: bodySchema.min(1),
+        text: bodySchema.optional(),
+        document: documentSchema.optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const saved = await resolveEditorSave(input);
+      const t = schema.templates;
+      const [row] = await ctx.db
+        .insert(t)
+        .values({
+          teamId: ctx.teamId,
+          name: saved.name,
+          subject: saved.subject || null,
+          html: saved.html,
+          text: saved.text || null,
+          document: saved.document ?? null,
+        })
+        .returning({ id: t.id });
+      if (!row) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      return { id: row.id };
+    }),
+
+  update: teamProcedure
+    .input(
+      z.object({
+        id: z.uuid(),
+        name: nameSchema.optional(),
+        subject: subjectSchema.optional(),
+        html: bodySchema.min(1).optional(),
+        text: bodySchema.optional(),
+        document: documentSchema.optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await getOwnTemplate(ctx, input.id);
+      const saved = await resolveEditorSave(input);
+      const t = schema.templates;
+      await ctx.db
+        .update(t)
+        .set({
+          ...(saved.name !== undefined ? { name: saved.name } : {}),
+          ...(saved.subject !== undefined ? { subject: saved.subject || null } : {}),
+          ...(saved.html !== undefined ? { html: saved.html } : {}),
+          ...(saved.text !== undefined ? { text: saved.text || null } : {}),
+          ...(saved.document !== undefined ? { document: saved.document } : {}),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(t.id, input.id), eq(t.teamId, ctx.teamId)));
+      return { id: input.id };
+    }),
+
+  delete: teamProcedure.input(z.object({ id: z.uuid() })).mutation(async ({ ctx, input }) => {
+    await getOwnTemplate(ctx, input.id);
+    const t = schema.templates;
+    await ctx.db.delete(t).where(and(eq(t.id, input.id), eq(t.teamId, ctx.teamId)));
+    return { id: input.id };
+  }),
+
+  duplicate: teamProcedure.input(z.object({ id: z.uuid() })).mutation(async ({ ctx, input }) => {
+    const source = await getOwnTemplate(ctx, input.id);
+    const t = schema.templates;
+    const [row] = await ctx.db
+      .insert(t)
+      .values({
+        teamId: ctx.teamId,
+        name: `${source.name} (copy)`,
+        subject: source.subject,
+        html: source.html,
+        text: source.text,
+        document: source.document,
+      })
+      .returning({ id: t.id });
+    if (!row) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    return { id: row.id };
+  }),
+});

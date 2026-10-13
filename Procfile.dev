@@ -1,3 +1,0 @@
-web: bun run --cwd packages/web-server dev
-worker: bun run --cwd packages/worker dev
-smtp: bun run --cwd packages/smtp-server dev

@@ -1,0 +1,7 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    # Callers of a public SDK aren't bound by its phpdoc types, so normalizing their input at
+    # runtime (array_values on a documented list, ?? on a documented key) is deliberate.
+    treatPhpDocTypesAsCertain: false

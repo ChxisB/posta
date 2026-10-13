@@ -1,0 +1,49 @@
+import { cookies } from "next/headers";
+import { getRequestConfig } from "next-intl/server";
+import { type AppLocale, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES } from "@/lib/locale-cookie";
+
+export { type AppLocale, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES };
+
+const NAMESPACES = [
+  "common",
+  "audience",
+  "block-editor",
+  "auth",
+  "broadcasts",
+  "console",
+  "deliverability",
+  "nav",
+  "emails",
+  "bounce-guidance",
+  "domains",
+  "api-keys",
+  "inboxes",
+  "logs",
+  "merge-fields",
+  "metrics",
+  "onboarding",
+  "settings",
+  "placeholders",
+  "templates",
+  "webhooks",
+] as const;
+
+function isAppLocale(value: string | undefined): value is AppLocale {
+  return (LOCALES as readonly string[]).includes(value ?? "");
+}
+
+/**
+ * Cookie-based locale, no URL prefixes. Messages are namespaced by file:
+ * messages/<locale>/<ns>.json → useTranslations("<ns>").
+ */
+export default getRequestConfig(async () => {
+  const store = await cookies();
+  const cookieValue = store.get(LOCALE_COOKIE)?.value;
+  const locale: AppLocale = isAppLocale(cookieValue) ? cookieValue : DEFAULT_LOCALE;
+  const entries = await Promise.all(
+    NAMESPACES.map(
+      async (ns) => [ns, (await import(`../../messages/${locale}/${ns}.json`)).default] as const,
+    ),
+  );
+  return { locale, messages: Object.fromEntries(entries) };
+});

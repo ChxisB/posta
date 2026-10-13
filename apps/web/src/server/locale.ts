@@ -1,0 +1,54 @@
+import { accountEmailFrom } from "@millionsend/config";
+import { accountLocale, type MailLocale } from "@millionsend/core";
+import type { Db } from "@millionsend/db";
+import { cookies } from "next/headers";
+import { type AppLocale, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES } from "../i18n/request";
+
+/**
+ * The dashboard locale of the current request, from the NEXT_LOCALE cookie.
+ * Outside a request (tests, background jobs) `cookies()` throws — fall back
+ * to the default locale.
+ */
+export async function activeLocale(): Promise<AppLocale> {
+  try {
+    const value = (await cookies()).get(LOCALE_COOKIE)?.value;
+    return (LOCALES as readonly string[]).includes(value ?? "")
+      ? (value as AppLocale)
+      : DEFAULT_LOCALE;
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+/**
+ * The locale of bare request headers, for mail sent from an auth endpoint
+ * where next-intl's request scope does not exist: the NEXT_LOCALE cookie the
+ * app sets, then Accept-Language. Anything that isn't Portuguese reads
+ * English — the email locales mirror the dashboard's launch locales.
+ */
+export function localeFromHeaders(headers: Headers | null | undefined): AppLocale {
+  const cookie = headers?.get("cookie")?.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/)?.[1];
+  const acceptLanguage = headers?.get("accept-language") ?? "";
+  for (const candidate of [cookie, ...acceptLanguage.split(",")]) {
+    const tag = candidate?.trim().toLowerCase();
+    if (!tag) continue;
+    if (tag.startsWith("pt")) return "pt-BR";
+    if (tag.startsWith("en")) return "en";
+  }
+  return DEFAULT_LOCALE;
+}
+
+/**
+ * The language to write to a known account in: the one stored for it (core
+ * accountLocale), else the language of the request that triggered the mail.
+ * With a request, the contact row stamped at sign-up is skipped: for an
+ * account from before the stored language, the browser asking is the fresher
+ * signal, as it was before.
+ */
+export function accountMailLocale(
+  db: Db,
+  email: string,
+  headers: Headers | null | undefined,
+): Promise<MailLocale> {
+  return accountLocale(db, headers ? null : accountEmailFrom(), email, localeFromHeaders(headers));
+}

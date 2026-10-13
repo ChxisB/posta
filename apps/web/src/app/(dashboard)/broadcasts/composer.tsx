@@ -1,0 +1,919 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { confirmDialog } from "@/components/confirm-dialog";
+import { DraftBanner } from "@/components/draft-banner";
+import { FromField } from "@/components/from-field";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { Crumb, CrumbEnd, PageHeader } from "@/components/page-header";
+import { Select } from "@/components/select";
+import { Skeleton } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { MarkerRail, MobileStepBar, StepRail } from "@/components/stepper";
+import { isMailyDoc } from "@/lib/email-doc";
+import { buildMergeOptions } from "@/lib/merge-fields";
+import { statusGlow } from "@/lib/status-glow";
+import { bodyEditorMode } from "@/lib/template-mode";
+import { useTRPC } from "@/lib/trpc";
+import { useLocalDraft } from "@/lib/use-local-draft";
+import { useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
+import { ConvertBlocksDialog, HtmlAuthoredBanner, HtmlCodeMode } from "../templates/html-mode";
+import { ContentPreview, SendPlanSummary } from "./parts";
+
+/** Everything a crash would lose — mirrored into the local draft. */
+interface ComposerDraft {
+  topicId: string;
+  segmentId: string;
+  name: string;
+  from: string;
+  subject: string;
+  replyTo: string;
+  html: string;
+  text: string;
+  document: unknown;
+}
+
+// Client-only: the Maily editor pulls in tiptap and touches the DOM, so it
+// must not render on the server. The ghost holds the field's height meanwhile.
+const MailyEditor = dynamic(() => import("@/components/maily-editor").then((m) => m.default), {
+  ssr: false,
+  loading: () => <Skeleton width="100%" height={340} radius="var(--ms-r-input)" />,
+});
+
+export interface ComposerInitial {
+  id: string;
+  topicId: string | null;
+  segmentId: string | null;
+  name: string | null;
+  from: string;
+  subject: string;
+  replyTo: string | null;
+  html: string | null;
+  text: string | null;
+  document: unknown;
+}
+
+/** Ghost of the composer while an existing draft loads — same field boxes, no shift. */
+export function ComposerSkeleton() {
+  return (
+    <>
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", fontSize: 13, lineHeight: 1, marginBottom: 10 }}>
+          <Skeleton width={150} height="1lh" />
+        </div>
+        <h1
+          className="ms-display"
+          style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+        >
+          <Skeleton width={220} height="1lh" />
+        </h1>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 720 }}>
+        {["100%", "100%", "100%", "100%"].map((width, row) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows, position is identity
+          <div key={row}>
+            <Skeleton width={90} height={11} />
+            <div style={{ marginTop: 8, display: "flex" }}>
+              <Skeleton width={width} height={38} radius="var(--ms-r-input)" />
+            </div>
+          </div>
+        ))}
+        <Skeleton width="100%" height={260} radius="var(--ms-r-input)" />
+      </div>
+    </>
+  );
+}
+
+export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
+  const t = useTranslations("broadcasts");
+  const tTemplates = useTranslations("templates");
+  const common = useTranslations("common");
+  const locale = useLocale();
+  const trpc = useTRPC();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [topicId, setTopicId] = useState(initial?.topicId ?? "");
+  const [segmentId, setSegmentId] = useState(initial?.segmentId ?? "");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [from, setFrom] = useState(initial?.from ?? "");
+  const [subject, setSubject] = useState(initial?.subject ?? "");
+  const [replyTo, setReplyTo] = useState(initial?.replyTo ?? "");
+  const [html, setHtml] = useState(initial?.html ?? "");
+  const [text, setText] = useState(initial?.text ?? "");
+  const [document, setDocument] = useState<unknown>(initial?.document ?? null);
+  // Armed by "Convert this broadcast": the block editor then mounts on the
+  // html seed and emits its parse. Until then an html-authored body never
+  // reaches the block editor — its html would be flattened on the first edit.
+  const [converting, setConverting] = useState(false);
+  const mode = bodyEditorMode({ document, html, converting });
+  // An html-authored body opens on its faithful preview, not on an editor.
+  const [tab, setTab] = useState<"edit" | "preview">(() =>
+    bodyEditorMode({ document: initial?.document ?? null, html: initial?.html ?? "" }) === "code"
+      ? "preview"
+      : "edit",
+  );
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [guardOpen, setGuardOpen] = useState(false);
+  const [schedule, setSchedule] = useState("");
+  const [templateId, setTemplateId] = useState("");
+  // Editing an existing draft lands on step 2 (targeting is a recap there);
+  // a new broadcast starts at step 1: targeting + name.
+  const [step, setStep] = useState<1 | 2>(initial ? 2 : 1);
+
+  // Unsaved-body tracking for the native leave warning: the baseline is the
+  // last-persisted document (or the editor's very first emit for a new one);
+  // any later emit that differs arms beforeunload until the next save. Code
+  // mode compares the html itself.
+  const [dirty, setDirty] = useState(false);
+  const savedDoc = useRef<string | null>(
+    initial !== undefined ? JSON.stringify(initial.document ?? null) : null,
+  );
+  const savedHtml = useRef(initial?.html ?? "");
+  useUnsavedChangesWarning(dirty, common("unsavedWarn"));
+
+  // Local crash-recovery draft (browser-only, one key per broadcast).
+  const [editorNonce, setEditorNonce] = useState(0);
+  const draftState = useMemo<ComposerDraft>(
+    () => ({ topicId, segmentId, name, from, subject, replyTo, html, text, document }),
+    [topicId, segmentId, name, from, subject, replyTo, html, text, document],
+  );
+  const draft = useLocalDraft<ComposerDraft>({
+    storageKey: `ms-draft:broadcast:${initial?.id ?? "new"}`,
+    state: draftState,
+    initialState: {
+      topicId: initial?.topicId ?? "",
+      segmentId: initial?.segmentId ?? "",
+      name: initial?.name ?? "",
+      from: initial?.from ?? "",
+      subject: initial?.subject ?? "",
+      replyTo: initial?.replyTo ?? "",
+      html: initial?.html ?? "",
+      text: initial?.text ?? "",
+      document: initial?.document ?? null,
+    },
+  });
+
+  // Older stored drafts may carry extra fields (e.g. a dropped audienceId);
+  // only the known fields are read, so they restore cleanly.
+  function restoreDraft(data: ComposerDraft) {
+    setTopicId(data.topicId);
+    setSegmentId(data.segmentId);
+    setName(data.name);
+    setFrom(data.from);
+    setSubject(data.subject);
+    setReplyTo(data.replyTo);
+    setHtml(data.html);
+    setText(data.text);
+    setDocument(data.document);
+    setStep(2);
+    // The editor and From field seed once from their mount value — remount them.
+    setEditorNonce((n) => n + 1);
+    // A restored draft is unsaved by definition: poison the baseline so the
+    // editor's next emit differs and the leave-guard arms immediately.
+    savedDoc.current = "__restored__";
+    setDirty(true);
+    draft.acceptRecovered();
+  }
+
+  const topics = useQuery(trpc.topics.list.queryOptions());
+  const segments = useQuery(trpc.segments.list.queryOptions());
+  const selectedTopic = (topics.data ?? []).find((topic) => topic.id === topicId) ?? null;
+  const selectedSegment = (segments.data ?? []).find((s) => s.id === segmentId) ?? null;
+  const templates = useQuery(trpc.templates.list.queryOptions({ limit: 50 }));
+  const templateOptions = templates.data?.items ?? [];
+
+  // Merge-field picker options and preview sample values both derive from the
+  // team's contact-property keys in use, plus its typed definitions so a
+  // defined key is insertable before any contact carries a value.
+  const properties = useQuery(trpc.audience.properties.list.queryOptions());
+  const definedProps = useQuery(trpc.audience.properties.defineList.queryOptions());
+  const mergeFields = useMemo(
+    () =>
+      buildMergeOptions([
+        ...(properties.data ?? []).map((p) => p.key),
+        ...(definedProps.data ?? []).map((p) => p.key),
+      ]),
+    [properties.data, definedProps.data],
+  );
+  const previewSamples = useMemo(
+    () => Object.fromEntries((properties.data ?? []).map((p) => [p.key, p.sampleValue])),
+    [properties.data],
+  );
+
+  // Send html is rendered server-side (Maily needs juice), so a design-mode
+  // edit cannot emit it — this debounced render both feeds the preview and
+  // supplies the html we persist. A legacy raw-html document keeps its stored
+  // html untouched until the first real edit converts it (see MailyEditor).
+  const [debouncedDoc, setDebouncedDoc] = useState<unknown>(document);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedDoc(document), 350);
+    return () => clearTimeout(id);
+  }, [document]);
+  const rendered = useQuery(
+    trpc.email.render.queryOptions(
+      { document: debouncedDoc },
+      { enabled: isMailyDoc(debouncedDoc) },
+    ),
+  );
+  useEffect(() => {
+    if (!rendered.data) return;
+    setHtml(rendered.data.html);
+    setText(rendered.data.text);
+  }, [rendered.data]);
+
+  /** Copies the template's content in as a starting snapshot — no link back;
+   * later template edits change nothing here. */
+  async function applyTemplate(id: string) {
+    if (!id) {
+      setTemplateId("");
+      return;
+    }
+    // Applying overwrites the body (and subject). Confirm when there is real
+    // content to lose: edits this session (dirty) or a stored non-empty body
+    // (text is the rendered plain text, so an empty document stays empty).
+    if (dirty || text.trim() !== "") {
+      const ok = await confirmDialog({
+        local: true,
+        title: tTemplates("picker.replaceTitle"),
+        message: tTemplates("picker.replaceBody"),
+        confirmLabel: tTemplates("picker.replaceConfirm"),
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    const template = await queryClient.fetchQuery(trpc.templates.get.queryOptions({ id }));
+    // templateId must land in the same batch as the content: the editor is
+    // keyed on it and seeds once from its mount value, so a remount before
+    // setDocument would show the old body forever.
+    setTemplateId(id);
+    if (template.subject) setSubject(template.subject);
+    // Null only under a support view, which cannot save the broadcast anyway.
+    setHtml(template.html ?? "");
+    setText(template.text ?? "");
+    setDocument(template.document);
+    setEditorNonce((n) => n + 1);
+    // An html-authored template lands as html: on its preview, like a stored one.
+    setConverting(false);
+    setTab(
+      bodyEditorMode({ document: template.document, html: template.html ?? "" }) === "code"
+        ? "preview"
+        : "edit",
+    );
+    // Applied-but-unsaved content: poison the baseline so the editor's next
+    // emit differs and the leave-guard arms immediately.
+    savedDoc.current = "__applied__";
+    setDirty(true);
+  }
+  // The plan behind the guard: the count and, when capacity or the plan
+  // paces the send, how it goes out. Re-read when the schedule moves.
+  const sendPlan = useQuery(
+    trpc.broadcasts.sendPlan.queryOptions(
+      {
+        topicId: topicId || null,
+        segmentId: segmentId || null,
+        from: from.trim(),
+        ...(schedule ? { scheduledAt: new Date(schedule) } : {}),
+      },
+      { enabled: guardOpen },
+    ),
+  );
+  const sendBlocked = sendPlan.data?.count === 0 || sendPlan.data?.estimate?.blocked === true;
+
+  const createMutation = useMutation(trpc.broadcasts.create.mutationOptions());
+  const updateMutation = useMutation(trpc.broadcasts.update.mutationOptions());
+  const sendMutation = useMutation(trpc.broadcasts.send.mutationOptions());
+  const [testResult, setTestResult] = useState<
+    { kind: "sent"; to: string } | { kind: "rateLimited" } | { kind: "failed" } | null
+  >(null);
+  const testMutation = useMutation(
+    trpc.broadcasts.sendTest.mutationOptions({
+      onSuccess: (result) => setTestResult({ kind: "sent", to: result.to }),
+      onError: (error) =>
+        setTestResult({
+          kind: error.data?.code === "TOO_MANY_REQUESTS" ? "rateLimited" : "failed",
+        }),
+    }),
+  );
+  const sendTest = () => {
+    setTestResult(null);
+    testMutation.mutate({
+      from: from.trim(),
+      subject: subject.trim(),
+      html: html.trim() ? html : null,
+      text: text.trim() ? text : null,
+      ...(replyTo.trim()
+        ? {
+            replyTo: replyTo
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          }
+        : {}),
+    });
+  };
+
+  const complete = from.trim() !== "" && subject.trim() !== "";
+  const saving = createMutation.isPending || updateMutation.isPending;
+  const sending = saving || sendMutation.isPending;
+
+  const invalidate = () => queryClient.invalidateQueries(trpc.broadcasts.pathFilter());
+
+  /** Create-or-update the draft; returns its id. */
+  async function persist(): Promise<string> {
+    if (initial) {
+      await updateMutation.mutateAsync({
+        id: initial.id,
+        topicId: topicId || null,
+        segmentId: segmentId || null,
+        ...(name.trim() ? { name: name.trim() } : { name: "" }),
+        from: from.trim(),
+        subject: subject.trim(),
+        replyTo: replyTo.trim(),
+        html,
+        text,
+        // Code mode keeps the row html-authored, whatever shape the state holds.
+        document: mode === "code" ? null : document,
+      });
+      savedDoc.current = JSON.stringify(document);
+      savedHtml.current = html;
+      setDirty(false);
+      draft.markSaved();
+      return initial.id;
+    }
+    const { id } = await createMutation.mutateAsync({
+      ...(topicId ? { topicId } : {}),
+      ...(segmentId ? { segmentId } : {}),
+      ...(name.trim() ? { name: name.trim() } : {}),
+      from: from.trim(),
+      subject: subject.trim(),
+      ...(replyTo.trim() ? { replyTo: replyTo.trim() } : {}),
+      ...(html ? { html } : {}),
+      ...(text ? { text } : {}),
+      ...(document && mode !== "code" ? { document } : {}),
+    });
+    savedDoc.current = JSON.stringify(document);
+    savedHtml.current = html;
+    setDirty(false);
+    draft.markSaved();
+    return id;
+  }
+
+  async function saveDraft() {
+    if (!complete || saving) return;
+    try {
+      const id = await persist();
+      invalidate();
+      if (!initial) router.replace(`/broadcasts/${id}/edit`);
+    } catch {
+      // Shown via the mutations' error state.
+    }
+  }
+
+  async function confirmSend() {
+    // Mirrors the confirm button's disabled state (zero recipients, too large):
+    // Modal's onConfirm shortcut routes here too and must obey the same guard.
+    if (!complete || sending || sendBlocked) return;
+    try {
+      const id = await persist();
+      await sendMutation.mutateAsync({
+        id,
+        ...(schedule ? { scheduledAt: new Date(schedule) } : {}),
+      });
+      invalidate();
+      router.push(`/broadcasts/${id}`);
+    } catch {
+      // Shown via the mutations' error state.
+    }
+  }
+
+  const closeGuard = useCallback(() => setGuardOpen(false), []);
+  const closeConvert = useCallback(() => setConvertOpen(false), []);
+  const convertInPlace = useCallback(() => {
+    setConvertOpen(false);
+    setConverting(true);
+    setTab("edit");
+  }, []);
+  // Source beside preview needs the room; every other body stays at reading width.
+  const wideBody = mode === "code" && tab === "edit";
+
+  const saveError = createMutation.isError || updateMutation.isError;
+  // Server guards (deliverability pause, region breaker, unverified sender)
+  // already carry a localized, specific message; only unknown failures get
+  // the generic copy.
+  const sendErrorMessage = sendMutation.isError
+    ? sendMutation.error.message.includes("APP_BASE_URL")
+      ? t("guard.appBaseUrl")
+      : sendMutation.error.data?.code === "PRECONDITION_FAILED"
+        ? sendMutation.error.message
+        : t("guard.sendError")
+    : null;
+
+  return (
+    <>
+      <PageHeader
+        breadcrumb={
+          <>
+            <Crumb href="/broadcasts" label={t("composer.back")} />
+            <CrumbEnd label={initial ? t("composer.editTitle") : t("composer.newTitle")} />
+          </>
+        }
+        title={initial ? t("composer.editTitle") : t("composer.newTitle")}
+        actions={
+          <>
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="ms-btn ms-btn-secondary"
+                disabled={!complete || testMutation.isPending}
+                onClick={sendTest}
+              >
+                <BtnSpinner on={testMutation.isPending} />
+                {t("composer.sendTest")}
+              </button>
+              {testResult ? (
+                <span
+                  className="ms-action-note"
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    right: 0,
+                    whiteSpace: "nowrap",
+                    color: testResult.kind === "sent" ? "var(--ms-muted)" : "var(--ms-danger)",
+                    fontSize: "var(--ms-fs-label)",
+                  }}
+                >
+                  {testResult.kind === "sent"
+                    ? `✓ ${t("composer.testSent", { email: testResult.to })}`
+                    : t(
+                        testResult.kind === "rateLimited"
+                          ? "composer.testRateLimited"
+                          : "composer.testFailed",
+                      )}
+                </span>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="ms-btn ms-btn-secondary"
+              disabled={!complete || saving}
+              onClick={() => void saveDraft()}
+            >
+              <BtnSpinner on={saving && !guardOpen} />
+              {t("composer.saveDraft")}
+            </button>
+            <button
+              type="button"
+              className="ms-btn ms-btn-primary"
+              disabled={!complete}
+              onClick={() => {
+                sendMutation.reset();
+                setGuardOpen(true);
+              }}
+            >
+              {t("composer.send")}
+            </button>
+          </>
+        }
+      />
+
+      {step === 1 ? (
+        <div className="ms-stepper" style={{ display: "flex", gap: 44, alignItems: "flex-start" }}>
+          <MobileStepBar steps={[t("composer.steps.one"), t("composer.steps.two")]} active={1} />
+          <StepRail current={1} />
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              setStep(2);
+            }}
+            style={{
+              width: 520,
+              flex: "none",
+              background: "var(--ms-panel)",
+              border: "1px solid var(--ms-line-strong)",
+              borderRadius: "var(--ms-r-card)",
+              padding: 24,
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ms-bone)" }}>
+              {t("composer.steps.one")}
+            </div>
+
+            <div className="ms-field" style={{ marginTop: 16 }}>
+              <label htmlFor="bc-name">
+                {t("composer.nameLabel")}{" "}
+                <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+                  — {t("composer.optional")}
+                </span>
+              </label>
+              <input
+                id="bc-name"
+                className="ms-input"
+                style={{ width: "100%" }}
+                placeholder={t("composer.nameHint")}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
+
+            {(topics.data?.length ?? 0) > 0 ? (
+              <div className="ms-field" style={{ marginTop: 16 }}>
+                <label htmlFor="bc-topic">{t("composer.topicLabel")}</label>
+                <Select
+                  id="bc-topic"
+                  value={topicId}
+                  onChange={setTopicId}
+                  ariaLabel={t("composer.topicLabel")}
+                  width="100%"
+                  options={[
+                    { value: "", label: t("composer.topicNone") },
+                    ...(topics.data ?? []).map((topic) => ({
+                      value: topic.id,
+                      label: topic.name,
+                    })),
+                  ]}
+                />
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    color: "var(--ms-muted)",
+                    fontSize: "var(--ms-fs-label)",
+                  }}
+                >
+                  {t("composer.topicHint")}
+                </p>
+              </div>
+            ) : null}
+
+            {(segments.data?.length ?? 0) > 0 ? (
+              <div className="ms-field" style={{ marginTop: 16 }}>
+                <label htmlFor="bc-segment">{t("composer.segmentLabel")}</label>
+                <Select
+                  id="bc-segment"
+                  value={segmentId}
+                  onChange={setSegmentId}
+                  ariaLabel={t("composer.segmentLabel")}
+                  width="100%"
+                  options={[
+                    { value: "", label: t("composer.segmentNone") },
+                    ...(segments.data ?? []).map((segment) => ({
+                      value: segment.id,
+                      label: segment.name,
+                    })),
+                  ]}
+                />
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    color: "var(--ms-muted)",
+                    fontSize: "var(--ms-fs-label)",
+                  }}
+                >
+                  {t("composer.segmentHint")}
+                </p>
+              </div>
+            ) : null}
+
+            <div style={{ marginTop: 20 }}>
+              <button type="submit" className="ms-btn ms-btn-primary">
+                {t("composer.continue")}
+              </button>
+            </div>
+            {draft.recovered ? (
+              <DraftBanner
+                savedAt={draft.recovered.savedAt}
+                onRestore={() => {
+                  const r = draft.recovered;
+                  if (r) restoreDraft(r.data);
+                }}
+                onDiscard={draft.discardRecovered}
+              />
+            ) : null}
+          </form>
+        </div>
+      ) : (
+        <div className="ms-step-col" style={{ display: "flex", flexDirection: "column" }}>
+          <MobileStepBar steps={[t("composer.steps.one"), t("composer.steps.two")]} active={2} />
+
+          {/* Step 01 — done: targeting recap with a way back */}
+          <div className="ms-step" style={{ display: "flex", gap: 44 }}>
+            <MarkerRail marker="01" done color="var(--ms-success)" />
+            <div style={{ flex: 1, minWidth: 0, paddingBottom: 24 }}>
+              <div
+                style={{
+                  maxWidth: 720,
+                  backgroundColor: "var(--ms-ground)",
+                  backgroundImage: statusGlow("success", 15),
+                  border: "1px solid var(--ms-success-border)",
+                  borderRadius: "var(--ms-r-card)",
+                  padding: "12px 16px",
+                  boxSizing: "border-box",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: 12,
+                }}
+              >
+                {/* "Change" drops under the recap before the recap gets narrower than this. */}
+                <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--ms-bone)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {selectedSegment?.name ?? t("composer.segmentNone")}{" "}
+                    <span style={{ color: "var(--ms-success)", fontWeight: 400 }}>✓</span>
+                    {name.trim() ? (
+                      <span style={{ color: "var(--ms-muted)", fontWeight: 400 }}>
+                        {" "}
+                        · {name.trim()}
+                      </span>
+                    ) : null}
+                  </div>
+                  {selectedTopic ? (
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+                      {t("composer.topicLabel")}: {selectedTopic.name}
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="ms-btn ms-btn-secondary"
+                  style={{ marginLeft: "auto" }}
+                  onClick={() => setStep(1)}
+                >
+                  {t("composer.stepChange")}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 02 — content */}
+          <div className="ms-step" style={{ display: "flex", gap: 44 }}>
+            <MarkerRail marker="02" color="var(--ms-bone)" line={false} />
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: 18,
+                maxWidth: wideBody ? 1200 : 720,
+              }}
+            >
+              {templateOptions.length > 0 ? (
+                <div className="ms-field">
+                  <label htmlFor="bc-template">{tTemplates("picker.label")}</label>
+                  <Select
+                    id="bc-template"
+                    value={templateId}
+                    onChange={(value) => void applyTemplate(value)}
+                    ariaLabel={tTemplates("picker.label")}
+                    width="100%"
+                    options={[
+                      { value: "", label: tTemplates("picker.none") },
+                      ...templateOptions.map((template) => ({
+                        value: template.id,
+                        label: template.name,
+                      })),
+                    ]}
+                  />
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      color: "var(--ms-muted)",
+                      fontSize: "var(--ms-fs-label)",
+                    }}
+                  >
+                    {tTemplates("picker.hint")}
+                  </p>
+                </div>
+              ) : null}
+
+              <FromField key={editorNonce} id="bc-from" value={from} onChange={setFrom} />
+
+              <div className="ms-tpl-meta" style={{ gap: 10 }}>
+                <div className="ms-field">
+                  <label htmlFor="bc-reply-to">
+                    {t("composer.replyToLabel")}{" "}
+                    <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+                      — {t("composer.optional")}
+                    </span>
+                  </label>
+                  <input
+                    id="bc-reply-to"
+                    className="ms-input mono"
+                    style={{ width: "100%" }}
+                    value={replyTo}
+                    onChange={(event) => setReplyTo(event.target.value)}
+                  />
+                </div>
+                <div className="ms-field">
+                  <label htmlFor="bc-subject">{t("composer.subjectLabel")}</label>
+                  <input
+                    id="bc-subject"
+                    className="ms-input"
+                    style={{ width: "100%" }}
+                    value={subject}
+                    onChange={(event) => setSubject(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="ms-field">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 6,
+                  }}
+                >
+                  <label htmlFor="bc-html" style={{ marginBottom: 0 }}>
+                    {t("composer.htmlLabel")}
+                  </label>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(["edit", "preview"] as const).map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        style={{
+                          fontSize: 13,
+                          padding: "4px 10px",
+                          borderRadius: 8,
+                          border: 0,
+                          cursor: "pointer",
+                          background: tab === key ? "var(--ms-panel-raised)" : "none",
+                          color: tab === key ? "var(--ms-bone)" : "var(--ms-muted)",
+                          font: "inherit",
+                        }}
+                        onClick={() => setTab(key)}
+                      >
+                        {t(key === "edit" ? "composer.editTab" : "composer.previewTab")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {tab === "edit" && mode === "blocks" ? (
+                  <MailyEditor
+                    key={`${templateId}:${editorNonce}`}
+                    value={{ document, html }}
+                    convertHtml={converting}
+                    onChange={(v) => {
+                      setDocument(v.document);
+                      const snapshot = JSON.stringify(v.document);
+                      // First emit of a brand-new document is the baseline, not an edit.
+                      if (savedDoc.current === null) savedDoc.current = snapshot;
+                      else if (snapshot !== savedDoc.current) setDirty(true);
+                    }}
+                    mergeFields={mergeFields}
+                  />
+                ) : tab === "edit" ? (
+                  <HtmlCodeMode
+                    id="bc-html"
+                    html={html}
+                    onChange={(next) => {
+                      setHtml(next);
+                      setDirty(next !== savedHtml.current);
+                    }}
+                    mergeFields={mergeFields}
+                    previewSamples={previewSamples}
+                    hasText={text !== ""}
+                  />
+                ) : (
+                  <>
+                    {mode === "code" ? (
+                      <HtmlAuthoredBanner
+                        onEditHtml={() => setTab("edit")}
+                        onConvert={() => setConvertOpen(true)}
+                      />
+                    ) : null}
+                    <div
+                      style={{
+                        border: "1px solid var(--ms-line)",
+                        borderRadius: "var(--ms-r-input)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {html ? (
+                        <ContentPreview
+                          html={html}
+                          title={t("composer.previewTab")}
+                          samples={previewSamples}
+                        />
+                      ) : (
+                        <p
+                          style={{
+                            margin: 0,
+                            padding: "16px 18px",
+                            color: "var(--ms-muted)",
+                            fontSize: "var(--ms-fs-ui)",
+                          }}
+                        >
+                          {t("composer.noHtml")}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+                {draft.recovered ? (
+                  <DraftBanner
+                    savedAt={draft.recovered.savedAt}
+                    onRestore={() => {
+                      const r = draft.recovered;
+                      if (r) restoreDraft(r.data);
+                    }}
+                    onDiscard={draft.discardRecovered}
+                  />
+                ) : null}
+              </div>
+
+              {saveError && !guardOpen ? (
+                <p className="ms-field-error" style={{ margin: 0 }}>
+                  {t("composer.saveError")}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        open={guardOpen}
+        onClose={closeGuard}
+        onConfirm={() => void confirmSend()}
+        title={t("guard.title")}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void confirmSend();
+          }}
+        >
+          {sendPlan.data ? (
+            <SendPlanSummary
+              count={sendPlan.data.count}
+              estimate={sendPlan.data.estimate}
+              cloud={sendPlan.data.cloud}
+              locale={locale}
+            />
+          ) : (
+            <p
+              style={{ margin: "0 0 18px", fontSize: "var(--ms-fs-ui)", color: "var(--ms-muted)" }}
+            >
+              {t("guard.counting")}
+            </p>
+          )}
+          <div className="ms-field">
+            <label htmlFor="bc-schedule">
+              {t("guard.scheduleLabel")}{" "}
+              <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+                — {t("composer.optional")}
+              </span>
+            </label>
+            <input
+              id="bc-schedule"
+              type="datetime-local"
+              className="ms-input"
+              style={{ width: "100%" }}
+              value={schedule}
+              onChange={(event) => setSchedule(event.target.value)}
+            />
+          </div>
+          {sendErrorMessage ? <p className="ms-field-error">{sendErrorMessage}</p> : null}
+          <ModalFooter>
+            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeGuard}>
+              {common("cancel")} <span className="ms-keycap">Esc</span>
+            </button>
+            <button
+              type="submit"
+              className="ms-btn ms-btn-primary"
+              disabled={sending || sendBlocked}
+            >
+              <BtnSpinner on={sending} />
+              {schedule ? t("guard.schedule") : t("guard.sendNow")} <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      <ConvertBlocksDialog
+        open={convertOpen}
+        onClose={closeConvert}
+        onConvertInPlace={convertInPlace}
+        inPlaceLabel={t("composer.convertInPlace")}
+      />
+    </>
+  );
+}

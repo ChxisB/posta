@@ -1,0 +1,98 @@
+{
+  "toolbar": {
+    "variables": "Variables",
+    "formatting": "Formatting",
+    "h1": "Heading 1",
+    "h2": "Heading 2",
+    "bulletList": "Bullet list",
+    "orderedList": "Numbered list",
+    "alignLeft": "Align left",
+    "alignCenter": "Align center",
+    "alignRight": "Align right",
+    "clear": "Clear formatting"
+  },
+  "panel": {
+    "link": "Link",
+    "linkPrompt": "Link URL (leave empty to remove)",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "apply": "Apply",
+    "removeLink": "Remove link"
+  },
+  "picker": {
+    "search": "Search fields…",
+    "fallback": "Fallback (optional)",
+    "empty": "No fields match."
+  },
+  "slash": {
+    "group": "Blocks",
+    "text": {
+      "title": "Text",
+      "desc": "Plain paragraph text."
+    },
+    "heading1": {
+      "title": "Heading 1",
+      "desc": "Large section heading."
+    },
+    "heading2": {
+      "title": "Heading 2",
+      "desc": "Medium section heading."
+    },
+    "heading3": {
+      "title": "Heading 3",
+      "desc": "Small section heading."
+    },
+    "bulletList": {
+      "title": "Bullet list",
+      "desc": "A simple bulleted list."
+    },
+    "orderedList": {
+      "title": "Numbered list",
+      "desc": "A numbered list."
+    },
+    "image": {
+      "title": "Image",
+      "desc": "Full-width image."
+    },
+    "button": {
+      "title": "Button",
+      "desc": "A call-to-action button."
+    },
+    "divider": {
+      "title": "Divider",
+      "desc": "A horizontal rule between sections."
+    },
+    "spacer": {
+      "title": "Spacer",
+      "desc": "Vertical breathing room."
+    },
+    "blockquote": {
+      "title": "Quote",
+      "desc": "Set text apart as a quote."
+    },
+    "columns": {
+      "title": "Columns",
+      "desc": "Side-by-side layout columns."
+    },
+    "section": {
+      "title": "Section",
+      "desc": "Group content in a styled box."
+    }
+  },
+  "ph": {
+    "body": "Write something, or / for blocks",
+    "heading": "Heading {level}"
+  },
+  "varpop": {
+    "variable": "Variable",
+    "fallback": "Default",
+    "fallbackPlaceholder": "e.g. John"
+  },
+  "suggest": {
+    "header": "Variables",
+    "navigate": "Navigate",
+    "empty": "No fields match."
+  }
+}

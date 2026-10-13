@@ -1,0 +1,287 @@
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import { sql } from "drizzle-orm";
+import { firstRow } from "./driver-result.js";
+import { OVERAGE_HARD_CAP, QUOTA_TOLERANCE, type TeamQuota } from "./plans.js";
+import { bumpHourlyUsage } from "./usage-hourly.js";
+import { utcDay } from "./utc-day.js";
+
+/**
+ * `accepted` is the counter the reservation ran against (the UTC day on a
+ * daily cap, the billing period on a monthly one) after the call; `ceiling`
+ * is the most that counter may reach, null when nothing caps it.
+ */
+export type QuotaResult =
+  | { reserved: true; accepted: number; ceiling: number | null }
+  | {
+      reserved: false;
+      accepted: number;
+      ceiling: number | null;
+      /** Set when the operator's daily ceiling, not the billing period, refused a monthly plan's send. */
+      cap?: "day";
+    };
+
+/**
+ * The instant a send is charged to: its delivery time, never earlier than
+ * now. A past scheduled_at sends at once and counts today; charged to its
+ * own day it would land on an unspent counter, a fresh cap per past day.
+ */
+export function quotaChargeAt(scheduledAt: Date | null | undefined, now: Date = new Date()): Date {
+  return scheduledAt && scheduledAt.getTime() > now.getTime() ? scheduledAt : now;
+}
+
+/**
+ * Atomically reserve `count` sends against a team's daily limit (UTC day).
+ * Single upsert with the limit re-checked inside the UPDATE's WHERE, so
+ * concurrent requests can never overshoot the cap — no cached aggregates.
+ * `limit === null` means unlimited (Scale plan / self-host): counts are still
+ * recorded for metrics but never rejected.
+ *
+ * CONTRACT: call inside the same transaction that inserts the email rows —
+ * a crash between reserve and insert otherwise burns quota with nothing
+ * sent. Callers that cannot share a transaction must compensate failures
+ * with releaseDailyQuota.
+ */
+/** Most a team may accept in one UTC day: the plan cap plus its tolerance. */
+export function dailyCeiling(limit: number): number {
+  return Math.floor(limit * (1 + QUOTA_TOLERANCE));
+}
+
+export async function reserveDailyQuota(
+  db: Db,
+  params: {
+    teamId: string;
+    count: number;
+    limit: number | null;
+    /** An operator ceiling: a hard line the tolerance above `limit` never crosses. */
+    hardLimit?: number | null;
+    day?: string;
+    /** The instant the sends count against (their delivery time); noon of `day` when only that is known. */
+    at?: Date;
+  },
+): Promise<QuotaResult> {
+  const { teamId, count, limit } = params;
+  if (count <= 0) throw new Error("count must be positive");
+  const day = params.day ?? utcDay();
+  const at = params.at ?? (params.day ? new Date(`${params.day}T12:00:00Z`) : new Date());
+  const t = schema.usageCounters;
+  const soft = limit === null ? null : dailyCeiling(limit);
+  const hard = params.hardLimit ?? null;
+  const ceiling = soft === null ? hard : hard === null ? soft : Math.min(soft, hard);
+
+  if (ceiling !== null && count > ceiling) {
+    const existing = await db
+      .select({ accepted: t.accepted })
+      .from(t)
+      .where(sql`${t.teamId} = ${teamId} and ${t.day} = ${day}`);
+    return { reserved: false, accepted: existing[0]?.accepted ?? 0, ceiling };
+  }
+
+  const guard = ceiling === null ? sql`true` : sql`${t.accepted} + ${count} <= ${ceiling}`;
+  const rows = await db.execute<{ accepted: number }>(sql`
+    insert into ${t} (team_id, day, accepted)
+    values (${teamId}, ${day}, ${count})
+    on conflict (team_id, day) do update
+      set accepted = ${t.accepted} + ${count}
+      where ${guard}
+    returning accepted
+  `);
+
+  const row = firstRow<{ accepted: number }>(rows);
+  if (row) {
+    await bumpHourlyUsage(db, { teamId, at, counts: { accepted: count } });
+    return { reserved: true, accepted: Number(row.accepted), ceiling };
+  }
+
+  const existing = await db
+    .select({ accepted: t.accepted })
+    .from(t)
+    .where(sql`${t.teamId} = ${teamId} and ${t.day} = ${day}`);
+  return { reserved: false, accepted: existing[0]?.accepted ?? 0, ceiling };
+}
+
+/**
+ * Compensating release for non-transactional callers whose work failed after
+ * a successful reservation. Floors at zero.
+ */
+export async function releaseDailyQuota(
+  db: Db,
+  params: { teamId: string; count: number; day?: string; at?: Date },
+): Promise<void> {
+  if (params.count <= 0) throw new Error("count must be positive");
+  const day = params.day ?? utcDay();
+  const at = params.at ?? (params.day ? new Date(`${params.day}T12:00:00Z`) : new Date());
+  const t = schema.usageCounters;
+  await db.execute(sql`
+    update ${t}
+    set accepted = greatest(accepted - ${params.count}, 0)
+    where ${t.teamId} = ${params.teamId} and ${t.day} = ${day}
+  `);
+  await bumpHourlyUsage(db, { teamId: params.teamId, at, counts: { accepted: -params.count } });
+}
+
+/**
+ * Atomically reserve `count` sends against a monthly plan's billing period,
+ * the same single-upsert shape as the daily table. No tolerance: at the
+ * included volume the reservation is refused unless overage is on, in which
+ * case the counter keeps growing (the excess is what the meter bills) until
+ * OVERAGE_HARD_CAP times the volume. The daily counters are bumped alongside
+ * (uncapped) so Metrics and the history table see every send.
+ */
+export async function reservePeriodQuota(
+  db: Db,
+  params: {
+    teamId: string;
+    count: number;
+    included: number;
+    periodStart: Date;
+    overage: boolean;
+    /** Operator ceiling on the UTC day; the daily counter then caps as on a daily plan. */
+    dailyCeiling?: number | null | undefined;
+    day?: string;
+    at?: Date;
+  },
+): Promise<QuotaResult> {
+  const { teamId, count, periodStart } = params;
+  if (count <= 0) throw new Error("count must be positive");
+  const ceiling = params.overage ? params.included * OVERAGE_HARD_CAP : params.included;
+  const t = schema.usagePeriods;
+  const current = async () => {
+    const [row] = await db
+      .select({ accepted: t.accepted })
+      .from(t)
+      .where(sql`${t.teamId} = ${teamId} and ${t.periodStart} = ${periodStart}`);
+    return row?.accepted ?? 0;
+  };
+  if (count > ceiling) {
+    return { reserved: false, accepted: await current(), ceiling };
+  }
+  const guard = sql`${t.accepted} + ${count} <= ${ceiling}`;
+  const rows = await db.execute<{ accepted: number }>(sql`
+    insert into ${t} (team_id, period_start, accepted)
+    values (${teamId}, ${periodStart}, ${count})
+    on conflict (team_id, period_start) do update
+      set accepted = ${t.accepted} + ${count}
+      where ${guard}
+    returning accepted
+  `);
+  const row = firstRow<{ accepted: number }>(rows);
+  if (!row) return { reserved: false, accepted: await current(), ceiling };
+  const daily = await reserveDailyQuota(db, {
+    teamId,
+    count,
+    limit: null,
+    hardLimit: params.dailyCeiling ?? null,
+    ...(params.day ? { day: params.day } : {}),
+    ...(params.at ? { at: params.at } : {}),
+  });
+  if (!daily.reserved) {
+    // The day refused, not the period: hand the period its count back so a
+    // parked send is charged once, when the drain reserves it again.
+    await releasePeriodCount(db, { teamId, count, periodStart });
+    return { reserved: false, accepted: daily.accepted, ceiling: daily.ceiling, cap: "day" };
+  }
+  return { reserved: true, accepted: Number(row.accepted), ceiling };
+}
+
+/** Hands a billing period back `count` sends and leaves every day's counter alone; floors at zero. */
+export async function releasePeriodCount(
+  db: Db,
+  params: { teamId: string; count: number; periodStart: Date },
+): Promise<void> {
+  const t = schema.usagePeriods;
+  await db.execute(sql`
+    update ${t}
+    set accepted = greatest(accepted - ${params.count}, 0)
+    where ${t.teamId} = ${params.teamId} and ${t.periodStart} = ${params.periodStart}
+  `);
+}
+
+/** Compensating release for a period reservation; floors at zero and mirrors the daily release. */
+export async function releasePeriodQuota(
+  db: Db,
+  params: { teamId: string; count: number; periodStart: Date; day?: string; at?: Date },
+): Promise<void> {
+  if (params.count <= 0) throw new Error("count must be positive");
+  await releasePeriodCount(db, params);
+  await releaseDailyQuota(db, {
+    teamId: params.teamId,
+    count: params.count,
+    ...(params.day ? { day: params.day } : {}),
+    ...(params.at ? { at: params.at } : {}),
+  });
+}
+
+/**
+ * Reserve against whatever caps the team (teamQuota): the UTC day on a daily
+ * plan, the billing period on a monthly one, nothing on self-host (counted
+ * only). The one entry point every accept surface goes through.
+ */
+export async function reserveQuota(
+  db: Db,
+  params: { teamId: string; count: number; quota: TeamQuota; day?: string; at?: Date },
+): Promise<QuotaResult> {
+  const { teamId, count, quota } = params;
+  const when = {
+    ...(params.day ? { day: params.day } : {}),
+    ...(params.at ? { at: params.at } : {}),
+  };
+  if (quota.kind === "month") {
+    return reservePeriodQuota(db, {
+      teamId,
+      count,
+      included: quota.included,
+      periodStart: quota.periodStart,
+      overage: quota.overage,
+      dailyCeiling: quota.dailyCeiling,
+      ...when,
+    });
+  }
+  return reserveDailyQuota(db, {
+    teamId,
+    count,
+    limit: quota.kind === "day" ? quota.limit : null,
+    hardLimit: quota.kind === "day" ? (quota.dailyCeiling ?? null) : null,
+    ...when,
+  });
+}
+
+/** Compensating release for reserveQuota. */
+export async function releaseQuota(
+  db: Db,
+  params: { teamId: string; count: number; quota: TeamQuota; day?: string; at?: Date },
+): Promise<void> {
+  const when = {
+    ...(params.day ? { day: params.day } : {}),
+    ...(params.at ? { at: params.at } : {}),
+  };
+  if (params.quota.kind === "month") {
+    await releasePeriodQuota(db, {
+      teamId: params.teamId,
+      count: params.count,
+      periodStart: params.quota.periodStart,
+      ...when,
+    });
+    return;
+  }
+  await releaseDailyQuota(db, { teamId: params.teamId, count: params.count, ...when });
+}
+
+/** Sends accepted so far, and how many past the included volume the meter already knows about. */
+export async function readPeriodUsage(
+  db: Db,
+  teamId: string,
+  periodStart: Date,
+): Promise<{ accepted: number; reportedOverage: number }> {
+  const t = schema.usagePeriods;
+  const [row] = await db
+    .select({ accepted: t.accepted, reportedOverage: t.reportedOverage })
+    .from(t)
+    .where(sql`${t.teamId} = ${teamId} and ${t.periodStart} = ${periodStart}`);
+  return row ?? { accepted: 0, reportedOverage: 0 };
+}
+
+/** The remaining room under a quota after a reservation answered; null when nothing caps it. */
+export function quotaRoom(result: QuotaResult): number | null {
+  return result.ceiling === null ? null : Math.max(0, result.ceiling - result.accepted);
+}

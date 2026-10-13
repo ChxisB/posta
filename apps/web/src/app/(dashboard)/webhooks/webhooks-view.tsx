@@ -1,0 +1,488 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { ResourceApiButton } from "@/components/api-sheet";
+import { Breakable } from "@/components/breakable";
+import { confirmDialog } from "@/components/confirm-dialog";
+import { CopyChip } from "@/components/copy-chip";
+import { EmptyState } from "@/components/empty-state";
+import { PlusGlyph } from "@/components/icons/nav-icons";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { PageHeader } from "@/components/page-header";
+import { PopoverMenu } from "@/components/popover-menu";
+import { RelativeTime } from "@/components/relative-time";
+import { Skeleton, SkeletonBadge } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { NavTile, TONE_COLOR } from "@/components/status-tile";
+import { Table } from "@/components/table";
+import { Tooltip } from "@/components/tooltip";
+import { codeRichTags } from "@/lib/code-rich-tags";
+import { displayUrl } from "@/lib/format";
+import { useTRPC } from "@/lib/trpc";
+import { WEBHOOK_EVENT_META, type WebhookEventType } from "@/lib/webhook-events";
+import { ListFooter, PAGE_SIZES } from "../emails/list-parts";
+import {
+  type EditableWebhook,
+  EventTypesPicker,
+  InboxFilterField,
+  WebhookEditModal,
+  WebhookRotateModal,
+} from "./webhook-dialogs";
+import { ENDPOINT_VARIANTS, QueueLine, WebhookStatusBadge } from "./webhook-status-badge";
+
+/** Mirrors the loaded table: mono URL, events chip, badge, rate, time, menu. */
+function WebhooksSkeleton() {
+  const t = useTranslations("webhooks");
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <th>{t("table.url")}</th>
+          <th>{t("table.events")}</th>
+          <th>{t("table.status")}</th>
+          <th>{t("table.successRate")}</th>
+          <th>{t("table.created")}</th>
+          <th className="right" aria-label={t("table.menu")} />
+        </tr>
+      </thead>
+      <tbody>
+        {[220, 180].map((width) => (
+          <tr key={width}>
+            <td>
+              <Skeleton width={width} height={13} />
+            </td>
+            <td>
+              <Skeleton width={56} height={13} />
+            </td>
+            <td>
+              <SkeletonBadge />
+            </td>
+            <td>
+              <Skeleton width={40} height={13} />
+            </td>
+            <td>
+              <Skeleton width={72} />
+            </td>
+            <td className="right" />
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+export function WebhooksView() {
+  const t = useTranslations("webhooks");
+  const common = useTranslations("common");
+  const nav = useTranslations("nav");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const listQuery = useQuery(trpc.webhooks.list.queryOptions());
+  const webhooks = listQuery.data;
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [description, setDescription] = useState("");
+  const [allEvents, setAllEvents] = useState(true);
+  const [selectedEvents, setSelectedEvents] = useState<WebhookEventType[]>([]);
+  // Empty = every inbox.
+  const [inboxIds, setInboxIds] = useState<string[]>([]);
+  const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; url: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<EditableWebhook | null>(null);
+  const [rotateTarget, setRotateTarget] = useState<{ id: string; url: string } | null>(null);
+  // Client-side paging: the list query returns every endpoint (webhook counts
+  // are small); the footer only bounds what is rendered.
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
+  const [pages, setPages] = useState(1);
+
+  const invalidateList = () =>
+    queryClient.invalidateQueries({ queryKey: trpc.webhooks.list.queryKey() });
+
+  const createMutation = useMutation(
+    trpc.webhooks.create.mutationOptions({
+      onSuccess: (data) => {
+        setRevealedSecret(data.secret);
+        void invalidateList();
+      },
+    }),
+  );
+  const updateMutation = useMutation(
+    trpc.webhooks.update.mutationOptions({ onSuccess: () => void invalidateList() }),
+  );
+  const deleteMutation = useMutation(
+    trpc.webhooks.delete.mutationOptions({
+      onSuccess: () => {
+        setDeleteTarget(null);
+        void invalidateList();
+      },
+    }),
+  );
+
+  // Stable identities: Modal's focus effect depends on onClose, and a fresh
+  // arrow per render would re-run it on every keystroke, stealing focus from
+  // the form inputs.
+  const { reset: resetCreate } = createMutation;
+  const closeCreate = useCallback(() => {
+    setCreateOpen(false);
+    setRevealedSecret(null);
+    setUrl("");
+    setDescription("");
+    setAllEvents(true);
+    setSelectedEvents([]);
+    setInboxIds([]);
+    resetCreate();
+  }, [resetCreate]);
+  const closeDelete = useCallback(() => setDeleteTarget(null), []);
+  const closeEdit = useCallback(() => setEditTarget(null), []);
+  const closeRotate = useCallback(() => setRotateTarget(null), []);
+
+  const urlValid = url.trim().startsWith("https://");
+  const submittable = urlValid && (allEvents || selectedEvents.length > 0);
+
+  // Shared by the form's onSubmit and the modal's ⌘↵ onConfirm, with the same
+  // guards as the primary button's disabled state.
+  const submitCreate = () => {
+    if (!submittable || createMutation.isPending) return;
+    const trimmedDescription = description.trim();
+    createMutation.mutate({
+      url: url.trim(),
+      eventTypes: allEvents ? [] : selectedEvents,
+      ...(trimmedDescription ? { description: trimmedDescription } : {}),
+      ...(inboxIds.length > 0 ? { inboxIds } : {}),
+    });
+  };
+  const submitDelete = () => {
+    if (!deleteTarget || deleteMutation.isPending) return;
+    deleteMutation.mutate({ id: deleteTarget.id });
+  };
+  // Disabling silently drops live traffic, so it confirms; enabling is direct.
+  const toggleEnabled = async (webhook: { id: string; url: string; enabled: boolean }) => {
+    if (webhook.enabled) {
+      const ok = await confirmDialog({
+        title: t("disableConfirm.title"),
+        message: t("disableConfirm.body", { url: webhook.url }),
+        confirmLabel: t("disableConfirm.confirm"),
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    updateMutation.mutate({ id: webhook.id, enabled: !webhook.enabled });
+  };
+
+  return (
+    <>
+      <PageHeader
+        title={nav("webhooks")}
+        actions={
+          <button
+            type="button"
+            className="ms-btn ms-btn-primary"
+            onClick={() => setCreateOpen(true)}
+          >
+            <PlusGlyph size={14} />
+            {t("addWebhook")}
+          </button>
+        }
+        menu={<ResourceApiButton resource="webhooks" />}
+      />
+
+      {listQuery.isPending ? <WebhooksSkeleton /> : null}
+
+      {webhooks && webhooks.length === 0 ? (
+        <EmptyState
+          area="webhooks"
+          headline={t("empty.headline")}
+          body={t("empty.body")}
+          cta={
+            <button
+              type="button"
+              className="ms-btn ms-btn-primary"
+              onClick={() => setCreateOpen(true)}
+            >
+              <PlusGlyph />
+              {t("addWebhook")}
+            </button>
+          }
+        />
+      ) : null}
+
+      {webhooks && webhooks.length > 0 ? (
+        <>
+          <Table>
+            <thead>
+              <tr>
+                <th>{t("table.url")}</th>
+                <th>{t("table.events")}</th>
+                <th>{t("table.status")}</th>
+                <th>{t("table.successRate")}</th>
+                <th>{t("table.created")}</th>
+                <th className="right" aria-label={t("table.menu")} />
+              </tr>
+            </thead>
+            <tbody>
+              {webhooks.slice(0, pages * pageSize).map((webhook) => (
+                <tr key={webhook.id}>
+                  <td>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                      <NavTile
+                        name="webhooks"
+                        color={TONE_COLOR[ENDPOINT_VARIANTS[webhook.status]]}
+                      />
+                      <Link
+                        href={`/webhooks/${webhook.id}`}
+                        className="ms-mono"
+                        style={{
+                          color: "var(--ms-bone)",
+                          textDecoration: "underline",
+                          textUnderlineOffset: 3,
+                        }}
+                      >
+                        <Breakable text={displayUrl(webhook.url)} />
+                      </Link>
+                    </span>
+                    <QueueLine queued={webhook.queued} oldestQueuedAt={webhook.oldestQueuedAt} />
+                  </td>
+                  <td>
+                    {webhook.eventTypes === null || webhook.eventTypes.length === 0 ? (
+                      <span className="ms-chip">{t("allEvents")}</span>
+                    ) : (
+                      <Tooltip
+                        inline
+                        text={
+                          <span style={{ display: "grid", gap: 4 }}>
+                            {webhook.eventTypes.map((type) => (
+                              <span
+                                key={type}
+                                style={{ display: "flex", alignItems: "center", gap: 6 }}
+                              >
+                                <span
+                                  className="ms-dot"
+                                  style={{
+                                    background: WEBHOOK_EVENT_META[type as WebhookEventType]?.dot,
+                                  }}
+                                  aria-hidden="true"
+                                />
+                                {t(`eventLabel.${type}`)}
+                              </span>
+                            ))}
+                          </span>
+                        }
+                      >
+                        <span className="ms-chip">
+                          {t("eventsCount", { count: webhook.eventTypes.length })}
+                        </span>
+                      </Tooltip>
+                    )}
+                  </td>
+                  <td>
+                    <WebhookStatusBadge status={webhook.status} />
+                  </td>
+                  <td>
+                    <span className="ms-mono">
+                      {webhook.successRate === null ? "—" : `${webhook.successRate}%`}
+                    </span>
+                  </td>
+                  <td>
+                    <RelativeTime date={webhook.createdAt} />
+                  </td>
+                  <td className="right">
+                    <PopoverMenu
+                      ariaLabel={t("table.menu")}
+                      items={[
+                        {
+                          label: t("edit"),
+                          onSelect: () =>
+                            setEditTarget({
+                              id: webhook.id,
+                              url: webhook.url,
+                              description: webhook.description,
+                              eventTypes: webhook.eventTypes,
+                              inboxIds: webhook.inboxIds,
+                            }),
+                        },
+                        {
+                          label: t("rotateSecret"),
+                          onSelect: () => setRotateTarget({ id: webhook.id, url: webhook.url }),
+                        },
+                        null,
+                        {
+                          label: webhook.enabled ? t("disable") : t("enable"),
+                          onSelect: () => void toggleEnabled(webhook),
+                        },
+                        null,
+                        {
+                          label: t("delete"),
+                          danger: true,
+                          onSelect: () => setDeleteTarget({ id: webhook.id, url: webhook.url }),
+                        },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <ListFooter
+            left={t("pageOf", {
+              pages: Math.min(pages, Math.ceil(webhooks.length / pageSize)),
+              total: webhooks.length,
+            })}
+            size={pageSize}
+            onSize={(next) => {
+              setPageSize(next);
+              setPages(1);
+            }}
+            sizeLabel={(size) => t("pageSize", { count: size })}
+            singlePage={pages === 1 && webhooks.length <= pageSize}
+            loadMore={
+              webhooks.length > pages * pageSize
+                ? { label: t("loadMore"), onClick: () => setPages((p) => p + 1) }
+                : undefined
+            }
+          />
+        </>
+      ) : null}
+
+      <Modal
+        open={createOpen}
+        onClose={closeCreate}
+        onConfirm={revealedSecret ? closeCreate : submitCreate}
+        title={revealedSecret ? t("reveal.title") : t("create.title")}
+      >
+        {revealedSecret ? (
+          <form
+            style={{ display: "grid", gap: 12, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              closeCreate();
+            }}
+          >
+            <div>
+              <div className="ms-microlabel" style={{ marginBottom: 6 }}>
+                {t("reveal.secretLabel")}
+              </div>
+              <CopyChip value={revealedSecret} />
+            </div>
+            <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+              {t("reveal.warning")}
+            </p>
+            <ModalFooter>
+              <button type="submit" className="ms-btn ms-btn-primary">
+                {t("reveal.done")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        ) : (
+          <form
+            style={{ display: "grid", gap: 14, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitCreate();
+            }}
+          >
+            <div className="ms-field">
+              <label htmlFor="webhook-url">{t("create.url")}</label>
+              <input
+                id="webhook-url"
+                className="ms-input mono"
+                style={{ width: "100%" }}
+                value={url}
+                disabled={createMutation.isPending}
+                placeholder={t("create.urlPlaceholder")}
+                autoComplete="off"
+                spellCheck={false}
+                onChange={(event) => setUrl(event.target.value)}
+              />
+            </div>
+            <div className="ms-field">
+              <label htmlFor="webhook-description">{t("create.description")}</label>
+              <input
+                id="webhook-description"
+                className="ms-input"
+                style={{ width: "100%" }}
+                value={description}
+                disabled={createMutation.isPending}
+                placeholder={t("create.descriptionPlaceholder")}
+                autoComplete="off"
+                onChange={(event) => setDescription(event.target.value)}
+              />
+            </div>
+            <div className="ms-field">
+              <label htmlFor="webhook-events">{t("create.events")}</label>
+              <EventTypesPicker
+                id="webhook-events"
+                allEvents={allEvents}
+                selected={selectedEvents}
+                disabled={createMutation.isPending}
+                onToggleAll={setAllEvents}
+                onChange={setSelectedEvents}
+              />
+            </div>
+            <InboxFilterField
+              id="webhook-inboxes"
+              value={inboxIds}
+              onChange={setInboxIds}
+              disabled={createMutation.isPending}
+            />
+            <ModalFooter>
+              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
+                {common("cancel")} <span className="ms-keycap">Esc</span>
+              </button>
+              <button
+                type="submit"
+                className="ms-btn ms-btn-primary"
+                disabled={!submittable || createMutation.isPending}
+              >
+                <BtnSpinner on={createMutation.isPending} />
+                {t("create.submit")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        )}
+      </Modal>
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={closeDelete}
+        onConfirm={submitDelete}
+        title={t("deleteConfirm.title")}
+      >
+        {deleteTarget ? (
+          <form
+            style={{ display: "grid", gap: 14, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitDelete();
+            }}
+          >
+            <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+              {t.rich("deleteConfirm.body", { ...codeRichTags, url: deleteTarget.url })}
+            </p>
+            <ModalFooter>
+              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
+                {common("cancel")} <span className="ms-keycap">Esc</span>
+              </button>
+              <button
+                type="submit"
+                className="ms-btn ms-btn-destructive"
+                disabled={deleteMutation.isPending}
+              >
+                <BtnSpinner on={deleteMutation.isPending} />
+                {t("deleteConfirm.confirm")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        ) : null}
+      </Modal>
+
+      <WebhookEditModal webhook={editTarget} onClose={closeEdit} />
+      <WebhookRotateModal webhook={rotateTarget} onClose={closeRotate} />
+    </>
+  );
+}

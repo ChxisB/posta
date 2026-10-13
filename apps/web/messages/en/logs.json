@@ -1,0 +1,53 @@
+{
+  "list": {
+    "title": "Logs",
+    "method": "Method",
+    "path": "Path",
+    "status": "Status",
+    "when": "When",
+    "loadMore": "Load more",
+    "empty": "No requests yet.",
+    "emptyHint": "Calls to the API with your key show up here — <code>POST /emails</code> is a good first one.",
+    "noMatch": "No requests match your filters.",
+    "clearFilter": "Clear filters",
+    "loadError": "Couldn't load logs.",
+    "retry": "Retry",
+    "searchPlaceholder": "Search path…",
+    "allMethods": "All methods",
+    "source": "Source",
+    "allSources": "All sources",
+    "apiKeys": "API keys",
+    "allApiKeys": "All API keys",
+    "allConnectedApps": "All connected apps",
+    "revoked": "revoked",
+    "sources": {
+      "api_key": "API key",
+      "mcp": "MCP"
+    },
+    "allStatuses": "All statuses",
+    "range": {
+      "all": "All time",
+      "h24": "Last 24 hours",
+      "d7": "Last 7 days",
+      "d15": "Last 15 days",
+      "d30": "Last 30 days"
+    }
+  },
+  "detail": {
+    "eyebrow": "Log",
+    "notFound": "Log not found.",
+    "status": "Status",
+    "when": "When",
+    "id": "ID",
+    "source": "Source",
+    "sourceApiKey": "API key · {name}",
+    "sourceMcp": "MCP · {name}",
+    "request": "Request",
+    "response": "Response",
+    "requestNotStored": "No request body stored: the request had none, or it was not JSON.",
+    "responseNotStored": "No response body stored: the response had none, or it was not JSON.",
+    "bodyTruncated": "Body over 64 KB not stored ({size}).",
+    "membersHint": "Bodies are visible to owners and admins.",
+    "supportViewHint": "Request and response bodies are hidden in support view."
+  }
+}

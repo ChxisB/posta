@@ -1,0 +1,44 @@
+import { getDb } from "@millionsend/db";
+import { cookies } from "next/headers";
+import { getAuth } from "@/server/auth";
+import { buildExport } from "@/server/exports";
+import { ACTIVE_TEAM_COOKIE, getActiveMembership } from "@/server/membership";
+import { resolveSupportView, SUPPORT_VIEW_COOKIE } from "@/server/support-view";
+
+/**
+ * CSV export for the dashboard list surfaces. Authenticated by the Better Auth
+ * session (never an API key) and scoped to the session's active team — the
+ * teamId comes only from membership, never from the request, so no query param
+ * can widen the export past the caller's own team. Admin-only: a full dump
+ * of the audience or mail archive is not a member-level action.
+ */
+export async function GET(request: Request, ctx: { params: Promise<{ resource: string }> }) {
+  const session = await getAuth().api.getSession({ headers: request.headers });
+  if (!session) return new Response(null, { status: 401 });
+
+  const db = getDb();
+  const cookieStore = await cookies();
+  // A support view reads on screen only: no file ever leaves under it.
+  if (await resolveSupportView(db, session.user.id, cookieStore.get(SUPPORT_VIEW_COOKIE)?.value)) {
+    return new Response(null, { status: 403 });
+  }
+  const membership = await getActiveMembership(
+    db,
+    session.user.id,
+    cookieStore.get(ACTIVE_TEAM_COOKIE)?.value,
+  );
+  if (!membership || membership.role === "member") return new Response(null, { status: 403 });
+
+  const { resource } = await ctx.params;
+  const url = new URL(request.url);
+  const result = await buildExport(db, membership.teamId, resource, url.searchParams);
+  if (!result) return new Response(null, { status: 404 });
+
+  return new Response(result.csv, {
+    headers: {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename="${result.filename}"`,
+      "cache-control": "no-store",
+    },
+  });
+}

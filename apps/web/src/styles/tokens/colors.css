@@ -1,0 +1,135 @@
+/* MillionSend colors — canonical values from design-system/tokens.css ("Rollover").
+   Dark is the default (no data-theme attribute); the light set below redefines
+   the full set. Either set also applies from any element carrying the
+   attribute, so a preview frame can show the other scheme inside the app. */
+:root,
+[data-theme="dark"] {
+  /* Ground & surfaces — separation comes from darkness + 1px lines, plus a
+     subtle edge-lit lift on floating/card surfaces (--ms-shadow-card below) */
+  --ms-void: #000000; /* app/page ground */
+  --ms-ground: #050505; /* alternate ground (large editorial surfaces) */
+  --ms-panel: #0c0c0d; /* sidebar, cards, drawers, modals */
+  --ms-panel-raised: #131316; /* table header strips, hover rows, active nav pill */
+  --ms-inset: #18181b; /* inputs, code blocks, token chips */
+  /* Lines */
+  --ms-line: #1f1f22; /* all borders, dividers, table rules — 1px, never heavier */
+  --ms-line-strong: #2a2a2e; /* menu/modal borders, focused-input border */
+  /* Elevation — one edge-lit lift for cards/popovers on the void ground: a soft
+     outer shadow with a barely-there bone top-highlight folded in. Tuned far
+     gentler than the LP's hero --lp-shadow so a page dense with cards stays calm. */
+  --ms-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(244, 241, 234, 0.045);
+  /* Top-edge highlight for glowing card borders (.ms-card-glow): brighter at
+     the top, fading to the normal line down the sides. */
+  --ms-glow-edge: rgba(244, 241, 234, 0.18);
+  /* Text */
+  --ms-bone: #f4f1ea; /* primary text — warm off-white, never pure white */
+  --ms-muted: #918f89; /* secondary text, labels, timestamps (≥6:1 on panel) */
+  --ms-faint: #5a5854; /* DISABLED/DECORATIVE ONLY — 2.8:1, never readable copy */
+  /* The accent — spent exactly once per view: primary CTA, live dot, or the newborn digit */
+  --ms-steel: #7f8791;
+  /* Status families — dim + desaturated so steel keeps authority; always carry a text label */
+  --ms-success: #5fce8b;
+  --ms-success-bg: #0f2519;
+  --ms-success-border: #1c3a28;
+  --ms-info: #7ea6db;
+  --ms-info-bg: #121d2e;
+  --ms-info-border: #1f3050;
+  --ms-warn: #d9ae5f;
+  --ms-warn-bg: #271f0e;
+  --ms-warn-border: #403014;
+  --ms-danger: #e07f76;
+  --ms-danger-bg: #271312;
+  --ms-danger-border: #47201d;
+  --ms-neutral: #b5b3ad;
+  --ms-neutral-bg: #1a1a1c;
+  --ms-neutral-border: #2a2a2e;
+  /* Two hues outside the status set, for badges that mirror Postman's method
+     palette (PATCH purple, OPTIONS pink); built like the families above. */
+  --ms-violet: #c0a8e1;
+  --ms-violet-bg: #1c1527;
+  --ms-violet-border: #33264a;
+  --ms-pink: #e88bc0;
+  --ms-pink-bg: #271320;
+  --ms-pink-border: #47203a;
+  /* Status dots — filter-option adornments. One hue per terminal outcome;
+     the in-flight family stays on grays so chroma always means a delivery
+     event. Tuned to this palette's dimness, deliberately muted. */
+  --ms-dot-queued: #75736d;
+  --ms-dot-queued-quota: #a3874f; /* quota-held — warm, hints at the cap */
+  --ms-dot-sent: #8b8983;
+  --ms-dot-delivery-delayed: #9c8f7d;
+  --ms-dot-delivered: #5fce8b;
+  --ms-dot-opened: #7ea6db;
+  --ms-dot-clicked: #a08fd8;
+  --ms-dot-bounced: #e0897d; /* salmon — soft fail, vs. the harder failed red */
+  --ms-dot-complained: #d9ae5f;
+  --ms-dot-account: #8fb3d9; /* team-level standing events */
+  --ms-dot-suppressed: #67655f;
+  --ms-dot-failed: #cf5546;
+}
+
+/* Light theme — warm paper ground, ink text, cool-gray hairlines. Same roles,
+   inverted values; separation still comes from tone + 1px lines, plus a much
+   softer edge-lit lift than dark (paper shows a heavy shadow as dirt).
+   Status text holds ≥4.5:1 on its tinted background. The attribute is set
+   pre-paint by the inline script in the root layout (explicit toggle only —
+   system preference is not followed). */
+:root[data-theme="light"],
+[data-theme="light"] {
+  --ms-void: #faf8f4;
+  --ms-ground: #f4f1ea;
+  --ms-panel: #fffefb;
+  --ms-panel-raised: #f1eee7;
+  --ms-inset: #f6f4ee;
+  --ms-line: #e7e6e2;
+  --ms-line-strong: #d7d6d1;
+  /* Softer than dark, with a white top-highlight — cards lift off paper without
+     the shadow reading as grime. */
+  --ms-shadow-card:
+    0 1px 2px rgba(31, 30, 26, 0.06), 0 8px 24px rgba(31, 30, 26, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ms-glow-edge: rgba(31, 30, 26, 0.16);
+  --ms-bone: #21201c;
+  --ms-muted: #6e6c66;
+  --ms-faint: #a9a7a0;
+  /* Steel keeps its hue, dropped in lightness so accents stay readable on paper. */
+  --ms-steel: #59616b;
+  --ms-success: #1f7a46;
+  --ms-success-bg: #e9f5ee;
+  --ms-success-border: #c5e2d1;
+  --ms-info: #2b5e9e;
+  --ms-info-bg: #eaf1fa;
+  --ms-info-border: #c9daef;
+  --ms-warn: #8a6018;
+  --ms-warn-bg: #faf2df;
+  --ms-warn-border: #e8d7ab;
+  --ms-danger: #b03a2e;
+  --ms-danger-bg: #fbecea;
+  --ms-danger-border: #efc9c3;
+  --ms-neutral: #55534e;
+  --ms-neutral-bg: #efede8;
+  --ms-neutral-border: #d9d7d1;
+  --ms-violet: #623497;
+  --ms-violet-bg: #f1eaf8;
+  --ms-violet-border: #d9c8ec;
+  --ms-pink: #a61468;
+  --ms-pink-bg: #fbe9f3;
+  --ms-pink-border: #efc3dc;
+  /* Dots — same grammar (grays in flight, chroma on delivery events),
+     darkened so 8px dots survive the paper ground. */
+  --ms-dot-queued: #8a8880;
+  --ms-dot-queued-quota: #8f7336;
+  --ms-dot-sent: #75736d;
+  --ms-dot-delivery-delayed: #857664;
+  --ms-dot-delivered: #2e9d5f;
+  --ms-dot-opened: #4a7fc0;
+  --ms-dot-clicked: #7a63c2;
+  --ms-dot-bounced: #c4685a;
+  --ms-dot-complained: #b8862f;
+  --ms-dot-account: #4f7aa8;
+  --ms-dot-suppressed: #a5a39a;
+  --ms-dot-failed: #c0392b;
+  --ms-focus-ring: 0 0 0 2px rgba(89, 97, 107, 0.28);
+}

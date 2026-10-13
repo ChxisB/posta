@@ -1,0 +1,165 @@
+import { randomBytes } from "node:crypto";
+import { describe, expect, it } from "vitest";
+import { EnvKeyring } from "../src/crypto/keyring.js";
+import {
+  buildWebhookPayload,
+  decryptWebhookSecret,
+  encryptWebhookSecret,
+  generateWebhookSecret,
+  parseWebhookSecret,
+  signWebhook,
+  verifyWebhookSignature,
+} from "../src/webhooks.js";
+
+describe("signing", () => {
+  // Known-answer vector from the Standard Webhooks / Svix documentation.
+  it("matches the published Standard Webhooks vector", () => {
+    const headers = signWebhook("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw", {
+      msgId: "msg_p5jXN8AQM9LWM0D4loKWxJek",
+      timestamp: 1614265330,
+      payload: '{"test": 2432232314}',
+    });
+    expect(headers["webhook-id"]).toBe("msg_p5jXN8AQM9LWM0D4loKWxJek");
+    expect(headers["webhook-timestamp"]).toBe("1614265330");
+    expect(headers["webhook-signature"]).toBe("v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=");
+    // Same values under the svix-* names Resend receivers read.
+    expect(headers["svix-id"]).toBe(headers["webhook-id"]);
+    expect(headers["svix-timestamp"]).toBe(headers["webhook-timestamp"]);
+    expect(headers["svix-signature"]).toBe(headers["webhook-signature"]);
+    expect(Object.keys(headers).sort()).toEqual([
+      "svix-id",
+      "svix-signature",
+      "svix-timestamp",
+      "webhook-id",
+      "webhook-signature",
+      "webhook-timestamp",
+    ]);
+  });
+
+  it("refuses to sign with a secret parseWebhookSecret rejects", () => {
+    expect(() => signWebhook("whsec_short", { msgId: "m", timestamp: 1, payload: "{}" })).toThrow(
+      /invalid webhook secret/,
+    );
+  });
+
+  it("round-trips through verify", () => {
+    const secret = generateWebhookSecret();
+    expect(secret).toMatch(/^whsec_[A-Za-z0-9+/=]+$/);
+    const now = new Date();
+    const payload = '{"type":"email.delivered"}';
+    const headers = signWebhook(secret, {
+      msgId: "msg_1",
+      timestamp: Math.floor(now.getTime() / 1000),
+      payload,
+    });
+    const parsed = {
+      id: headers["webhook-id"],
+      timestamp: headers["webhook-timestamp"],
+      signature: headers["webhook-signature"],
+    };
+    expect(verifyWebhookSignature(secret, parsed, payload, { now })).toBe(true);
+    expect(verifyWebhookSignature(secret, parsed, `${payload} `, { now })).toBe(false);
+    expect(verifyWebhookSignature(generateWebhookSecret(), parsed, payload, { now })).toBe(false);
+    // Stale timestamp outside tolerance.
+    expect(
+      verifyWebhookSignature(secret, parsed, payload, {
+        now: new Date(now.getTime() + 10 * 60 * 1000),
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("parseWebhookSecret", () => {
+  it("accepts whsec_ + canonical base64 of 24-64 bytes", () => {
+    expect(parseWebhookSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw")?.length).toBe(24);
+    expect(parseWebhookSecret(`whsec_${randomBytes(64).toString("base64")}`)?.length).toBe(64);
+    expect(parseWebhookSecret(generateWebhookSecret())).not.toBeNull();
+  });
+
+  it("rejects a missing prefix, out-of-range lengths, and non-canonical base64", () => {
+    const padded25 = randomBytes(25).toString("base64");
+    for (const bad of [
+      "MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw",
+      "whsec_",
+      `whsec_${randomBytes(23).toString("base64")}`,
+      `whsec_${randomBytes(65).toString("base64")}`,
+      // base64url alphabet decodes leniently but is not what strict verifiers read.
+      "whsec_-_v7-_v7-_v7-_v7-_v7-_v7-_v7-_v7",
+      // Padding stripped.
+      `whsec_${padded25.replace(/=+$/, "")}`,
+      "whsec_not base64 at all!!",
+    ]) {
+      expect(parseWebhookSecret(bad), bad).toBeNull();
+    }
+  });
+});
+
+describe("payload shape", () => {
+  const email = {
+    emailId: "e-1",
+    from: "Acme <a@acme.dev>",
+    to: ["r@example.com"],
+    subject: "hi",
+  };
+  const at = new Date("2026-08-14T12:00:00.000Z");
+
+  it("carries the Resend-style envelope and email facts", () => {
+    const p = buildWebhookPayload("email.delivered", email, at);
+    expect(p).toEqual({
+      type: "email.delivered",
+      created_at: "2026-08-14T12:00:00.000Z",
+      data: {
+        email_id: "e-1",
+        from: "Acme <a@acme.dev>",
+        to: ["r@example.com"],
+        subject: "hi",
+        created_at: "2026-08-14T12:00:00.000Z",
+      },
+    });
+  });
+
+  it("merges event-specific extras into data", () => {
+    const p = buildWebhookPayload("email.bounced", email, at, {
+      bounce: { type: "Permanent", sub_type: "General" },
+    });
+    expect(p.data.bounce).toEqual({ type: "Permanent", sub_type: "General" });
+    expect(p.data.email_id).toBe("e-1");
+  });
+});
+
+describe("secret at rest", () => {
+  it("envelope round-trips and stores no plaintext", async () => {
+    const keyring = EnvKeyring.fromBase64(randomBytes(32).toString("base64"));
+    const secret = generateWebhookSecret();
+    const encrypted = await encryptWebhookSecret(secret, keyring);
+    expect(encrypted.ciphertext.includes(Buffer.from(secret, "utf8"))).toBe(false);
+    expect(await decryptWebhookSecret(encrypted, keyring)).toBe(secret);
+  });
+});
+
+describe("rotation", () => {
+  it("signs with every secret, current first, so a receiver holding either verifies", () => {
+    const current = generateWebhookSecret();
+    const previous = generateWebhookSecret();
+    const params = { msgId: "msg_rot", timestamp: 1_700_000_000, payload: '{"a":1}' };
+    const headers = signWebhook([current, previous], params);
+    const candidates = headers["webhook-signature"].split(" ");
+    expect(candidates).toHaveLength(2);
+    expect(candidates[0]).toBe(signWebhook(current, params)["webhook-signature"]);
+    expect(headers["svix-signature"]).toBe(headers["webhook-signature"]);
+    const verify = (secret: string) =>
+      verifyWebhookSignature(
+        secret,
+        {
+          id: params.msgId,
+          timestamp: String(params.timestamp),
+          signature: headers["webhook-signature"],
+        },
+        params.payload,
+        { now: new Date(params.timestamp * 1000) },
+      );
+    expect(verify(current)).toBe(true);
+    expect(verify(previous)).toBe(true);
+    expect(verify(generateWebhookSecret())).toBe(false);
+  });
+});

@@ -1,0 +1,21 @@
+# Binaries and build output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bin/
+/dist/
+
+# Test and coverage artifacts
+*.test
+*.out
+coverage.txt
+
+# Dependency directory (modules are used instead)
+/vendor/
+
+# Editor / OS cruft
+.idea/
+.vscode/
+.DS_Store

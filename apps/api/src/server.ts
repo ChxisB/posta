@@ -1,0 +1,183 @@
+import { serve } from "@hono/node-server";
+import {
+  clamavHost,
+  env,
+  receivingMxHost,
+  servedRegions,
+  sesTenantsEnabled,
+  sharedInboxDomain,
+  trackingSubdomainsSupported,
+  unsubscribeBaseUrl,
+} from "@millionsend/config";
+import {
+  CLAMAV_MAX_BYTES,
+  CLAMAV_TIMEOUT_MS,
+  deriveInboxKeys,
+  deriveReceivedDownloadKey,
+  deriveUnsubscribeKey,
+  getInstanceSettings,
+  hashRecipient,
+  pacingHorizonDays,
+  scanWithClamd,
+} from "@millionsend/core";
+import { initErrorTracking } from "@millionsend/core/error-tracking-node";
+import { getDb } from "@millionsend/db";
+import { EMAIL_SEND_PRIORITY, Queue } from "@millionsend/queue";
+import {
+  createCachingCertFetcher,
+  createKeyringFromEnv,
+  createRegionAccountCache,
+  createSesAccountClient,
+  createSesv2Client,
+  regionAccountWithin,
+  type SesIdentityClient,
+} from "@millionsend/ses";
+import { createApi } from "./app.js";
+
+await initErrorTracking("api");
+
+// Throws on missing encryption configuration, so boot fails before any
+// listener starts.
+const keyring = createKeyringFromEnv(env);
+
+// The API is the email.send producer, so the queue is unconditional.
+const queue = await Queue.start(env.DATABASE_URL);
+
+// SES event ingestion exists only when a topic allowlist is configured —
+// signature checks without one would accept any AWS account's topic.
+const snsTopicArns = env.SNS_TOPIC_ARNS;
+
+// One client per region: identities live in the domain's region, which may
+// differ from AWS_REGION (mirrors the dashboard's defaultSesDeps in
+// apps/web/src/server/routers/domains.ts). Credentials fall back to the
+// default provider chain.
+const regionClients = new Map<string, SesIdentityClient>();
+function clientForRegion(region: string): SesIdentityClient {
+  let client = regionClients.get(region);
+  if (!client) {
+    client = createSesv2Client({
+      region,
+      ...(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY
+        ? { accessKeyId: env.AWS_ACCESS_KEY_ID, secretAccessKey: env.AWS_SECRET_ACCESS_KEY }
+        : {}),
+    });
+    regionClients.set(region, client);
+  }
+  return client;
+}
+
+const db = getDb();
+// The send planner's GetAccount, reused for a minute; a cold read gets two
+// seconds before the send answers without an estimate.
+const accountCache = createRegionAccountCache({
+  accountClient: (region) =>
+    createSesAccountClient({
+      region,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    }),
+});
+const settings = () => getInstanceSettings(db);
+const masterKey = Buffer.from(env.MASTER_ENCRYPTION_KEY, "base64");
+// Boot validation requires the secret whenever the host is set.
+const mxHost = receivingMxHost();
+const clamav = clamavHost();
+
+const app = createApi({
+  db,
+  keyring,
+  pacing: {
+    regionAccount: async (region) => {
+      const account = await regionAccountWithin(accountCache, region, 2_000);
+      return account?.ok ? account.overview.quota : null;
+    },
+    reservePercent: async () =>
+      (await settings()).sesTransactionalReserve ?? env.SES_TRANSACTIONAL_RESERVE,
+    rateCeiling: async () => (await settings()).sesMaxSendRate ?? env.SES_MAX_SEND_RATE,
+    horizonDays: async () =>
+      pacingHorizonDays((await settings()).emailRetentionDays ?? env.EMAIL_RETENTION_DAYS),
+  },
+  isCloud: env.IS_CLOUD,
+  onboardingEmailFrom: env.ONBOARDING_EMAIL_FROM,
+  openaiAppsChallengeToken: env.OPENAI_APPS_CHALLENGE_TOKEN,
+  rateLimitPerMinute: env.API_RATE_LIMIT_PER_MINUTE,
+  revision: env.MILLIONSEND_REVISION,
+  appBaseUrl: env.APP_BASE_URL,
+  unsubscribeBaseUrl: unsubscribeBaseUrl(),
+  publicApiUrl: env.PUBLIC_API_URL,
+  unsubscribeSecretKey: deriveUnsubscribeKey(masterKey),
+  receivedDownloadKey: deriveReceivedDownloadKey(masterKey),
+  ...(mxHost && env.MX_INGEST_SECRET
+    ? { receiving: { mxHost, ingestSecret: env.MX_INGEST_SECRET } }
+    : {}),
+  inboxKeys: deriveInboxKeys(masterKey),
+  sharedInboxDomain: sharedInboxDomain(),
+  ...(clamav
+    ? {
+        scanVirus: (raw: Buffer) =>
+          scanWithClamd(raw, {
+            host: clamav,
+            timeoutMs: CLAMAV_TIMEOUT_MS,
+            maxBytes: CLAMAV_MAX_BYTES,
+          }),
+      }
+    : {}),
+  enqueueScreening: (p) => queue.enqueueScreening(p),
+  enqueueInboxForward: (p) => queue.enqueueInboxForward(p),
+  enqueueWebhookDeliveries: async (deliveries) => {
+    await queue.drainWebhookEndpoints(deliveries.map((d) => d.endpointId));
+  },
+  enqueueDomainAge: async (domainId) => {
+    await queue.send("domain.age", { domainId }, { dedupeKey: domainId });
+  },
+  enqueueRecipientErase: async (teamId, address) => {
+    await queue.send(
+      "recipient.erase",
+      { teamId, address },
+      { dedupeKey: `${teamId}:${hashRecipient(address)}` },
+    );
+  },
+  trackingSubdomains: trackingSubdomainsSupported(),
+  ses: {
+    clientForRegion,
+    regions: servedRegions(),
+    authEmailFrom: env.AUTH_EMAIL_FROM,
+    onboardingEmailFrom: env.ONBOARDING_EMAIL_FROM,
+    notificationsEmailFrom: env.NOTIFICATIONS_EMAIL_FROM,
+    ...(sesTenantsEnabled() ? { tenants: { configurationSet: env.SES_CONFIGURATION_SET } } : {}),
+  },
+  enqueueEmailSend: async (emailId, opts) => {
+    await queue.send(
+      "email.send",
+      { emailId },
+      {
+        dedupeKey: emailId,
+        priority: EMAIL_SEND_PRIORITY.transactional,
+        ...(opts?.startAfter ? { startAfter: opts.startAfter } : {}),
+      },
+    );
+  },
+  enqueueBroadcastSend: async (broadcastId, opts) => {
+    await queue.send(
+      "broadcast.send",
+      { broadcastId },
+      { dedupeKey: broadcastId, ...(opts?.startAfter ? { startAfter: opts.startAfter } : {}) },
+    );
+  },
+  ...(snsTopicArns
+    ? {
+        sns: {
+          allowedTopicArns: snsTopicArns,
+          fetchCert: createCachingCertFetcher(),
+          enqueueSesEvent: async (event, snsMessageId) => {
+            await queue.send("ses.event", { event, snsMessageId }, { dedupeKey: snsMessageId });
+          },
+        },
+      }
+    : {}),
+});
+
+const port = env.PORT;
+serve({ fetch: app.fetch, port }, (info) => {
+  console.log(`millionsend api listening on :${info.port}`);
+});

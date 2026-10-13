@@ -1,0 +1,247 @@
+"use client";
+
+/**
+ * Audience growth sparkline: cumulative subscribers as a filled area
+ * (success tone) with cumulative unsubscribes as a thin line (danger tone)
+ * along the bottom — the Resend METRICS block, on our tokens. Pure SVG,
+ * with a pointer-tracked hover snapped to the nearest day (ChartTip, same
+ * mechanics as the metrics line chart).
+ */
+
+import { useRef, useState } from "react";
+import { type ChartPointer, trackedPointer } from "@/lib/panel-placement";
+import { ChartTip } from "./line-chart";
+
+interface DayCount {
+  day: string;
+  count: number;
+}
+
+/** Where the window's cumulative lines start: the counts from before its first day. */
+export interface GrowthBaseline {
+  total: number;
+  out: number;
+}
+
+/**
+ * Cumulative value per day across the union of both series' day axes. The
+ * series cover a bounded window, so the lines start from the baseline the
+ * page already knows (all-time totals minus the window's own additions)
+ * rather than from zero.
+ */
+export function buildSeries(
+  added: DayCount[],
+  unsubscribed: DayCount[],
+  baseline: GrowthBaseline = { total: 0, out: 0 },
+) {
+  const days = [...new Set([...added, ...unsubscribed].map((d) => d.day))].sort();
+  const addedBy = new Map(added.map((d) => [d.day, d.count]));
+  const unsubBy = new Map(unsubscribed.map((d) => [d.day, d.count]));
+  let total = baseline.total;
+  let out = baseline.out;
+  return days.map((day) => {
+    total += addedBy.get(day) ?? 0;
+    out += unsubBy.get(day) ?? 0;
+    return { day, total, out };
+  });
+}
+
+export function GrowthSparkline({
+  added,
+  unsubscribed,
+  baseline,
+  totalLabel,
+  outLabel,
+  formatDay,
+  formatValue,
+  width = 200,
+  height = 52,
+}: {
+  added: DayCount[];
+  unsubscribed: DayCount[];
+  baseline?: GrowthBaseline;
+  totalLabel: string;
+  outLabel: string;
+  /** Localized short-day label for the tooltip (UTC-pinned). */
+  formatDay: (day: string) => string;
+  formatValue: (value: number) => string;
+  width?: number;
+  height?: number;
+}) {
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState<{ index: number; pointer: ChartPointer } | null>(null);
+  const series = buildSeries(added, unsubscribed, baseline);
+  if (series.length === 0) {
+    return (
+      <svg
+        className="ms-sparkline"
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        style={{ display: "block", maxWidth: width }}
+        aria-hidden="true"
+      >
+        <line
+          x1="0"
+          y1={height - 1}
+          x2={width}
+          y2={height - 1}
+          stroke="var(--ms-line-strong)"
+          strokeDasharray="3 4"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    );
+  }
+
+  const max = Math.max(...series.map((s) => Math.max(s.total, s.out)), 1);
+  const pad = 2;
+  const x = (i: number) =>
+    series.length === 1 ? width - pad : pad + (i * (width - pad * 2)) / (series.length - 1);
+  const y = (v: number) => height - pad - (v * (height - pad * 2)) / max;
+
+  const totalPoints = series.map((s, i) => `${x(i).toFixed(1)},${y(s.total).toFixed(1)}`);
+  const outPoints = series.map((s, i) => `${x(i).toFixed(1)},${y(s.out).toFixed(1)}`);
+  // A single day still draws: extend a flat segment from the left edge.
+  if (series.length === 1) {
+    totalPoints.unshift(`${pad},${y(series[0]?.total ?? 0).toFixed(1)}`);
+    outPoints.unshift(`${pad},${y(series[0]?.out ?? 0).toFixed(1)}`);
+  }
+
+  const area = `M${totalPoints[0]} L${totalPoints.slice(1).join(" L")} L${(width - pad).toFixed(1)},${height - pad} L${pad},${height - pad} Z`;
+
+  function track(event: React.PointerEvent<HTMLDivElement>) {
+    const pointer = trackedPointer(event);
+    // Pointer position in viewBox units: the svg may be stretched to the container.
+    const localX = pointer.width > 0 ? (pointer.x / pointer.width) * width : pointer.x;
+    const frac = series.length <= 1 ? 1 : (localX - pad) / (width - pad * 2);
+    const index = Math.min(series.length - 1, Math.max(0, Math.round(frac * (series.length - 1))));
+    setHover({ index, pointer });
+  }
+
+  const hovered = hover ? series[hover.index] : undefined;
+
+  return (
+    <div
+      ref={plotRef}
+      className="ms-sparkline"
+      style={{ position: "relative", width: "100%", maxWidth: width, height, touchAction: "pan-y" }}
+      onPointerMove={track}
+      onPointerDown={track}
+      onPointerLeave={() => setHover(null)}
+      onPointerCancel={() => setHover(null)}
+    >
+      <svg
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        style={{ display: "block" }}
+      >
+        <path d={area} fill="color-mix(in srgb, var(--ms-success) 22%, transparent)" />
+        <polyline
+          points={totalPoints.join(" ")}
+          fill="none"
+          stroke="var(--ms-success)"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <polyline
+          points={outPoints.join(" ")}
+          fill="none"
+          stroke="var(--ms-danger)"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {hover && hovered ? (
+          <>
+            <line
+              x1={x(hover.index)}
+              x2={x(hover.index)}
+              y1={0}
+              y2={height}
+              stroke="var(--ms-line-strong)"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* Dots as zero-length round-capped strokes: a circle would stretch
+                into an oval with the svg on a phone; a non-scaling stroke stays round. */}
+            {(
+              [
+                [hovered.total, "var(--ms-success)"],
+                [hovered.out, "var(--ms-danger)"],
+              ] as const
+            ).map(([value, color]) => (
+              <g key={color}>
+                <line
+                  x1={x(hover.index)}
+                  x2={x(hover.index)}
+                  y1={y(value)}
+                  y2={y(value)}
+                  stroke="var(--ms-panel)"
+                  strokeWidth={8}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={x(hover.index)}
+                  x2={x(hover.index)}
+                  y1={y(value)}
+                  y2={y(value)}
+                  stroke={color}
+                  strokeWidth={5}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            ))}
+          </>
+        ) : null}
+      </svg>
+      {hover && hovered ? (
+        <ChartTip plot={plotRef} pointer={hover.pointer}>
+          <div
+            className="ms-mono"
+            style={{ fontSize: 11, color: "var(--ms-muted)", marginBottom: 4 }}
+          >
+            {formatDay(hovered.day)}
+          </div>
+          {(
+            [
+              { label: totalLabel, color: "var(--ms-success)", value: hovered.total },
+              { label: outLabel, color: "var(--ms-danger)", value: hovered.out },
+            ] as const
+          ).map((row) => (
+            <div
+              key={row.label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                fontSize: 12,
+                lineHeight: 1.8,
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: row.color,
+                  flex: "none",
+                }}
+              />
+              <span style={{ color: "var(--ms-muted)" }}>{row.label}</span>
+              <span className="ms-mono" style={{ marginLeft: "auto", color: "var(--ms-bone)" }}>
+                {formatValue(row.value)}
+              </span>
+            </div>
+          ))}
+        </ChartTip>
+      ) : null}
+    </div>
+  );
+}

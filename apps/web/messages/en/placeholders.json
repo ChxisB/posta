@@ -1,0 +1,26 @@
+{
+  "broadcasts": {
+    "headline": "No broadcasts yet.",
+    "body": "One message to your whole audience. Not available yet."
+  },
+  "metrics": {
+    "headline": "No metrics yet.",
+    "body": "Delivery and engagement over time. Not available yet."
+  },
+  "logs": {
+    "headline": "No logs yet.",
+    "body": "Every API request, recorded. Not available yet."
+  },
+  "webhooks": {
+    "headline": "No webhooks yet.",
+    "body": "Event notifications pushed to your endpoint. Not available yet."
+  },
+  "templates": {
+    "headline": "No templates yet.",
+    "body": "Reusable email layouts. Not available yet."
+  },
+  "generic": {
+    "headline": "Nothing here yet.",
+    "body": "This page is not built yet."
+  }
+}

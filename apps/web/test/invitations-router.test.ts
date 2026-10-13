@@ -1,0 +1,794 @@
+import { DAY_MS, INVITE_MAX_SENDS, INVITE_TTL_MS, SUSPENSION_REASONS } from "@millionsend/core";
+import { unescapeHtml } from "@millionsend/core/html";
+import type { Db } from "@millionsend/db";
+import { schema } from "@millionsend/db";
+import type { SimpleEmail } from "@millionsend/ses";
+import { createTeam, createTestDb, readable } from "@millionsend/test-utils";
+import { and, eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { TeamRole } from "@/server/membership";
+import { createCaller } from "@/server/routers";
+import { createSettingsRouter } from "@/server/routers/settings";
+import { teamBootstrapRouter } from "@/server/routers/team-bootstrap";
+import { buildInvitationEmail, type SystemMailDeps } from "@/server/system-mail";
+import { type Context, createCallerFactory, router } from "@/server/trpc";
+
+let db: Db;
+let close: () => Promise<void>;
+
+// The dashboard language a request carries, as the NEXT_LOCALE cookie.
+const dashboard = vi.hoisted(() => ({ locale: undefined as string | undefined }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: (name: string) =>
+      name === "NEXT_LOCALE" && dashboard.locale ? { name, value: dashboard.locale } : undefined,
+  }),
+}));
+
+beforeEach(async () => {
+  // signInviteToken/verifyInviteToken HMAC over this secret.
+  vi.stubEnv("BETTER_AUTH_SECRET", "test-invite-secret");
+  ({ db, close } = await createTestDb());
+});
+
+afterEach(async () => {
+  vi.unstubAllEnvs();
+  dashboard.locale = undefined;
+  await close();
+});
+
+async function createUser(userId: string): Promise<void> {
+  await db.insert(schema.user).values({ id: userId, name: userId, email: `${userId}@example.com` });
+}
+
+async function addMember(teamId: string, userId: string, role: TeamRole): Promise<void> {
+  await createUser(userId);
+  await db.insert(schema.teamMembers).values({ teamId, userId, role });
+}
+
+function callerFor(userId: string, teamId: string | null, role: TeamRole | null) {
+  return createCaller({
+    db,
+    session: { user: { id: userId, email: `${userId}@example.com`, name: userId } },
+    teamId,
+    role,
+  });
+}
+
+/** Caller with a captured mailer, the way settings-router.test.ts injects deletion deps. */
+function mailCaller(
+  userId: string,
+  teamId: string | null,
+  role: TeamRole | null,
+  opts: { failing?: boolean } = {},
+) {
+  const sent: SimpleEmail[] = [];
+  const mail: SystemMailDeps = {
+    send: async (message) => {
+      if (opts.failing) throw new Error("ses down");
+      sent.push(message);
+    },
+  };
+  const factory = createCallerFactory(router({ settings: createSettingsRouter(undefined, mail) }));
+  const ctx: Context = {
+    db,
+    session: { user: { id: userId, email: `${userId}@example.com`, name: userId } },
+    teamId,
+    role,
+  };
+  return { caller: factory(ctx), sent };
+}
+
+async function verifyEmail(userId: string): Promise<void> {
+  await db.update(schema.user).set({ emailVerified: true }).where(eq(schema.user.id, userId));
+}
+
+/** Past the monitor's "new" tier: its first window and ramp behind it, on probation. */
+async function settleTeam(teamId: string): Promise<void> {
+  await db
+    .insert(schema.teamMonitor)
+    .values({ teamId, sentTotal: 2_000, firstSendAt: new Date(Date.now() - 10 * DAY_MS) });
+}
+
+function stubSender(): void {
+  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
+  vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
+}
+
+/** The signed token the accept page receives, pulled from the returned link. */
+function tokenFromUrl(acceptUrl: string): string {
+  const token = acceptUrl.split("/invite/")[1];
+  if (!token) throw new Error(`no token in ${acceptUrl}`);
+  return token;
+}
+
+describe("settings.invitations.create", () => {
+  it("owner and admin can invite; a member is forbidden", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await addMember(teamId, "admin1", "admin");
+    await addMember(teamId, "member1", "member");
+
+    const owned = await callerFor("owner1", teamId, "owner").settings.invitations.create({
+      email: "a@example.com",
+    });
+    expect(owned.acceptUrl).toContain("/invite/");
+    expect(owned.role).toBe("member");
+
+    await callerFor("admin1", teamId, "admin").settings.invitations.create({
+      email: "b@example.com",
+      role: "admin",
+    });
+
+    await expect(
+      callerFor("member1", teamId, "member").settings.invitations.create({
+        email: "c@example.com",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("rejects a duplicate pending invite for the same email (case-insensitive)", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const caller = callerFor("owner1", teamId, "owner");
+    await caller.settings.invitations.create({ email: "dup@example.com" });
+    await expect(
+      caller.settings.invitations.create({ email: "DUP@example.com" }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("refuses a temporary inbox, subdomains included, where disposable addresses are blocked", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const caller = callerFor("owner1", teamId, "owner");
+    vi.stubEnv("BLOCK_DISPOSABLE_EMAILS", "true");
+    for (const email of ["new@mailinator.com", "new@sub.mailinator.com"]) {
+      await expect(caller.settings.invitations.create({ email }), email).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Invite a permanent email address. Temporary inboxes can't join a team.",
+      });
+    }
+    dashboard.locale = "pt-BR";
+    await expect(
+      caller.settings.invitations.create({ email: "new@mailinator.com" }),
+    ).rejects.toMatchObject({
+      message:
+        "Convide um e-mail permanente. Endereços temporários não podem entrar em uma equipe.",
+    });
+    expect(await db.select().from(schema.teamInvitations)).toEqual([]);
+
+    vi.stubEnv("BLOCK_DISPOSABLE_EMAILS", "false");
+    await caller.settings.invitations.create({ email: "new@mailinator.com" });
+  });
+});
+
+describe("settings.invitations.accept", () => {
+  it("joins the team once and is single-use", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await createUser("newbie");
+
+    const { acceptUrl } = await callerFor("owner1", teamId, "owner").settings.invitations.create({
+      email: "newbie@example.com",
+      role: "admin",
+    });
+    const token = tokenFromUrl(acceptUrl);
+
+    const result = await callerFor("newbie", null, null).settings.invitations.accept({ token });
+    expect(result.teamId).toBe(teamId);
+
+    const [membership] = await db
+      .select()
+      .from(schema.teamMembers)
+      .where(and(eq(schema.teamMembers.teamId, teamId), eq(schema.teamMembers.userId, "newbie")));
+    expect(membership?.role).toBe("admin");
+
+    // Single-use: the second accept finds nothing left to stamp.
+    await expect(
+      callerFor("newbie", null, null).settings.invitations.accept({ token }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("on cloud, only the invited address can accept; self-host keeps the link as the credential", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await createUser("stranger");
+    await createUser("invited");
+    const { acceptUrl } = await callerFor("owner1", teamId, "owner").settings.invitations.create({
+      email: "Invited@example.com",
+    });
+    const token = tokenFromUrl(acceptUrl);
+
+    vi.stubEnv("IS_CLOUD", "true");
+    await expect(
+      callerFor("stranger", null, null).settings.invitations.accept({ token }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    // The refused attempt must not have consumed the invite.
+    await expect(
+      callerFor("invited", null, null).settings.invitations.accept({ token }),
+    ).resolves.toEqual({ teamId });
+
+    vi.stubEnv("IS_CLOUD", "");
+    const second = await callerFor("owner1", teamId, "owner").settings.invitations.create({
+      email: "someone-else@example.com",
+    });
+    await expect(
+      callerFor("stranger", null, null).settings.invitations.accept({
+        token: tokenFromUrl(second.acceptUrl),
+      }),
+    ).resolves.toEqual({ teamId });
+  });
+
+  it("rejects an invalid token", async () => {
+    await createUser("someone");
+    await expect(
+      callerFor("someone", null, null).settings.invitations.accept({ token: "not-a-token" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("rejects an expired invite", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await createUser("late");
+
+    const { id, acceptUrl } = await callerFor(
+      "owner1",
+      teamId,
+      "owner",
+    ).settings.invitations.create({ email: "late@example.com" });
+    await db
+      .update(schema.teamInvitations)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(schema.teamInvitations.id, id));
+
+    await expect(
+      callerFor("late", null, null).settings.invitations.accept({ token: tokenFromUrl(acceptUrl) }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("settings.invitations list/revoke isolation", () => {
+  it("lists only the caller team's pending invites and revoke frees the email", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const caller = callerFor("owner1", teamId, "owner");
+
+    const { id } = await caller.settings.invitations.create({ email: "p@example.com" });
+    const listed = await caller.settings.invitations.list();
+    expect(listed.map((i) => i.email)).toEqual(["p@example.com"]);
+    // The bearer link is returned once, at create; a listing never rebuilds it.
+    expect(JSON.stringify(listed)).not.toContain("/invite/");
+
+    await caller.settings.invitations.revoke({ id });
+    expect(await caller.settings.invitations.list()).toEqual([]);
+    // The pending-unique index is freed, so the same email can be re-invited.
+    await expect(
+      caller.settings.invitations.create({ email: "p@example.com" }),
+    ).resolves.toMatchObject({ email: "p@example.com" });
+  });
+
+  it("cannot list or revoke another team's invites", async () => {
+    const teamA = await createTeam(db, "team-a");
+    const teamB = await createTeam(db, "team-b");
+    await addMember(teamA, "alice", "owner");
+    await addMember(teamB, "bob", "owner");
+
+    const { id } = await callerFor("alice", teamA, "owner").settings.invitations.create({
+      email: "x@example.com",
+    });
+
+    expect(await callerFor("bob", teamB, "owner").settings.invitations.list()).toEqual([]);
+    await expect(
+      callerFor("bob", teamB, "owner").settings.invitations.revoke({ id }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("settings.invitations email + resend", () => {
+  it("writes to an invitee with an account in their language, else in the inviter's", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await db
+      .insert(schema.user)
+      .values({ id: "ana", name: "Ana", email: "ana@example.com", locale: "pt-BR" });
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    await caller.settings.invitations.create({ email: "ana@example.com" });
+    await caller.settings.invitations.create({ email: "new@example.com" });
+    expect(sent.map((m) => m.subject)).toEqual([
+      "Você recebeu um convite para uma equipe no MillionSend",
+      "You've been invited to a team on MillionSend",
+    ]);
+    expect(sent[0]?.text).toContain(
+      "Você recebeu um convite para entrar em uma equipe no MillionSend como membro.",
+    );
+  });
+
+  it("emails the invitee at create, naming the team and carrying the accept link", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await verifyEmail("owner1");
+    await settleTeam(teamId);
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    const created = await caller.settings.invitations.create({ email: "new@example.com" });
+    expect(created.emailed).toBe(true);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.to).toBe("new@example.com");
+    expect(sent[0]?.from).toContain("no-reply@mail.example.com");
+    expect(sent[0]?.subject).toBe("You've been invited to a team on MillionSend");
+    expect(readable(sent[0]?.text)).toContain(
+      "owner1@example.com invited you to join acme on MillionSend as a member.",
+    );
+    expect(sent[0]?.html).toContain(created.acceptUrl);
+    expect(sent[0]?.text).toContain(created.acceptUrl);
+    const [row] = await db
+      .select()
+      .from(schema.teamInvitations)
+      .where(eq(schema.teamInvitations.id, created.id));
+    expect(row?.sendCount).toBe(1);
+    expect(row?.lastSentAt).toBeInstanceOf(Date);
+    const listed = await caller.settings.invitations.list();
+    expect(listed[0]).toMatchObject({ sendCount: 1 });
+  });
+
+  it("without a sender the link is the only credential: emailed=false, nothing sent", async () => {
+    vi.stubEnv("AUTH_EMAIL_FROM", "");
+    vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "");
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    const created = await caller.settings.invitations.create({ email: "new@example.com" });
+    expect(created.emailed).toBe(false);
+    expect(created.noSender).toBe(true);
+    expect(sent).toHaveLength(0);
+    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+    });
+  });
+
+  it("resend: cooldown, renewal, lifetime cap", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    const created = await caller.settings.invitations.create({ email: "new@example.com" });
+
+    // Just sent: inside the cooldown.
+    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+
+    const stale = new Date(Date.now() - 3 * 60 * 1000);
+    const nearlyExpired = new Date(Date.now() + 60 * 1000);
+    await db
+      .update(schema.teamInvitations)
+      .set({ lastSentAt: stale, expiresAt: nearlyExpired })
+      .where(eq(schema.teamInvitations.id, created.id));
+    const resent = await caller.settings.invitations.resend({ id: created.id });
+    // Renewed to a full TTL from now, and emailed again.
+    expect(resent.expiresAt.getTime()).toBeGreaterThan(Date.now() + INVITE_TTL_MS - 5000);
+    expect(sent).toHaveLength(2);
+    const [row] = await db
+      .select()
+      .from(schema.teamInvitations)
+      .where(eq(schema.teamInvitations.id, created.id));
+    expect(row?.sendCount).toBe(2);
+
+    await db
+      .update(schema.teamInvitations)
+      .set({ lastSentAt: stale, sendCount: INVITE_MAX_SENDS })
+      .where(eq(schema.teamInvitations.id, created.id));
+    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+    expect(sent).toHaveLength(2);
+  });
+
+  it("caps invite emails per team per hour", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { caller } = mailCaller("owner1", teamId, "owner");
+    for (let i = 0; i < 20; i++) {
+      await caller.settings.invitations.create({ email: `p${i}@example.com` });
+    }
+    await expect(
+      caller.settings.invitations.create({ email: "p20@example.com" }),
+    ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
+    // Another team keeps its own budget.
+    const other = await createTeam(db, "other");
+    await addMember(other, "owner2", "owner");
+    await expect(
+      mailCaller("owner2", other, "owner").caller.settings.invitations.create({
+        email: "q@example.com",
+      }),
+    ).resolves.toMatchObject({ email: "q@example.com" });
+  });
+});
+
+describe("settings.invitations email content", () => {
+  /** The one invitation the owner of a team named Zebra Labs sends, as a reader sees it. */
+  async function invitation(opts: { verified: boolean; settled: boolean }): Promise<string> {
+    stubSender();
+    const teamId = await createTeam(db, "zebra");
+    await db.update(schema.teams).set({ name: "Zebra Labs" }).where(eq(schema.teams.id, teamId));
+    await addMember(teamId, "owner1", "owner");
+    // A display name stored before names refused phone numbers.
+    await db
+      .update(schema.user)
+      .set({ name: "Ana, call 0800 555 0199" })
+      .where(eq(schema.user.id, "owner1"));
+    if (opts.verified) await verifyEmail("owner1");
+    if (opts.settled) await settleTeam(teamId);
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    await caller.settings.invitations.create({ email: "new@example.com" });
+    expect(sent).toHaveLength(1);
+    const mail = sent[0];
+    const read = readable(`${mail?.subject}\n${mail?.text}\n${unescapeHtml(mail?.html ?? "")}`);
+    expect(read).not.toMatch(/Ana|0800/);
+    return read;
+  }
+
+  it("names a new team's inviter by verified address, and the team by no name", async () => {
+    const read = await invitation({ verified: true, settled: false });
+    expect(read).toContain(
+      "owner1@example.com invited you to join a team on MillionSend as a member.",
+    );
+    expect(read).not.toContain("Zebra");
+  });
+
+  it("names the team once it is past the new tier", async () => {
+    const read = await invitation({ verified: true, settled: true });
+    expect(read).toContain(
+      "owner1@example.com invited you to join Zebra Labs on MillionSend as a member.",
+    );
+  });
+
+  it("names neither when the inviter's address is unverified", async () => {
+    const read = await invitation({ verified: false, settled: true });
+    expect(read).toContain("You've been invited to join a team on MillionSend as a member.");
+    expect(read).not.toMatch(/owner1|Zebra/);
+  });
+});
+
+describe("settings.invitations send accounting", () => {
+  it("two concurrent resends email exactly once: the cooldown is enforced by the update itself", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { caller, sent } = mailCaller("owner1", teamId, "owner");
+    const created = await caller.settings.invitations.create({ email: "new@example.com" });
+    await db
+      .update(schema.teamInvitations)
+      .set({ lastSentAt: new Date(Date.now() - 3 * 60 * 1000) })
+      .where(eq(schema.teamInvitations.id, created.id));
+    const results = await Promise.all(
+      [0, 1].map(() => caller.settings.invitations.resend({ id: created.id }).catch((e) => e)),
+    );
+    expect(results.filter((r) => r instanceof Error)).toHaveLength(1);
+    expect(sent).toHaveLength(2);
+    const [row] = await db
+      .select()
+      .from(schema.teamInvitations)
+      .where(eq(schema.teamInvitations.id, created.id));
+    expect(row?.sendCount).toBe(2);
+  });
+
+  it("a refused send at create leaves emailed=false and nothing charged", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { caller, sent } = mailCaller("owner1", teamId, "owner", { failing: true });
+    const created = await caller.settings.invitations.create({ email: "new@example.com" });
+    expect(created.emailed).toBe(false);
+    expect(created.noSender).toBe(false);
+    expect(created.acceptUrl).toContain("/invite/");
+    expect(sent).toHaveLength(0);
+    expect(error).toHaveBeenCalledTimes(1);
+    const [row] = await db
+      .select()
+      .from(schema.teamInvitations)
+      .where(eq(schema.teamInvitations.id, created.id));
+    expect(row).toMatchObject({ sendCount: 0, lastSentAt: null });
+  });
+
+  it("a refused resend restores the counters and reports the failure", async () => {
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const ok = mailCaller("owner1", teamId, "owner");
+    const created = await ok.caller.settings.invitations.create({ email: "new@example.com" });
+    const stale = new Date(Date.now() - 3 * 60 * 1000);
+    await db
+      .update(schema.teamInvitations)
+      .set({ lastSentAt: stale })
+      .where(eq(schema.teamInvitations.id, created.id));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const failing = mailCaller("owner1", teamId, "owner", { failing: true });
+    await expect(
+      failing.caller.settings.invitations.resend({ id: created.id }),
+    ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
+    const [row] = await db
+      .select()
+      .from(schema.teamInvitations)
+      .where(eq(schema.teamInvitations.id, created.id));
+    expect(row?.sendCount).toBe(1);
+    expect(row?.lastSentAt?.getTime()).toBe(stale.getTime());
+  });
+
+  it("names with $ sequences render verbatim and every placeholder is filled", () => {
+    const mail = buildInvitationEmail({
+      to: "new@example.com",
+      inviterEmail: "bob+$'@example.com",
+      teamName: "Acme $$ Co",
+      role: "member",
+      url: "https://app.example.com/invite/tok",
+      expiresInDays: 3,
+      locale: "en",
+    });
+    expect(mail.text).toContain("bob+$'@");
+    expect(mail.text).toContain("Acme $$ Co");
+    expect(mail.text).not.toMatch(/\{(inviter|team|role|days|email)\}/);
+    expect(mail.subject).toBe("You've been invited to a team on MillionSend");
+  });
+});
+
+describe("settings.invitations limits", () => {
+  it("caps the invitations a team starts in a day, revoked ones included", async () => {
+    vi.stubEnv("INVITES_PER_TEAM_PER_DAY", "3");
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const caller = callerFor("owner1", teamId, "owner");
+    const first = await caller.settings.invitations.create({ email: "a@example.com" });
+    await caller.settings.invitations.create({ email: "b@example.com" });
+    // Revoking deletes the row but gives nothing back for the day.
+    await caller.settings.invitations.revoke({ id: first.id });
+    await caller.settings.invitations.create({ email: "c@example.com" });
+    await expect(
+      caller.settings.invitations.create({ email: "d@example.com" }),
+    ).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+      message: "This team reached its limit of 3 invitations a day. Try again tomorrow.",
+    });
+    expect((await caller.settings.invitations.list()).map((invite) => invite.email).sort()).toEqual(
+      ["b@example.com", "c@example.com"],
+    );
+
+    // Another team keeps its own count.
+    const other = await createTeam(db, "other");
+    await addMember(other, "owner2", "owner");
+    await expect(
+      callerFor("owner2", other, "owner").settings.invitations.create({ email: "d@example.com" }),
+    ).resolves.toMatchObject({ email: "d@example.com" });
+
+    // A day on, the count starts over.
+    vi.useFakeTimers({ now: Date.now() + DAY_MS + 60_000, toFake: ["Date"] });
+    try {
+      await expect(
+        caller.settings.invitations.create({ email: "d@example.com" }),
+      ).resolves.toMatchObject({ email: "d@example.com" });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("caps the invitations one member starts across teams, deleted teams included", async () => {
+    vi.stubEnv("INVITES_PER_TEAM_PER_DAY", "2");
+    await createUser("owner1");
+    const quiet = async () => {};
+    const factory = createCallerFactory(
+      router({
+        team: teamBootstrapRouter,
+        settings: createSettingsRouter({
+          cancelSubscription: quiet,
+          deleteSesIdentity: quiet,
+          deleteSesTenant: quiet,
+          deleteLogo: quiet,
+        }),
+      }),
+    );
+    const session = { user: { id: "owner1", email: "owner1@example.com", name: "owner1" } };
+    const as = (teamId: string | null) =>
+      factory({ db, session, teamId, role: teamId ? ("owner" as const) : null });
+    const refused = {
+      code: "TOO_MANY_REQUESTS",
+      message: "You reached your limit of 2 invitations a day. Try again tomorrow.",
+    };
+
+    const { teamId: first } = await as(null).team.createTeam({ name: "First" });
+    await as(first).settings.invitations.create({ email: "a@example.com" });
+    const { teamId: second } = await as(null).team.createTeam({ name: "Second" });
+    await as(second).settings.invitations.create({ email: "b@example.com" });
+    await expect(
+      as(second).settings.invitations.create({ email: "c@example.com" }),
+    ).rejects.toMatchObject(refused);
+
+    // Deleting the teams takes their invitation rows along, and gives nothing back.
+    await as(first).settings.team.delete();
+    await as(second).settings.team.delete();
+    const { teamId: third } = await as(null).team.createTeam({ name: "Third" });
+    await expect(
+      as(third).settings.invitations.create({ email: "c@example.com" }),
+    ).rejects.toMatchObject(refused);
+
+    // Another admin of the team has a count of their own.
+    await addMember(third, "admin1", "admin");
+    const admin = callerFor("admin1", third, "admin");
+    await expect(
+      admin.settings.invitations.create({ email: "c@example.com" }),
+    ).resolves.toMatchObject({ email: "c@example.com" });
+    // An invitation whose email is still going out has no audit row yet, and counts.
+    const fourth = await createTeam(db, "fourth");
+    await db.insert(schema.teamMembers).values({ teamId: fourth, userId: "admin1", role: "owner" });
+    await db.insert(schema.teamInvitations).values({
+      teamId: fourth,
+      email: "d@example.com",
+      invitedByUserId: "admin1",
+      expiresAt: new Date(Date.now() + INVITE_TTL_MS),
+    });
+    await expect(
+      admin.settings.invitations.create({ email: "e@example.com" }),
+    ).rejects.toMatchObject(refused);
+    dashboard.locale = "pt-BR";
+    await expect(
+      admin.settings.invitations.create({ email: "e@example.com" }),
+    ).rejects.toMatchObject({
+      message: "Você atingiu o seu limite de 2 convites por dia. Tente de novo amanhã.",
+    });
+  });
+
+  it("refuses over the cap, a second pending invitation and an early resend in the dashboard's language", async () => {
+    vi.stubEnv("INVITES_PER_TEAM_PER_DAY", "2");
+    stubSender();
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { caller } = mailCaller("owner1", teamId, "owner");
+    const created = await caller.settings.invitations.create({ email: "a@example.com" });
+
+    await expect(
+      caller.settings.invitations.create({ email: "A@example.com" }),
+    ).rejects.toMatchObject({
+      code: "CONFLICT",
+      message: "This address already has a pending invitation. Resend or revoke it from the list.",
+    });
+    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+      message: "This invitation was just sent. Wait a couple of minutes before resending.",
+    });
+
+    dashboard.locale = "pt-BR";
+    await expect(
+      caller.settings.invitations.create({ email: "a@example.com" }),
+    ).rejects.toMatchObject({
+      code: "CONFLICT",
+      message: "Este endereço já tem um convite pendente. Reenvie ou revogue o convite pela lista.",
+    });
+    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+      message: "Este convite acabou de ser enviado. Espere alguns minutos antes de reenviar.",
+    });
+    await caller.settings.invitations.create({ email: "b@example.com" });
+    await expect(
+      caller.settings.invitations.create({ email: "c@example.com" }),
+    ).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+      message: "Esta equipe atingiu o limite de 2 convites por dia. Tente de novo amanhã.",
+    });
+  });
+});
+
+describe("settings.invitations.preview", () => {
+  it("on cloud the address is masked and never prefilled; self-host shows and prefills it", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const { acceptUrl } = await callerFor("owner1", teamId, "owner").settings.invitations.create({
+      email: "newbie@example.com",
+    });
+    const token = tokenFromUrl(acceptUrl);
+    const anon = callerFor("anon", null, null);
+    expect(await anon.settings.invitations.preview({ token })).toMatchObject({
+      email: "newbie@example.com",
+      prefillEmail: "newbie@example.com",
+    });
+    vi.stubEnv("IS_CLOUD", "true");
+    expect(await anon.settings.invitations.preview({ token })).toMatchObject({
+      email: "n***@example.com",
+      prefillEmail: null,
+    });
+  });
+
+  it("names the team, inviter and role, and tracks valid/expired/accepted", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    await createUser("newbie");
+    const { id, acceptUrl } = await callerFor(
+      "owner1",
+      teamId,
+      "owner",
+    ).settings.invitations.create({ email: "newbie@example.com", role: "admin" });
+    const token = tokenFromUrl(acceptUrl);
+    const anon = callerFor("newbie", null, null);
+
+    expect(await anon.settings.invitations.preview({ token })).toMatchObject({
+      teamName: "acme",
+      inviterName: "owner1",
+      role: "admin",
+      email: "newbie@example.com",
+      state: "valid",
+    });
+
+    await db
+      .update(schema.teamInvitations)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(schema.teamInvitations.id, id));
+    expect((await anon.settings.invitations.preview({ token })).state).toBe("expired");
+
+    await db
+      .update(schema.teamInvitations)
+      .set({ expiresAt: new Date(Date.now() + INVITE_TTL_MS) })
+      .where(eq(schema.teamInvitations.id, id));
+    await anon.settings.invitations.accept({ token });
+    expect((await anon.settings.invitations.preview({ token })).state).toBe("accepted");
+  });
+
+  it("rejects a bad token and a revoked invite", async () => {
+    const teamId = await createTeam(db, "acme");
+    await addMember(teamId, "owner1", "owner");
+    const caller = callerFor("owner1", teamId, "owner");
+    await expect(caller.settings.invitations.preview({ token: "nope" })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    const { id, acceptUrl } = await caller.settings.invitations.create({ email: "r@example.com" });
+    await caller.settings.invitations.revoke({ id });
+    await expect(
+      caller.settings.invitations.preview({ token: tokenFromUrl(acceptUrl) }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("settings.invitations while the team is suspended", () => {
+  it.each(SUSPENSION_REASONS)(
+    "for %s refuses new invitations, resends and accepts; the pending invite stays as it was",
+    async (reason) => {
+      const teamId = await createTeam(db, "acme");
+      await addMember(teamId, "owner1", "owner");
+      await createUser("newbie");
+      const owner = callerFor("owner1", teamId, "owner");
+      const pending = await owner.settings.invitations.create({ email: "newbie@example.com" });
+      await db
+        .update(schema.teams)
+        .set({ suspendedAt: new Date(), suspensionReason: reason })
+        .where(eq(schema.teams.id, teamId));
+      const locked = {
+        code: "PRECONDITION_FAILED",
+        // A team suspended for phishing or held for review is never told it is suspended.
+        message: ["phishing", "review"].includes(reason)
+          ? "This isn't available for this team right now. Contact support if you need help."
+          : "This team is suspended, so no one new can join it. Contact support.",
+      };
+
+      await expect(
+        owner.settings.invitations.create({ email: "other@example.com" }),
+      ).rejects.toMatchObject(locked);
+      await expect(owner.settings.invitations.resend({ id: pending.id })).rejects.toMatchObject(
+        locked,
+      );
+      await expect(
+        callerFor("newbie", null, null).settings.invitations.accept({
+          token: tokenFromUrl(pending.acceptUrl),
+        }),
+      ).rejects.toMatchObject(locked);
+
+      const members = await db
+        .select({ userId: schema.teamMembers.userId })
+        .from(schema.teamMembers)
+        .where(eq(schema.teamMembers.teamId, teamId));
+      expect(members).toEqual([{ userId: "owner1" }]);
+      const invites = await db.select().from(schema.teamInvitations);
+      expect(invites).toMatchObject([{ id: pending.id, acceptedAt: null, sendCount: 0 }]);
+    },
+  );
+});

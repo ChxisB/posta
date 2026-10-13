@@ -1,0 +1,212 @@
+---
+title: Domains
+description: Verify sending domains with guided DNS, BYODKIM, and per-domain configuration.
+---
+
+Every email must be sent from a domain your team has **verified** — the API
+rejects any other `from` address with `422`. Domains are added and verified in
+the dashboard.
+
+## Verification
+
+Adding a domain registers it with SES and shows the DNS records to add:
+
+- **DKIM** — a single `millionsend._domainkey` TXT record. MillionSend
+  generates an RSA-2048 keypair per domain and hands the private key to SES
+  (BYODKIM), so verification is one TXT record instead of three CNAMEs. The
+  private key is never stored.
+- **MAIL FROM** — MX and SPF (TXT) records for the bounce subdomain.
+
+Two verification signals are shown side by side:
+
+- **SES status** — what SES reports. SES caches verification and can lag
+  after you change records.
+- **Live DNS check** — MillionSend resolves each record itself and reports
+  Found / Missing / Mismatch immediately.
+
+The API (`GET /domains/{id}`, `POST /domains/{id}/verify`, and the `get_domain`
+/ `verify_domain` MCP tools) reports the same picture per record in `records[]`.
+`status` uses the Resend vocabulary: for DKIM and MAIL FROM it combines the live
+check with SES — found in DNS but not yet confirmed by SES reads `pending`, a
+different published value reads `failed`, no record reads `not_started`. Only
+those rows gate sending. The DMARC row follows RFC 7489 discovery: it reads
+`verified` when a policy covers the domain, including a parent domain's record
+for a subdomain sender — then `inherited_from` names the `_dmarc` record that
+answered and `policy` carries its `p=` value — and `not_started` when none does.
+Every record also carries `live` (`found`, `missing`, `mismatch` or `unknown`,
+what public DNS answers right now) and, when a row is not verified, a one-line
+`detail` saying why.
+
+## Regions
+
+A deployment provisions identities in the SES regions it serves — its
+`AWS_REGIONS`, or the one region in `AWS_REGION`; MillionSend Cloud serves
+`sa-east-1` (São Paulo) today. The dashboard's add-domain form lists the
+served regions, holds back one still in the SES sandbox while another has
+production access, and defaults to the first production region. The API's
+optional `region` field (the `create_domain` MCP tool included) accepts any
+served region — the values its schema lists — and defaults to the first;
+any other value is rejected with `422` naming the served regions.
+Configuration sets, event topics and SES tenants are regional, so a domain
+anywhere else would hand out DNS records but never send or report events.
+
+A domain has exactly one region. To move it, delete it and add it again in
+the other region — its DNS records change, since SES identities are per
+region. On MillionSend Cloud a domain name another team holds is taken in
+every region.
+
+## New domain warm-up
+
+On MillionSend Cloud a domain registered recently sends gradually while it
+builds a reputation with mailbox providers. The age is the registered domain's
+(`acme.com` for `mail.acme.com`; a name from a free subdomain service, such as
+`shop.eu.org`, counts as its own domain), read from public data when the
+domain is added, and the cap counts per UTC day:
+
+| Domain age | Emails per day |
+| --- | --- |
+| Under 24 hours | 100 |
+| 1 to 7 days | 300 |
+| 7 to 30 days | 2,000 |
+| 30 days or older | your plan's limit only |
+
+A domain that sends cleanly (few bounces, no spam complaints) moves up a step
+sooner. The cap applies on top of your plan and a plan upgrade does not lift
+it. While it applies, the domain page shows "Warming up: N/day today · full
+volume from …".
+
+Your team's new domains share one daily volume, the highest of their caps,
+and each still stays within its own: adding another new domain does not add
+volume. Domains 30 days or older are not part of it. When more than one of
+your domains is warming up, the domain page says the volume is shared.
+
+Mail over the day's cap is never refused or lost: it is accepted, shows as
+**Waiting**, and goes out as the cap allows, oldest first. Only when a lot
+of mail is already waiting does a send answer `429 daily_quota_exceeded`
+(SMTP `452`) with a message naming the warm-up; retry after the UTC day rolls
+over.
+
+## Per-domain configuration
+
+Once verified, a domain's **Configuration** tab controls:
+
+- **Click tracking** — off by default. When on, links are rewritten to redirect
+  through your own tracking subdomain to record `email.clicked` events, then send
+  the recipient on to the original URL. When off, your links ship untouched.
+- **Open tracking** — off by default. When on, a 1×1 pixel served from that same
+  tracking subdomain records `email.opened` events. Tracking is app-layer and
+  runs on your own domain — never SES's link rewriting.
+- **TLS mode** — `opportunistic` (default) or `enforced`, applied via the
+  domain's SES configuration set.
+
+Through the API and MCP, `update_domain` takes the same tracking settings, and
+`create_domain` accepts them as optional extras so a tracked domain can be stood
+up in one call (a Resend-shaped call that omits them is unchanged).
+Tracking is served from the domain's own tracking subdomain: pass
+`tracking_subdomain` (a label such as `links`) and the response's `records[]`
+gains a Tracking CNAME whose status turns `verified` once it resolves. On
+MillionSend Cloud, turning either kind on without a subdomain is refused with a
+422. Until the CNAME resolves, links are not routed through it — Cloud ships
+them clean, self-host falls back to the app host — and the domain shows as
+**Partial** in the dashboard: verified for sending, tracking not yet live. On
+Cloudflare the tracking record must stay **DNS only** (grey cloud): a proxied
+CNAME answers with Cloudflare's addresses instead of the target, which the
+records table reports as a mismatch, and TLS for the tracking host is served
+by MillionSend.
+
+## Open-rate accuracy
+
+Open tracking injects a 1×1 transparent pixel with a unique reference into the
+HTML body; a person loading that image records an `email.opened` event. It is
+a directional signal, not an exact count.
+
+Fetches a machine plausibly made are recorded as **prefetched**, not opened:
+Apple Mail Privacy Protection downloads every image in the background whether
+or not the message is read, Gmail pre-fetches while the inbox is already open,
+and security scanners fetch the pixel within seconds of delivery. A prefetch
+shows on the email's timeline and as its own line under the open rate, but it
+never moves the status, never counts in the open rate, and never fires
+`email.opened` (endpoints can opt in to `email.prefetched`). The timing rule's
+window is `OPEN_PREFETCH_WINDOW_SECONDS` for self-hosters (default `10`; `0`
+keeps only the user-agent rules). Links go through the same rules, plus two
+of their own: a desktop Chrome that reports a build number no browser has sent
+since Chrome's user-agent reduction, and two links of a message hit within a
+quarter of a second, are a machine's whatever they call themselves. A click recorded before
+the rest of its burst arrived is taken back — row, inferred open, counters,
+status and any delivery not yet posted.
+
+A click is also an open. A person cannot click a link in a message they never
+rendered, so a click on an email with no open yet records the open as well,
+stamped just before the click and marked `reason: "click"`. For a recipient
+whose images come through Apple Mail's cache this is the only open that can
+ever be recorded, so Apple-heavy audiences read lower on opens than they would
+elsewhere until they click.
+
+Opens are **under-counted** when the recipient's client blocks images, when the
+email has no HTML part (a plain-text send carries no pixel), or when Gmail clips
+a message over ~102 KB and the recipient never expands it.
+
+Clicks are the more reliable engagement signal. For purely transactional mail —
+receipts, password resets — consider leaving open tracking off: the pixel adds a
+tracking-shaped element some filters weigh against inbox placement, for a metric
+you can't fully trust anyway.
+
+## Receiving
+
+A verified domain can also [receive mail](/concepts/receiving) (beta). Every
+domain response carries Resend's `capabilities` object: `sending` is always
+`enabled` (asking to disable it is a `422`), and `receiving` is `enabled` or
+`disabled`. Switch receiving with **Enable receiving** on the domain page, or
+send `{ "capabilities": { "receiving": "enabled" } }` (or `"disabled"`) to
+`PATCH /domains/{id}`. Only a verified domain can turn it on, which is why
+`POST /domains` refuses `"receiving": "enabled"` with a `422`: add the domain,
+verify it, then switch receiving on. A domain name receives in one team only:
+a name another team already receives on answers `409`. On an instance that
+doesn't receive mail at all, every domain reads `disabled` and turning it on
+is refused with `422`.
+
+While receiving is on, `records[]` includes a `Receiving` row: an MX record
+at the domain's own name pointing at `mx.millionsend-dns.com` (self-hosted,
+the instance's `RECEIVING_MX_HOST`), priority `10`.
+
+```json
+{
+  "record": "Receiving",
+  "name": "inbound.example.com",
+  "type": "MX",
+  "ttl": "Auto",
+  "status": "verified",
+  "value": "mx.millionsend-dns.com",
+  "priority": 10,
+  "live": "found"
+}
+```
+
+The row is checked live like the others: `verified` once that host is among
+the name's MX records with the lowest priority number, `failed` while another
+MX record on the name has a lower number (`detail` lists what is published),
+and `not_started` with no MX record at all. A lower-numbered MX record takes
+the mail instead, which is why the MX belongs on a subdomain such as
+`inbound.example.com` when the domain already receives mail elsewhere. The
+row never gates sending.
+
+`receiving_catch_all` says whether the domain takes mail at every address
+(`true`) or only at its [inboxes'](/concepts/inboxes) addresses (`false`,
+the default; other addresses are refused). Owners and admins switch it with
+**Catch-all** on the domain page or `PATCH /domains/{id}` with
+`{ "receiving_catch_all": true }`; on MillionSend Cloud it needs a paid plan.
+See [Which addresses receive](/concepts/receiving#which-addresses-receive).
+Deleting a domain deletes its inboxes, with their threads and drafts, and
+revokes their API keys.
+
+## API keys and domains
+
+An API key can be scoped to a single domain; such a key can only send from
+that domain (other domains return `403 restricted_api_key`), and reads only
+the mail [received](/concepts/receiving) at it. Keys it creates
+through the API are scoped to the same domain: an omitted `domain_id` inherits
+it, and any other domain returns `403 restricted_api_key`.
+
+A key can be scoped to one [inbox](/concepts/inboxes#inbox-scoped-api-keys)
+instead, which narrows it further: that inbox's mail, and sends from its
+address only.

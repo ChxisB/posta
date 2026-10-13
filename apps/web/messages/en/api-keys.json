@@ -1,0 +1,58 @@
+{
+  "createKey": "Create API key",
+  "empty": {
+    "headline": "No API keys yet.",
+    "body": "Create a key to authenticate requests to the API."
+  },
+  "table": {
+    "name": "Name",
+    "token": "Token",
+    "lastUsed": "Last used",
+    "created": "Created",
+    "menu": "Key actions"
+  },
+  "neverUsed": "Never",
+  "pageOf": "Page 1 – {pages} of {total} API keys",
+  "rename": "Rename",
+  "revoke": "Revoke",
+  "scope": {
+    "full": "Full access",
+    "sending": "Sending only"
+  },
+  "create": {
+    "title": "Create API key",
+    "name": "Name",
+    "namePlaceholder": "Production",
+    "permission": "Permission",
+    "permFull": "Full access",
+    "permSending": "Sending only",
+    "domain": "Domain",
+    "domainAny": "Any domain",
+    "submit": "Create key",
+    "permissionTooltip": "Full access can manage everything over the API — domains, contacts, broadcasts, keys.\n\nSending access can only send emails.",
+    "restrictInbox": "Restrict to an inbox",
+    "restrictInboxHint": "The key reads and sends from that inbox only.",
+    "inboxAny": "Not restricted"
+  },
+  "reveal": {
+    "title": "API key created",
+    "warning": "This token is shown once. Store it now.",
+    "done": "Done"
+  },
+  "revokeConfirm": {
+    "title": "Revoke API key",
+    "body": "Requests using {name} fail immediately.",
+    "confirm": "Revoke key"
+  },
+  "apiSheet": {
+    "title": "API Keys API",
+    "list": "List API keys",
+    "create": "Create API key",
+    "revoke": "Revoke API key"
+  },
+  "renameDialog": {
+    "title": "Rename API key",
+    "name": "Name",
+    "submit": "Save"
+  }
+}

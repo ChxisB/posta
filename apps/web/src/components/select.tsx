@@ -1,0 +1,441 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  PANEL_MAX_WIDTH,
+  type PanelPlacement,
+  placePanel,
+  viewportSize,
+} from "@/lib/panel-placement";
+import { ChevronGlyph } from "./icons/nav-icons";
+import { useDismiss } from "./popover-menu";
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  /** Muted trailing detail shown after the label in the option row. */
+  hint?: string;
+  /** Leading adornment in the option row AND on the trigger while selected, e.g. a <StatusDot>. */
+  adornment?: React.ReactNode;
+  /** Status badge after the label — shown in the option row AND on the trigger
+   * while the option is selected (e.g. a domain's Verified/Pending). */
+  badge?: { label: string; tone: "success" | "info" | "warn" | "danger" | "neutral" };
+  /** Section heading drawn above the first row of each run of options sharing it. */
+  group?: string;
+  /** A member of its group rather than the group itself: indented and quieter, so "All API keys" reads as the parent of the keys under it. */
+  sub?: boolean;
+  /** Listed but not selectable, with `hint` saying why. */
+  disabled?: boolean;
+}
+
+/* Search input appears only when the list is long enough for scanning to hurt. */
+const SEARCH_THRESHOLD = 10;
+const TYPEAHEAD_RESET_MS = 500;
+/* Popover placement: the minimum below-space worth keeping before flipping
+   the panel above the trigger, the panel's width cap (max-content up to
+   this), and the list height before the panel is measured. */
+const FLIP_THRESHOLD = 200;
+const MENU_MAX_WIDTH = 320;
+const MENU_GAP = 6;
+const UNPLACED_LIST_HEIGHT = 264;
+
+/**
+ * Replacement for native <select>: compact .ms-input trigger + .ms-menu
+ * listbox popover, per the canvas dropdown grammar. Controlled only.
+ * ARIA combobox pattern — focus stays on the trigger (or the search input
+ * when present); aria-activedescendant tracks the highlighted option.
+ */
+export function Select({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+  width,
+  disabled = false,
+  id,
+  button = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: SelectOption[];
+  ariaLabel: string;
+  width?: number | string;
+  disabled?: boolean;
+  /** Forwarded to the trigger so an ms-field <label htmlFor> can target it. */
+  id?: string;
+  /** Trigger drawn as a secondary button instead of an input, for a chooser
+   * that sits in a row of buttons (the list footer's page size). */
+  button?: boolean;
+}) {
+  const t = useTranslations("common.select");
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [minWidth, setMinWidth] = useState(0);
+  const [placed, setPlaced] = useState<PanelPlacement | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const dismissRefs = useMemo(() => [rootRef, menuRef], []);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const typeahead = useRef({ buffer: "", at: 0 });
+  const listboxId = useId();
+
+  const searchable = options.length > SEARCH_THRESHOLD;
+  const filtered = useMemo(() => {
+    if (!query) return options;
+    const q = query.toLowerCase();
+    return options.filter(
+      (o) => o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q),
+    );
+  }, [options, query]);
+  const selected = options.find((o) => o.value === value);
+
+  useDismiss(dismissRefs, open, () => setOpen(false));
+
+  // The panel is fixed to where the trigger was on open; a scroll elsewhere
+  // would leave it hanging in space, so it closes. Scrolling the list is fine.
+  useEffect(() => {
+    if (!open) return;
+    function onScroll(event: Event) {
+      if (menuRef.current?.contains(event.target as Node)) return;
+      setOpen(false);
+    }
+    window.addEventListener("scroll", onScroll, true);
+    return () => window.removeEventListener("scroll", onScroll, true);
+  }, [open]);
+
+  // Keep the highlighted row visible while arrowing through a scrolled list.
+  useEffect(() => {
+    if (!open) return;
+    document.getElementById(`${listboxId}-${activeIndex}`)?.scrollIntoView({ block: "nearest" });
+  }, [open, activeIndex, listboxId]);
+
+  function openMenu() {
+    if (disabled) return;
+    setQuery("");
+    const selectedIndex = options.findIndex((o) => o.value === value);
+    setActiveIndex(selectedIndex < 0 ? 0 : selectedIndex);
+    setMinWidth(triggerRef.current?.offsetWidth ?? 0);
+    setOpen(true);
+  }
+
+  // The panel is portaled and fixed, so a scrolling table or card cannot
+  // clip it. Placed once it has rendered and can be measured, before it
+  // paints: the list grows to the space under the trigger, flipping above
+  // only when below is cramped and above has more room, and a panel that
+  // cannot hang rightward from the trigger hangs from its right edge or
+  // shifts inside the viewport. Measured on open; a resize while open is rare
+  // enough that reopening is the recovery.
+  useLayoutEffect(() => {
+    const trigger = triggerRef.current;
+    const menu = menuRef.current;
+    if (!open || !trigger || !menu) return;
+    setPlaced(
+      placePanel(
+        trigger.getBoundingClientRect(),
+        { width: menu.offsetWidth, height: menu.offsetHeight },
+        viewportSize(),
+        { gap: MENU_GAP, minRoom: FLIP_THRESHOLD },
+      ),
+    );
+    return () => setPlaced(null);
+  }, [open]);
+  // Unmeasured, the first render hangs under the trigger; it is corrected
+  // before paint and stays visible, so the search input's autofocus lands.
+  const rect = open && !placed ? triggerRef.current?.getBoundingClientRect() : undefined;
+  const listMaxHeight = placed ? Math.max(120, placed.maxHeight) : UNPLACED_LIST_HEIGHT;
+
+  function closeMenu() {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }
+
+  function pick(next: string) {
+    onChange(next);
+    closeMenu();
+  }
+
+  function moveActive(delta: number) {
+    if (filtered.length === 0) return;
+    setActiveIndex((i) => Math.min(filtered.length - 1, Math.max(0, i + delta)));
+  }
+
+  function onKeyDown(event: React.KeyboardEvent) {
+    if (!open) {
+      if (
+        event.key === "ArrowDown" ||
+        event.key === "ArrowUp" ||
+        event.key === "Enter" ||
+        event.key === " "
+      ) {
+        event.preventDefault();
+        openMenu();
+      }
+      return;
+    }
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveActive(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveActive(-1);
+        break;
+      case "Home":
+        event.preventDefault();
+        setActiveIndex(0);
+        break;
+      case "End":
+        event.preventDefault();
+        setActiveIndex(Math.max(0, filtered.length - 1));
+        break;
+      case "Enter": {
+        event.preventDefault();
+        const option = filtered[activeIndex];
+        if (option && !option.disabled) pick(option.value);
+        break;
+      }
+      case "Escape":
+        // Do not let a parent modal's Escape handler also fire.
+        event.stopPropagation();
+        closeMenu();
+        break;
+      case "Tab":
+        setOpen(false);
+        break;
+      default: {
+        // Type-ahead only when there is no search input to type into.
+        if (searchable || event.key.length !== 1 || event.metaKey || event.ctrlKey || event.altKey)
+          return;
+        const now = Date.now();
+        const state = typeahead.current;
+        state.buffer = now - state.at > TYPEAHEAD_RESET_MS ? event.key : state.buffer + event.key;
+        state.at = now;
+        const needle = state.buffer.toLowerCase();
+        const hit = filtered.findIndex((o) => o.label.toLowerCase().startsWith(needle));
+        if (hit >= 0) setActiveIndex(hit);
+      }
+    }
+  }
+
+  const activeId = filtered[activeIndex] ? `${listboxId}-${activeIndex}` : undefined;
+
+  return (
+    <div
+      ref={rootRef}
+      style={{
+        position: "relative",
+        display: "inline-block",
+        flexShrink: 0,
+        ...(width !== undefined ? { width } : {}),
+      }}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        {...(id !== undefined ? { id } : {})}
+        className={button ? "ms-btn ms-btn-secondary" : "ms-input"}
+        role="combobox"
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={listboxId}
+        {...(activeId !== undefined && open ? { "aria-activedescendant": activeId } : {})}
+        disabled={disabled}
+        onClick={() => (open ? closeMenu() : openMenu())}
+        onKeyDown={onKeyDown}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+          width: "100%",
+          cursor: disabled ? "default" : "pointer",
+          textAlign: "left",
+          opacity: disabled ? 0.4 : 1,
+        }}
+      >
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            overflow: "hidden",
+            minWidth: 0,
+          }}
+        >
+          {selected?.adornment}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {selected?.label ?? ""}
+          </span>
+          {selected?.badge ? (
+            <span
+              className={`ms-badge ms-badge-${selected.badge.tone}`}
+              style={{ flexShrink: 0, fontSize: 10.5, padding: "1px 7px" }}
+            >
+              {selected.badge.label}
+            </span>
+          ) : null}
+        </span>
+        <span style={{ flexShrink: 0, display: "flex", color: "var(--ms-faint)" }}>
+          <ChevronGlyph />
+        </span>
+      </button>
+      {open
+        ? createPortal(
+            <div
+              ref={menuRef}
+              className="ms-menu"
+              style={{
+                position: "fixed",
+                ...(placed
+                  ? {
+                      left: placed.left,
+                      ...(placed.above ? { bottom: placed.bottom } : { top: placed.top }),
+                    }
+                  : { left: rect?.left ?? 0, top: (rect?.bottom ?? 0) + MENU_GAP }),
+                minWidth,
+                width: "max-content",
+                maxWidth: `min(${MENU_MAX_WIDTH}px, ${PANEL_MAX_WIDTH})`,
+                zIndex: "var(--ms-z-menu)",
+                // Rows must scroll to the panel edge and clip on the radius —
+                // panel padding would crop them mid-item at the scroll boundary.
+                padding: 0,
+                overflow: "hidden",
+              }}
+            >
+              {searchable ? (
+                <input
+                  className="ms-menu-search"
+                  style={{ width: "100%", margin: 0 }}
+                  // Search is the typing surface while the popover is open.
+                  // biome-ignore lint/a11y/noAutofocus: focus moves into the popover by design, Esc restores the trigger
+                  autoFocus
+                  value={query}
+                  placeholder={t("searchPlaceholder")}
+                  aria-label={t("searchPlaceholder")}
+                  {...(activeId !== undefined ? { "aria-activedescendant": activeId } : {})}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setActiveIndex(0);
+                  }}
+                  onKeyDown={onKeyDown}
+                />
+              ) : null}
+              <div
+                id={listboxId}
+                role="listbox"
+                style={{
+                  // Panel chrome around the list: 12px padding, plus the search row.
+                  maxHeight: listMaxHeight - (searchable ? 40 : 0),
+                  overflowY: "auto",
+                  padding: 4,
+                  boxSizing: "border-box",
+                }}
+              >
+                {filtered.length === 0 ? (
+                  <div style={{ padding: "7px 12px", fontSize: 13, color: "var(--ms-muted)" }}>
+                    {t("noResults")}
+                  </div>
+                ) : (
+                  <SelectOptionList
+                    options={filtered}
+                    value={value}
+                    activeIndex={activeIndex}
+                    listboxId={listboxId}
+                    onHover={setActiveIndex}
+                    onPick={pick}
+                  />
+                )}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+    </div>
+  );
+}
+
+/**
+ * The listbox rows. A group heading precedes the first row of each run of
+ * options sharing a `group`; headings are plain text, never options, so
+ * arrowing, Home/End and type-ahead (which walk `options`) skip them, and a
+ * search that empties a group takes its heading with it. Exported on its
+ * own because the popover mounts through a portal only once opened.
+ */
+export function SelectOptionList({
+  options,
+  value,
+  activeIndex,
+  listboxId,
+  onHover,
+  onPick,
+}: {
+  options: SelectOption[];
+  value: string;
+  activeIndex: number;
+  listboxId: string;
+  onHover: (index: number) => void;
+  onPick: (value: string) => void;
+}) {
+  return options.map((option, index) => (
+    <Fragment key={option.value}>
+      {option.group !== undefined && option.group !== options[index - 1]?.group ? (
+        <div className="ms-menu-label" role="presentation">
+          {option.group}
+        </div>
+      ) : null}
+      <button
+        id={`${listboxId}-${index}`}
+        type="button"
+        role="option"
+        aria-selected={option.value === value}
+        tabIndex={-1}
+        className={[
+          "ms-menu-item",
+          option.sub ? "ms-menu-item-sub" : "",
+          index === activeIndex ? "active" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-disabled={option.disabled}
+        style={option.disabled ? { opacity: 0.5, cursor: "default" } : undefined}
+        onMouseEnter={() => onHover(index)}
+        onClick={() => {
+          if (!option.disabled) onPick(option.value);
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            overflow: "hidden",
+          }}
+        >
+          {option.adornment}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {option.label}
+            {option.hint !== undefined ? (
+              <span style={{ color: "var(--ms-muted)", marginLeft: 8, fontSize: 12 }}>
+                {option.hint}
+              </span>
+            ) : null}
+          </span>
+          {option.badge ? (
+            <span
+              className={`ms-badge ms-badge-${option.badge.tone}`}
+              style={{ flexShrink: 0, fontSize: 10.5, padding: "1px 7px" }}
+            >
+              {option.badge.label}
+            </span>
+          ) : null}
+        </span>
+        {option.value === value ? <span aria-hidden="true">✓</span> : null}
+      </button>
+    </Fragment>
+  ));
+}

@@ -1,0 +1,14 @@
+{
+  "confirm": "Cancelar inscrição",
+  "confirmPrefs": "Gerenciar preferências",
+  "confirmTopic": "Cancelar inscrição em {topic}",
+  "button": "Cancelar inscrição",
+  "preferences": "Escolha quais e-mails você quer receber:",
+  "save": "Salvar preferências",
+  "saved": "Suas preferências de e-mail foram atualizadas.",
+  "done": "Inscrição cancelada.",
+  "doneDetail": "Você não receberá mais e-mails de marketing. Mensagens sobre sua conta, como recibos e redefinições de senha, continuam chegando.",
+  "doneDetailTopic": "Você não receberá mais os e-mails de {topic}.",
+  "invalid": "Este link não é válido.",
+  "poweredBy": "Feito com {brand}"
+}

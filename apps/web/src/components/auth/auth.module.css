@@ -1,0 +1,231 @@
+/* Auth screens (login/signup) only — the shared control grammar stays in
+   styles/components.css; these rules just retune it for the auth column:
+   38px controls, full-width centered buttons, and the one backdrop glow. */
+
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Silk-wave backdrop (per-theme webp) drifting slowly under a scrim. The
+   negative inset gives the drift room so edges never show. */
+.backdrop {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  z-index: -2;
+  animation: drift 70s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from {
+    transform: translate3d(-1.2%, -0.8%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.2%, 0.8%, 0) scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    animation: none;
+  }
+}
+
+/* The live shader paints over the static webp when it runs; when it cannot
+   (reduced motion, no WebGL), the imgs beneath remain the backdrop. */
+.canvas {
+  /* Hidden until the shader's first frame; the webp beneath is baked to the
+     shader's tone, so the switch is instant and imperceptible. */
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+/* Legibility scrim between fabric and form: ground-tinted, heavier behind
+   the column, plus the steel glow the screen always had. */
+.screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      640px 460px at 50% 18%,
+      color-mix(in srgb, var(--ms-steel) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      760px 620px at 50% 46%,
+      color-mix(in srgb, var(--ms-ground) 62%, transparent),
+      color-mix(in srgb, var(--ms-ground) 26%, transparent) 78%
+    );
+}
+
+.column {
+  width: 360px;
+  max-width: 100%;
+  display: grid;
+  /* A shrinkable track: an auto one grows to its widest nowrap child (the
+     consent page's team select) and pushes the column off a phone screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  justify-items: center;
+}
+
+/* Social providers: stacked on narrow screens, one row on desktop. auto-fit
+   makes a lone provider span the full width with no special case. */
+.social {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .column {
+    width: 440px;
+  }
+  .social {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+}
+
+/* Composed with the global .ms-display — this only sizes/centers. */
+.headline {
+  margin: 8px 0 0;
+  font-size: var(--ms-fs-h2);
+  color: var(--ms-bone);
+  text-align: center;
+}
+
+.subline {
+  margin: -8px 0 8px;
+  color: var(--ms-muted);
+  font-size: var(--ms-fs-label);
+  text-align: center;
+}
+
+/* One auth-screen control height; inputs and buttons align at 38px. */
+.control {
+  width: 100%;
+  height: 38px;
+}
+
+.button {
+  composes: control;
+  justify-content: center;
+}
+
+.form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.field {
+  width: 100%;
+}
+
+.divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ms-faint);
+  font-size: var(--ms-fs-label);
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ms-line);
+}
+
+.error {
+  margin: 0;
+  color: var(--ms-danger);
+  font-size: var(--ms-fs-label);
+}
+
+/* Signup password meter: three bars + a word, tinted by score. */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.strengthBars {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+.strengthBar {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--ms-r-pill);
+  background: var(--ms-inset);
+  transition: background var(--ms-dur-fast) var(--ms-ease);
+}
+.strengthBarOn {
+  composes: strengthBar;
+  background: currentColor;
+}
+.strengthLabel {
+  font-size: var(--ms-fs-micro);
+  white-space: nowrap;
+}
+
+/* Auth links underline on hover only (the emails-table affordance). */
+.column a {
+  color: var(--ms-bone);
+  text-decoration: none;
+}
+.column a:hover {
+  text-decoration: underline dotted var(--ms-faint);
+  text-underline-offset: 3px;
+}
+
+/* Consent line: quiet, small, only rendered when a legal URL exists. */
+.legal {
+  margin: 4px 0 0;
+  color: var(--ms-faint);
+  font-size: var(--ms-fs-micro);
+  text-align: center;
+  line-height: 1.6;
+}
+.legal a {
+  color: var(--ms-muted);
+}
+
+/* Password label row: field label left, "Forgot password?" link right. */
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.forgot {
+  font-size: var(--ms-fs-label);
+}
+
+/* Neutral recovery outcome line ("check your email"): calm subline voice,
+   never a success/danger tint. */
+.notice {
+  margin: 0;
+  color: var(--ms-muted);
+  font-size: var(--ms-fs-label);
+  text-align: center;
+  line-height: 1.6;
+}

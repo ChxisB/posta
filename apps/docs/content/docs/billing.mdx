@@ -1,0 +1,399 @@
+---
+title: Billing (hosted deployments)
+description: How plans, Stripe Checkout, and the webhook fit together on a hosted MillionSend deployment, and how to provision a Stripe account for it.
+---
+
+Billing exists only when `IS_CLOUD=true`. A self-hosted instance has no
+plans, no send caps, no Billing tab, and no webhook route — it never needs a
+Stripe key. This page is for operating a hosted deployment.
+
+## Plans
+
+One ladder, cheapest first. Free and Starter cap sends per UTC day; Pro and
+Scale include a monthly volume per Stripe billing period and can bill overage
+past it. Free holds up to 1,000 contacts; segments and topics are unlimited
+everywhere, and so are contacts from Starter up. Sending domains are capped
+at 3 on Free and 10 on Starter, unlimited above. At either cap the API
+answers `403 plan_limit_reached` ("Your plan allows up to 1000 contacts")
+and the dashboard shows the same sentence. Inboxes are capped at 3 on Free
+and 25 on Starter, unlimited above (see [Inboxes](#inboxes)).
+
+| Rung | Plan | Price | Included | Cap | Overage per 1,000 |
+| --- | --- | --- | --- | --- | --- |
+| `free` | Free | $0 | 100 | per day | — |
+| `starter` | Starter | $9 | 1,500 | per day | — |
+| `pro_100k` | Pro | $20 | 100,000 | per month | $0.30 |
+| `pro_200k` | Pro | $35 | 200,000 | per month | $0.30 |
+| `scale_500k` | Scale | $75 | 500,000 | per month | $0.25 |
+| `scale_1m` | Scale | $140 | 1,000,000 | per month | $0.20 |
+| `scale_1_5m` | Scale | $200 | 1,500,000 | per month | $0.18 |
+| `scale_2_5m` | Scale | $330 | 2,500,000 | per month | $0.16 |
+
+The ladder is `PLAN_RUNGS` in `packages/core/src/plans.ts`; Checkout, the
+dashboard, `GET /usage` and the account mails all read it from there. The
+CLI's migration report keeps a copy in `packages/cli/src/report.ts` (it runs
+standalone against any instance), so a ladder change is mirrored there by hand.
+A team row carries `plan` and, on a monthly plan, `plan_quota` (the included
+volume it bought); together they name the rung.
+
+### Daily caps (Free, Starter)
+
+The counter is the UTC day. Sends keep passing up to 50% past the cap before
+parking, so a busy day is not cut off at the cap; emails over that ceiling
+park as `queued_quota` and the 15-minute `quota.drain` job releases them after
+midnight UTC. The API answers `429 daily_quota_exceeded` only when the parked
+backlog is full. Owners hear `quota.warning` at 80% of the cap,
+`quota.reached` at the cap and `quota.paused` when parking begins, once per
+UTC day; a plan upgrade releases parked mail within minutes. A scheduled send
+counts against the UTC day it goes out: its own, or today for a
+`scheduled_at` already past (it sends at once). Rescheduling it to another day
+counts it against that day too, while the day it leaves keeps its count; if
+that day is full, the email parks until the drain finds room.
+
+### Monthly volumes (Pro, Scale)
+
+The counter is the Stripe billing period — the `usage_periods` table, keyed by
+the team's `current_period_start` — with no tolerance. What happens at the
+included volume depends on the **overage** switch in Billing, on by default
+(the customer turns it off there):
+
+- **Overage off**: the API refuses with `429 monthly_quota_exceeded`
+  ("Monthly sending quota exceeded with overage off; the period renews on
+  `<date>`"); nothing parks through the API. Broadcasts
+  still park their overflow as `queued_quota`, and the drain re-checks it
+  against the period each run: it goes out when the period renews, when
+  overage is turned on, or when the plan moves up.
+- **Overage on**: sends past the included volume are reported to a Stripe
+  meter and billed per 1,000 at the rung's rate on the next invoice (see
+  [the overage cron](#the-overage-cron)) — up to a hard cap of 5× the
+  included volume (`OVERAGE_HARD_CAP`), so a runaway integration or a stolen
+  key can never run up an open-ended bill. At that cap the API refuses with
+  the same `429 monthly_quota_exceeded` ("Monthly sending quota exceeded:
+  sends stop at 5 times the included volume even with overage on; the period
+  renews on `<date>`") until the period renews.
+
+Owners hear `quota.warning` at 80% and `quota.reached` at 100% of the included
+volume, once per period; the reached mail says whether sends now bill overage
+or are refused. There is no `quota.paused` on monthly plans. A scheduled send
+counts against the period it is accepted in.
+
+On every plan, a sending domain under 30 days old also has its own daily cap
+(see [Domains](/concepts/domains#new-domain-warm-up)). A plan change never
+lifts it, and mail it holds parks as `queued_quota` without counting against
+the plan until the drain releases it.
+
+### Received mail
+
+Teams that [receive mail](/concepts/receiving) are counted once per message,
+not per recipient, in `usage_counters.received` and
+`usage_counters_hourly.received` and, on a monthly plan,
+`usage_periods.received`. What it costs comes from
+`receivingRule` in `packages/core/src/receiving/rcpt.ts`:
+
+- **Free**: received mail spends the day's sending counter
+  (`usage_counters.accepted`), so sends and received mail share the cap and
+  its 50% tolerance, and the quota notices count both. At the ceiling the MX
+  defers new mail with `452 4.2.2` until midnight UTC.
+- **Starter**: free up to twice the daily cap (3,000) per UTC day, counted
+  apart from sends; past it, `452`.
+- **Pro, Scale**: free up to twice the included volume per period. Past that,
+  every tenth received message adds one email to `usage_periods.accepted`,
+  which the [overage cron](#the-overage-cron) bills like a send. Past the
+  allowance, received mail is deferred once `accepted` reaches the period's
+  ceiling: 5× the volume with overage on, the volume itself with it off.
+
+The MX asks at every `RCPT TO`, so a team out of room is deferred before the
+message is sent; the sender retries. Self-hosted instances count received
+mail and never cap it.
+
+### Inboxes
+
+[Inboxes](/concepts/inboxes) cost nothing themselves; what they receive is
+counted as above. The plan caps how many a team keeps and how fast it creates
+them, from `PLAN_INBOX_LIMIT` and `INBOX_CREATES_PER_HOUR` in
+`packages/core/src/inboxes/limits.ts`:
+
+| Plan | Inboxes | Created per hour | Catch-all |
+| --- | --- | --- | --- |
+| Free | 3 | 10 | No |
+| Starter | 25 | 60 | Yes |
+| Pro, Scale | Unlimited | 600 | Yes |
+
+- At the inbox cap, `POST /inboxes` answers `403 validation_error` with
+  Resend's message, "You have reached the inbox limit of your plan. Upgrade
+  to add more.", and the dashboard disables **Create inbox** with the same
+  advice. Past the hourly rate it answers `429 rate_limit_exceeded` with
+  `retry-after`. The rate counts inboxes created, so deleting them doesn't
+  reset it.
+- Catch-all receiving (`receiving_catch_all` on a domain) needs Starter or
+  above: on Free, turning it on answers `403 plan_limit_reached` ("Catch-all
+  receiving needs a paid plan"). It stays on through a downgrade, and every
+  domain that received mail before inboxes existed was switched on.
+- `GET /usage` reports the cap as `limits.inboxes` (`null` when unlimited),
+  and the billing card shows it as "6 of 25".
+- Screening received mail for prompt injection keeps its own count
+  (`usage_counters.inbound_judged`), apart from the samples of outbound
+  content monitoring, under the same daily values: 600 per team and 50,000
+  per instance, plus 200 per inbox. Received mail never spends the outbound
+  sampling caps.
+
+Self-hosted instances have no inbox cap or creation rate, and catch-all is
+open to every domain.
+
+## The Stripe model
+
+- One **product** per paid plan (Starter, Pro, Scale), found again by
+  `metadata.millionsend_plan`.
+- One recurring **price** per rung, lookup key `millionsend_<rung>_monthly`
+  (`millionsend_pro_100k_monthly`, …), carrying
+  `metadata.millionsend_rung = <rung>` plus the plan, included volume, period
+  and overage rate.
+- One **meter**, event name `emails_over_quota`, summing `value` per
+  `stripe_customer_id`.
+- One metered **overage price** per monthly rung, lookup key
+  `millionsend_<rung>_overage`, on that meter, priced per 1,000 emails rounded
+  up (`transform_quantity: { divide_by: 1000, round: "up" }`).
+
+Prices are found by lookup key, never by price id, so the same build runs
+against any Stripe account (test or live) with no per-environment price
+configuration. A subscription on a monthly rung carries the rung's price and
+its metered price as a second item from Checkout on (the item's id is stored
+in `teams.stripe_overage_item_id`); the metered item bills only what the
+worker reports, so the customer's **overage** switch is a plain row flag,
+`teams.overage_enabled`, which is what every send surface reads.
+
+## The flow
+
+1. An owner or admin opens **Settings → Billing** and picks a rung. The
+   server creates the Stripe Customer for the team (once, stored on the team
+   with `metadata.team_id`) and redirects to Stripe Checkout for that rung's
+   price.
+2. Checkout collects payment, address, and tax id (automatic tax is on).
+   Stripe redirects back to `/settings/billing`. **The redirect changes
+   nothing** — the page just polls for a few seconds.
+3. Stripe delivers `checkout.session.completed`, `customer.subscription.*`
+   and `invoice.*` to `POST /api/billing/webhook`. The handler verifies the
+   signature on the raw body, records the event id (duplicates are
+   acknowledged and ignored), re-fetches the subscription from Stripe, and
+   only then writes `teams.plan`, `plan_quota`, `current_period_start`,
+   `current_period_end`, `stripe_overage_item_id` and `pending_rung`.
+4. **Switching rung** happens in the dashboard (`billing.changePlan`), and
+   the direction decides when:
+   - **Up** applies now: the subscription's items are updated — the plan
+     item to the new rung's price, the metered item re-priced for a monthly
+     rung or dropped for a daily one after its usage is reported — with the
+     difference prorated on the next invoice, and the webhook that follows
+     re-applies the same state. Sends already accepted inside the old volume
+     are marked settled on the period row, so the new rung never bills them
+     as overage.
+   - **Down** applies at the period end, with no proration and no refund: a
+     Stripe subscription schedule is created from the subscription (or the
+     pending one reused) with two phases — the current items until
+     `current_period_end`, then the new rung's items — and the plan row does
+     not move until the webhook applies the phase change. Until then the
+     billing page shows "Moves to X on `<date>`" with a **Keep `<current>`**
+     button: choosing the current rung releases the schedule, and so does a
+     later move up.
+
+   The **overage** switch (`billing.setOverage`) flips `overage_enabled`; off
+   reports what is still unreported first. A subscription from before the
+   ladder has no metered item; switching overage on adds it (off and back
+   on, since the switch starts on).
+5. **Manage billing** opens the Stripe Customer Portal for the payment
+   method, invoices, tax id and cancel at period end (the portal asks for a
+   cancellation reason). Plan changes are not offered there: Stripe's portal
+   cannot update a subscription with more than one item, and a monthly rung
+   has two.
+
+A team cannot buy or move up while it is suspended (for any reason) or
+holds an open Trust & safety flag that the safety job opened for abuse
+(`monitor`, `guardrail` or `complaints`) or that an operator opened or
+reopened, whatever its kind: `billing.checkout`, a move up in
+`billing.changePlan` and switching overage on answer `FORBIDDEN`
+(`upgrades_held`), and the billing page says upgrades are unavailable,
+without saying why. Reinstating a team clears the flag its suspension
+opened and leaves any other open flag as it is. Moving down,
+keeping the current rung, switching overage off and **Manage billing**
+(where cancelling lives) stay open. The configuration `--portal` provisions
+offers no plan switch at all; the account's default configuration may, so
+set `STRIPE_PORTAL_CONFIG`.
+
+The plan columns are written from a subscription fetched from Stripe — by
+the webhook handler and by the two dashboard procedures above — never from a
+redirect, a client call, or an event payload taken at face value.
+
+## Entitlement rules
+
+The rung is derived from the subscription **re-fetched** from Stripe at
+webhook time, so out-of-order deliveries converge on Stripe's current state.
+The subscription's non-metered item names the rung, tried in this order:
+
+1. the price's `metadata.millionsend_rung`;
+2. the price's lookup key (`millionsend_<rung>_monthly`);
+3. the product's `metadata.millionsend_plan`, landing on that plan's first
+   rung — this is how the two prices sold before the ladder resolve
+   (`millionsend_pro_monthly` → `pro_100k`, `millionsend_scale_monthly` →
+   `scale_500k`).
+
+| Re-fetched subscription status | `plan`, `plan_quota` | `plan_status` |
+| --- | --- | --- |
+| `active`, `trialing` | The rung's plan and included volume (`plan_quota` is null on a daily rung). Unknown price: logged, nothing changes. | same |
+| `past_due` | Unchanged (payment grace; Stripe keeps retrying) | `past_due` |
+| `unpaid`, `canceled`, `incomplete`, `incomplete_expired`, anything else | `free`, null | `unpaid` / `canceled` / `incomplete` / `canceled` |
+
+Additional rules:
+
+- A non-entitling status for a subscription other than the one stored on
+  the team is ignored, so a superseded subscription ending never revokes
+  the current one.
+- Events for a customer no team owns, or event types the handler does not
+  consume, are logged and answered `200` so Stripe stops retrying them.
+- Stripe being unreachable or a database failure throws; the event row rolls
+  back and Stripe's retry is processed normally.
+- `billing.reconcile` re-fetches every subscribed team's subscription from
+  Stripe once a day, and once more each time the worker boots: a deploy that
+  restarts the process while an event is mid-flight is caught up at once
+  instead of hours later. A plan the reconcile moves is reported to the
+  owners as the webhook would have.
+- `stripe_customer_id`, `stripe_subscription_id`, `current_period_start`,
+  `current_period_end`, `stripe_overage_item_id` and `pending_rung` (the rung
+  of a pending schedule's last phase when it differs from the current one)
+  are stored alongside the plan. A metered item priced for another rung is
+  re-pointed to the rung's metered price as it is applied.
+
+## The overage cron
+
+`billing.overage` runs in the worker every 10 minutes. For every period row
+of a team with a metered item that has more sends past the included volume
+than the meter already knows about (`accepted − included − reported_overage`),
+it sends one meter event per team and period, in three statements so a crash
+at any point costs nothing:
+
+1. the row pins the counter the event will advance to: `pending_overage = to`
+   where `reported_overage = from` and no pin is set (a row another run
+   pinned first is skipped);
+2. the meter event goes out with identifier `<team>:<period start>:<from>:<to>`
+   (the period start as epoch milliseconds) and value `to − from`;
+3. the row catches up: `reported_overage = to, pending_overage = null`.
+
+A crash between the last two leaves the pin, so the next run re-sends the
+same `to` under the same identifier and Stripe drops it as a duplicate; a
+Stripe failure leaves the pin for the next run too. With overage off nothing
+passes the included volume, so there is nothing to report; with it on nothing
+passes 5× the volume, so a period bills at most four volumes of overage.
+Usage of a period that already ended is stamped one second inside that
+period, where Stripe invoices it (the invoice stays a draft for about an hour
+after the period closes; rows older than 35 days can no longer be metered and
+are logged).
+The same report runs before the switch turns off, before a move up (sends
+made under the old rung settle at its rate) and when the metered item leaves
+the subscription, so nothing unbilled is lost.
+
+## Environment
+
+`IS_CLOUD=true` requires all of these at boot (the process refuses to start
+otherwise):
+
+| Variable | Purpose |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Stripe API secret key (`sk_test_…` / `sk_live_…`). |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret of the endpoint pointed at `/api/billing/webhook` (`whsec_…`). |
+| `STRIPE_PORTAL_CONFIG` | Optional. Customer Portal configuration id (`bpc_…`); unset uses the account default. |
+| `APP_BASE_URL` | Public dashboard URL; Checkout and Portal return to `{APP_BASE_URL}/settings/billing`. |
+| `KMS_KEY_ID` | AWS KMS key for tenant secrets (hosted mode encrypts with KMS instead of `MASTER_ENCRYPTION_KEY`). |
+
+## Provisioning a Stripe account
+
+One idempotent script creates everything the API can create. Amounts come
+from the ladder, not from flags:
+
+```sh
+STRIPE_SECRET_KEY=sk_test_… pnpm --filter @millionsend/billing provision \
+  --webhook-url https://app.example.com/api/billing/webhook \
+  --portal --app-url https://app.example.com
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--webhook-url` | Find-or-create the webhook endpoint for this URL with exactly the events the handler consumes. Omit for local development. |
+| `--portal` | Find-or-create the Customer Portal configuration and print its id for `STRIPE_PORTAL_CONFIG`. |
+| `--app-url` | Dashboard origin: the portal's default return URL becomes `<app-url>/settings/billing`. Omit for Stripe's default. |
+| `--move-legacy` | Move every subscription still on a pre-ladder price to its rung (Pro 100K, Scale 500K) at once, without proration, adding the rung's metered item; a discount on the subscription stays. Idempotent. |
+| `--dry-run` | Read the account and print what would be written, without writing. |
+
+What it does, and why re-running is safe:
+
+- **Products** are found by `metadata.millionsend_plan` (`starter` / `pro` /
+  `scale`), created with the Stripe Tax code for SaaS business use.
+- **The meter** is found by its event name, `emails_over_quota`.
+- **Prices** are found by lookup key. A changed amount in the ladder creates
+  a new price, moves the lookup key onto it, and archives the old one;
+  existing subscriptions keep their old price (still resolved by its
+  metadata), new checkouts get the new one. Metadata alone is refreshed in
+  place. Prices are `tax_behavior: exclusive`.
+- **Legacy prices** `millionsend_pro_monthly` and `millionsend_scale_monthly`
+  are archived, not deleted: subscriptions still on them keep working,
+  resolved to the plan's first rung through the product's metadata, until
+  each is moved; only new checkouts stop seeing them.
+- **Webhook endpoint** is found by URL; drifted event lists are re-synced.
+  The signing secret is printed **once, at creation** — Stripe never returns
+  it again. To rotate it, roll it in the dashboard (Developers → Webhooks →
+  the endpoint → Roll secret) and copy the new value into
+  `STRIPE_WEBHOOK_SECRET`.
+- **Portal configuration** is found by metadata and its settings refreshed:
+  the features (invoice history, payment method, customer details including
+  tax id, and cancel at period end with a cancellation reason collected;
+  subscription updates are off, see [the flow](#the-flow)), the business
+  profile's terms and privacy links (`millionsend.com/terms`, `/privacy`)
+  and, with `--app-url`, the return URL.
+
+Test and live are separate Stripe accounts: run once with each key.
+
+### Dashboard-only checklist
+
+The script ends by printing these; the API cannot do them:
+
+- **Stripe Tax**: enable it and add tax registrations for the jurisdictions
+  you sell in (Settings → Tax). Checkout enables automatic tax, which
+  fails without this.
+- **Business profile**: legal name, support email/URL, and the statement
+  descriptor customers see on card statements (Settings → Public details).
+- **Branding**: logo, icon, and colors for Checkout, the portal, invoices,
+  and emails (Settings → Branding).
+- **Customer emails**: successful-payment receipts and failed-payment
+  notices (Settings → Emails).
+- **Legacy subscriptions**: a subscription on an archived price keeps it;
+  move each one to its rung's price from the subscription page (no
+  proration, at period end).
+
+## Migrating an existing deployment
+
+Migration `0035_pricing_ladder` adds the `starter` plan value, the `teams`
+columns `plan_quota`, `current_period_start`, `stripe_overage_item_id`,
+`overage_enabled` (default true) and `pending_rung`, and the `usage_periods`
+table (`accepted`, `reported_overage`, `pending_overage`). Existing `scale`
+teams map to Scale 500K (`plan_quota` 500000) and `pro` teams to Pro 100K
+(100000); `current_period_start` is backfilled as `current_period_end − 1
+month`. Their subscriptions stay on the legacy prices, resolved through the
+product's metadata, until `provision --move-legacy` (or a manual update)
+moves them; the first sync of such a subscription (the worker reconciles at
+boot) adds the rung's metered item, so overage bills from the first period
+after the deploy. The period counter starts
+empty: sends accepted before the migration count against the day they were
+sent, not against the period.
+
+## Local testing
+
+Run the dashboard with `IS_CLOUD=true` and the test-mode secret key, then
+forward Stripe's events to it with the Stripe CLI:
+
+```sh
+stripe listen --forward-to localhost:3009/api/billing/webhook
+```
+
+`stripe listen` prints a `whsec_…` secret of its own — put that in
+`STRIPE_WEBHOOK_SECRET` for the local process (no `--webhook-url` needed
+when provisioning). Use the card `4242 4242 4242 4242` in Checkout, and
+`stripe trigger customer.subscription.deleted` to exercise a downgrade. The
+webhook route answers `404` when `IS_CLOUD` is not `true`, `400` on a bad
+signature, and `200` for anything it has verified.

@@ -1,0 +1,89 @@
+{
+  "team": {
+    "title": "Name your team",
+    "teamName": "Team name",
+    "logoLabel": "Team logo (optional)",
+    "logoAdd": "Add a logo",
+    "logoChange": "Change logo",
+    "submit": "Create team",
+    "error": "Team creation failed. Try again."
+  },
+  "title": "Send your first email",
+  "subtitle": "Follow the steps to send an email using the MillionSend API.",
+  "step1": {
+    "title": "Add an API key",
+    "body": "Keys authenticate every request. The full key is shown once, at creation.",
+    "cta": "Add API key",
+    "keyName": "Onboarding",
+    "done": "API key added",
+    "doneMeta": "sending access · all domains",
+    "show": "show",
+    "hide": "hide",
+    "error": "Key creation failed. Try again."
+  },
+  "step2": {
+    "title": "Send an email",
+    "bodyLocked": "To your own inbox, from a domain you verify — the snippet unlocks once you have a key.",
+    "bodyReady": "Your key and your inbox are pre-filled. Run it from your terminal with a sender on a domain you verified.",
+    "subject": "It works.",
+    "html": "<p>0000001 and counting.</p>",
+    "fromPlaceholder": "you@yourdomain.com",
+    "keyComment": "real key on copy",
+    "keyCommentReplace": "replace with your API key",
+    "keyCommentLocked": "your key, once created",
+    "sendCta": "Send email",
+    "sendHint": "No domain yet? Get a test email from MillionSend — one per team, sent to the team owner.",
+    "sending": "Sending…",
+    "sentTo": "Sent to {to}. It shows up below the moment it lands.",
+    "alreadySent": "This team's test email already went out. Verify a domain to send your own.",
+    "sendError": "Could not send. Try again.",
+    "selfHostBase": "Self-hosted: point the SDKs at this instance with MILLIONSEND_BASE_URL={url}.",
+    "captchaFailed": "Verification failed. Try again."
+  },
+  "step3": {
+    "title": "Watch it arrive",
+    "waiting": "waiting for your first email · checking every 5 s"
+  },
+  "success": {
+    "keyAdded": "API key added",
+    "emailPending": "Email to {to} — not delivered yet",
+    "emailDelivered": "Email sent · delivered to {to} in {seconds} s",
+    "counting": "{count, plural, one {1 delivered. Counting.} other {# delivered. Counting.}}",
+    "deliveredIn": "delivered in {seconds} s"
+  },
+  "explore": {
+    "label": "Explore more",
+    "recommended": "Recommended",
+    "domains": {
+      "title": "Verify a domain",
+      "body": "Send from your own address.",
+      "cta": "Add domain"
+    },
+    "mcp": {
+      "title": "Install MCP",
+      "body": "Connect your AI tools and agents to send email through MillionSend.",
+      "cta": "Install MCP"
+    },
+    "webhooks": {
+      "title": "Set up webhooks",
+      "body": "Delivery events, pushed to your endpoint as they happen.",
+      "cta": "Add webhook"
+    },
+    "team": {
+      "title": "Invite your team",
+      "body": "Members manage emails, domains, and webhooks.",
+      "cta": "Invite members"
+    },
+    "migrate": {
+      "title": "Migrate from Resend",
+      "body": "One command moves contacts, segments, templates, webhooks and domains.",
+      "cta": "Read the guide"
+    },
+    "instance": "Send rate and email retention are instance settings — set them in <link>Settings</link>."
+  },
+  "stepSes": {
+    "title": "Connect your AWS SES",
+    "body": "MillionSend sends through your own AWS SES account. Connect it once in settings — the wizard creates everything and tests the connection.",
+    "cta": "Open SES setup"
+  }
+}

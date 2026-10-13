@@ -1,0 +1,377 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787029866675,
+      "tag": "0000_melted_warpath",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787069146865,
+      "tag": "0001_common_blonde_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787155401809,
+      "tag": "0002_next_molecule_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787168496502,
+      "tag": "0003_complete_lethal_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787173705194,
+      "tag": "0004_fantastic_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787702205233,
+      "tag": "0005_stiff_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787706487277,
+      "tag": "0006_grey_the_initiative",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788032758821,
+      "tag": "0007_unpin_oauth_client_scopes",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788035706717,
+      "tag": "0008_melted_vampiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788062522630,
+      "tag": "0009_whole_martin_li",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788067396020,
+      "tag": "0010_absent_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788068381559,
+      "tag": "0011_lazy_fantastic_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788141906808,
+      "tag": "0012_email_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788145653831,
+      "tag": "0013_backfill_hard_bounced",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788225656137,
+      "tag": "0014_unusual_harrier",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1788292446604,
+      "tag": "0015_templates_alias",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788405721602,
+      "tag": "0016_events_health_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788440397538,
+      "tag": "0017_team_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1788441030546,
+      "tag": "0018_invitation_resend",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788441575936,
+      "tag": "0019_region_breakers",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788452148787,
+      "tag": "0020_domain_tenant_association",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788454538819,
+      "tag": "0021_domain_tenant_config_set",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788454800345,
+      "tag": "0022_event_bounce_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788550754183,
+      "tag": "0023_webhook_secret_rotation",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788573187602,
+      "tag": "0024_scale_indexes_and_counts",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788574935350,
+      "tag": "0025_broadcast_result_snapshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788583513988,
+      "tag": "0026_prefetched_opens",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788709516272,
+      "tag": "0027_unsubscribe_logo_radius",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1788715992083,
+      "tag": "0028_api_request_oauth_client",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788741066088,
+      "tag": "0029_unsubscribed_email_event",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1788746114021,
+      "tag": "0030_usage_counters_hourly",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1788894598519,
+      "tag": "0031_shocking_captain_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1788908199501,
+      "tag": "0032_unsubscribe_powered_by",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1788917329637,
+      "tag": "0033_account_emails",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1788921184349,
+      "tag": "0034_mail_opt_outs",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1789057279243,
+      "tag": "0035_pricing_ladder",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1789443813893,
+      "tag": "0036_system_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1789528655285,
+      "tag": "0037_console",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789533750783,
+      "tag": "0038_monitor",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1789570292949,
+      "tag": "0039_content_reveal",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1789583105460,
+      "tag": "0040_support_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1789612549115,
+      "tag": "0041_paced_broadcasts",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790458160356,
+      "tag": "0042_user_locale",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790694056936,
+      "tag": "0043_broadcast_audience_count",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790695221205,
+      "tag": "0044_emails_source_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1791553816103,
+      "tag": "0045_monitor_review_hold",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1791590604886,
+      "tag": "0046_domain_age_warmup",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1791593051425,
+      "tag": "0047_onboarding_email_sent",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1791600587991,
+      "tag": "0048_suspended_team_unsubscribe",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1791734547184,
+      "tag": "0049_receiving",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1791772302203,
+      "tag": "0050_phishing_defenses",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1791815731423,
+      "tag": "0051_complaint_feedback_sends",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1791832739361,
+      "tag": "0052_inboxes",
+      "breakpoints": true
+    }
+  ]
+}
