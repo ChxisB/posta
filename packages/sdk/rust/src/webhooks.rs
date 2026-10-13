@@ -40,7 +40,7 @@ impl Webhooks {
     }
 
     /// `POST /webhooks/:id/rotate` — mints (or takes) a new `signing_secret`;
-    /// the previous one keeps signing for `overlap_hours` (MillionSend
+    /// the previous one keeps signing for `overlap_hours` (Posta
     /// extension). `None` sends `{}`.
     pub async fn rotate(
         &self,

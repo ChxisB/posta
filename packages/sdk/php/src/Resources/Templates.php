@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
 /** Reusable email templates, addressable by id or alias. */
 final class Templates
@@ -59,7 +59,7 @@ final class Templates
 
     /**
      * POST /templates/:idOrAlias/publish — templates are always published on
-     * MillionSend; kept for resend-php compatibility.
+     * Posta; kept for resend-php compatibility.
      *
      * @return array<mixed>
      */

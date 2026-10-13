@@ -74,7 +74,7 @@ describe('emails', function () {
         try {
             $ms->emails->getInsights('missing');
             $this->fail('expected an ErrorException');
-        } catch (MillionSend\Exceptions\ErrorException $e) {
+        } catch (Posta\Exceptions\ErrorException $e) {
             expect($e->getStatusCode())->toBe(404);
             expect($e->getErrorName())->toBe('not_found');
         }
@@ -579,7 +579,7 @@ describe('contacts (full body, batch, segments)', function () {
         try {
             $ms->contacts->preferencesLink('c1');
             $this->fail('expected an ErrorException');
-        } catch (MillionSend\Exceptions\ErrorException $e) {
+        } catch (Posta\Exceptions\ErrorException $e) {
             expect($e->getStatusCode())->toBe(422);
             expect($e->getErrorName())->toBe('validation_error');
         }
@@ -804,13 +804,13 @@ describe('webhooks', function () {
 
 describe('apiKeys', function () {
     it('covers create/list/remove', function () {
-        [$ms, $spy] = fakeClient(200, ['id' => 'k1', 'token' => 'ms_secret']);
+        [$ms, $spy] = fakeClient(200, ['id' => 'k1', 'token' => 'po_secret']);
 
         $res = $ms->apiKeys->create(['name' => 'ci', 'permission' => 'sending_access', 'domainId' => 'd1']);
         expect($spy->at(0)->getMethod())->toBe('POST');
         expect($spy->at(0)->getUri()->getPath())->toBe('/api-keys');
         expect(bodyOf($spy->at(0)))->toBe(['name' => 'ci', 'permission' => 'sending_access', 'domain_id' => 'd1']);
-        expect($res['token'])->toBe('ms_secret');
+        expect($res['token'])->toBe('po_secret');
 
         $ms->apiKeys->list(['limit' => 5]);
         expect($spy->at(1)->getMethod())->toBe('GET');
@@ -910,7 +910,7 @@ describe('usage', function () {
             'limits' => ['emails_per_day' => 50000, 'domains' => 10],
             'today' => ['emails_sent' => 120, 'resets_at' => '2026-09-05T00:00:00Z'],
             'team' => ['id' => 'team_1', 'name' => 'Acme'],
-            'app_url' => 'https://app.millionsend.com',
+            'app_url' => 'https://app.posta.example',
         ];
         [$ms, $spy] = fakeClient(200, $report);
 

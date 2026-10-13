@@ -1,8 +1,8 @@
 name: release
 
 # Publishes to crates.io via Trusted Publishing: configure crates.io → crate
-# millionsend → Settings → Trusted Publishing → add GitHub
-# (MillionSend/millionsend-rust, workflow release.yml). No token stored.
+# posta → Settings → Trusted Publishing → add GitHub
+# (ChxisB/posta, workflow release.yml). No token stored.
 on:
   workflow_dispatch:
   push:

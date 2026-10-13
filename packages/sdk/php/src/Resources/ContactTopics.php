@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
+use Posta\HttpClient;
 
 /** Per-contact topic subscriptions (opt in/out of a topic). */
 final class ContactTopics

@@ -1,22 +1,22 @@
-//! Opt-in end-to-end smoke test against a real MillionSend instance. Runs only
-//! when `MILLIONSEND_API_KEY` is set (and `MILLIONSEND_BASE_URL` for a
+//! Opt-in end-to-end smoke test against a real Posta instance. Runs only
+//! when `POSTA_API_KEY` is set (and `POSTA_BASE_URL` for a
 //! self-hosted instance; Cloud is the default); otherwise it returns early.
 //! Exercises the contact lifecycle, which needs no verified sender domain.
 //!
 //! ```sh
-//! MILLIONSEND_API_KEY=ms_... MILLIONSEND_BASE_URL=http://localhost:3001 \
+//! POSTA_API_KEY=po_... POSTA_BASE_URL=http://localhost:3001 \
 //!   cargo test --test e2e -- --nocapture
 //! ```
 
-use millionsend::{ContactAddress, CreateContactOptions, MillionSend, UpdateContactOptions};
+use posta::{ContactAddress, CreateContactOptions, Posta, UpdateContactOptions};
 
 #[tokio::test]
 async fn contact_lifecycle() {
-    if std::env::var("MILLIONSEND_API_KEY").is_err() {
-        eprintln!("skipping e2e: MILLIONSEND_API_KEY not set");
+    if std::env::var("POSTA_API_KEY").is_err() {
+        eprintln!("skipping e2e: POSTA_API_KEY not set");
         return;
     }
-    let ms = MillionSend::from_env().expect("MILLIONSEND_API_KEY");
+    let ms = Posta::from_env().expect("POSTA_API_KEY");
 
     let stamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

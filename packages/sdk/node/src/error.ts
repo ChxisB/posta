@@ -1,5 +1,5 @@
 /**
- * The error shape the MillionSend API returns on every non-2xx response, plus
+ * The error shape the Posta API returns on every non-2xx response, plus
  * the two client-side conditions (a bad request never sent, a transport
  * failure) which carry `statusCode: null`. Mirrors Resend's `ErrorResponse`, so
  * code that switches on `error.name` ports across unchanged.

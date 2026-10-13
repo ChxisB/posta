@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace MillionSend;
+namespace Posta;
 
-use MillionSend\Resources\ApiKeys;
-use MillionSend\Resources\Batch;
-use MillionSend\Resources\Broadcasts;
-use MillionSend\Resources\ContactProperties;
-use MillionSend\Resources\Contacts;
-use MillionSend\Resources\Deliverability;
-use MillionSend\Resources\Domains;
-use MillionSend\Resources\Emails;
-use MillionSend\Resources\Segments;
-use MillionSend\Resources\Suppressions;
-use MillionSend\Resources\Templates;
-use MillionSend\Resources\Topics;
-use MillionSend\Resources\Usage;
-use MillionSend\Resources\Webhooks;
+use Posta\Resources\ApiKeys;
+use Posta\Resources\Batch;
+use Posta\Resources\Broadcasts;
+use Posta\Resources\ContactProperties;
+use Posta\Resources\Contacts;
+use Posta\Resources\Deliverability;
+use Posta\Resources\Domains;
+use Posta\Resources\Emails;
+use Posta\Resources\Segments;
+use Posta\Resources\Suppressions;
+use Posta\Resources\Templates;
+use Posta\Resources\Topics;
+use Posta\Resources\Usage;
+use Posta\Resources\Webhooks;
 
 /**
- * The MillionSend client. Build it once via {@see MillionSend::client()} and
+ * The Posta client. Build it once via {@see Posta::client()} and
  * reach every resource through its public accessors, e.g. `$ms->emails->send(...)`.
  */
 final class Client

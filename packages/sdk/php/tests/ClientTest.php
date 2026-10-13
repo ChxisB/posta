@@ -2,72 +2,72 @@
 
 declare(strict_types=1);
 
-use MillionSend\Client;
-use MillionSend\Exceptions\ErrorException;
-use MillionSend\MillionSend;
+use Posta\Client;
+use Posta\Exceptions\ErrorException;
+use Posta\Posta;
 
 describe('construction', function () {
     it('throws without an API key and without the env var', function () {
-        $prev = getenv('MILLIONSEND_API_KEY');
-        putenv('MILLIONSEND_API_KEY');
+        $prev = getenv('POSTA_API_KEY');
+        putenv('POSTA_API_KEY');
 
-        expect(fn () => MillionSend::client())->toThrow(InvalidArgumentException::class);
+        expect(fn () => Posta::client())->toThrow(InvalidArgumentException::class);
 
         if ($prev !== false) {
-            putenv('MILLIONSEND_API_KEY=' . $prev);
+            putenv('POSTA_API_KEY=' . $prev);
         }
     });
 
-    it('falls back to MILLIONSEND_API_KEY', function () {
-        $prev = getenv('MILLIONSEND_API_KEY');
-        putenv('MILLIONSEND_API_KEY=ms_env');
+    it('falls back to POSTA_API_KEY', function () {
+        $prev = getenv('POSTA_API_KEY');
+        putenv('POSTA_API_KEY=po_env');
 
-        expect(MillionSend::client())->toBeInstanceOf(Client::class);
+        expect(Posta::client())->toBeInstanceOf(Client::class);
 
-        putenv($prev === false ? 'MILLIONSEND_API_KEY' : 'MILLIONSEND_API_KEY=' . $prev);
+        putenv($prev === false ? 'POSTA_API_KEY' : 'POSTA_API_KEY=' . $prev);
     });
 
     it('rejects invalid request deadlines', function () {
-        expect(fn () => MillionSend::client('ms_test', null, ['timeout' => 0.0]))
+        expect(fn () => Posta::client('po_test', null, ['timeout' => 0.0]))
             ->toThrow(InvalidArgumentException::class);
     });
 
     it('refuses a non-loopback http base URL unless allowInsecureHttp is set', function () {
-        expect(fn () => MillionSend::client('ms_test', 'http://mail.example.com'))
+        expect(fn () => Posta::client('po_test', 'http://mail.example.com'))
             ->toThrow(InvalidArgumentException::class, 'allowInsecureHttp');
 
-        $prev = getenv('MILLIONSEND_BASE_URL');
-        putenv('MILLIONSEND_BASE_URL=http://mail.example.com');
+        $prev = getenv('POSTA_BASE_URL');
+        putenv('POSTA_BASE_URL=http://mail.example.com');
         try {
-            expect(fn () => MillionSend::client('ms_test'))->toThrow(InvalidArgumentException::class);
+            expect(fn () => Posta::client('po_test'))->toThrow(InvalidArgumentException::class);
         } finally {
-            putenv($prev === false ? 'MILLIONSEND_BASE_URL' : 'MILLIONSEND_BASE_URL=' . $prev);
+            putenv($prev === false ? 'POSTA_BASE_URL' : 'POSTA_BASE_URL=' . $prev);
         }
 
-        expect(MillionSend::client('ms_test', 'http://mail.example.com', ['allowInsecureHttp' => true]))
+        expect(Posta::client('po_test', 'http://mail.example.com', ['allowInsecureHttp' => true]))
             ->toBeInstanceOf(Client::class);
-        expect(MillionSend::client('ms_test', 'http://localhost:3001'))->toBeInstanceOf(Client::class);
-        expect(MillionSend::client('ms_test', 'http://127.0.0.1:3001'))->toBeInstanceOf(Client::class);
+        expect(Posta::client('po_test', 'http://localhost:3001'))->toBeInstanceOf(Client::class);
+        expect(Posta::client('po_test', 'http://127.0.0.1:3001'))->toBeInstanceOf(Client::class);
     });
 
     it('keeps the API key out of debug output', function () {
-        $ms = MillionSend::client('ms_secret_key', 'https://api.test');
+        $ms = Posta::client('po_secret_key', 'https://api.test');
 
-        expect(print_r($ms, true))->not->toContain('ms_secret_key');
+        expect(print_r($ms, true))->not->toContain('po_secret_key');
         ob_start();
         var_dump($ms);
-        expect((string) ob_get_clean())->not->toContain('ms_secret_key');
+        expect((string) ob_get_clean())->not->toContain('po_secret_key');
     });
 
-    it('defaults the base URL to MillionSend Cloud; the env var and the explicit argument win', function () {
-        $prev = getenv('MILLIONSEND_BASE_URL');
-        putenv('MILLIONSEND_BASE_URL');
+    it('defaults the base URL to Posta Cloud; the env var and the explicit argument win', function () {
+        $prev = getenv('POSTA_BASE_URL');
+        putenv('POSTA_BASE_URL');
         try {
             [$ms, $spy] = fakeClient(200, ['id' => 'e1'], null);
             $ms->emails->get('e1');
-            expect((string) $spy->last()->getUri())->toBe('https://api.millionsend.com/emails/e1');
+            expect((string) $spy->last()->getUri())->toBe('https://api.posta.example/emails/e1');
 
-            putenv('MILLIONSEND_BASE_URL=https://env.test');
+            putenv('POSTA_BASE_URL=https://env.test');
             [$ms, $spy] = fakeClient(200, ['id' => 'e1'], null);
             $ms->emails->get('e1');
             expect((string) $spy->last()->getUri())->toBe('https://env.test/emails/e1');
@@ -76,7 +76,7 @@ describe('construction', function () {
             $ms->emails->get('e1');
             expect((string) $spy->last()->getUri())->toBe('https://explicit.test/emails/e1');
         } finally {
-            putenv($prev === false ? 'MILLIONSEND_BASE_URL' : 'MILLIONSEND_BASE_URL=' . $prev);
+            putenv($prev === false ? 'POSTA_BASE_URL' : 'POSTA_BASE_URL=' . $prev);
         }
     });
 
@@ -98,7 +98,7 @@ describe('request wiring', function () {
         expect($req->getUri()->getPath())->toBe('/future/thing');
         expect($req->getUri()->getQuery())->toBe('q=x');
         expect(bodyOf($req))->toBe(['a' => 1]);
-        expect($req->getHeaderLine('Authorization'))->toBe('Bearer ms_test');
+        expect($req->getHeaderLine('Authorization'))->toBe('Bearer po_test');
         expect($req->getHeaderLine('Idempotency-Key'))->toBe('idem-1');
     });
 
@@ -107,10 +107,10 @@ describe('request wiring', function () {
         $ms->emails->send(['from' => 'a@x.dev', 'to' => 'b@x.dev', 'subject' => 's', 'html' => '<p>h</p>']);
 
         $req = $spy->last();
-        expect($req->getHeaderLine('Authorization'))->toBe('Bearer ms_test');
+        expect($req->getHeaderLine('Authorization'))->toBe('Bearer po_test');
         expect($req->getHeaderLine('Accept'))->toBe('application/json');
         expect($req->getHeaderLine('Content-Type'))->toBe('application/json');
-        expect($req->getHeaderLine('User-Agent'))->toMatch('/^millionsend-php\/\d/');
+        expect($req->getHeaderLine('User-Agent'))->toMatch('/^posta-php\/\d/');
     });
 
     it('maps camelCase inputs to the snake_case wire and omits absent keys', function () {
@@ -269,6 +269,6 @@ describe('wire body completeness', function () {
         [$ms, $spy] = fakeClient();
         $ms->emails->get('e1');
 
-        expect($spy->last()->getHeaderLine('User-Agent'))->toBe('millionsend-php/0.8.0');
+        expect($spy->last()->getHeaderLine('User-Agent'))->toBe('posta-php/0.8.0');
     });
 });

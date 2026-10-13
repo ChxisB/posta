@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
-/** Bulk contact creation, lookup and deletion (MillionSend extension; Resend imports via CSV and reads/deletes one at a time). */
+/** Bulk contact creation, lookup and deletion (Posta extension; Resend imports via CSV and reads/deletes one at a time). */
 final class ContactsBatch
 {
     public function __construct(private readonly HttpClient $http) {}

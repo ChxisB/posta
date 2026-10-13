@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
 /** Webhook endpoints. `get` and `rotate` are the only calls that return the `signing_secret`. */
 final class Webhooks

@@ -2,7 +2,7 @@ import type { Result } from "../error.js";
 import type { HttpClient } from "../http.js";
 import type { Usage as UsageReport } from "../types.js";
 
-/** Plan limits and today's send count (MillionSend extension, no Resend equivalent). */
+/** Plan limits and today's send count (Posta extension, no Resend equivalent). */
 export class Usage {
   constructor(private readonly http: HttpClient) {}
 

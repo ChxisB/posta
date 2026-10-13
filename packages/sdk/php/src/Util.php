@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MillionSend;
+namespace Posta;
 
 /** Shared mapping helpers used across resources. */
 final class Util

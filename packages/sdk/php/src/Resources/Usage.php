@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
+use Posta\HttpClient;
 
-/** Plan, limits and today's send count (MillionSend extension, no Resend equivalent). */
+/** Plan, limits and today's send count (Posta extension, no Resend equivalent). */
 final class Usage
 {
     public function __construct(private readonly HttpClient $http) {}

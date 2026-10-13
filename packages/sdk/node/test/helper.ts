@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { MillionSend } from "../src/index.js";
+import { Posta } from "../src/index.js";
 
 export interface Captured {
   url: string;
@@ -8,7 +8,7 @@ export interface Captured {
   body: unknown;
 }
 
-/** A MillionSend client backed by a mock fetch that records every request. */
+/** A Posta client backed by a mock fetch that records every request. */
 export function makeClient(response: { status?: number; body?: unknown } = {}) {
   const calls: Captured[] = [];
   const fetchImpl = vi.fn(async (url: string | URL, init?: RequestInit) => {
@@ -25,7 +25,7 @@ export function makeClient(response: { status?: number; body?: unknown } = {}) {
       headers: { "content-type": "application/json" },
     });
   });
-  const ms = new MillionSend("ms_test", {
+  const ms = new Posta("po_test", {
     baseUrl: "https://api.test",
     fetch: fetchImpl as unknown as typeof fetch,
   });

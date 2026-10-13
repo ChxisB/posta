@@ -1001,7 +1001,7 @@ pub struct DeleteBroadcastResponse {
     pub deleted: bool,
 }
 
-// ---- segments (MillionSend dynamic segments) -----------------------------
+// ---- segments (Posta dynamic segments) -----------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -1483,7 +1483,7 @@ pub struct Template {
 
 pub type DeleteTemplateResponse = Deleted;
 
-// ---- usage (MillionSend extension) ---------------------------------------
+// ---- usage (Posta extension) ---------------------------------------
 
 /// `GET /usage` — plan limits and today's send count. Self-hosted instances
 /// report `cloud: false` with `plan: None` and null limits.

@@ -37,9 +37,9 @@ const hashNote = (c?: string) => (c ? ` # ${c}` : "");
 export function onboardingSnippet(lang: SnippetLang, p: SnippetParams): string {
   switch (lang) {
     case "node":
-      return `import { MillionSend } from "millionsend";
+      return `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend(${q(p.apiKey)});${slashNote(p.comment)}
+const ms = new Posta(${q(p.apiKey)});${slashNote(p.comment)}
 
 await ms.emails.send({
   from: ${q(p.from)},
@@ -48,18 +48,18 @@ await ms.emails.send({
   html: ${q(p.html)},
 });`;
     case "python":
-      return `import millionsend
+      return `import posta
 
-millionsend.api_key = ${q(p.apiKey)}${hashNote(p.comment)}
+posta.api_key = ${q(p.apiKey)}${hashNote(p.comment)}
 
-millionsend.Emails.send({
+posta.Emails.send({
     "from": ${q(p.from)},
     "to": [${q(p.to)}],
     "subject": ${q(p.subject)},
     "html": ${q(p.html)},
 })`;
     case "php":
-      return `$ms = MillionSend\\MillionSend::client(${q(p.apiKey)});${slashNote(p.comment)}
+      return `$ms = Posta\\Posta::client(${q(p.apiKey)});${slashNote(p.comment)}
 
 $ms->emails->send([
     'from' => ${q(p.from)},
@@ -68,9 +68,9 @@ $ms->emails->send([
     'html' => ${q(p.html)},
 ]);`;
     case "ruby":
-      return `Millionsend.api_key = ${q(p.apiKey)}${hashNote(p.comment)}
+      return `Posta.api_key = ${q(p.apiKey)}${hashNote(p.comment)}
 
-Millionsend::Emails.send(
+Posta::Emails.send(
   from: ${q(p.from)},
   to: ${q(p.to)},
   subject: ${q(p.subject)},
@@ -86,7 +86,7 @@ sent, err := client.Emails.Send(&posta.SendEmailRequest{
     Html:    ${q(p.html)},
 })`;
     case "rust":
-      return `let ms = MillionSend::new(${q(p.apiKey)});${slashNote(p.comment)}
+      return `let ms = Posta::new(${q(p.apiKey)});${slashNote(p.comment)}
 
 let email = CreateEmailBaseOptions::new(
     ${q(p.from)},
@@ -118,9 +118,9 @@ await ms.EmailSendAsync(new EmailMessage
     Html = ${q(p.html)},
 });`;
     case "elixir":
-      return `client = MillionSend.client(api_key: ${q(p.apiKey)})${hashNote(p.comment)}
+      return `client = Posta.client(api_key: ${q(p.apiKey)})${hashNote(p.comment)}
 
-MillionSend.Emails.send(client, %{
+Posta.Emails.send(client, %{
   from: ${q(p.from)},
   to: [${q(p.to)}],
   subject: ${q(p.subject)},

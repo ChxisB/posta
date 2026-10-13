@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
+use Posta\HttpClient;
 
 /** Membership of a contact in dynamic segments; the contact is addressed by id or email. */
 final class ContactSegments

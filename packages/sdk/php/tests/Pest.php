@@ -8,8 +8,8 @@ use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Psr7\Response;
-use MillionSend\Client;
-use MillionSend\MillionSend;
+use Posta\Client;
+use Posta\Posta;
 use Psr\Http\Message\RequestInterface;
 
 /** Records every outgoing request so tests can assert method/path/body/headers. */
@@ -30,7 +30,7 @@ final class RequestSpy
 }
 
 /**
- * A MillionSend client backed by a stub Guzzle handler that returns a fixed
+ * A Posta client backed by a stub Guzzle handler that returns a fixed
  * response and records each request into the returned spy.
  *
  * @param array<mixed>|string $body
@@ -48,7 +48,7 @@ function fakeClient(int $status = 200, array|string $body = ['id' => 'id_1'], ?s
     };
 
     $guzzle = new GuzzleClient(['handler' => $handler]);
-    $client = MillionSend::client('ms_test', $baseUrl, ['client' => $guzzle]);
+    $client = Posta::client('po_test', $baseUrl, ['client' => $guzzle]);
 
     return [$client, $spy];
 }
@@ -61,7 +61,7 @@ function failingClient(): Client
 
     $guzzle = new GuzzleClient(['handler' => $handler]);
 
-    return MillionSend::client('ms_test', 'https://api.test', ['client' => $guzzle]);
+    return Posta::client('po_test', 'https://api.test', ['client' => $guzzle]);
 }
 
 /** Decoded JSON body of a recorded request (null when empty). */

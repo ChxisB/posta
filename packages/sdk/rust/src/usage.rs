@@ -4,7 +4,7 @@ use crate::error::Result;
 use crate::http::Config;
 use crate::types::UsageReport;
 
-/// Plan limits and today's send count (MillionSend extension).
+/// Plan limits and today's send count (Posta extension).
 #[derive(Clone)]
 pub struct Usage(pub(crate) Arc<Config>);
 

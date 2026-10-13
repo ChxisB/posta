@@ -1,14 +1,14 @@
 [package]
-name = "millionsend"
+name = "posta"
 version = "0.8.0"
 edition = "2021"
 rust-version = "1.70"
-description = "Official Rust SDK for MillionSend — a self-hostable, Resend-compatible email API."
+description = "Official Rust SDK for Posta — a self-hostable, Resend-compatible email API."
 license = "MIT"
-repository = "https://github.com/MillionSend/millionsend-rust"
-homepage = "https://github.com/MillionSend"
+repository = "https://github.com/ChxisB/posta"
+homepage = "https://github.com/ChxisB/posta/tree/main/packages/sdk/rust"
 readme = "README.md"
-keywords = ["email", "millionsend", "ses", "resend"]
+keywords = ["email", "posta", "ses", "resend"]
 categories = ["email", "api-bindings"]
 
 [dependencies]

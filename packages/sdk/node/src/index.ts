@@ -1,4 +1,4 @@
-import { HttpClient, type MillionSendOptions } from "./http.js";
+import { HttpClient, type PostaOptions } from "./http.js";
 import { ApiKeys } from "./resources/api-keys.js";
 import { Broadcasts } from "./resources/broadcasts.js";
 import { ContactProperties } from "./resources/contact-properties.js";
@@ -14,11 +14,11 @@ import { Usage } from "./resources/usage.js";
 import { Webhooks } from "./resources/webhooks.js";
 
 /**
- * The MillionSend client. Construct once and reuse.
+ * The Posta client. Construct once and reuse.
  *
  * ```ts
- * import { MillionSend } from "millionsend";
- * const ms = new MillionSend("ms_..."); // Cloud; self-hosted: { baseUrl: "https://mail.acme.dev" }
+ * import { Posta } from "@tack-labs/posta";
+ * const ms = new Posta("po_..."); // Cloud; self-hosted: { baseUrl: "https://mail.acme.dev" }
  * const { data, error } = await ms.emails.send({
  *   from: "Acme <onboarding@acme.dev>",
  *   to: "success@simulator.amazonses.com",
@@ -31,7 +31,7 @@ import { Webhooks } from "./resources/webhooks.js";
  * `error` being an {@link ErrorResponse} discriminated by `error.name`. The only
  * throw is a missing API key at construction.
  */
-export class MillionSend {
+export class Posta {
   readonly emails: Emails;
   readonly batch: Batch;
   readonly contacts: Contacts;
@@ -47,12 +47,10 @@ export class MillionSend {
   readonly deliverability: Deliverability;
   readonly usage: Usage;
 
-  constructor(apiKey?: string, options?: MillionSendOptions) {
-    const key = apiKey ?? process.env.MILLIONSEND_API_KEY;
+  constructor(apiKey?: string, options?: PostaOptions) {
+    const key = apiKey ?? process.env.POSTA_API_KEY;
     if (!key) {
-      throw new Error(
-        "Missing API key. Pass it to new MillionSend(apiKey) or set MILLIONSEND_API_KEY.",
-      );
+      throw new Error("Missing API key. Pass it to new Posta(apiKey) or set POSTA_API_KEY.");
     }
     const http = new HttpClient(key, options);
     this.emails = new Emails(http);
@@ -72,8 +70,8 @@ export class MillionSend {
   }
 }
 
-export default MillionSend;
+export default Posta;
 
 export type { ErrorResponse, Result } from "./error.js";
-export type { BatchRequestOptions, MillionSendOptions, RequestOptions } from "./http.js";
+export type { BatchRequestOptions, PostaOptions, RequestOptions } from "./http.js";
 export type * from "./types.js";

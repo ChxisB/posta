@@ -62,7 +62,7 @@ export interface SendEmailOptions {
   attachments?: Attachment[];
   /** Extra message headers; transport headers are rejected by the API. */
   headers?: Record<string, string>;
-  /** Sent through as-is; MillionSend answers 422 until templates can be sent. */
+  /** Sent through as-is; Posta answers 422 until templates can be sent. */
   template?: { id: string; variables?: Record<string, string | number> };
 }
 
@@ -136,7 +136,7 @@ export type CheckStatus =
 export type GuardrailStatus = "ok" | "warning" | "paused" | (string & {});
 
 export interface InsightsCheck {
-  /** Check id from the MillionSend check catalog — an open set. */
+  /** Check id from the Posta check catalog — an open set. */
   id: string;
   severity: CheckSeverity;
   status: CheckStatus;
@@ -208,7 +208,7 @@ export interface UpdateContactOptions extends ContactAddress {
   properties?: Record<string, string | number | boolean | null>;
 }
 
-/** Facets a contact read can attach (MillionSend extension). */
+/** Facets a contact read can attach (Posta extension). */
 export type ContactInclude = "properties" | "topics";
 
 export interface ListContactsOptions extends ListOptions {
@@ -503,7 +503,7 @@ export interface RemoveBroadcastResponse {
   deleted: true;
 }
 
-// ---- segments (MillionSend dynamic segments) -----------------------------
+// ---- segments (Posta dynamic segments) -----------------------------
 export type SegmentMatch = "all" | "any";
 
 export interface SegmentCondition {
@@ -616,7 +616,7 @@ export interface UpdateDomainOptions {
   clickTracking?: boolean;
   /** Empty string or null clears it. */
   trackingSubdomain?: string | null;
-  /** Accepted for Resend payload compatibility; MillionSend ignores them. */
+  /** Accepted for Resend payload compatibility; Posta ignores them. */
   tls?: "enforced" | "opportunistic";
   capabilities?: Partial<DomainCapabilities>;
 }
@@ -785,11 +785,11 @@ export interface CreateTemplateOptions {
   text?: string | null;
   /** Case-sensitive handle, unique per team; `get(alias)` resolves it. */
   alias?: string | null;
-  /** Sent through as-is; MillionSend answers 422 for any value. */
+  /** Sent through as-is; Posta answers 422 for any value. */
   from?: string | null;
-  /** Sent through as-is; MillionSend answers 422 for any value. */
+  /** Sent through as-is; Posta answers 422 for any value. */
   replyTo?: Recipients | null;
-  /** Sent through as-is; MillionSend answers 422 for a non-empty list. */
+  /** Sent through as-is; Posta answers 422 for a non-empty list. */
   variables?: unknown[];
 }
 
@@ -839,10 +839,10 @@ export interface RemoveTemplateResponse {
   deleted: true;
 }
 
-// ---- usage (MillionSend extension) ---------------------------------------
+// ---- usage (Posta extension) ---------------------------------------
 export interface Usage {
   object: "usage";
-  /** True on MillionSend Cloud, where plan limits apply. */
+  /** True on Posta Cloud, where plan limits apply. */
   cloud: boolean;
   /** Effective plan; null when self-hosted. */
   plan: "free" | "pro" | "scale" | null;

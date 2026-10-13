@@ -98,17 +98,17 @@ curl -X POST https://api.posta.example/emails \
   }'
 ```
 
-Or with the Node SDK (`npm install millionsend`):
+Or with the Node SDK (`npm install @tack-labs/posta`):
 
 ```ts
-import { MillionSend } from "millionsend";
+import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_...", { baseUrl: "https://api.posta.example" });
+const ms = new Posta("po_...", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
   to: "success@simulator.amazonses.com",
-  subject: "Hello from MillionSend",
+  subject: "Hello from Posta",
   html: "<strong>It works!</strong>",
 });
 

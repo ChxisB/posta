@@ -1,17 +1,17 @@
-# millionsend
+# @tack-labs/posta
 
-Official Node.js / TypeScript SDK for [MillionSend](https://github.com/MillionSend/millionsend) — a self-hostable, Resend-compatible email API on AWS SES.
+Official Node.js / TypeScript SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of `resend`, so migrating is mostly a find-and-replace: swap the import
-and the class name. MillionSend Cloud works with just the key; a self-hosted
+and the class name. Posta Cloud works with just the key; a self-hosted
 instance sets its origin via `baseUrl`.
 
 ## Install
 
 ```bash
-npm install millionsend
-# or: pnpm add millionsend / yarn add millionsend / bun add millionsend
+npm install @tack-labs/posta
+# or: pnpm add @tack-labs/posta / yarn add @tack-labs/posta / bun add @tack-labs/posta
 ```
 
 Requires Node.js 18+ (uses the global `fetch`).
@@ -19,14 +19,14 @@ Requires Node.js 18+ (uses the global `fetch`).
 ## Quickstart
 
 ```ts
-import { MillionSend } from "millionsend";
+import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("ms_123"); // Cloud; self-hosted: { baseUrl: "https://mail.acme.dev" }
+const ms = new Posta("po_123"); // Cloud; self-hosted: { baseUrl: "https://mail.acme.dev" }
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
   to: "success@simulator.amazonses.com",
-  subject: "Hello from MillionSend",
+  subject: "Hello from Posta",
   html: "<strong>It works!</strong>",
 });
 
@@ -40,8 +40,8 @@ if (error) {
 ## Configuration
 
 ```ts
-new MillionSend(apiKey?, {
-  baseUrl?, // defaults to MILLIONSEND_BASE_URL, then MillionSend Cloud (https://api.millionsend.com)
+new Posta(apiKey?, {
+  baseUrl?, // defaults to POSTA_BASE_URL, then Posta Cloud (https://api.posta.example)
   fetch?,   // custom fetch implementation (proxies, tests, custom agents)
   userAgent?, // extra User-Agent suffix
   timeoutMs?, // request deadline; defaults to 30,000 ms
@@ -49,8 +49,8 @@ new MillionSend(apiKey?, {
 });
 ```
 
-- `apiKey` falls back to `process.env.MILLIONSEND_API_KEY`. Missing key → throws at construction.
-- `baseUrl` falls back to `process.env.MILLIONSEND_BASE_URL`, then to MillionSend Cloud (`https://api.millionsend.com`). **Self-hosting? Set it to your instance's origin.**
+- `apiKey` falls back to `process.env.POSTA_API_KEY`. Missing key → throws at construction.
+- `baseUrl` falls back to `process.env.POSTA_BASE_URL`, then to Posta Cloud (`https://api.posta.example`). **Self-hosting? Set it to your instance's origin.**
 - Plain `http://` is only accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`); any other `http://` URL throws at construction, since the API key is sent as a bearer header. Pass `allowInsecureHttp: true` to talk to a non-TLS instance elsewhere (e.g. inside a private network).
 
 ## Errors
@@ -101,7 +101,7 @@ await ms.emails.getInsights(id);             // GET /emails/:id/insights (best-p
 ```
 
 `attachments[].content` is a base64 string or a `Buffer` (encoded for you).
-`template` is sent through as-is; MillionSend answers `422` until templates can be sent.
+`template` is sent through as-is; Posta answers `422` until templates can be sent.
 
 ### Batch
 
@@ -133,16 +133,16 @@ await ms.contacts.remove({ email }, { erase: true }); // ?erase=true also scrubs
                                                       // email history, events and API logs (GDPR/LGPD)
 await ms.contacts.list({ limit: 50 });
 await ms.contacts.list({ segmentId });             // GET /segments/:id/contacts
-// Bulk read (MillionSend extension): attach properties and topic subscriptions to every item,
+// Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact
 await ms.contacts.list({ limit: 100, include: ["properties", "topics"] });
 
-// Hosted preference page (MillionSend extension): the same page the unsubscribe links open.
+// Hosted preference page (Posta extension): the same page the unsubscribe links open.
 // The URL is a non-expiring, contact-scoped capability — show it only to the contact.
 const { data } = await ms.contacts.preferencesLink({ email }); // POST /contacts/:id/preferences-link
 data.url; // 422 when the instance cannot mint links (APP_BASE_URL unset)
 
-// Bulk create (MillionSend extension): up to 1000 per call
+// Bulk create (Posta extension): up to 1000 per call
 const { data } = await ms.contacts.batch.create(items, {
   onConflict: "upsert",          // ?on_conflict=error|skip|upsert
   batchValidation: "permissive", // x-batch-validation
@@ -151,13 +151,13 @@ data.data;   // [{ index, id, status: "created" | "updated" | "skipped" }]
 data.counts; // { created, updated, skipped, failed }
 data.errors; // permissive only
 
-// Bulk lookup (MillionSend extension): up to 1000 contacts by id or email in one request,
+// Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
 // in request order; unknown entries are listed, not errors — one request against the rate limit
 const { data } = await ms.contacts.batch.get([contactId, { email }], { include: ["topics"] });
 data.data;    // [{ object: "contact", id, email, ..., topics }] — the contacts found
 data.missing; // [{ index, email }] — request entries that matched nobody
 
-// Bulk delete (MillionSend extension): up to 1000 per call, by ids or by emails.
+// Bulk delete (Posta extension): up to 1000 per call, by ids or by emails.
 // Their emails stay in the send log; erase: true also scrubs each address from email history
 const { data } = await ms.contacts.batch.remove({ emails, erase: true }); // or { ids }
 data.data; // [{ object: "contact", contact, deleted: true }] — only the rows actually deleted
@@ -243,7 +243,7 @@ await ms.domains.remove(id);
 
 ```ts
 const { data } = await ms.webhooks.create({
-  endpoint: "https://acme.dev/hooks/millionsend",
+  endpoint: "https://acme.dev/hooks/posta",
   events: ["email.delivered", "email.bounced"],
   signingSecret: "whsec_…", // optional: keep an existing secret
 });
@@ -253,7 +253,7 @@ await ms.webhooks.get(id);   // includes signing_secret and previous_secret_expi
 await ms.webhooks.update(id, { status: "disabled" });
 await ms.webhooks.remove(id);
 
-// Rotate the signing secret (MillionSend extension). During `overlapHours` (0–72, default 24)
+// Rotate the signing secret (Posta extension). During `overlapHours` (0–72, default 24)
 // every delivery carries both signatures, so the receiver can switch without a gap.
 const { data } = await ms.webhooks.rotate(id, { overlapHours: 24 }); // or { signingSecret: "whsec_…" }
 data.signing_secret; data.previous_secret_expires_at; // null when the old secret is dropped at once
@@ -286,9 +286,9 @@ await ms.templates.publish(id);   // no-op: every save is live (kept for Resend 
 await ms.templates.remove(id);
 ```
 
-### Segments (MillionSend extension)
+### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a MillionSend
+Dynamic segments are a saved filter over the team's contacts — a Posta
 superset with no Resend equivalent.
 
 ```ts
@@ -302,7 +302,7 @@ await ms.segments.update(id, { name: "Pro tier" });
 await ms.segments.remove(id);
 ```
 
-### Deliverability (MillionSend extension)
+### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing 30 days. Scores are
 0–10 (`null` until there is enough data); per-email reports live on
@@ -313,7 +313,7 @@ const { data } = await ms.deliverability.get();
 // data.score, data.band, data.complaint_rate, data.guardrail_status, …
 ```
 
-### Usage (MillionSend extension)
+### Usage (Posta extension)
 
 ```ts
 const { data } = await ms.usage.get();
@@ -325,8 +325,8 @@ const { data } = await ms.usage.get();
 ```diff
 - import { Resend } from "resend";
 - const resend = new Resend("re_123");
-+ import { MillionSend } from "millionsend";
-+ const ms = new MillionSend("ms_123"); // self-hosted: add { baseUrl: "https://mail.acme.dev" }
++ import { Posta } from "@tack-labs/posta";
++ const ms = new Posta("po_123"); // self-hosted: add { baseUrl: "https://mail.acme.dev" }
 ```
 
 Method names, payloads and request options (`idempotencyKey`, `batchValidation`)
@@ -338,7 +338,7 @@ match `resend`. Notes:
   For subsets of contacts, use `.segments` (dynamic filters) or topics.
 - **Templates** cannot be sent yet: `emails.send({ template })` is forwarded and
   answered with `422`. `templates.publish` is a no-op (every save is live).
-- **MillionSend extensions** (no Resend counterpart): `segments`,
+- **Posta extensions** (no Resend counterpart): `segments`,
   `deliverability`, `usage`, `emails.getInsights`, `contacts.batch`,
   `contacts.preferencesLink`, `webhooks.rotate`, and the `origin` field on
   suppressions.

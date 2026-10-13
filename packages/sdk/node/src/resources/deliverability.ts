@@ -3,7 +3,7 @@ import type { HttpClient } from "../http.js";
 import type { Deliverability as DeliverabilityReport } from "../types.js";
 
 /**
- * Account-level deliverability score over the trailing window (MillionSend
+ * Account-level deliverability score over the trailing window (Posta
  * extension, no Resend equivalent).
  */
 export class Deliverability {

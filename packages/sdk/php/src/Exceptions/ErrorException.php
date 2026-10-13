@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Exceptions;
+namespace Posta\Exceptions;
 
 /**
- * Thrown on every non-2xx MillionSend response, plus the two client-side
+ * Thrown on every non-2xx Posta response, plus the two client-side
  * conditions (a request that never left the process, a transport failure) which
  * carry a null status code. Mirrors Resend's `ErrorException`, so `catch`
  * blocks that switch on {@see getErrorName()} port across unchanged.

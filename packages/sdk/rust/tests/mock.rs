@@ -3,7 +3,7 @@
 //! surfaces as an error, failing the `unwrap`. So an `Ok` result is itself proof
 //! the request was shaped correctly.
 
-use millionsend::*;
+use posta::*;
 use serde_json::json;
 use std::time::Duration;
 use wiremock::matchers::{body_json, body_string, header, method, path, path_regex, query_param};
@@ -17,7 +17,7 @@ fn ok_json(body: serde_json::Value) -> ResponseTemplate {
 
 #[tokio::test]
 async fn refuses_non_loopback_http_unless_allowed() {
-    let ms = MillionSend::with_base_url("ms_test", "http://mail.invalid");
+    let ms = Posta::with_base_url("po_test", "http://mail.invalid");
     let err = ms.emails.get("e1").await.unwrap_err();
     assert_eq!(err.name(), Some("insecure_base_url"));
     assert_eq!(err.status_code(), None);
@@ -40,7 +40,7 @@ async fn with_client_applies_custom_timeout() {
         .timeout(Duration::from_millis(50))
         .build()
         .unwrap();
-    let ms = MillionSend::with_base_url("ms_test", server.uri()).with_client(client);
+    let ms = Posta::with_base_url("po_test", server.uri()).with_client(client);
     let err = ms.emails.get("e1").await.unwrap_err();
     match err {
         Error::Http(e) => assert!(e.is_timeout(), "{e}"),
@@ -55,7 +55,7 @@ async fn emails_send_maps_body_headers_and_idempotency() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/emails"))
-        .and(header("authorization", "Bearer ms_test"))
+        .and(header("authorization", "Bearer po_test"))
         .and(header("accept", "application/json"))
         .and(header("content-type", "application/json"))
         .and(header("idempotency-key", "key-123"))
@@ -71,7 +71,7 @@ async fn emails_send_maps_body_headers_and_idempotency() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let email = SendEmailOptions {
         from: "a@x.dev".into(),
         to: vec!["b@x.dev".to_string()].into(),
@@ -105,7 +105,7 @@ async fn emails_send_omits_none_and_sends_no_idempotency_key() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut email = SendEmailOptions::new("a@x.dev", "b@x.dev", "s");
     email.text = Some("t".into());
     ms.emails.send(&email).await.unwrap();
@@ -119,7 +119,7 @@ async fn emails_send_omits_none_and_sends_no_idempotency_key() {
         .unwrap()
         .to_str()
         .unwrap();
-    assert!(ua.starts_with("millionsend-rust/"), "user agent: {ua}");
+    assert!(ua.starts_with("posta-rust/"), "user agent: {ua}");
 }
 
 #[tokio::test]
@@ -142,7 +142,7 @@ async fn emails_get_and_cancel_hit_the_right_paths() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let email = ms.emails.get("e1").await.unwrap();
     assert_eq!(email.message_id, "m1");
     assert_eq!(email.score, Some(8.5));
@@ -165,7 +165,7 @@ async fn emails_get_score_null_maps_to_none() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     assert_eq!(ms.emails.get("e2").await.unwrap().score, None);
 }
 
@@ -196,7 +196,7 @@ async fn emails_get_insights_maps_full_report() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let insights = ms.emails.get_insights("e1").await.unwrap();
     assert_eq!(insights.object, "email_insights");
     assert_eq!(insights.email_id, "e1");
@@ -232,7 +232,7 @@ async fn emails_get_insights_404_surfaces_api_error() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let err = ms.emails.get_insights("nope").await.unwrap_err();
     assert_eq!(err.status_code(), Some(404));
     assert_eq!(err.name(), Some("not_found"));
@@ -258,7 +258,7 @@ async fn deliverability_get_maps_full_report() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let report = ms.deliverability.get().await.unwrap();
     assert_eq!(report.object, "deliverability");
     assert_eq!(report.score, Some(8.7));
@@ -293,7 +293,7 @@ async fn deliverability_get_maps_null_scores() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let report = ms.deliverability.get().await.unwrap();
     assert_eq!(report.score, None);
     assert_eq!(report.band, None);
@@ -316,7 +316,7 @@ async fn batch_send_posts_bare_array_with_idempotency() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut one = SendEmailOptions::new("a@x.dev", "b@x.dev", "1");
     one.text = Some("one".into());
     let mut two = SendEmailOptions::new("a@x.dev", "c@x.dev", "2");
@@ -343,7 +343,7 @@ async fn contacts_create_posts_top_level() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let contact = CreateContactOptions {
         email: "c@x.dev".into(),
         first_name: Some("Ada".into()),
@@ -376,7 +376,7 @@ async fn contacts_address_by_id_and_email() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     assert_eq!(ms.contacts.get("c1").await.unwrap().id, "c1");
     assert_eq!(
         ms.contacts
@@ -400,7 +400,7 @@ async fn contacts_update_sends_only_provided_keys_null_clears() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let changes = UpdateContactOptions {
         first_name: Some(None),
         unsubscribed: Some(true),
@@ -436,7 +436,7 @@ async fn contacts_delete_and_list() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     assert!(
         ms.contacts
             .delete(ContactAddress::email("c@x.dev"), None)
@@ -481,7 +481,7 @@ async fn contacts_list_passes_include_and_parses_properties_and_topics() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let options = ListContactsOptions {
         limit: Some(2),
         include: Some(vec![ContactInclude::Properties, ContactInclude::Topics]),
@@ -512,7 +512,7 @@ async fn contact_topics_update_patches_bare_array() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let updates = vec![ContactTopicUpdate {
         id: "t1".into(),
         subscription: TopicSubscription::OptOut,
@@ -558,7 +558,7 @@ async fn topics_cover_create_get_list_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let topic = CreateTopicOptions::new("Product", TopicSubscription::OptIn);
     assert_eq!(ms.topics.create(&topic).await.unwrap().id, "t1");
     assert_eq!(ms.topics.get("t1").await.unwrap().name, "Product");
@@ -622,7 +622,7 @@ async fn broadcasts_cover_the_full_lifecycle() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let create = CreateBroadcastOptions {
         segment_id: Some("s1".into()),
         from: "a@x.dev".into(),
@@ -656,7 +656,7 @@ async fn broadcasts_send_now_posts_empty_object() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     assert_eq!(ms.broadcasts.send("b1", None).await.unwrap().id, "b1");
 }
 
@@ -711,7 +711,7 @@ async fn segments_cover_create_get_list_update_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let create = CreateSegmentOptions {
         name: "Active".into(),
         filter: Some(SegmentFilter {
@@ -754,7 +754,7 @@ async fn non_2xx_parses_into_api_error() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let err = ms
         .emails
         .send(&SendEmailOptions::new("a@x.dev", "b@x.dev", "s"))
@@ -781,7 +781,7 @@ async fn non_2xx_non_canonical_body_falls_back_to_generic() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let err = ms.emails.get("e1").await.unwrap_err();
     match err {
         Error::Api(api) => {
@@ -796,7 +796,7 @@ async fn non_2xx_non_canonical_body_falls_back_to_generic() {
 #[tokio::test]
 async fn transport_failure_surfaces_as_http_with_null_status() {
     // Nothing listens on port 1 -> connection refused before reaching any API.
-    let ms = MillionSend::with_base_url("ms_test", "http://127.0.0.1:1");
+    let ms = Posta::with_base_url("po_test", "http://127.0.0.1:1");
     let err = ms.emails.get("e1").await.unwrap_err();
     assert!(matches!(err, Error::Http(_)), "got {err:?}");
     assert_eq!(err.status_code(), None);
@@ -834,7 +834,7 @@ async fn emails_send_puts_every_field_on_the_wire() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let email = SendEmailOptions {
         from: "Acme <a@x.dev>".into(),
         to: vec!["b@x.dev", "c@x.dev"].into(),
@@ -883,7 +883,7 @@ async fn emails_send_accepts_resend_shaped_idempotency_key() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let email = SendEmailOptions::new("a@x.dev", "b@x.dev", "s");
     let res = ms
         .emails
@@ -911,7 +911,7 @@ async fn batch_send_with_validation_sends_header_and_types_errors() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut one = SendEmailOptions::new("a@x.dev", "b@x.dev", "1");
     one.text = Some("one".into());
     let mut two = SendEmailOptions::new("a@x.dev", "not-an-email", "2");
@@ -944,7 +944,7 @@ async fn batch_send_accepts_arrays_and_vecs_without_headers() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let one = SendEmailOptions::new("a@x.dev", "b@x.dev", "1");
     let pair = [one.clone(), one.clone()];
     let res = ms.batch.send(&pair).await.unwrap();
@@ -995,7 +995,7 @@ async fn emails_update_list_and_delete_hit_the_right_paths() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let changes = UpdateEmailOptions {
         scheduled_at: "2999-01-02T00:00:00Z".into(),
     };
@@ -1027,7 +1027,7 @@ async fn contacts_create_puts_every_field_on_the_wire() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let contact = CreateContactOptions {
         email: "c@x.dev".into(),
         first_name: Some("Ada".into()),
@@ -1065,7 +1065,7 @@ async fn contacts_create_batch_sends_query_header_and_typed_response() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut ada = CreateContactOptions::new("a@x.dev");
     ada.first_name = Some("Ada".into());
     let options = BatchContactsOptions {
@@ -1095,7 +1095,7 @@ async fn contacts_create_batch_defaults_omit_query_and_header() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let res = ms
         .contacts
         .create_batch(&[CreateContactOptions::new("a@x.dev")], None)
@@ -1123,7 +1123,7 @@ async fn contact_segments_add_and_remove() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     assert_eq!(ms.contacts.segments.add("c1", "s1").await.unwrap().id, "c1");
     let removed = ms
         .contacts
@@ -1179,7 +1179,7 @@ async fn contact_properties_cover_create_get_list_update_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let created = ms
         .contacts
         .properties
@@ -1240,7 +1240,7 @@ async fn broadcasts_create_puts_every_field_on_the_wire() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let create = CreateBroadcastOptions {
         name: Some("Launch".into()),
         segment_id: Some("s1".into()),
@@ -1273,7 +1273,7 @@ async fn broadcasts_update_sets_or_clears_topic_id() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let set = UpdateBroadcastOptions {
         preview_text: Some("p".into()),
         topic_id: Some("t2".into()),
@@ -1318,7 +1318,7 @@ async fn topics_update_and_visibility() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut topic = CreateTopicOptions::new("Product", TopicSubscription::OptOut);
     topic.description = Some("d".into());
     topic.visibility = Some(TopicVisibility::Public);
@@ -1355,7 +1355,7 @@ async fn segments_manual_create_omits_filter_and_update_null_clears_it() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let create = CreateSegmentOptions {
         name: "VIPs".into(),
         filter: None,
@@ -1398,7 +1398,7 @@ async fn segments_manual_segment_parses_null_filter_and_lists_contacts() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let segment = ms.segments.get("s1").await.unwrap();
     assert!(segment.filter.is_none());
     let options = ListContactsOptions {
@@ -1482,7 +1482,7 @@ async fn suppressions_cover_add_get_list_remove_and_batches() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut add = AddSuppressionOptions::new("x@x.dev");
     add.origin = Some(SuppressionOrigin::Unsubscribe);
     assert_eq!(ms.suppressions.add(&add).await.unwrap().id, "sp1");
@@ -1588,7 +1588,7 @@ async fn domains_cover_create_get_list_verify_update_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let create = CreateDomainOptions {
         name: "x.dev".into(),
         region: Some("us-east-1".into()),
@@ -1679,7 +1679,7 @@ async fn webhooks_cover_create_get_list_update_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let created = ms
         .webhooks
         .create(&CreateWebhookOptions {
@@ -1717,7 +1717,7 @@ async fn api_keys_cover_create_list_delete() {
         .and(body_json(
             json!({ "name": "ci", "permission": "sending_access", "domain_id": "d1" }),
         ))
-        .respond_with(ok_json(json!({ "id": "k1", "token": "ms_secret" })))
+        .respond_with(ok_json(json!({ "id": "k1", "token": "po_secret" })))
         .mount(&server)
         .await;
     Mock::given(method("GET"))
@@ -1738,7 +1738,7 @@ async fn api_keys_cover_create_list_delete() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let created = ms
         .api_keys
         .create(&CreateApiKeyOptions {
@@ -1748,7 +1748,7 @@ async fn api_keys_cover_create_list_delete() {
         })
         .await
         .unwrap();
-    assert_eq!(created.token, "ms_secret");
+    assert_eq!(created.token, "po_secret");
     let options = ListOptions {
         before: Some("cur".into()),
         ..Default::default()
@@ -1820,7 +1820,7 @@ async fn templates_cover_the_full_lifecycle() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let mut create = CreateTemplateOptions::new("Welcome", "<p>Hi {{{FIRST_NAME|there}}}</p>");
     create.subject = Some("Welcome!".into());
     create.text = Some("Hi".into());
@@ -1867,7 +1867,7 @@ async fn usage_get_maps_report() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let usage = ms.usage.get().await.unwrap();
     assert!(usage.cloud);
     assert_eq!(usage.plan.as_deref(), Some("pro"));
@@ -1880,14 +1880,14 @@ async fn usage_get_maps_report() {
 
 // ---- 0.5: cloud default, contact topics list, suppressed recipients --------
 
-/// One test, sequential: `MILLIONSEND_BASE_URL` is process-global and this is
+/// One test, sequential: `POSTA_BASE_URL` is process-global and this is
 /// the only test that reads or writes it.
 #[tokio::test]
 async fn base_url_defaults_to_cloud_env_and_explicit_win() {
-    std::env::remove_var("MILLIONSEND_BASE_URL");
+    std::env::remove_var("POSTA_BASE_URL");
     assert_eq!(
-        MillionSend::new("ms_test").base_url(),
-        "https://api.millionsend.com"
+        Posta::new("po_test").base_url(),
+        "https://api.posta.example"
     );
 
     let server = MockServer::start().await;
@@ -1896,16 +1896,16 @@ async fn base_url_defaults_to_cloud_env_and_explicit_win() {
         .respond_with(ok_json(json!({ "data": [] })))
         .mount(&server)
         .await;
-    std::env::set_var("MILLIONSEND_BASE_URL", server.uri());
-    let ms = MillionSend::new("ms_test");
+    std::env::set_var("POSTA_BASE_URL", server.uri());
+    let ms = Posta::new("po_test");
     assert_eq!(ms.base_url(), server.uri());
     assert!(ms.topics.list().await.unwrap().data.is_empty());
 
     assert_eq!(
-        MillionSend::with_base_url("ms_test", "https://mail.acme.dev/").base_url(),
+        Posta::with_base_url("po_test", "https://mail.acme.dev/").base_url(),
         "https://mail.acme.dev"
     );
-    std::env::remove_var("MILLIONSEND_BASE_URL");
+    std::env::remove_var("POSTA_BASE_URL");
 }
 
 #[tokio::test]
@@ -1925,7 +1925,7 @@ async fn contact_topics_list_gets_encoded_email_and_decodes_shape() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let topics = ms
         .contacts
         .topics
@@ -1959,7 +1959,7 @@ async fn emails_send_surfaces_all_recipients_suppressed() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let err = ms
         .emails
         .send(&SendEmailOptions::new("a@x.dev", "b@x.dev", "s"))
@@ -1997,7 +1997,7 @@ async fn contacts_batch_remove_by_ids_and_emails() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let by_id = ms
         .contacts
         .batch_remove(
@@ -2064,7 +2064,7 @@ async fn contacts_batch_get_posts_ids_and_emails_and_parses_missing() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     // An address with both keys goes out as its email, like the path key.
     let both = ContactAddress {
         id: Some("c2".into()),
@@ -2129,7 +2129,7 @@ async fn contacts_preferences_link_posts_no_body_by_id_and_email() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let by_id = ms.contacts.preferences_link("c1").await.unwrap();
     assert_eq!(by_id.object, "preferences_link");
     assert_eq!(by_id.contact, "c1");
@@ -2166,7 +2166,7 @@ async fn webhooks_rotate_sends_empty_object_or_options() {
         .mount(&server)
         .await;
 
-    let ms = MillionSend::with_base_url("ms_test", server.uri());
+    let ms = Posta::with_base_url("po_test", server.uri());
     let minted = ms.webhooks.rotate("w1", None).await.unwrap();
     assert_eq!(minted.object, "webhook");
     assert_eq!(minted.id, "w1");

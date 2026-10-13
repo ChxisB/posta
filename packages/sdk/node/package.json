@@ -1,17 +1,18 @@
 {
-  "name": "millionsend",
+  "name": "@tack-labs/posta",
   "version": "0.8.0",
-  "description": "Official MillionSend SDK for Node.js — a Resend-compatible email API you can self-host.",
+  "description": "Official Posta SDK for Node.js — a Resend-compatible email API you can self-host.",
   "type": "module",
   "license": "MIT",
-  "author": "MillionSend",
-  "homepage": "https://github.com/MillionSend/millionsend-node#readme",
+  "author": "Tack Labs",
+  "homepage": "https://github.com/ChxisB/posta/tree/main/packages/sdk/node#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MillionSend/millionsend-node.git"
+    "url": "git+https://github.com/ChxisB/posta.git",
+    "directory": "packages/sdk/node"
   },
   "keywords": [
-    "millionsend",
+    "posta",
     "resend",
     "email",
     "ses",

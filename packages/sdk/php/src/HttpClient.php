@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MillionSend;
+namespace Posta;
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use MillionSend\Exceptions\ErrorException;
+use Posta\Exceptions\ErrorException;
 
 /**
  * Thin wrapper over Guzzle: adds auth/User-Agent, maps a non-2xx response to an
@@ -33,7 +33,7 @@ final class HttpClient
         if ($this->timeout <= 0 || $this->connectTimeout <= 0) {
             throw new \InvalidArgumentException('HTTP timeouts must be greater than zero.');
         }
-        $resolved = $baseUrl ?? (getenv('MILLIONSEND_BASE_URL') ?: null) ?? 'https://api.millionsend.com';
+        $resolved = $baseUrl ?? (getenv('POSTA_BASE_URL') ?: null) ?? 'https://api.posta.example';
         $this->baseUrl = rtrim($resolved, '/');
         // The API key travels as a bearer header, so plain http is loopback-only by default.
         if (!$allowInsecureHttp && Util::isInsecureHttpUrl($this->baseUrl)) {
@@ -43,7 +43,7 @@ final class HttpClient
             );
         }
         $this->http = $http ?? new GuzzleClient();
-        $base = 'millionsend-php/' . self::VERSION;
+        $base = 'posta-php/' . self::VERSION;
         $this->userAgent = $userAgent !== null ? "{$base} {$userAgent}" : $base;
     }
 

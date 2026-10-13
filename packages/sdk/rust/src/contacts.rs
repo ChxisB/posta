@@ -42,7 +42,7 @@ impl Contacts {
         self.config.post(&["contacts"], contact).await
     }
 
-    /// `POST /contacts/batch` — 1–1000 contacts in one request (MillionSend
+    /// `POST /contacts/batch` — 1–1000 contacts in one request (Posta
     /// extension). `on_conflict` and `batch_validation` default server-side to
     /// `error` and `strict`.
     pub async fn create_batch(
@@ -107,7 +107,7 @@ impl Contacts {
     }
 
     /// `GET /contacts` — `include` attaches `properties` and/or `topics` to
-    /// every item (MillionSend extension).
+    /// every item (Posta extension).
     pub async fn list(
         &self,
         options: Option<&ListContactsOptions>,
@@ -119,7 +119,7 @@ impl Contacts {
     }
 
     /// `POST /contacts/batch/get` — up to 1000 contacts by id or email in one
-    /// request, returned in request order (MillionSend extension). Entries
+    /// request, returned in request order (Posta extension). Entries
     /// that match no contact land in `missing` instead of failing the call.
     pub async fn batch_get(
         &self,
@@ -134,7 +134,7 @@ impl Contacts {
     }
 
     /// `POST /contacts/batch/remove` — by ids or by emails, up to 1000
-    /// (MillionSend extension). Lists only the contacts actually deleted;
+    /// (Posta extension). Lists only the contacts actually deleted;
     /// `erase` scrubs the addresses like on [`Contacts::delete`].
     pub async fn batch_remove(
         &self,
@@ -151,7 +151,7 @@ impl Contacts {
     }
 
     /// `POST /contacts/:idOrEmail/preferences-link` — the contact's hosted
-    /// preference page (MillionSend extension). 422 when the instance cannot
+    /// preference page (Posta extension). 422 when the instance cannot
     /// build hosted links.
     pub async fn preferences_link(
         &self,

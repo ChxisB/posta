@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-import millionsend
-from millionsend import _client
+import posta
+from posta import _client
 
 
 class FakeResponse:
@@ -46,9 +46,9 @@ class Recorder:
 
 @pytest.fixture
 def http(monkeypatch):
-    monkeypatch.setattr(millionsend, "api_key", "ms_test")
-    monkeypatch.setattr(millionsend, "base_url", "https://api.test")
-    monkeypatch.setattr(millionsend, "timeout", None)
+    monkeypatch.setattr(posta, "api_key", "po_test")
+    monkeypatch.setattr(posta, "base_url", "https://api.test")
+    monkeypatch.setattr(posta, "timeout", None)
     rec = Recorder()
     monkeypatch.setattr(_client.requests, "request", rec)
     return rec

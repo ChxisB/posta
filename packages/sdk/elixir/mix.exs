@@ -1,22 +1,22 @@
-defmodule MillionSend.MixProject do
+defmodule Posta.MixProject do
   use Mix.Project
 
   @version "0.8.0"
-  @source_url "https://github.com/MillionSend/millionsend-elixir"
+  @source_url "https://github.com/ChxisB/posta/tree/main/packages/sdk/elixir"
 
   def project do
     [
-      app: :millionsend,
+      app: :posta,
       version: @version,
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       description:
-        "Official Elixir SDK for MillionSend — a self-hostable, Resend-compatible email API.",
+        "Official Elixir SDK for Posta — a self-hostable, Resend-compatible email API.",
       package: package(),
-      name: "MillionSend",
+      name: "Posta",
       source_url: @source_url,
-      docs: [main: "MillionSend", source_ref: "v#{@version}"]
+      docs: [main: "Posta", source_ref: "v#{@version}"]
     ]
   end
 

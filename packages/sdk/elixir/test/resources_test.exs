@@ -1,7 +1,7 @@
-defmodule MillionSend.ResourcesTest do
+defmodule Posta.ResourcesTest do
   use ExUnit.Case, async: true
 
-  import MillionSend.Test.Helpers
+  import Posta.Test.Helpers
 
   setup do
     {:ok, client: client()}
@@ -9,11 +9,11 @@ defmodule MillionSend.ResourcesTest do
 
   describe "emails" do
     test "get and cancel hit the right paths", %{client: c} do
-      assert {:ok, _} = MillionSend.Emails.get(c, "e1")
+      assert {:ok, _} = Posta.Emails.get(c, "e1")
       assert req_method() == :get
       assert req_path() == "/emails/e1"
 
-      assert {:ok, _} = MillionSend.Emails.cancel(c, "e1")
+      assert {:ok, _} = Posta.Emails.cancel(c, "e1")
       assert req_method() == :post
       assert req_path() == "/emails/e1/cancel"
     end
@@ -44,7 +44,7 @@ defmodule MillionSend.ResourcesTest do
         template: %{id: "t1", variables: %{name: "Ada"}}
       }
 
-      assert {:ok, _} = MillionSend.Emails.send(c, params)
+      assert {:ok, _} = Posta.Emails.send(c, params)
       assert req_method() == :post and req_path() == "/emails"
 
       assert req_body() == %{
@@ -75,7 +75,7 @@ defmodule MillionSend.ResourcesTest do
 
     test "string keys and explicit nils reach the wire too", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Emails.send(c, %{
+               Posta.Emails.send(c, %{
                  "from" => "a@x.dev",
                  "to" => "b@x.dev",
                  "subject" => "s",
@@ -95,30 +95,30 @@ defmodule MillionSend.ResourcesTest do
     test "list, update and remove", %{client: c} do
       stub_json(%{"object" => "list", "has_more" => false, "data" => [%{"id" => "e1"}]})
 
-      assert {:ok, %MillionSend.List{data: [%MillionSend.Emails.Email{id: "e1"}]}} =
-               MillionSend.Emails.list(c, limit: 10, after: "cur")
+      assert {:ok, %Posta.List{data: [%Posta.Emails.Email{id: "e1"}]}} =
+               Posta.Emails.list(c, limit: 10, after: "cur")
 
       assert req_method() == :get and req_path() == "/emails"
       assert req_query() == "limit=10&after=cur"
 
-      assert {:ok, _} = MillionSend.Emails.update(c, "e1", scheduled_at: "in 1 day")
+      assert {:ok, _} = Posta.Emails.update(c, "e1", scheduled_at: "in 1 day")
       assert req_method() == :patch and req_path() == "/emails/e1"
       assert req_body() == %{"scheduled_at" => "in 1 day"}
 
-      assert {:ok, _} = MillionSend.Emails.update(c, "e1", %{scheduled_at: "in 2 days"})
+      assert {:ok, _} = Posta.Emails.update(c, "e1", %{scheduled_at: "in 2 days"})
       assert req_body() == %{"scheduled_at" => "in 2 days"}
 
       stub_json(%{"object" => "email", "id" => "e1", "deleted" => true})
-      assert {:ok, %MillionSend.Emails.Email{deleted: true}} = MillionSend.Emails.remove(c, "e1")
+      assert {:ok, %Posta.Emails.Email{deleted: true}} = Posta.Emails.remove(c, "e1")
       assert req_method() == :delete and req_path() == "/emails/e1"
     end
 
     test "get carries the score field, present or null", %{client: c} do
       stub_json(%{"object" => "email", "id" => "e1", "score" => 8.5})
-      assert {:ok, %MillionSend.Emails.Email{score: 8.5}} = MillionSend.Emails.get(c, "e1")
+      assert {:ok, %Posta.Emails.Email{score: 8.5}} = Posta.Emails.get(c, "e1")
 
       stub_json(%{"object" => "email", "id" => "e1", "score" => nil})
-      assert {:ok, %MillionSend.Emails.Email{score: nil}} = MillionSend.Emails.get(c, "e1")
+      assert {:ok, %Posta.Emails.Email{score: nil}} = Posta.Emails.get(c, "e1")
     end
   end
 
@@ -145,11 +145,11 @@ defmodule MillionSend.ResourcesTest do
         ]
       })
 
-      assert {:ok, insights} = MillionSend.Emails.get_insights(c, "e1")
+      assert {:ok, insights} = Posta.Emails.get_insights(c, "e1")
       assert req_method() == :get
       assert req_path() == "/emails/e1/insights"
 
-      assert %MillionSend.Emails.Insights{
+      assert %Posta.Emails.Insights{
                object: "email_insights",
                email_id: "e1",
                score: 8.5,
@@ -162,7 +162,7 @@ defmodule MillionSend.ResourcesTest do
 
       assert [failed, passed] = insights.checks
 
-      assert %MillionSend.Emails.Insights.Check{
+      assert %Posta.Emails.Insights.Check{
                id: "list_unsubscribe",
                severity: "critical",
                status: "fail",
@@ -170,7 +170,7 @@ defmodule MillionSend.ResourcesTest do
                detail: %{"header" => "List-Unsubscribe", "found" => false}
              } = failed
 
-      assert %MillionSend.Emails.Insights.Check{
+      assert %Posta.Emails.Insights.Check{
                id: "plain_text_part",
                severity: "minor",
                status: "pass",
@@ -199,7 +199,7 @@ defmodule MillionSend.ResourcesTest do
         ]
       })
 
-      assert {:ok, insights} = MillionSend.Emails.get_insights(c, "e1")
+      assert {:ok, insights} = Posta.Emails.get_insights(c, "e1")
       assert insights.band == "stellar"
       assert [%{id: "brand_new_check", severity: "cosmic", status: "deferred"}] = insights.checks
     end
@@ -211,8 +211,8 @@ defmodule MillionSend.ResourcesTest do
         "message" => "Insights not available"
       })
 
-      assert {:error, %MillionSend.Error{status_code: 404, name: "not_found"}} =
-               MillionSend.Emails.get_insights(c, "missing")
+      assert {:error, %Posta.Error{status_code: 404, name: "not_found"}} =
+               Posta.Emails.get_insights(c, "missing")
     end
   end
 
@@ -234,11 +234,11 @@ defmodule MillionSend.ResourcesTest do
         "score_version" => 1
       })
 
-      assert {:ok, report} = MillionSend.Deliverability.get(c)
+      assert {:ok, report} = Posta.Deliverability.get(c)
       assert req_method() == :get
       assert req_path() == "/deliverability"
 
-      assert %MillionSend.Deliverability{
+      assert %Posta.Deliverability{
                object: "deliverability",
                score: 8.7,
                band: "good",
@@ -272,7 +272,7 @@ defmodule MillionSend.ResourcesTest do
         "score_version" => 1
       })
 
-      assert {:ok, report} = MillionSend.Deliverability.get(c)
+      assert {:ok, report} = Posta.Deliverability.get(c)
       assert report.score == nil
       assert report.band == nil
       assert report.content_score == nil
@@ -287,7 +287,7 @@ defmodule MillionSend.ResourcesTest do
       stub_json(%{"data" => [%{"id" => "1"}, %{"id" => "2"}]})
 
       assert {:ok, [a, b]} =
-               MillionSend.Emails.send_batch(
+               Posta.Emails.send_batch(
                  c,
                  [
                    %{from: "a@x.dev", to: "b@x.dev", subject: "1", text: "one"},
@@ -316,7 +316,7 @@ defmodule MillionSend.ResourcesTest do
         topic_id: nil
       }
 
-      assert {:ok, _} = MillionSend.Emails.send_batch(c, [item])
+      assert {:ok, _} = Posta.Emails.send_batch(c, [item])
 
       assert req_body() == [
                %{
@@ -335,8 +335,8 @@ defmodule MillionSend.ResourcesTest do
     test "strict validation sends the header and keeps the list shape", %{client: c} do
       stub_json(%{"data" => [%{"id" => "1"}]})
 
-      assert {:ok, [%MillionSend.Emails.Email{id: "1"}]} =
-               MillionSend.Emails.send_batch(
+      assert {:ok, [%Posta.Emails.Email{id: "1"}]} =
+               Posta.Emails.send_batch(
                  c,
                  [%{from: "a@x.dev", to: "b@x.dev", subject: "1", text: "one"}],
                  batch_validation: :strict
@@ -351,8 +351,8 @@ defmodule MillionSend.ResourcesTest do
         "errors" => [%{"index" => 1, "message" => "to: invalid email"}]
       })
 
-      assert {:ok, %MillionSend.Emails.BatchResponse{} = response} =
-               MillionSend.Emails.send_batch(
+      assert {:ok, %Posta.Emails.BatchResponse{} = response} =
+               Posta.Emails.send_batch(
                  c,
                  [
                    %{from: "a@x.dev", to: "b@x.dev", subject: "1", text: "one"},
@@ -364,15 +364,15 @@ defmodule MillionSend.ResourcesTest do
 
       assert req_headers()["x-batch-validation"] == "permissive"
       assert req_headers()["idempotency-key"] == "batch-2"
-      assert [%MillionSend.Emails.Email{id: "1"}] = response.data
-      assert [%MillionSend.BatchError{index: 1, message: "to: invalid email"}] = response.errors
+      assert [%Posta.Emails.Email{id: "1"}] = response.data
+      assert [%Posta.BatchError{index: 1, message: "to: invalid email"}] = response.errors
     end
   end
 
   describe "contacts" do
     test "creates at the top-level collection", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Contacts.create(c, %{email: "c@x.dev", first_name: "Ada"})
+               Posta.Contacts.create(c, %{email: "c@x.dev", first_name: "Ada"})
 
       assert req_method() == :post and req_path() == "/contacts"
       assert req_body() == %{"email" => "c@x.dev", "first_name" => "Ada"}
@@ -380,7 +380,7 @@ defmodule MillionSend.ResourcesTest do
 
     test "create passes every field through", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Contacts.create(c, %{
+               Posta.Contacts.create(c, %{
                  email: "c@x.dev",
                  first_name: "Ada",
                  last_name: "Lovelace",
@@ -411,8 +411,8 @@ defmodule MillionSend.ResourcesTest do
         "errors" => [%{"index" => 1, "message" => "email: invalid"}]
       })
 
-      assert {:ok, %MillionSend.Contacts.BatchResponse{} = response} =
-               MillionSend.Contacts.create_batch(
+      assert {:ok, %Posta.Contacts.BatchResponse{} = response} =
+               Posta.Contacts.create_batch(
                  c,
                  [%{email: "a@x.dev"}, %{email: "nope"}, %{email: "b@x.dev"}],
                  on_conflict: :skip,
@@ -430,19 +430,19 @@ defmodule MillionSend.ResourcesTest do
              ]
 
       assert [
-               %MillionSend.Contacts.BatchResponse.Item{index: 0, id: "c1", status: "created"},
-               %MillionSend.Contacts.BatchResponse.Item{index: 2, id: "c2", status: "skipped"}
+               %Posta.Contacts.BatchResponse.Item{index: 0, id: "c1", status: "created"},
+               %Posta.Contacts.BatchResponse.Item{index: 2, id: "c2", status: "skipped"}
              ] = response.data
 
       assert response.counts == %{created: 1, updated: 0, skipped: 1, failed: 1}
-      assert [%MillionSend.BatchError{index: 1, message: "email: invalid"}] = response.errors
+      assert [%Posta.BatchError{index: 1, message: "email: invalid"}] = response.errors
     end
 
     test "create_batch defaults send no query and no header", %{client: c} do
       stub_json(%{"data" => [], "counts" => %{"created" => 0}})
 
-      assert {:ok, %MillionSend.Contacts.BatchResponse{errors: [], counts: counts}} =
-               MillionSend.Contacts.create_batch(c, [%{email: "a@x.dev"}])
+      assert {:ok, %Posta.Contacts.BatchResponse{errors: [], counts: counts}} =
+               Posta.Contacts.create_batch(c, [%{email: "a@x.dev"}])
 
       assert req_query() == nil
       refute Map.has_key?(req_headers(), "x-batch-validation")
@@ -450,21 +450,20 @@ defmodule MillionSend.ResourcesTest do
     end
 
     test "addresses by string id and by email", %{client: c} do
-      assert {:ok, _} = MillionSend.Contacts.get(c, "c1")
+      assert {:ok, _} = Posta.Contacts.get(c, "c1")
       assert req_path() == "/contacts/c1"
 
-      assert {:ok, _} = MillionSend.Contacts.get(c, %{email: "c@x.dev"})
+      assert {:ok, _} = Posta.Contacts.get(c, %{email: "c@x.dev"})
       assert req_path() == "/contacts/c%40x.dev"
     end
 
     test "email wins over id when both are given", %{client: c} do
-      assert {:ok, _} = MillionSend.Contacts.get(c, %{id: "c1", email: "c@x.dev"})
+      assert {:ok, _} = Posta.Contacts.get(c, %{id: "c1", email: "c@x.dev"})
       assert req_path() == "/contacts/c%40x.dev"
     end
 
     test "update sends only provided keys (nil clears)", %{client: c} do
-      assert {:ok, _} =
-               MillionSend.Contacts.update(c, %{id: "c1", first_name: nil, unsubscribed: true})
+      assert {:ok, _} = Posta.Contacts.update(c, %{id: "c1", first_name: nil, unsubscribed: true})
 
       assert req_method() == :patch and req_path() == "/contacts/c1"
       assert req_body() == %{"first_name" => nil, "unsubscribed" => true}
@@ -472,7 +471,7 @@ defmodule MillionSend.ResourcesTest do
 
     test "update by email keeps the address out of the body", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Contacts.update(c, %{
+               Posta.Contacts.update(c, %{
                  "email" => "c@x.dev",
                  "last_name" => nil,
                  "properties" => %{"plan" => nil}
@@ -483,15 +482,15 @@ defmodule MillionSend.ResourcesTest do
     end
 
     test "remove and list", %{client: c} do
-      assert {:ok, _} = MillionSend.Contacts.remove(c, %{email: "c@x.dev"})
+      assert {:ok, _} = Posta.Contacts.remove(c, %{email: "c@x.dev"})
       assert req_method() == :delete
       assert req_query() == nil
 
-      assert {:ok, _} = MillionSend.Contacts.remove(c, "c1", erase: true)
+      assert {:ok, _} = Posta.Contacts.remove(c, "c1", erase: true)
       assert req_method() == :delete and req_path() == "/contacts/c1"
       assert req_query() == "erase=true"
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.Contacts.list(c, after: "cur")
+      assert {:ok, %Posta.List{}} = Posta.Contacts.list(c, after: "cur")
       assert req_path() == "/contacts"
       assert req_query() == "after=cur"
     end
@@ -519,17 +518,17 @@ defmodule MillionSend.ResourcesTest do
         ]
       })
 
-      assert {:ok, %MillionSend.List{data: [contact]}} =
-               MillionSend.Contacts.list(c, limit: 100, include: [:properties, :topics])
+      assert {:ok, %Posta.List{data: [contact]}} =
+               Posta.Contacts.list(c, limit: 100, include: [:properties, :topics])
 
       assert req_path() == "/contacts"
       assert req_query() == "limit=100&include=properties%2Ctopics"
 
-      assert %MillionSend.Contacts.Contact{
+      assert %Posta.Contacts.Contact{
                id: "c1",
                properties: %{"plan" => %{"type" => "string", "value" => "pro"}},
                topics: [
-                 %MillionSend.Contacts.TopicSubscription{
+                 %Posta.Contacts.TopicSubscription{
                    id: "t1",
                    name: "Insights",
                    subscription: "opt_in",
@@ -541,8 +540,8 @@ defmodule MillionSend.ResourcesTest do
 
       stub_json(%{"object" => "list", "has_more" => false, "data" => [%{"id" => "c1"}]})
 
-      assert {:ok, %MillionSend.List{data: [%MillionSend.Contacts.Contact{topics: nil}]}} =
-               MillionSend.Contacts.list(c)
+      assert {:ok, %Posta.List{data: [%Posta.Contacts.Contact{topics: nil}]}} =
+               Posta.Contacts.list(c)
 
       assert req_query() == nil
     end
@@ -571,14 +570,14 @@ defmodule MillionSend.ResourcesTest do
         ]
       })
 
-      assert {:ok, %MillionSend.List{has_more: false, data: topics}} =
-               MillionSend.Contacts.list_topics(c, %{email: "c@x.dev"})
+      assert {:ok, %Posta.List{has_more: false, data: topics}} =
+               Posta.Contacts.list_topics(c, %{email: "c@x.dev"})
 
       assert req_method() == :get and req_path() == "/contacts/c%40x.dev/topics"
       assert req_body() == nil
 
       assert topics == [
-               %MillionSend.Contacts.TopicSubscription{
+               %Posta.Contacts.TopicSubscription{
                  id: "t1",
                  name: "Insights",
                  description: nil,
@@ -586,7 +585,7 @@ defmodule MillionSend.ResourcesTest do
                  explicit: true,
                  visibility: "public"
                },
-               %MillionSend.Contacts.TopicSubscription{
+               %Posta.Contacts.TopicSubscription{
                  id: "t2",
                  name: "Digest",
                  description: "Monthly",
@@ -596,7 +595,7 @@ defmodule MillionSend.ResourcesTest do
                }
              ]
 
-      assert {:ok, _} = MillionSend.Contacts.list_topics(c, "c1")
+      assert {:ok, _} = Posta.Contacts.list_topics(c, "c1")
       assert req_path() == "/contacts/c1/topics"
     end
 
@@ -604,7 +603,7 @@ defmodule MillionSend.ResourcesTest do
       stub_json(%{"id" => "c1"})
 
       assert {:ok, _} =
-               MillionSend.Contacts.update_topics(c, %{
+               Posta.Contacts.update_topics(c, %{
                  id: "c1",
                  topics: [%{id: "t1", subscription: "opt_out"}]
                })
@@ -614,14 +613,14 @@ defmodule MillionSend.ResourcesTest do
     end
 
     test "add_to_segment and remove_from_segment", %{client: c} do
-      assert {:ok, _} = MillionSend.Contacts.add_to_segment(c, %{email: "c@x.dev"}, "s1")
+      assert {:ok, _} = Posta.Contacts.add_to_segment(c, %{email: "c@x.dev"}, "s1")
       assert req_method() == :post and req_path() == "/contacts/c%40x.dev/segments/s1"
       assert req_body() == nil
 
       stub_json(%{"id" => "c1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Contacts.Contact{deleted: true}} =
-               MillionSend.Contacts.remove_from_segment(c, "c1", "s1")
+      assert {:ok, %Posta.Contacts.Contact{deleted: true}} =
+               Posta.Contacts.remove_from_segment(c, "c1", "s1")
 
       assert req_method() == :delete and req_path() == "/contacts/c1/segments/s1"
     end
@@ -640,8 +639,8 @@ defmodule MillionSend.ResourcesTest do
         "missing" => [%{"index" => 1, "email" => "b@x.dev"}]
       })
 
-      assert {:ok, %MillionSend.Contacts.BatchGetResponse{data: [contact], missing: missing}} =
-               MillionSend.Contacts.batch_get(c, ["c1", %{email: "b@x.dev"}],
+      assert {:ok, %Posta.Contacts.BatchGetResponse{data: [contact], missing: missing}} =
+               Posta.Contacts.batch_get(c, ["c1", %{email: "b@x.dev"}],
                  include: [:properties, :topics]
                )
 
@@ -653,20 +652,20 @@ defmodule MillionSend.ResourcesTest do
                "include" => ["properties", "topics"]
              }
 
-      assert %MillionSend.Contacts.Contact{
+      assert %Posta.Contacts.Contact{
                id: "c1",
                topics: [
-                 %MillionSend.Contacts.TopicSubscription{id: "t1", subscription: "opt_out"}
+                 %Posta.Contacts.TopicSubscription{id: "t1", subscription: "opt_out"}
                ]
              } = contact
 
-      assert [%MillionSend.Contacts.BatchGetResponse.Missing{index: 1, id: nil, email: "b@x.dev"}] =
+      assert [%Posta.Contacts.BatchGetResponse.Missing{index: 1, id: nil, email: "b@x.dev"}] =
                missing
 
       stub_json(%{"object" => "list", "data" => [%{"id" => "c2"}], "missing" => []})
 
-      assert {:ok, %MillionSend.Contacts.BatchGetResponse{missing: []}} =
-               MillionSend.Contacts.batch_get(c, [%{id: "c2"}])
+      assert {:ok, %Posta.Contacts.BatchGetResponse{missing: []}} =
+               Posta.Contacts.batch_get(c, [%{id: "c2"}])
 
       assert req_body() == %{"contacts" => [%{"id" => "c2"}]}
     end
@@ -674,16 +673,16 @@ defmodule MillionSend.ResourcesTest do
     test "batch_remove posts ids or emails and casts the deleted rows", %{client: c} do
       stub_json(%{"data" => [%{"object" => "contact", "contact" => "c1", "deleted" => true}]})
 
-      assert {:ok, [%MillionSend.Contacts.Contact{contact: "c1", deleted: true}]} =
-               MillionSend.Contacts.batch_remove(c, %{emails: ["a@x.dev", "b@x.dev"]})
+      assert {:ok, [%Posta.Contacts.Contact{contact: "c1", deleted: true}]} =
+               Posta.Contacts.batch_remove(c, %{emails: ["a@x.dev", "b@x.dev"]})
 
       assert req_method() == :post and req_path() == "/contacts/batch/remove"
       assert req_body() == %{"emails" => ["a@x.dev", "b@x.dev"]}
 
-      assert {:ok, _} = MillionSend.Contacts.batch_remove(c, %{ids: ["c1", "c2"]})
+      assert {:ok, _} = Posta.Contacts.batch_remove(c, %{ids: ["c1", "c2"]})
       assert req_body() == %{"ids" => ["c1", "c2"]}
 
-      assert {:ok, _} = MillionSend.Contacts.batch_remove(c, %{ids: ["c1"], erase: true})
+      assert {:ok, _} = Posta.Contacts.batch_remove(c, %{ids: ["c1"], erase: true})
       assert req_body() == %{"ids" => ["c1"], "erase" => true}
     end
 
@@ -695,16 +694,16 @@ defmodule MillionSend.ResourcesTest do
       })
 
       assert {:ok,
-              %MillionSend.Contacts.PreferencesLink{
+              %Posta.Contacts.PreferencesLink{
                 object: "preferences_link",
                 contact: "c1",
                 url: "https://app.test/p/tok"
-              }} = MillionSend.Contacts.preferences_link(c, %{email: "c@x.dev"})
+              }} = Posta.Contacts.preferences_link(c, %{email: "c@x.dev"})
 
       assert req_method() == :post and req_path() == "/contacts/c%40x.dev/preferences-link"
       assert req_body() == nil
 
-      assert {:ok, _} = MillionSend.Contacts.preferences_link(c, "c1")
+      assert {:ok, _} = Posta.Contacts.preferences_link(c, "c1")
       assert req_path() == "/contacts/c1/preferences-link"
 
       stub_response(422, %{
@@ -713,15 +712,15 @@ defmodule MillionSend.ResourcesTest do
         "message" => "APP_BASE_URL and MASTER_ENCRYPTION_KEY must be set to mint preference links"
       })
 
-      assert {:error, %MillionSend.Error{name: "validation_error", status_code: 422}} =
-               MillionSend.Contacts.preferences_link(c, "c1")
+      assert {:error, %Posta.Error{name: "validation_error", status_code: 422}} =
+               Posta.Contacts.preferences_link(c, "c1")
     end
   end
 
   describe "broadcasts" do
     test "covers the full lifecycle", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Broadcasts.create(c, %{
+               Posta.Broadcasts.create(c, %{
                  segment_id: "s1",
                  from: "a@x.dev",
                  subject: "News",
@@ -737,29 +736,29 @@ defmodule MillionSend.ResourcesTest do
                "html" => "<p>hi</p>"
              }
 
-      assert {:ok, _} = MillionSend.Broadcasts.get(c, "b1")
+      assert {:ok, _} = Posta.Broadcasts.get(c, "b1")
       assert req_path() == "/broadcasts/b1"
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.Broadcasts.list(c)
+      assert {:ok, %Posta.List{}} = Posta.Broadcasts.list(c)
       assert req_path() == "/broadcasts"
 
-      assert {:ok, _} = MillionSend.Broadcasts.update(c, "b1", %{subject: "New"})
+      assert {:ok, _} = Posta.Broadcasts.update(c, "b1", %{subject: "New"})
       assert req_method() == :patch and req_path() == "/broadcasts/b1"
 
-      assert {:ok, _} = MillionSend.Broadcasts.send(c, "b1", scheduled_at: "2999-01-01T00:00:00Z")
+      assert {:ok, _} = Posta.Broadcasts.send(c, "b1", scheduled_at: "2999-01-01T00:00:00Z")
       assert req_path() == "/broadcasts/b1/send"
       assert req_body() == %{"scheduled_at" => "2999-01-01T00:00:00Z"}
 
-      assert {:ok, _} = MillionSend.Broadcasts.cancel(c, "b1")
+      assert {:ok, _} = Posta.Broadcasts.cancel(c, "b1")
       assert req_path() == "/broadcasts/b1/cancel"
 
-      assert {:ok, _} = MillionSend.Broadcasts.remove(c, "b1")
+      assert {:ok, _} = Posta.Broadcasts.remove(c, "b1")
       assert req_method() == :delete
     end
 
     test "create passes every field through, including send and scheduled_at", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Broadcasts.create(c, %{
+               Posta.Broadcasts.create(c, %{
                  name: "Launch",
                  segment_id: "s1",
                  from: "a@x.dev",
@@ -789,14 +788,13 @@ defmodule MillionSend.ResourcesTest do
     end
 
     test "update clears the topic with an explicit null", %{client: c} do
-      assert {:ok, _} =
-               MillionSend.Broadcasts.update(c, "b1", %{topic_id: nil, preview_text: "New"})
+      assert {:ok, _} = Posta.Broadcasts.update(c, "b1", %{topic_id: nil, preview_text: "New"})
 
       assert req_body() == %{"topic_id" => nil, "preview_text" => "New"}
     end
 
     test "send now posts an empty body", %{client: c} do
-      assert {:ok, _} = MillionSend.Broadcasts.send(c, "b1")
+      assert {:ok, _} = Posta.Broadcasts.send(c, "b1")
       assert req_path() == "/broadcasts/b1/send"
       assert req_body() == %{}
     end
@@ -805,7 +803,7 @@ defmodule MillionSend.ResourcesTest do
   describe "topics" do
     test "covers create/get/list/update/remove", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Topics.create(c, %{
+               Posta.Topics.create(c, %{
                  name: "Product",
                  default_subscription: "opt_in",
                  visibility: :public
@@ -817,19 +815,19 @@ defmodule MillionSend.ResourcesTest do
                "visibility" => "public"
              }
 
-      assert {:ok, _} = MillionSend.Topics.get(c, "t1")
+      assert {:ok, _} = Posta.Topics.get(c, "t1")
       assert req_path() == "/topics/t1"
 
       stub_json(%{"data" => [%{"id" => "t1", "name" => "Product", "visibility" => "private"}]})
-      assert {:ok, [topic]} = MillionSend.Topics.list(c)
+      assert {:ok, [topic]} = Posta.Topics.list(c)
       assert req_path() == "/topics"
-      assert %MillionSend.Topics.Topic{id: "t1", visibility: "private"} = topic
+      assert %Posta.Topics.Topic{id: "t1", visibility: "private"} = topic
 
-      assert {:ok, _} = MillionSend.Topics.update(c, "t1", %{description: "News"})
+      assert {:ok, _} = Posta.Topics.update(c, "t1", %{description: "News"})
       assert req_method() == :patch and req_path() == "/topics/t1"
       assert req_body() == %{"description" => "News"}
 
-      assert {:ok, _} = MillionSend.Topics.remove(c, "t1")
+      assert {:ok, _} = Posta.Topics.remove(c, "t1")
       assert req_method() == :delete
     end
   end
@@ -838,7 +836,7 @@ defmodule MillionSend.ResourcesTest do
     test "covers create/get/list/update/remove on /segments", %{client: c} do
       filter = %{match: "all", conditions: [%{field: "email", op: "is_set"}]}
 
-      assert {:ok, _} = MillionSend.Segments.create(c, %{name: "Active", filter: filter})
+      assert {:ok, _} = Posta.Segments.create(c, %{name: "Active", filter: filter})
 
       assert req_path() == "/segments"
 
@@ -850,38 +848,37 @@ defmodule MillionSend.ResourcesTest do
                }
              }
 
-      assert {:ok, _} = MillionSend.Segments.get(c, "s1")
+      assert {:ok, _} = Posta.Segments.get(c, "s1")
       assert req_path() == "/segments/s1"
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.Segments.list(c, before: "cur")
+      assert {:ok, %Posta.List{}} = Posta.Segments.list(c, before: "cur")
       assert req_path() == "/segments"
       assert req_query() == "before=cur"
 
-      assert {:ok, _} = MillionSend.Segments.update(c, "s1", %{name: "Renamed"})
+      assert {:ok, _} = Posta.Segments.update(c, "s1", %{name: "Renamed"})
       assert req_method() == :patch and req_path() == "/segments/s1"
 
-      assert {:ok, _} = MillionSend.Segments.remove(c, "s1")
+      assert {:ok, _} = Posta.Segments.remove(c, "s1")
       assert req_method() == :delete
     end
 
     test "list_contacts pages the segment's members", %{client: c} do
       stub_json(%{"object" => "list", "has_more" => true, "data" => [%{"id" => "c1"}]})
 
-      assert {:ok, %MillionSend.List{has_more: true, data: [%MillionSend.Contacts.Contact{}]}} =
-               MillionSend.Segments.list_contacts(c, "s1", limit: 5)
+      assert {:ok, %Posta.List{has_more: true, data: [%Posta.Contacts.Contact{}]}} =
+               Posta.Segments.list_contacts(c, "s1", limit: 5)
 
       assert req_method() == :get and req_path() == "/segments/s1/contacts"
       assert req_query() == "limit=5"
 
-      assert {:ok, _} = MillionSend.Segments.list_contacts(c, "s1", include: [:topics])
+      assert {:ok, _} = Posta.Segments.list_contacts(c, "s1", include: [:topics])
       assert req_query() == "include=topics"
     end
   end
 
   describe "suppressions" do
     test "create/get/list/remove", %{client: c} do
-      assert {:ok, _} =
-               MillionSend.Suppressions.create(c, %{email: "gone@x.dev", origin: :manual})
+      assert {:ok, _} = Posta.Suppressions.create(c, %{email: "gone@x.dev", origin: :manual})
 
       assert req_method() == :post and req_path() == "/suppressions"
       assert req_body() == %{"email" => "gone@x.dev", "origin" => "manual"}
@@ -895,21 +892,20 @@ defmodule MillionSend.ResourcesTest do
         "created_at" => "2026-01-01"
       })
 
-      assert {:ok, %MillionSend.Suppressions.Suppression{origin: "bounce", source_id: "e1"}} =
-               MillionSend.Suppressions.get(c, "gone@x.dev")
+      assert {:ok, %Posta.Suppressions.Suppression{origin: "bounce", source_id: "e1"}} =
+               Posta.Suppressions.get(c, "gone@x.dev")
 
       assert req_method() == :get and req_path() == "/suppressions/gone%40x.dev"
 
-      assert {:ok, %MillionSend.List{}} =
-               MillionSend.Suppressions.list(c, limit: 2, origin: :bounce)
+      assert {:ok, %Posta.List{}} = Posta.Suppressions.list(c, limit: 2, origin: :bounce)
 
       assert req_path() == "/suppressions"
       assert req_query() == "limit=2&origin=bounce"
 
       stub_json(%{"object" => "suppression", "id" => "sp1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Suppressions.Suppression{id: "sp1", deleted: true}} =
-               MillionSend.Suppressions.remove(c, "sp1")
+      assert {:ok, %Posta.Suppressions.Suppression{id: "sp1", deleted: true}} =
+               Posta.Suppressions.remove(c, "sp1")
 
       assert req_method() == :delete and req_path() == "/suppressions/sp1"
     end
@@ -917,24 +913,24 @@ defmodule MillionSend.ResourcesTest do
     test "batch_add and batch_remove", %{client: c} do
       stub_json(%{"data" => [%{"object" => "suppression", "id" => "sp1"}]})
 
-      assert {:ok, [%MillionSend.Suppressions.Suppression{id: "sp1"}]} =
-               MillionSend.Suppressions.batch_add(c, ["a@x.dev", "b@x.dev"], origin: :unsubscribe)
+      assert {:ok, [%Posta.Suppressions.Suppression{id: "sp1"}]} =
+               Posta.Suppressions.batch_add(c, ["a@x.dev", "b@x.dev"], origin: :unsubscribe)
 
       assert req_method() == :post and req_path() == "/suppressions/batch/add"
       assert req_body() == %{"emails" => ["a@x.dev", "b@x.dev"], "origin" => "unsubscribe"}
 
-      assert {:ok, _} = MillionSend.Suppressions.batch_add(c, ["a@x.dev"])
+      assert {:ok, _} = Posta.Suppressions.batch_add(c, ["a@x.dev"])
       assert req_body() == %{"emails" => ["a@x.dev"]}
 
       stub_json(%{"data" => [%{"object" => "suppression", "id" => "sp1", "deleted" => true}]})
 
-      assert {:ok, [%MillionSend.Suppressions.Suppression{deleted: true}]} =
-               MillionSend.Suppressions.batch_remove(c, %{emails: ["a@x.dev"]})
+      assert {:ok, [%Posta.Suppressions.Suppression{deleted: true}]} =
+               Posta.Suppressions.batch_remove(c, %{emails: ["a@x.dev"]})
 
       assert req_method() == :post and req_path() == "/suppressions/batch/remove"
       assert req_body() == %{"emails" => ["a@x.dev"]}
 
-      assert {:ok, _} = MillionSend.Suppressions.batch_remove(c, %{ids: ["sp1", "sp2"]})
+      assert {:ok, _} = Posta.Suppressions.batch_remove(c, %{ids: ["sp1", "sp2"]})
       assert req_body() == %{"ids" => ["sp1", "sp2"]}
     end
   end
@@ -971,8 +967,8 @@ defmodule MillionSend.ResourcesTest do
         ]
       })
 
-      assert {:ok, %MillionSend.Domains.Domain{} = domain} =
-               MillionSend.Domains.create(c, %{
+      assert {:ok, %Posta.Domains.Domain{} = domain} =
+               Posta.Domains.create(c, %{
                  name: "acme.dev",
                  region: "us-east-1",
                  custom_return_path: "send",
@@ -996,28 +992,28 @@ defmodule MillionSend.ResourcesTest do
       assert domain.capabilities == %{"sending" => "enabled", "receiving" => "disabled"}
 
       assert [
-               %MillionSend.Domains.Domain.Record{record: "DKIM", type: "TXT", priority: nil},
-               %MillionSend.Domains.Domain.Record{record: "MX", priority: 10}
+               %Posta.Domains.Domain.Record{record: "DKIM", type: "TXT", priority: nil},
+               %Posta.Domains.Domain.Record{record: "MX", priority: 10}
              ] = domain.records
 
       stub_json(%{"object" => "list", "has_more" => false, "data" => [%{"id" => "d1"}]})
 
-      assert {:ok, %MillionSend.List{data: [%MillionSend.Domains.Domain{id: "d1", records: []}]}} =
-               MillionSend.Domains.list(c, limit: 1)
+      assert {:ok, %Posta.List{data: [%Posta.Domains.Domain{id: "d1", records: []}]}} =
+               Posta.Domains.list(c, limit: 1)
 
       assert req_method() == :get and req_path() == "/domains"
       assert req_query() == "limit=1"
 
       stub_json(%{"object" => "domain", "id" => "d1", "records" => []})
-      assert {:ok, %MillionSend.Domains.Domain{id: "d1"}} = MillionSend.Domains.get(c, "d1")
+      assert {:ok, %Posta.Domains.Domain{id: "d1"}} = Posta.Domains.get(c, "d1")
       assert req_method() == :get and req_path() == "/domains/d1"
 
-      assert {:ok, %MillionSend.Domains.Domain{}} = MillionSend.Domains.verify(c, "d1")
+      assert {:ok, %Posta.Domains.Domain{}} = Posta.Domains.verify(c, "d1")
       assert req_method() == :post and req_path() == "/domains/d1/verify"
       assert req_body() == nil
 
       assert {:ok, _} =
-               MillionSend.Domains.update(c, "d1", %{
+               Posta.Domains.update(c, "d1", %{
                  open_tracking: true,
                  click_tracking: true,
                  tracking_subdomain: nil
@@ -1033,8 +1029,7 @@ defmodule MillionSend.ResourcesTest do
 
       stub_json(%{"object" => "domain", "id" => "d1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Domains.Domain{deleted: true}} =
-               MillionSend.Domains.remove(c, "d1")
+      assert {:ok, %Posta.Domains.Domain{deleted: true}} = Posta.Domains.remove(c, "d1")
 
       assert req_method() == :delete and req_path() == "/domains/d1"
     end
@@ -1042,10 +1037,10 @@ defmodule MillionSend.ResourcesTest do
 
   describe "api keys" do
     test "create returns the one-time token; list and remove", %{client: c} do
-      stub_json(%{"id" => "k1", "token" => "ms_secret"})
+      stub_json(%{"id" => "k1", "token" => "po_secret"})
 
-      assert {:ok, %MillionSend.ApiKeys.ApiKey{id: "k1", token: "ms_secret"}} =
-               MillionSend.ApiKeys.create(c, %{
+      assert {:ok, %Posta.ApiKeys.ApiKey{id: "k1", token: "po_secret"}} =
+               Posta.ApiKeys.create(c, %{
                  name: "ci",
                  permission: :sending_access,
                  domain_id: "d1"
@@ -1065,15 +1060,13 @@ defmodule MillionSend.ResourcesTest do
         "data" => [%{"id" => "k1", "name" => "ci", "last_used_at" => nil}]
       })
 
-      assert {:ok, %MillionSend.List{data: [%MillionSend.ApiKeys.ApiKey{name: "ci"}]}} =
-               MillionSend.ApiKeys.list(c)
+      assert {:ok, %Posta.List{data: [%Posta.ApiKeys.ApiKey{name: "ci"}]}} = Posta.ApiKeys.list(c)
 
       assert req_method() == :get and req_path() == "/api-keys"
 
       stub_json(%{"object" => "api_key", "id" => "k1", "deleted" => true})
 
-      assert {:ok, %MillionSend.ApiKeys.ApiKey{deleted: true}} =
-               MillionSend.ApiKeys.remove(c, "k1")
+      assert {:ok, %Posta.ApiKeys.ApiKey{deleted: true}} = Posta.ApiKeys.remove(c, "k1")
 
       assert req_method() == :delete and req_path() == "/api-keys/k1"
     end
@@ -1083,8 +1076,8 @@ defmodule MillionSend.ResourcesTest do
     test "create/list/get/update/remove", %{client: c} do
       stub_json(%{"object" => "webhook", "id" => "w1", "signing_secret" => "whsec_abc"})
 
-      assert {:ok, %MillionSend.Webhooks.Webhook{id: "w1", signing_secret: "whsec_abc"}} =
-               MillionSend.Webhooks.create(c, %{
+      assert {:ok, %Posta.Webhooks.Webhook{id: "w1", signing_secret: "whsec_abc"}} =
+               Posta.Webhooks.create(c, %{
                  endpoint: "https://acme.dev/hook",
                  events: ["email.delivered", "email.bounced"],
                  signing_secret: "whsec_abc"
@@ -1098,7 +1091,7 @@ defmodule MillionSend.ResourcesTest do
                "signing_secret" => "whsec_abc"
              }
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.Webhooks.list(c, after: "w0")
+      assert {:ok, %Posta.List{}} = Posta.Webhooks.list(c, after: "w0")
       assert req_method() == :get and req_path() == "/webhooks"
       assert req_query() == "after=w0"
 
@@ -1113,24 +1106,23 @@ defmodule MillionSend.ResourcesTest do
       })
 
       assert {:ok,
-              %MillionSend.Webhooks.Webhook{
+              %Posta.Webhooks.Webhook{
                 status: "enabled",
                 signing_secret: "whsec_abc",
                 previous_secret_expires_at: nil
-              }} = MillionSend.Webhooks.get(c, "w1")
+              }} = Posta.Webhooks.get(c, "w1")
 
       assert req_method() == :get and req_path() == "/webhooks/w1"
 
       assert {:ok, _} =
-               MillionSend.Webhooks.update(c, "w1", %{status: :disabled, events: ["email.sent"]})
+               Posta.Webhooks.update(c, "w1", %{status: :disabled, events: ["email.sent"]})
 
       assert req_method() == :patch and req_path() == "/webhooks/w1"
       assert req_body() == %{"status" => "disabled", "events" => ["email.sent"]}
 
       stub_json(%{"object" => "webhook", "id" => "w1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Webhooks.Webhook{deleted: true}} =
-               MillionSend.Webhooks.remove(c, "w1")
+      assert {:ok, %Posta.Webhooks.Webhook{deleted: true}} = Posta.Webhooks.remove(c, "w1")
 
       assert req_method() == :delete and req_path() == "/webhooks/w1"
     end
@@ -1144,18 +1136,18 @@ defmodule MillionSend.ResourcesTest do
       })
 
       assert {:ok,
-              %MillionSend.Webhooks.Webhook{
+              %Posta.Webhooks.Webhook{
                 id: "w1",
                 signing_secret: "whsec_new",
                 previous_secret_expires_at: "2026-01-02T00:00:00.000Z"
-              }} = MillionSend.Webhooks.rotate(c, "w1")
+              }} = Posta.Webhooks.rotate(c, "w1")
 
       assert req_method() == :post and req_path() == "/webhooks/w1/rotate"
       assert req_headers()["content-type"] == "application/json"
       assert req_body() == %{}
 
       assert {:ok, _} =
-               MillionSend.Webhooks.rotate(c, "w1",
+               Posta.Webhooks.rotate(c, "w1",
                  signing_secret: "whsec_mine",
                  overlap_hours: 0
                )
@@ -1167,7 +1159,7 @@ defmodule MillionSend.ResourcesTest do
   describe "templates" do
     test "create/list/get/update/remove/publish/duplicate", %{client: c} do
       assert {:ok, _} =
-               MillionSend.Templates.create(c, %{
+               Posta.Templates.create(c, %{
                  name: "Welcome",
                  html: "<p>Hi</p>",
                  subject: "Welcome!",
@@ -1185,7 +1177,7 @@ defmodule MillionSend.ResourcesTest do
                "alias" => "welcome"
              }
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.Templates.list(c, limit: 3)
+      assert {:ok, %Posta.List{}} = Posta.Templates.list(c, limit: 3)
       assert req_method() == :get and req_path() == "/templates"
       assert req_query() == "limit=3"
 
@@ -1198,32 +1190,29 @@ defmodule MillionSend.ResourcesTest do
         "has_unpublished_versions" => false
       })
 
-      assert {:ok, %MillionSend.Templates.Template{alias: "welcome", current_version_id: "v1"}} =
-               MillionSend.Templates.get(c, "welcome")
+      assert {:ok, %Posta.Templates.Template{alias: "welcome", current_version_id: "v1"}} =
+               Posta.Templates.get(c, "welcome")
 
       assert req_method() == :get and req_path() == "/templates/welcome"
 
-      assert {:ok, _} =
-               MillionSend.Templates.update(c, "t1", %{alias: nil, subject: nil, text: nil})
+      assert {:ok, _} = Posta.Templates.update(c, "t1", %{alias: nil, subject: nil, text: nil})
 
       assert req_method() == :patch and req_path() == "/templates/t1"
       assert req_body() == %{"alias" => nil, "subject" => nil, "text" => nil}
 
       stub_json(%{"object" => "template", "id" => "t1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Templates.Template{deleted: true}} =
-               MillionSend.Templates.remove(c, "t1")
+      assert {:ok, %Posta.Templates.Template{deleted: true}} = Posta.Templates.remove(c, "t1")
 
       assert req_method() == :delete and req_path() == "/templates/t1"
 
-      assert {:ok, _} = MillionSend.Templates.publish(c, "t1")
+      assert {:ok, _} = Posta.Templates.publish(c, "t1")
       assert req_method() == :post and req_path() == "/templates/t1/publish"
       assert req_body() == nil
 
       stub_json(%{"object" => "template", "id" => "t2"})
 
-      assert {:ok, %MillionSend.Templates.Template{id: "t2"}} =
-               MillionSend.Templates.duplicate(c, "t1")
+      assert {:ok, %Posta.Templates.Template{id: "t2"}} = Posta.Templates.duplicate(c, "t1")
 
       assert req_method() == :post and req_path() == "/templates/t1/duplicate"
     end
@@ -1239,8 +1228,8 @@ defmodule MillionSend.ResourcesTest do
         "fallback_value" => "free"
       })
 
-      assert {:ok, %MillionSend.ContactProperties.ContactProperty{key: "plan", type: "string"}} =
-               MillionSend.ContactProperties.create(c, %{
+      assert {:ok, %Posta.ContactProperties.ContactProperty{key: "plan", type: "string"}} =
+               Posta.ContactProperties.create(c, %{
                  key: "plan",
                  type: :string,
                  fallback_value: "free"
@@ -1249,21 +1238,21 @@ defmodule MillionSend.ResourcesTest do
       assert req_method() == :post and req_path() == "/contact-properties"
       assert req_body() == %{"key" => "plan", "type" => "string", "fallback_value" => "free"}
 
-      assert {:ok, %MillionSend.List{}} = MillionSend.ContactProperties.list(c, before: "p0")
+      assert {:ok, %Posta.List{}} = Posta.ContactProperties.list(c, before: "p0")
       assert req_method() == :get and req_path() == "/contact-properties"
       assert req_query() == "before=p0"
 
-      assert {:ok, _} = MillionSend.ContactProperties.get(c, "p1")
+      assert {:ok, _} = Posta.ContactProperties.get(c, "p1")
       assert req_method() == :get and req_path() == "/contact-properties/p1"
 
-      assert {:ok, _} = MillionSend.ContactProperties.update(c, "p1", %{fallback_value: nil})
+      assert {:ok, _} = Posta.ContactProperties.update(c, "p1", %{fallback_value: nil})
       assert req_method() == :patch and req_path() == "/contact-properties/p1"
       assert req_body() == %{"fallback_value" => nil}
 
       stub_json(%{"object" => "contact_property", "id" => "p1", "deleted" => true})
 
-      assert {:ok, %MillionSend.ContactProperties.ContactProperty{deleted: true}} =
-               MillionSend.ContactProperties.remove(c, "p1")
+      assert {:ok, %Posta.ContactProperties.ContactProperty{deleted: true}} =
+               Posta.ContactProperties.remove(c, "p1")
 
       assert req_method() == :delete and req_path() == "/contact-properties/p1"
     end
@@ -1278,10 +1267,10 @@ defmodule MillionSend.ResourcesTest do
         "limits" => %{"emails_per_day" => 50_000, "domains" => 10},
         "today" => %{"emails_sent" => 1_234, "resets_at" => "2026-09-05T00:00:00.000Z"},
         "team" => %{"id" => "team-1", "name" => "Acme"},
-        "app_url" => "https://app.millionsend.com"
+        "app_url" => "https://app.posta.example"
       })
 
-      assert {:ok, %MillionSend.Usage{} = usage} = MillionSend.Usage.get(c)
+      assert {:ok, %Posta.Usage{} = usage} = Posta.Usage.get(c)
       assert req_method() == :get and req_path() == "/usage"
       assert usage.cloud == true and usage.plan == "pro"
       assert usage.limits == %{"emails_per_day" => 50_000, "domains" => 10}
@@ -1298,7 +1287,7 @@ defmodule MillionSend.ResourcesTest do
         "app_url" => nil
       })
 
-      assert {:ok, %MillionSend.Usage{plan: nil, app_url: nil}} = MillionSend.Usage.get(c)
+      assert {:ok, %Posta.Usage{plan: nil, app_url: nil}} = Posta.Usage.get(c)
     end
   end
 
@@ -1310,16 +1299,16 @@ defmodule MillionSend.ResourcesTest do
         "data" => [%{"id" => "s1", "name" => "Active", "created_at" => "2026-01-01"}]
       })
 
-      assert {:ok, list} = MillionSend.Segments.list(c)
+      assert {:ok, list} = Posta.Segments.list(c)
       assert list.has_more == true
-      assert [%MillionSend.Segments.Segment{id: "s1", name: "Active"}] = list.data
+      assert [%Posta.Segments.Segment{id: "s1", name: "Active"}] = list.data
     end
 
     test "delete response casts deleted flag", %{client: c} do
       stub_json(%{"object" => "segment", "id" => "s1", "deleted" => true})
 
-      assert {:ok, %MillionSend.Segments.Segment{deleted: true, id: "s1"}} =
-               MillionSend.Segments.remove(c, "s1")
+      assert {:ok, %Posta.Segments.Segment{deleted: true, id: "s1"}} =
+               Posta.Segments.remove(c, "s1")
     end
   end
 end

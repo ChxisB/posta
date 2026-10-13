@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "millionsend"
+require "posta"
 require "webmock/rspec"
 
 WebMock.disable_net_connect!
@@ -29,8 +29,8 @@ RSpec.configure do |config|
   # (tagged :e2e) opts out so it can read the real key/URL from the environment.
   config.before do |example|
     unless example.metadata[:e2e]
-      Millionsend.api_key = "ms_test"
-      Millionsend.base_url = "https://api.test"
+      Posta.api_key = "po_test"
+      Posta.base_url = "https://api.test"
     end
   end
 end

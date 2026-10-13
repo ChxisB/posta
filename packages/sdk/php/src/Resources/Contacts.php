@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
 /**
  * Contacts — team-global (one record per email, case-insensitive), addressable

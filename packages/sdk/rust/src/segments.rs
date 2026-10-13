@@ -7,7 +7,7 @@ use crate::types::{
     ListContactsOptions, ListOptions, Segment, UpdateSegmentOptions,
 };
 
-/// Dynamic segments — a saved filter over the team's contacts (MillionSend
+/// Dynamic segments — a saved filter over the team's contacts (Posta
 /// extension, no Resend equivalent). `get` returns a live `contact_count`.
 #[derive(Clone)]
 pub struct Segments(pub(crate) Arc<Config>);

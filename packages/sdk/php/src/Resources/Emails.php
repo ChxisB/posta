@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
 final class Emails
 {
@@ -101,7 +101,7 @@ final class Emails
     }
 
     /**
-     * DELETE /emails/:id (MillionSend extension).
+     * DELETE /emails/:id (Posta extension).
      *
      * @return array<mixed>
      */

@@ -1,6 +1,6 @@
-# millionsend
+# posta
 
-Official Rust SDK for [MillionSend](https://github.com/MillionSend) — a
+Official Rust SDK for [Posta](https://github.com/ChxisB/posta) — a
 self-hostable, Resend-compatible email API on AWS SES.
 
 The HTTP API is wire-compatible with Resend, and this crate mirrors the shape of
@@ -14,25 +14,25 @@ Async (`tokio` + `reqwest`). Every fallible call returns `Result<T, Error>`.
 
 ```toml
 [dependencies]
-millionsend = "0.8"
+posta = "0.8"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
 ## Quickstart
 
 ```rust
-use millionsend::{MillionSend, SendEmailOptions};
+use posta::{Posta, SendEmailOptions};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let ms = MillionSend::new("ms_123"); // Cloud; self-hosted: with_base_url(key, origin)
+    let ms = Posta::new("po_123"); // Cloud; self-hosted: with_base_url(key, origin)
 
     let sent = ms
         .emails
         .send(&SendEmailOptions {
             from: "Acme <onboarding@acme.dev>".into(),
             to: "success@simulator.amazonses.com".into(),
-            subject: "Hello from MillionSend".into(),
+            subject: "Hello from Posta".into(),
             html: Some("<strong>It works!</strong>".into()),
             ..Default::default()
         })
@@ -49,31 +49,31 @@ many (`vec!["a@b.dev", "c@d.dev"].into()`).
 ## Configuration
 
 ```rust
-use millionsend::MillionSend;
+use posta::Posta;
 
-// Key only: MillionSend Cloud (https://api.millionsend.com), unless
-// MILLIONSEND_BASE_URL is set.
-let ms = MillionSend::new("ms_123");
+// Key only: Posta Cloud (https://api.posta.example), unless
+// POSTA_BASE_URL is set.
+let ms = Posta::new("po_123");
 
 // Self-hosted: explicit base URL (wins over the environment).
-let ms = MillionSend::with_base_url("ms_123", "https://mail.acme.dev");
+let ms = Posta::with_base_url("po_123", "https://mail.acme.dev");
 assert_eq!(ms.base_url(), "https://mail.acme.dev");
 
-// Both from the environment (MILLIONSEND_API_KEY + optional MILLIONSEND_BASE_URL).
-let ms = MillionSend::from_env()?;
+// Both from the environment (POSTA_API_KEY + optional POSTA_BASE_URL).
+let ms = Posta::from_env()?;
 
 // Bring your own reqwest client (proxies, TLS, timeouts). The default has a
 // 30s request timeout and a 10s connect timeout.
-let ms = MillionSend::new("ms_123").with_client(reqwest::Client::new());
+let ms = Posta::new("po_123").with_client(reqwest::Client::new());
 
 // Accept a non-loopback http:// base URL (refused by default).
-let ms = MillionSend::with_base_url("ms_123", "http://10.0.0.5:3001").allow_insecure_http();
+let ms = Posta::with_base_url("po_123", "http://10.0.0.5:3001").allow_insecure_http();
 ```
 
-With no base URL the client talks to MillionSend Cloud, so the key alone is
+With no base URL the client talks to Posta Cloud, so the key alone is
 enough; a self-hosted instance sets its origin with `with_base_url` or
-`MILLIONSEND_BASE_URL`. Every request carries
-`Authorization: Bearer <api_key>` and a `millionsend-rust/<version>` User-Agent.
+`POSTA_BASE_URL`. Every request carries
+`Authorization: Bearer <api_key>` and a `posta-rust/<version>` User-Agent.
 Plain `http://` is only accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`);
 any other `http://` URL makes every call return `Error::Api` named `insecure_base_url`,
 since the API key is sent as a bearer header. Call `allow_insecure_http()` to talk to a
@@ -81,7 +81,7 @@ non-TLS instance elsewhere (e.g. inside a private network).
 
 ## Error handling
 
-Fallible calls return `Result<T, millionsend::Error>`:
+Fallible calls return `Result<T, posta::Error>`:
 
 - `Error::Api(ApiError { status_code, name, message })` — a non-2xx response.
   `name` is a stable snake_case code you can match on (`validation_error`,
@@ -104,7 +104,7 @@ match ms.emails.get(&id).await {
 ### Emails
 
 ```rust
-use millionsend::{Attachment, IdempotentTrait, SendEmailOptions, Tag, UpdateEmailOptions};
+use posta::{Attachment, IdempotentTrait, SendEmailOptions, Tag, UpdateEmailOptions};
 
 let email = SendEmailOptions {
     from: "Acme <onboarding@acme.dev>".into(),
@@ -147,7 +147,7 @@ behind it (404 `not_found` until insights exist).
 #### Batch
 
 ```rust
-use millionsend::{BatchValidation, IdempotentTrait};
+use posta::{BatchValidation, IdempotentTrait};
 
 let emails = vec![email_a, email_b];                       // 1–100
 ms.batch.send(&emails).await?;                             // POST /emails/batch
@@ -168,7 +168,7 @@ Contacts are team-global — one record per email address (case-insensitive);
 creating a duplicate is a 409 `validation_error`.
 
 ```rust
-use millionsend::{
+use posta::{
     ContactAddress, ContactInclude, ContactTopicUpdate, CreateContactOptions,
     DeleteContactOptions, ListContactsOptions, SegmentRef, TopicSubscription,
     UpdateContactOptions,
@@ -200,7 +200,7 @@ ms.contacts.update("contact-id", &UpdateContactOptions {
 ms.contacts.delete(ContactAddress::email("ada@acme.dev"), None).await?; // the contact's emails stay in the send log
 ms.contacts.delete("contact-id", Some(&DeleteContactOptions { erase: true })).await?; // ?erase=true — also scrubs the address from email history, event payloads and API logs (GDPR/LGPD)
 ms.contacts.list(Some(&ListContactsOptions { limit: Some(20), ..Default::default() })).await?;
-// Bulk read (MillionSend extension): attach properties and topic subscriptions to every item,
+// Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact.
 ms.contacts.list(Some(&ListContactsOptions {
     limit: Some(100),
@@ -215,10 +215,10 @@ With `include`, each `ContactListItem` carries the same `properties` map and
 the same `topics` rows as `contacts.get` / `contacts.topics.list`; without it
 both are `None`. `segments.list_contacts` takes the same options.
 
-#### Batch create, get and remove (MillionSend extensions)
+#### Batch create, get and remove (Posta extensions)
 
 ```rust
-use millionsend::{BatchContactsOptions, BatchRemoveContactsOptions, BatchValidation, DeleteContactOptions, OnConflict};
+use posta::{BatchContactsOptions, BatchRemoveContactsOptions, BatchValidation, DeleteContactOptions, OnConflict};
 
 let res = ms.contacts.create_batch(&contacts, Some(&BatchContactsOptions {
     on_conflict: Some(OnConflict::Upsert),                 // error (default) | skip | upsert
@@ -241,10 +241,10 @@ Exactly one of ids or emails, up to 1000; `data` lists only the contacts
 actually deleted (`{ object, contact, deleted }`), unknown ones are skipped.
 Either way the contacts' emails stay in the send log; `erase: true` also scrubs
 each address from email history, event payloads and API logs (a GDPR/LGPD
-erasure). Needs MillionSend v0.6.54.
+erasure). Needs Posta v0.6.54.
 
 ```rust
-use millionsend::{BatchGetContactsOptions, ContactAddress, ContactInclude};
+use posta::{BatchGetContactsOptions, ContactAddress, ContactInclude};
 
 let res = ms.contacts.batch_get(
     &["contact-id".into(), ContactAddress::email("ada@acme.dev")],
@@ -261,7 +261,7 @@ land in `missing` instead of failing the call.
 #### Topic subscriptions, segment membership and the preference page
 
 ```rust
-use millionsend::{ContactTopicUpdate, TopicSubscription};
+use posta::{ContactTopicUpdate, TopicSubscription};
 
 ms.contacts.topics.list("contact-id").await?;                   // GET   /contacts/:id/topics
 ms.contacts.topics.update("contact-id", &[ContactTopicUpdate {
@@ -281,7 +281,7 @@ effective `subscription` — the explicit choice, else the topic default —
 `explicit: false` when it is the default, and the topic's `visibility` (the
 hosted preference page lists public topics only).
 
-`preferences_link` (MillionSend extension) mints the contact's hosted
+`preferences_link` (Posta extension) mints the contact's hosted
 preference page — the page their emails' unsubscribe links open. The URL never
 expires and lets its holder change that contact's preferences, so show it only
 to the contact. 422 when the instance cannot build hosted links.
@@ -291,7 +291,7 @@ to the contact. 422 when the instance cannot build hosted links.
 Typed definitions for the keys of `contact.properties`.
 
 ```rust
-use millionsend::{ContactPropertyType, CreateContactPropertyOptions, UpdateContactPropertyOptions};
+use posta::{ContactPropertyType, CreateContactPropertyOptions, UpdateContactPropertyOptions};
 use serde_json::{json, Value};
 
 let plan = ms.contacts.properties.create(&CreateContactPropertyOptions {
@@ -310,7 +310,7 @@ ms.contacts.properties.delete(&plan.id).await?;
 ### Topics
 
 ```rust
-use millionsend::{CreateTopicOptions, TopicSubscription, TopicVisibility, UpdateTopicOptions};
+use posta::{CreateTopicOptions, TopicSubscription, TopicVisibility, UpdateTopicOptions};
 
 let mut topic = CreateTopicOptions::new("Product updates", TopicSubscription::OptIn);
 topic.visibility = Some(TopicVisibility::Public);
@@ -327,7 +327,7 @@ Target a segment (`segment_id`) and/or a topic's subscribers (`topic_id`);
 with neither set, the broadcast goes to every contact.
 
 ```rust
-use millionsend::{CreateBroadcastOptions, UpdateBroadcastOptions};
+use posta::{CreateBroadcastOptions, UpdateBroadcastOptions};
 
 let broadcast = ms.broadcasts.create(&CreateBroadcastOptions {
     name: Some("Launch".into()),
@@ -354,14 +354,14 @@ ms.broadcasts.cancel(&broadcast.id).await?;                // scheduled only
 ms.broadcasts.delete(&broadcast.id).await?;                // draft only
 ```
 
-### Segments (MillionSend extension)
+### Segments (Posta extension)
 
 A segment is either a saved filter over the team's contacts or, with no
 filter, a manual list fed by `contacts.segments.add`. `Segment.filter` is
 `None` for manual segments.
 
 ```rust
-use millionsend::{
+use posta::{
     CreateSegmentOptions, SegmentCondition, SegmentFilter, SegmentMatch, UpdateSegmentOptions,
 };
 
@@ -396,7 +396,7 @@ ms.segments.delete(&id).await?;
 Addresses the team never sends to. Entries are addressable by id or email.
 
 ```rust
-use millionsend::{
+use posta::{
     AddSuppressionOptions, BatchAddSuppressionOptions, BatchRemoveSuppressionOptions,
     ListSuppressionsOptions, SuppressionOrigin,
 };
@@ -420,7 +420,7 @@ ms.suppressions.batch_remove(&BatchRemoveSuppressionOptions::Ids(vec![id])).awai
 ### Domains
 
 ```rust
-use millionsend::{CreateDomainOptions, UpdateDomainOptions};
+use posta::{CreateDomainOptions, UpdateDomainOptions};
 
 let domain = ms.domains.create(&CreateDomainOptions {
     name: "acme.dev".into(),
@@ -447,10 +447,10 @@ ms.domains.delete(&domain.id).await?;
 ### Webhooks
 
 ```rust
-use millionsend::{CreateWebhookOptions, RotateWebhookOptions, UpdateWebhookOptions, WebhookStatus};
+use posta::{CreateWebhookOptions, RotateWebhookOptions, UpdateWebhookOptions, WebhookStatus};
 
 let hook = ms.webhooks.create(&CreateWebhookOptions {
-    endpoint: "https://acme.dev/hooks/millionsend".into(),
+    endpoint: "https://acme.dev/hooks/posta".into(),
     events: vec!["email.delivered".into(), "email.bounced".into(), "deliverability.paused".into()],
     signing_secret: None,                                  // minted; or pass your own whsec_…
 }).await?;
@@ -472,7 +472,7 @@ ms.webhooks.rotate(&hook.id, Some(&RotateWebhookOptions {
 ms.webhooks.delete(&hook.id).await?;
 ```
 
-`rotate` (MillionSend extension) mints or takes a new signing secret; until
+`rotate` (Posta extension) mints or takes a new signing secret; until
 `previous_secret_expires_at` every delivery carries both signatures, so the
 receiver can switch at any point in the window. Subscribable event names
 include `email.*`, `deliverability.*`, `contact.created`/`updated`/`deleted`/
@@ -482,7 +482,7 @@ include `email.*`, `deliverability.*`, `contact.created`/`updated`/`deleted`/
 ### API keys
 
 ```rust
-use millionsend::{ApiKeyPermission, CreateApiKeyOptions};
+use posta::{ApiKeyPermission, CreateApiKeyOptions};
 
 let key = ms.api_keys.create(&CreateApiKeyOptions {
     name: "ci".into(),
@@ -499,7 +499,7 @@ ms.api_keys.delete(&key.id).await?;
 Addressable by id or alias.
 
 ```rust
-use millionsend::{CreateTemplateOptions, UpdateTemplateOptions};
+use posta::{CreateTemplateOptions, UpdateTemplateOptions};
 
 let mut welcome = CreateTemplateOptions::new("Welcome", "<p>Hi {{{FIRST_NAME|there}}}</p>");
 welcome.subject = Some("Welcome!".into());
@@ -521,7 +521,7 @@ ms.templates.delete(&created.id).await?;
 `from`, `reply_to` and `variables` are passed through; the API currently
 answers 422 when they are set.
 
-### Deliverability (MillionSend extension)
+### Deliverability (Posta extension)
 
 Account-level score over the trailing 30 days; scores are `None` until there is
 enough data.
@@ -533,7 +533,7 @@ if let Some(score) = report.score {
 }
 ```
 
-### Usage (MillionSend extension)
+### Usage (Posta extension)
 
 ```rust
 let usage = ms.usage.get().await?;             // GET /usage
@@ -548,8 +548,8 @@ if let Some(cap) = usage.limits.emails_per_day {
 ```diff
 - use resend_rs::{Resend, types::CreateEmailBaseOptions};
 - let resend = Resend::new("re_123");
-+ use millionsend::{MillionSend, SendEmailOptions};
-+ let ms = MillionSend::new("ms_123"); // self-hosted: with_base_url("ms_123", "https://mail.acme.dev")
++ use posta::{Posta, SendEmailOptions};
++ let ms = Posta::new("po_123"); // self-hosted: with_base_url("po_123", "https://mail.acme.dev")
 ```
 
 Resource and method names match: `emails`, `batch`, `contacts`, `topics`,
@@ -565,7 +565,7 @@ Resource and method names match: `emails`, `batch`, `contacts`, `topics`,
   are a compatibility shim and are not part of this SDK. Use `segments` (saved
   filters or manual lists) to target a subset, or a broadcast with no
   `segment_id`/`topic_id` to reach everyone.
-- **MillionSend extensions** with no Resend counterpart: `segments`,
+- **Posta extensions** with no Resend counterpart: `segments`,
   `contacts.create_batch`, `contacts.batch_get`, `contacts.batch_remove`,
   `contacts.preferences_link`,
   `webhooks.rotate`, `deliverability`, `usage`, `emails.get_insights`.

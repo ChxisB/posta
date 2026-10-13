@@ -25,7 +25,7 @@ fn is_insecure_http_url(raw: &str) -> bool {
 
 /// The set JS `encodeURIComponent` leaves untouched: encode everything but the
 /// unreserved marks. Keeps path segments (emails contain `@`) wire-identical to
-/// the other MillionSend SDKs.
+/// the other Posta SDKs.
 const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b'-')
     .remove(b'_')
@@ -59,7 +59,7 @@ impl Config {
         Config {
             api_key,
             base_url: base_url.trim_end_matches('/').to_string(),
-            user_agent: format!("millionsend-rust/{SDK_VERSION}"),
+            user_agent: format!("posta-rust/{SDK_VERSION}"),
             client,
             allow_insecure_http: false,
         }
@@ -168,7 +168,7 @@ impl Config {
                 status_code: None,
                 name: "insecure_base_url".to_string(),
                 message: format!(
-                    "Refusing to send the API key over plain http to {}. Use https, or call MillionSend::allow_insecure_http().",
+                    "Refusing to send the API key over plain http to {}. Use https, or call Posta::allow_insecure_http().",
                     self.base_url
                 ),
             }));

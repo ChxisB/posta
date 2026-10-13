@@ -778,7 +778,7 @@ describe("webhooks", () => {
 
 describe("apiKeys", () => {
   it("create returns the token once; list and remove", async () => {
-    const { ms, calls } = makeClient({ body: { id: "k1", token: "ms_secret" } });
+    const { ms, calls } = makeClient({ body: { id: "k1", token: "po_secret" } });
     const res = await ms.apiKeys.create({
       name: "ci",
       permission: "sending_access",
@@ -786,7 +786,7 @@ describe("apiKeys", () => {
     });
     expect(calls[0]).toMatchObject({ method: "POST", url: "https://api.test/api-keys" });
     expect(calls[0]?.body).toEqual({ name: "ci", permission: "sending_access", domain_id: "d1" });
-    expect(res.data?.token).toBe("ms_secret");
+    expect(res.data?.token).toBe("po_secret");
     await ms.apiKeys.create({ name: "resend-shaped", domain_id: "d2" });
     expect(calls[1]?.body).toEqual({ name: "resend-shaped", domain_id: "d2" });
     await ms.apiKeys.list({ limit: 1 });
@@ -902,7 +902,7 @@ describe("usage", () => {
       limits: { emails_per_day: 50000, domains: 10 },
       today: { emails_sent: 120, resets_at: "2026-09-05T00:00:00.000Z" },
       team: { id: "team1", name: "Acme" },
-      app_url: "https://app.millionsend.com",
+      app_url: "https://app.posta.example",
     };
     const { ms, calls } = makeClient({ body: fixture });
     const res = await ms.usage.get();

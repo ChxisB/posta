@@ -1,6 +1,6 @@
-# millionsend-php
+# posta-php
 
-Official PHP SDK for [MillionSend](https://github.com/MillionSend) — a self-hostable, Resend-compatible email API on AWS SES.
+Official PHP SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of [`resend-php`](https://github.com/resend/resend-php), so migrating is
@@ -10,7 +10,7 @@ point the base URL at it).
 ## Install
 
 ```bash
-composer require millionsend/millionsend-php
+composer require chxisb/posta-php
 ```
 
 Requires PHP 8.1+.
@@ -18,17 +18,17 @@ Requires PHP 8.1+.
 ## Quickstart
 
 ```php
-use MillionSend\MillionSend;
-use MillionSend\Exceptions\ErrorException;
+use Posta\Posta;
+use Posta\Exceptions\ErrorException;
 
-$ms = MillionSend::client('ms_123');                            // MillionSend Cloud
-// $ms = MillionSend::client('ms_123', 'https://mail.acme.dev'); // self-hosted
+$ms = Posta::client('po_123');                            // Posta Cloud
+// $ms = Posta::client('po_123', 'https://mail.acme.dev'); // self-hosted
 
 try {
     $email = $ms->emails->send([
         'from' => 'Acme <onboarding@acme.dev>',
         'to' => 'success@simulator.amazonses.com',
-        'subject' => 'Hello from MillionSend',
+        'subject' => 'Hello from Posta',
         'html' => '<strong>It works!</strong>',
     ]);
 
@@ -41,9 +41,9 @@ try {
 ## Configuration
 
 ```php
-MillionSend::client(
-    apiKey: 'ms_123',                 // falls back to env MILLIONSEND_API_KEY; missing → throws
-    baseUrl: 'https://mail.acme.dev', // falls back to env MILLIONSEND_BASE_URL, then https://api.millionsend.com
+Posta::client(
+    apiKey: 'po_123',                 // falls back to env POSTA_API_KEY; missing → throws
+    baseUrl: 'https://mail.acme.dev', // falls back to env POSTA_BASE_URL, then https://api.posta.example
     options: [
         'client' => $guzzle,          // inject a GuzzleHttp\ClientInterface (proxies, tests)
         'userAgent' => 'acme-app/2.1', // suffix appended after the SDK's own token
@@ -54,8 +54,8 @@ MillionSend::client(
 );
 ```
 
-With just an API key the client talks to MillionSend Cloud (`https://api.millionsend.com`).
-A self-hosted instance sets its origin via `baseUrl` or `MILLIONSEND_BASE_URL`. Plain `http://` is only
+With just an API key the client talks to Posta Cloud (`https://api.posta.example`).
+A self-hosted instance sets its origin via `baseUrl` or `POSTA_BASE_URL`. Plain `http://` is only
 accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`); any other `http://` URL
 throws `InvalidArgumentException` at construction, since the API key is sent as a bearer
 header. Pass `'allowInsecureHttp' => true` to talk to a non-TLS instance elsewhere (e.g.
@@ -76,7 +76,7 @@ Successful calls return the decoded JSON body as an associative array.
 
 ## Errors
 
-Every non-2xx response throws `MillionSend\Exceptions\ErrorException`. Its
+Every non-2xx response throws `Posta\Exceptions\ErrorException`. Its
 `getErrorName()` is a stable snake_case code you can branch on
 (`validation_error`, `not_found`, `restricted_api_key`, `sending_paused`, `all_recipients_suppressed`, …).
 Client-side and transport failures (a request that never reached the API) throw
@@ -104,8 +104,8 @@ $ms->emails->get($id);                                     // GET /emails/:id (i
 $ms->emails->list(['limit' => 50, 'after' => $cursor]);    // GET /emails
 $ms->emails->update($id, ['scheduled_at' => $iso8601]);    // PATCH /emails/:id (reschedule)
 $ms->emails->cancel($id);                                  // POST /emails/:id/cancel (scheduled only)
-$ms->emails->remove($id);                                  // DELETE /emails/:id (MillionSend extension)
-$ms->emails->getInsights($id);                             // GET /emails/:id/insights (404 until computed; MillionSend extension)
+$ms->emails->remove($id);                                  // DELETE /emails/:id (Posta extension)
+$ms->emails->getInsights($id);                             // GET /emails/:id/insights (404 until computed; Posta extension)
 ```
 
 Every send field is supported: `from`, `to`, `subject`, `html`, `text`, `cc`, `bcc`,
@@ -169,7 +169,7 @@ $ms->contacts->remove($id);                                 // the contact's ema
 $ms->contacts->remove($id, ['erase' => true]);              // ?erase=true — also scrubs the address from email history, events and API logs (GDPR/LGPD)
 $ms->contacts->list(['limit' => 50]);
 $ms->contacts->list(['segment_id' => $segmentId]);          // GET /segments/:id/contacts
-// Bulk read (MillionSend extension): attach properties and topic subscriptions to every item,
+// Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact
 $ms->contacts->list(['limit' => 100, 'include' => ['properties', 'topics']]);   // ?include=properties,topics
 
@@ -185,7 +185,7 @@ $ms->contacts->topics->update([                                    // single-arr
     'topics' => [['id' => $topicId, 'subscription' => 'opt_out']],
 ]);
 
-// Hosted preference page (MillionSend extension) — the page the emails' unsubscribe links open
+// Hosted preference page (Posta extension) — the page the emails' unsubscribe links open
 $link = $ms->contacts->preferencesLink($idOrEmail);          // POST /contacts/:id/preferences-link
 $link['url'];   // no expiry: whoever holds it can change that contact's preferences, so show it only to the contact
 //              // 422 when the instance cannot build hosted links (self-hosted without APP_BASE_URL)
@@ -194,7 +194,7 @@ $link['url'];   // no expiry: whoever holds it can change that contact's prefere
 $ms->contacts->segments->add($idOrEmail, $segmentId);       // POST /contacts/:id/segments/:segmentId
 $ms->contacts->segments->remove($idOrEmail, $segmentId);    // DELETE …
 
-// Bulk create (MillionSend extension) — up to 1000 per call
+// Bulk create (Posta extension) — up to 1000 per call
 $result = $ms->contacts->batch->create($contacts, [
     'on_conflict' => 'upsert',          // error (default) | skip | upsert
     'batch_validation' => 'permissive', // strict (default) | permissive
@@ -203,13 +203,13 @@ $result = $ms->contacts->batch->create($contacts, [
 // $result['counts'] = ['created' => n, 'updated' => n, 'skipped' => n, 'failed' => n]
 // $result['errors'][] = ['index' => 3, 'message' => '…']   (permissive mode)
 
-// Bulk lookup (MillionSend extension) — up to 1000 contacts by id or email in one request,
+// Bulk lookup (Posta extension) — up to 1000 contacts by id or email in one request,
 // in request order; unknown entries are listed, not errors — one request against the rate limit
 $result = $ms->contacts->batch->get([$contactId, ['email' => 'ada@acme.dev']], ['include' => ['topics']]);
 // $result['data'][]    = ['object' => 'contact', 'id' => …, 'email' => …, …, 'topics' => [...]]  the contacts found
 // $result['missing'][] = ['index' => 1, 'email' => '…']   request entries that matched nobody
 
-// Bulk delete (MillionSend extension) — exactly one of ids or emails, up to 1000; their emails stay in the send log
+// Bulk delete (Posta extension) — exactly one of ids or emails, up to 1000; their emails stay in the send log
 $ms->contacts->batch->remove(['ids' => [...]]);      // or ['emails' => [...]] (case-insensitive)
 $ms->contacts->batch->remove(['emails' => [...], 'erase' => true]);   // also scrubs the addresses from email history, events and API logs (GDPR/LGPD)
 // => ['data' => [['object' => 'contact', 'contact' => '…', 'deleted' => true], …]]  only the rows actually deleted
@@ -265,7 +265,7 @@ $ms->broadcasts->remove($id);                                                 //
 ### Segments
 
 Same methods as `resend-php`'s `->segments`, but membership is dynamic: a segment
-is a saved `filter` over the team's contacts (the `filter` field is the MillionSend
+is a saved `filter` over the team's contacts (the `filter` field is the Posta
 extension). Omit it — or set it to `null` on update — for a manual segment whose
 members come from `contacts->segments->add()`.
 
@@ -318,7 +318,7 @@ $ms->domains->remove($id);
 
 ```php
 $hook = $ms->webhooks->create([
-    'endpoint' => 'https://acme.dev/hooks/millionsend',
+    'endpoint' => 'https://acme.dev/hooks/posta',
     'events' => ['email.sent', 'email.delivered', 'email.bounced'],
     'signing_secret' => $secret,       // optional — one is generated when omitted
 ]);
@@ -328,7 +328,7 @@ $ms->webhooks->get($id);               // the only read that includes signing_se
 $ms->webhooks->update($id, ['status' => 'disabled', 'events' => ['email.bounced']]);
 $ms->webhooks->remove($id);
 
-// Rotate the signing secret (MillionSend extension)
+// Rotate the signing secret (Posta extension)
 $rotated = $ms->webhooks->rotate($id);                                    // mints a new secret, 24h overlap
 $rotated = $ms->webhooks->rotate($id, ['signing_secret' => $mine, 'overlap_hours' => 0]); // bring your own; 0..72
 $rotated['signing_secret'];
@@ -372,11 +372,11 @@ $ms->templates->list();
 $ms->templates->get('welcome');
 $ms->templates->update('welcome', ['subject' => null, 'html' => '<p>v2</p>']); // null clears alias/subject/text
 $ms->templates->remove($idOrAlias);
-$ms->templates->publish($idOrAlias);   // no-op on MillionSend (templates are always live); kept for compatibility
+$ms->templates->publish($idOrAlias);   // no-op on Posta (templates are always live); kept for compatibility
 $ms->templates->duplicate($idOrAlias);
 ```
 
-### Deliverability (MillionSend extension)
+### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing window. Scores are
 0-10 with one decimal; `score`/`band` are `null` until there is enough data.
@@ -386,7 +386,7 @@ $report = $ms->deliverability->get();  // GET /deliverability
 echo "{$report['score']} ({$report['band']})\n";
 ```
 
-### Usage (MillionSend extension)
+### Usage (Posta extension)
 
 ```php
 $usage = $ms->usage->get();            // GET /usage
@@ -400,9 +400,9 @@ $usage['today']['emails_sent'];
 ```diff
 - use Resend;
 - $resend = Resend::client('re_123');
-+ use MillionSend\MillionSend;
-+ $ms = MillionSend::client('ms_123');                            // MillionSend Cloud
-+ $ms = MillionSend::client('ms_123', 'https://mail.acme.dev');  // self-hosted
++ use Posta\Posta;
++ $ms = Posta::client('po_123');                            // Posta Cloud
++ $ms = Posta::client('po_123', 'https://mail.acme.dev');  // self-hosted
 ```
 
 Method names, nesting, options (`idempotency_key`, `batch_validation`) and payloads
@@ -413,13 +413,13 @@ match `resend-php`; snake_case payloads pass through to the wire untouched. Note
   straight over. (The API keeps `/audiences/...` routes as a compatibility shim;
   they are not part of this SDK.) `->segments` keeps Resend's method names;
   membership is a dynamic `filter` rather than a static list.
-- **Not offered here** (no MillionSend endpoint): `->contacts->imports`,
+- **Not offered here** (no Posta endpoint): `->contacts->imports`,
   `->contacts->segments->list()`, email
   `share()`/`metrics()`, `->emails->attachments`/`->receiving`, `->webhooks->events`
   and the local `verify()` helper, `->domains->claims`, `->broadcasts->recipients()`
   /`->clickedLinks`, `->apiKeys->update()`, and the `->events`/`->logs`/`->automations`
   services. Domain `tls`/`capabilities` pass through and are answered with 422.
-- **MillionSend extensions** (no Resend counterpart): segment `filter`,
+- **Posta extensions** (no Resend counterpart): segment `filter`,
   `->contacts->batch`, `->contacts->preferencesLink()`, `->webhooks->rotate()`,
   `->emails->getInsights()`, `->emails->remove()`,
   `->deliverability`, `->usage`.

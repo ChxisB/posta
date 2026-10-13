@@ -1,5 +1,5 @@
 /* Per-SDK snippets for the resource API sheets. Each snippet mirrors the real
-   published SDK surface in sdks/millionsend-<lang> — only the resources every
+   published SDK surface in packages/sdk/<lang> — only the resources every
    SDK implements (contacts, segments, topics, broadcasts, webhooks) get an entry here;
    the rest stay curl-only in api-sheet.tsx. Client setup follows the emails
    sheet's convention: placeholder key in the first section, reused after. */
@@ -23,9 +23,9 @@ const ID = "4ef9a417-02e9-4d39-ad75-9611e0fcc33c";
 
 export const CONTACTS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> = {
   node: {
-    list: `import { MillionSend } from "millionsend";
+    list: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 const { data, error } = await ms.contacts.list({ limit: 20 });`,
     create: `await ms.contacts.create({
@@ -39,23 +39,23 @@ const { data, error } = await ms.contacts.list({ limit: 20 });`,
 });`,
   },
   python: {
-    list: `import millionsend
+    list: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-contacts = millionsend.Contacts.list(limit=20)`,
-    create: `millionsend.Contacts.create({
+contacts = posta.Contacts.list(limit=20)`,
+    create: `posta.Contacts.create({
     "email": "success+ana@simulator.amazonses.com",
     "first_name": "Ana",
     "last_name": "Souza",
 })`,
-    update: `millionsend.Contacts.update({
+    update: `posta.Contacts.update({
     "id": "${ID}",
     "unsubscribed": True,
 })`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    list: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $contacts = $ms->contacts->list(['limit' => 20]);`,
     create: `$ms->contacts->create([
@@ -69,15 +69,15 @@ $contacts = $ms->contacts->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "po_xxxxxxxxx"
+    list: `Posta.api_key = "po_xxxxxxxxx"
 
-contacts = Millionsend::Contacts.list(limit: 20)`,
-    create: `Millionsend::Contacts.create(
+contacts = Posta::Contacts.list(limit: 20)`,
+    create: `Posta::Contacts.create(
   email: "success+ana@simulator.amazonses.com",
   first_name: "Ana",
   last_name: "Souza"
 )`,
-    update: `Millionsend::Contacts.update(
+    update: `Posta::Contacts.update(
   id: "${ID}",
   unsubscribed: true
 )`,
@@ -99,7 +99,7 @@ updated, err := client.Contacts.Update(&posta.UpdateContactRequest{
 })`,
   },
   rust: {
-    list: `let ms = MillionSend::new("po_xxxxxxxxx");
+    list: `let ms = Posta::new("po_xxxxxxxxx");
 
 let contacts = ms
     .contacts
@@ -156,15 +156,15 @@ var contacts = await ms.ContactListAsync(new ListOptions { Limit = 20 });`,
 });`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    list: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-{:ok, contacts} = MillionSend.Contacts.list(client, limit: 20)`,
-    create: `MillionSend.Contacts.create(client, %{
+{:ok, contacts} = Posta.Contacts.list(client, limit: 20)`,
+    create: `Posta.Contacts.create(client, %{
   email: "success+ana@simulator.amazonses.com",
   first_name: "Ana",
   last_name: "Souza"
 })`,
-    update: `MillionSend.Contacts.update(client, %{
+    update: `Posta.Contacts.update(client, %{
   id: "${ID}",
   unsubscribed: true
 })`,
@@ -173,9 +173,9 @@ var contacts = await ms.ContactListAsync(new ListOptions { Limit = 20 });`,
 
 export const SEGMENTS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> = {
   node: {
-    list: `import { MillionSend } from "millionsend";
+    list: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 const { data, error } = await ms.segments.list({ limit: 20 });`,
     create: `await ms.segments.create({
@@ -190,12 +190,12 @@ const { data, error } = await ms.segments.list({ limit: 20 });`,
 });`,
   },
   python: {
-    list: `import millionsend
+    list: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-segments = millionsend.Segments.list(limit=20)`,
-    create: `millionsend.Segments.create({
+segments = posta.Segments.list(limit=20)`,
+    create: `posta.Segments.create({
     "name": "Gmail users",
     "filter": {
         "match": "all",
@@ -204,13 +204,13 @@ segments = millionsend.Segments.list(limit=20)`,
         ],
     },
 })`,
-    update: `millionsend.Segments.update(
+    update: `posta.Segments.update(
     "${ID}",
     {"name": "Gmail power users"},
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    list: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $segments = $ms->segments->list(['limit' => 20]);`,
     create: `$ms->segments->create([
@@ -227,10 +227,10 @@ $segments = $ms->segments->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "po_xxxxxxxxx"
+    list: `Posta.api_key = "po_xxxxxxxxx"
 
-segments = Millionsend::Segments.list(limit: 20)`,
-    create: `Millionsend::Segments.create(
+segments = Posta::Segments.list(limit: 20)`,
+    create: `Posta::Segments.create(
   name: "Gmail users",
   filter: {
     match: "all",
@@ -239,7 +239,7 @@ segments = Millionsend::Segments.list(limit: 20)`,
     ]
   }
 )`,
-    update: `Millionsend::Segments.update(
+    update: `Posta::Segments.update(
   "${ID}",
   name: "Gmail power users"
 )`,
@@ -263,7 +263,7 @@ segments, err := client.Segments.List(&posta.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("po_xxxxxxxxx");
+    list: `let ms = Posta::new("po_xxxxxxxxx");
 
 let segments = ms
     .segments
@@ -335,10 +335,10 @@ var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    list: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-{:ok, segments} = MillionSend.Segments.list(client, limit: 20)`,
-    create: `MillionSend.Segments.create(client, %{
+{:ok, segments} = Posta.Segments.list(client, limit: 20)`,
+    create: `Posta.Segments.create(client, %{
   name: "Gmail users",
   filter: %{
     match: :all,
@@ -347,7 +347,7 @@ var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
     ]
   }
 })`,
-    update: `MillionSend.Segments.update(client, "${ID}", %{
+    update: `Posta.Segments.update(client, "${ID}", %{
   name: "Gmail power users"
 })`,
   },
@@ -355,9 +355,9 @@ var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
 
 export const TOPICS_SNIPPETS: ResourceSnippets<"list" | "create" | "get"> = {
   node: {
-    list: `import { MillionSend } from "millionsend";
+    list: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 const { data, error } = await ms.topics.list();`,
     create: `await ms.topics.create({
@@ -370,22 +370,22 @@ const { data, error } = await ms.topics.list();`,
 );`,
   },
   python: {
-    list: `import millionsend
+    list: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-topics = millionsend.Topics.list()`,
-    create: `millionsend.Topics.create({
+topics = posta.Topics.list()`,
+    create: `posta.Topics.create({
     "name": "Product updates",
     "description": "New features and improvements",
     "default_subscription": "opt_in",
 })`,
-    get: `topic = millionsend.Topics.get(
+    get: `topic = posta.Topics.get(
     "${ID}"
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    list: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $topics = $ms->topics->list();`,
     create: `$ms->topics->create([
@@ -398,15 +398,15 @@ $topics = $ms->topics->list();`,
 );`,
   },
   ruby: {
-    list: `Millionsend.api_key = "po_xxxxxxxxx"
+    list: `Posta.api_key = "po_xxxxxxxxx"
 
-topics = Millionsend::Topics.list`,
-    create: `Millionsend::Topics.create(
+topics = Posta::Topics.list`,
+    create: `Posta::Topics.create(
   name: "Product updates",
   description: "New features and improvements",
   default_subscription: "opt_in"
 )`,
-    get: `topic = Millionsend::Topics.get(
+    get: `topic = Posta::Topics.get(
   "${ID}"
 )`,
   },
@@ -424,7 +424,7 @@ topics, err := client.Topics.List()`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("po_xxxxxxxxx");
+    list: `let ms = Posta::new("po_xxxxxxxxx");
 
 let topics = ms.topics.list().await?;`,
     create: `let mut topic = CreateTopicOptions::new(
@@ -467,15 +467,15 @@ var topics = await ms.TopicListAsync();`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    list: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-{:ok, topics} = MillionSend.Topics.list(client)`,
-    create: `MillionSend.Topics.create(client, %{
+{:ok, topics} = Posta.Topics.list(client)`,
+    create: `Posta.Topics.create(client, %{
   name: "Product updates",
   description: "New features and improvements",
   default_subscription: :opt_in
 })`,
-    get: `{:ok, topic} = MillionSend.Topics.get(
+    get: `{:ok, topic} = Posta.Topics.get(
   client,
   "${ID}"
 )`,
@@ -484,9 +484,9 @@ var topics = await ms.TopicListAsync();`,
 
 export const BROADCASTS_SNIPPETS: ResourceSnippets<"list" | "create" | "send"> = {
   node: {
-    list: `import { MillionSend } from "millionsend";
+    list: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 const { data, error } = await ms.broadcasts.list({ limit: 20 });`,
     create: `await ms.broadcasts.create({
@@ -501,25 +501,25 @@ const { data, error } = await ms.broadcasts.list({ limit: 20 });`,
 });`,
   },
   python: {
-    list: `import millionsend
+    list: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-broadcasts = millionsend.Broadcasts.list(limit=20)`,
-    create: `millionsend.Broadcasts.create({
+broadcasts = posta.Broadcasts.list(limit=20)`,
+    create: `posta.Broadcasts.create({
     "name": "Launch announcement",
     "segment_id": "${ID}",
     "from": "Acme <news@yourdomain.com>",
     "subject": "We just launched",
     "html": "<p>Big news!</p>",
 })`,
-    send: `millionsend.Broadcasts.send(
+    send: `posta.Broadcasts.send(
     "${ID}",
     scheduled_at="in 1 hour",
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    list: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $broadcasts = $ms->broadcasts->list(['limit' => 20]);`,
     create: `$ms->broadcasts->create([
@@ -534,17 +534,17 @@ $broadcasts = $ms->broadcasts->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "po_xxxxxxxxx"
+    list: `Posta.api_key = "po_xxxxxxxxx"
 
-broadcasts = Millionsend::Broadcasts.list(limit: 20)`,
-    create: `Millionsend::Broadcasts.create(
+broadcasts = Posta::Broadcasts.list(limit: 20)`,
+    create: `Posta::Broadcasts.create(
   name: "Launch announcement",
   segment_id: "${ID}",
   from: "Acme <news@yourdomain.com>",
   subject: "We just launched",
   html: "<p>Big news!</p>"
 )`,
-    send: `Millionsend::Broadcasts.send(
+    send: `Posta::Broadcasts.send(
   "${ID}",
   scheduled_at: "in 1 hour"
 )`,
@@ -566,7 +566,7 @@ broadcasts, err := client.Broadcasts.List(&posta.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("po_xxxxxxxxx");
+    list: `let ms = Posta::new("po_xxxxxxxxx");
 
 let broadcasts = ms
     .broadcasts
@@ -624,17 +624,17 @@ var broadcasts = await ms.BroadcastListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    list: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-{:ok, broadcasts} = MillionSend.Broadcasts.list(client, limit: 20)`,
-    create: `MillionSend.Broadcasts.create(client, %{
+{:ok, broadcasts} = Posta.Broadcasts.list(client, limit: 20)`,
+    create: `Posta.Broadcasts.create(client, %{
   name: "Launch announcement",
   segment_id: "${ID}",
   from: "Acme <news@yourdomain.com>",
   subject: "We just launched",
   html: "<p>Big news!</p>"
 })`,
-    send: `MillionSend.Broadcasts.send(
+    send: `Posta.Broadcasts.send(
   client,
   "${ID}",
   scheduled_at: "in 1 hour"
@@ -644,13 +644,13 @@ var broadcasts = await ms.BroadcastListAsync(new ListOptions { Limit = 20 });`,
 
 export const WEBHOOKS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> = {
   node: {
-    list: `import { MillionSend } from "millionsend";
+    list: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 const { data, error } = await ms.webhooks.list({ limit: 20 });`,
     create: `await ms.webhooks.create({
-  endpoint: "https://example.com/webhooks/millionsend",
+  endpoint: "https://example.com/webhooks/posta",
   events: ["email.delivered", "email.bounced"],
 });`,
     update: `await ms.webhooks.update("${ID}", {
@@ -658,26 +658,26 @@ const { data, error } = await ms.webhooks.list({ limit: 20 });`,
 });`,
   },
   python: {
-    list: `import millionsend
+    list: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-webhooks = millionsend.Webhooks.list(limit=20)`,
-    create: `millionsend.Webhooks.create({
-    "endpoint": "https://example.com/webhooks/millionsend",
+webhooks = posta.Webhooks.list(limit=20)`,
+    create: `posta.Webhooks.create({
+    "endpoint": "https://example.com/webhooks/posta",
     "events": ["email.delivered", "email.bounced"],
 })`,
-    update: `millionsend.Webhooks.update({
+    update: `posta.Webhooks.update({
     "webhook_id": "${ID}",
     "status": "disabled",
 })`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    list: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $webhooks = $ms->webhooks->list(['limit' => 20]);`,
     create: `$ms->webhooks->create([
-    'endpoint' => 'https://example.com/webhooks/millionsend',
+    'endpoint' => 'https://example.com/webhooks/posta',
     'events' => ['email.delivered', 'email.bounced'],
 ]);`,
     update: `$ms->webhooks->update('${ID}', [
@@ -685,14 +685,14 @@ $webhooks = $ms->webhooks->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "po_xxxxxxxxx"
+    list: `Posta.api_key = "po_xxxxxxxxx"
 
-webhooks = Millionsend::Webhooks.list(limit: 20)`,
-    create: `Millionsend::Webhooks.create(
-  endpoint: "https://example.com/webhooks/millionsend",
+webhooks = Posta::Webhooks.list(limit: 20)`,
+    create: `Posta::Webhooks.create(
+  endpoint: "https://example.com/webhooks/posta",
   events: ["email.delivered", "email.bounced"]
 )`,
-    update: `Millionsend::Webhooks.update(
+    update: `Posta::Webhooks.update(
   "${ID}",
   status: "disabled"
 )`,
@@ -702,7 +702,7 @@ webhooks = Millionsend::Webhooks.list(limit: 20)`,
 
 webhooks, err := client.Webhooks.List(&posta.ListOptions{Limit: 20})`,
     create: `webhook, err := client.Webhooks.Create(&posta.CreateWebhookRequest{
-    Endpoint: "https://example.com/webhooks/millionsend",
+    Endpoint: "https://example.com/webhooks/posta",
     Events:   []string{"email.delivered", "email.bounced"},
 })`,
     update: `updated, err := client.Webhooks.Update(
@@ -711,7 +711,7 @@ webhooks, err := client.Webhooks.List(&posta.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("po_xxxxxxxxx");
+    list: `let ms = Posta::new("po_xxxxxxxxx");
 
 let webhooks = ms
     .webhooks
@@ -722,7 +722,7 @@ let webhooks = ms
     .await?;`,
     create: `ms.webhooks
     .create(&CreateWebhookOptions {
-        endpoint: "https://example.com/webhooks/millionsend".into(),
+        endpoint: "https://example.com/webhooks/posta".into(),
         events: vec!["email.delivered".into(), "email.bounced".into()],
         signing_secret: None,
     })
@@ -741,7 +741,7 @@ ListResponse<Webhook> webhooks = ms.webhooks().list(
     ListOptions.builder().limit(20).build()
 );`,
     create: `ms.webhooks().create(CreateWebhookOptions.builder()
-    .endpoint("https://example.com/webhooks/millionsend")
+    .endpoint("https://example.com/webhooks/posta")
     .events(WebhookEvent.EMAIL_DELIVERED, WebhookEvent.EMAIL_BOUNCED)
     .build());`,
     update: `ms.webhooks().update(
@@ -755,7 +755,7 @@ ListResponse<Webhook> webhooks = ms.webhooks().list(
 var webhooks = await ms.WebhookListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.WebhookCreateAsync(new WebhookCreateOptions
 {
-    Endpoint = "https://example.com/webhooks/millionsend",
+    Endpoint = "https://example.com/webhooks/posta",
     Events = new List<string> { "email.delivered", "email.bounced" },
 });`,
     update: `await ms.WebhookUpdateAsync(
@@ -764,13 +764,13 @@ var webhooks = await ms.WebhookListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    list: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-{:ok, webhooks} = MillionSend.Webhooks.list(client, limit: 20)`,
-    create: `MillionSend.Webhooks.create(client, %{
-  endpoint: "https://example.com/webhooks/millionsend",
+{:ok, webhooks} = Posta.Webhooks.list(client, limit: 20)`,
+    create: `Posta.Webhooks.create(client, %{
+  endpoint: "https://example.com/webhooks/posta",
   events: ["email.delivered", "email.bounced"]
 })`,
-    update: `MillionSend.Webhooks.update(client, "${ID}", %{status: "disabled"})`,
+    update: `Posta.Webhooks.update(client, "${ID}", %{status: "disabled"})`,
   },
 };

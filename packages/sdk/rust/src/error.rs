@@ -102,5 +102,5 @@ impl std::error::Error for Error {
     }
 }
 
-/// Shorthand for `std::result::Result<T, millionsend::Error>`.
+/// Shorthand for `std::result::Result<T, posta::Error>`.
 pub type Result<T> = std::result::Result<T, Error>;

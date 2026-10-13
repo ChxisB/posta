@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
-use MillionSend\Util;
+use Posta\HttpClient;
+use Posta\Util;
 
 /**
  * Segments — same methods as resend-php's, but membership is dynamic: a
  * segment is a saved `filter` over the team's contacts (the filter itself is
- * the MillionSend extension). `get` returns a live `contact_count`.
+ * the Posta extension). `get` returns a live `contact_count`.
  */
 final class Segments
 {

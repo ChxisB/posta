@@ -62,9 +62,9 @@ interface Snippets {
 
 const SNIPPETS: Record<Lang, Snippets> = {
   node: {
-    send: `import { MillionSend } from "millionsend";
+    send: `import { Posta } from "@tack-labs/posta";
 
-const ms = new MillionSend("po_xxxxxxxxx");
+const ms = new Posta("po_xxxxxxxxx");
 
 await ms.emails.send({
   from: "Acme <onboarding@yourdomain.com>",
@@ -91,17 +91,17 @@ await ms.emails.send({
 );`,
   },
   python: {
-    send: `import millionsend
+    send: `import posta
 
-millionsend.api_key = "po_xxxxxxxxx"
+posta.api_key = "po_xxxxxxxxx"
 
-millionsend.Emails.send({
+posta.Emails.send({
     "from": "Acme <onboarding@yourdomain.com>",
     "to": ["success@simulator.amazonses.com"],
     "subject": "hello world",
     "html": "<p>it works!</p>",
 })`,
-    batch: `millionsend.Batch.send([
+    batch: `posta.Batch.send([
     {
         "from": "Acme <onboarding@yourdomain.com>",
         "to": ["success+1@simulator.amazonses.com"],
@@ -115,12 +115,12 @@ millionsend.Emails.send({
         "html": "<p>it works!</p>",
     },
 ])`,
-    retrieve: `email = millionsend.Emails.get(
+    retrieve: `email = posta.Emails.get(
     "4ef9a417-02e9-4d39-ad75-9611e0fcc33c"
 )`,
   },
   php: {
-    send: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
+    send: `$ms = Posta\\Posta::client('po_xxxxxxxxx');
 
 $ms->emails->send([
     'from' => 'Acme <onboarding@yourdomain.com>',
@@ -147,15 +147,15 @@ $ms->emails->send([
 );`,
   },
   ruby: {
-    send: `Millionsend.api_key = "po_xxxxxxxxx"
+    send: `Posta.api_key = "po_xxxxxxxxx"
 
-Millionsend::Emails.send(
+Posta::Emails.send(
   from: "Acme <onboarding@yourdomain.com>",
   to: "success@simulator.amazonses.com",
   subject: "hello world",
   html: "<p>it works!</p>"
 )`,
-    batch: `Millionsend::Batch.send([
+    batch: `Posta::Batch.send([
   {
     from: "Acme <onboarding@yourdomain.com>",
     to: ["success+1@simulator.amazonses.com"],
@@ -169,7 +169,7 @@ Millionsend::Emails.send(
     html: "<p>it works!</p>"
   }
 ])`,
-    retrieve: `email = Millionsend::Emails.get(
+    retrieve: `email = Posta::Emails.get(
   "4ef9a417-02e9-4d39-ad75-9611e0fcc33c"
 )`,
   },
@@ -201,7 +201,7 @@ sent, err := client.Emails.Send(&posta.SendEmailRequest{
 )`,
   },
   rust: {
-    send: `let ms = MillionSend::new("po_xxxxxxxxx");
+    send: `let ms = Posta::new("po_xxxxxxxxx");
 
 let email = CreateEmailBaseOptions::new(
     "Acme <onboarding@yourdomain.com>",
@@ -293,15 +293,15 @@ await ms.EmailSendAsync(new EmailMessage
 );`,
   },
   elixir: {
-    send: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
+    send: `client = Posta.client(api_key: "po_xxxxxxxxx")
 
-MillionSend.Emails.send(client, %{
+Posta.Emails.send(client, %{
   from: "Acme <onboarding@yourdomain.com>",
   to: ["success@simulator.amazonses.com"],
   subject: "hello world",
   html: "<p>it works!</p>"
 })`,
-    batch: `MillionSend.Emails.send_batch(client, [
+    batch: `Posta.Emails.send_batch(client, [
   %{
     from: "Acme <onboarding@yourdomain.com>",
     to: ["success+1@simulator.amazonses.com"],
@@ -315,7 +315,7 @@ MillionSend.Emails.send(client, %{
     html: "<p>it works!</p>"
   }
 ])`,
-    retrieve: `{:ok, email} = MillionSend.Emails.get(
+    retrieve: `{:ok, email} = Posta.Emails.get(
   client,
   "4ef9a417-02e9-4d39-ad75-9611e0fcc33c"
 )`,

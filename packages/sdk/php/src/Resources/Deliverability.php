@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MillionSend\Resources;
+namespace Posta\Resources;
 
-use MillionSend\HttpClient;
+use Posta\HttpClient;
 
 /**
- * Account-level deliverability score over the trailing window (MillionSend
+ * Account-level deliverability score over the trailing window (Posta
  * extension, no Resend equivalent). Scores are 0-10; null means not enough
  * data to compute.
  */

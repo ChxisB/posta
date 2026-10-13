@@ -44,7 +44,7 @@ impl Templates {
     }
 
     /// `POST /templates/:idOrAlias/publish` — kept for Resend compatibility;
-    /// MillionSend templates are always published.
+    /// Posta templates are always published.
     pub async fn publish(&self, id_or_alias: &str) -> Result<TemplateId> {
         self.0
             .post_empty(&["templates", id_or_alias, "publish"])

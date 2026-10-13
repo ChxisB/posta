@@ -95,7 +95,7 @@ export class ContactSegments {
   }
 }
 
-/** Bulk contact creation and deletion (MillionSend extension; Resend imports contacts via CSV only). */
+/** Bulk contact creation and deletion (Posta extension; Resend imports contacts via CSV only). */
 export class ContactsBatch {
   constructor(private readonly http: HttpClient) {}
 

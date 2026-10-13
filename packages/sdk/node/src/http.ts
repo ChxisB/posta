@@ -1,14 +1,14 @@
 import { type ErrorResponse, type Result, toErrorResponse } from "./error.js";
 import type { BatchValidation } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://api.millionsend.com";
+const DEFAULT_BASE_URL = "https://api.posta.example";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const SDK_VERSION = "0.8.0";
 
-export interface MillionSendOptions {
+export interface PostaOptions {
   /**
-   * Your MillionSend instance URL (no trailing slash needed). Falls back to
-   * `MILLIONSEND_BASE_URL`, then MillionSend Cloud (`https://api.millionsend.com`).
+   * Your Posta instance URL (no trailing slash needed). Falls back to
+   * `POSTA_BASE_URL`, then Posta Cloud (`https://api.posta.example`).
    * Self-hosted instances set their own origin here.
    */
   baseUrl?: string;
@@ -81,13 +81,12 @@ export class HttpClient {
   private readonly timeoutMs: number;
   private readonly userAgent: string;
 
-  constructor(apiKey: string, options: MillionSendOptions = {}) {
+  constructor(apiKey: string, options: PostaOptions = {}) {
     this.#apiKey = apiKey;
-    this.baseUrl = (
-      options.baseUrl ??
-      process.env.MILLIONSEND_BASE_URL ??
-      DEFAULT_BASE_URL
-    ).replace(/\/+$/, "");
+    this.baseUrl = (options.baseUrl ?? process.env.POSTA_BASE_URL ?? DEFAULT_BASE_URL).replace(
+      /\/+$/,
+      "",
+    );
     if (!options.allowInsecureHttp && isInsecureHttpUrl(this.baseUrl)) {
       throw new Error(
         `Refusing to send the API key over plain http to ${this.baseUrl}. Use https, or set allowInsecureHttp: true.`,
@@ -105,7 +104,7 @@ export class HttpClient {
     if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) {
       throw new Error("timeoutMs must be a positive finite number.");
     }
-    const base = `millionsend-node/${SDK_VERSION}`;
+    const base = `posta-node/${SDK_VERSION}`;
     this.userAgent = options.userAgent ? `${base} ${options.userAgent}` : base;
   }
 
