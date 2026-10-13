@@ -1,14 +1,14 @@
 ---
 title: Início rápido
-description: Obtenha o MillionSend e envie seu primeiro e-mail em poucos minutos.
+description: Obtenha o Posta e envie seu primeiro e-mail em poucos minutos.
 ---
 
-O MillionSend funciona igual no [MillionSend Cloud](https://posta.example)
+O Posta funciona igual no [Posta Cloud](https://posta.example)
 e na sua própria infraestrutura — mesmo painel, mesma API, mesmos SDKs.
 Escolha sua implantação abaixo; as abas lembram sua escolha em toda a
 documentação.
 
-## 1. Obtenha o MillionSend
+## 1. Obtenha o Posta
 
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
@@ -30,7 +30,7 @@ para enviar a qualquer um.
 Um comando, em um diretório vazio — sem clonar nada:
 
 ```sh
-mkdir millionsend && cd millionsend
+mkdir posta && cd posta
 npx @tack-labs/posta-setup
 ```
 
@@ -53,13 +53,13 @@ abri-lo. Prefere fazer manualmente, ou está indo para produção? Veja
 
 ## 2. Verifique um domínio de envio
 
-O MillionSend só envia a partir de domínios que você verificou.
+O Posta só envia a partir de domínios que você verificou.
 
 1. No painel, vá em **Domínios** e adicione um domínio que você controla
    (ex.: `acme.dev`).
 2. Adicione os registros DNS exibidos — um registro TXT de DKIM e os
    registros de MAIL FROM — no seu provedor de DNS.
-3. Clique em **Checar DNS**. O MillionSend também resolve os
+3. Clique em **Checar DNS**. O Posta também resolve os
    registros ao vivo, então você vê na hora quais ainda faltam.
 
 ## 3. Crie uma chave de API
@@ -97,7 +97,7 @@ curl -X POST https://api.posta.example/emails \
   -d '{
     "from": "Acme <onboarding@acme.dev>",
     "to": ["success@simulator.amazonses.com"],
-    "subject": "Hello from MillionSend",
+    "subject": "Hello from Posta",
     "html": "<strong>It works!</strong>"
   }'
 ```
@@ -131,7 +131,7 @@ configura — veja
 Na Nuvem eles fluem automaticamente.
 </Callout>
 
-Já usa o Resend? Aponte o SDK oficial do Resend para o MillionSend — defina
+Já usa o Resend? Aponte o SDK oficial do Resend para o Posta — defina
 `RESEND_BASE_URL` com a sua URL base e use sua chave `po_`. O formato da
 API é idêntico.
 
@@ -148,7 +148,7 @@ API é idêntico.
   simulador funciona mesmo com a sua conta AWS ainda no sandbox do SES, e a AWS
   cobra cada mensagem normalmente.
 - Os endereços `bounce@`, `complaint@` e `suppressionlist@` do simulador geram
-  bounces e reclamações que o MillionSend trata como reais: o endereço entra na
+  bounces e reclamações que o Posta trata como reais: o endereço entra na
   [lista de supressão](/pt-BR/concepts/suppressions) da sua equipe e pesa na
   sua taxa de bounce ou de reclamação, o que pode pausar seus envios. Use esses
   endereços manualmente, não em testes automatizados. Cada endereço fica

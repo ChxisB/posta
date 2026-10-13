@@ -195,7 +195,7 @@ rules, not a guarantee.
 
 Mail can carry text no person sees but a model reads: an instruction in
 white on white, a `display:none` block, characters that render as nothing.
-Before any text reaches an agent or a model, MillionSend removes:
+Before any text reaches an agent or a model, Posta removes:
 
 - hidden elements: `display:none`, `visibility:hidden`, near-zero opacity,
   fonts under 3 px, boxes squeezed, scaled or zoomed to nothing, content
@@ -242,7 +242,7 @@ can't close its own fence early.
 ## Verification codes and sign-in links
 
 An agent signing up somewhere needs the code or the link the service sends.
-MillionSend extracts them so the agent never parses HTML:
+Posta extracts them so the agent never parses HTML:
 
 - **Codes** need a code word nearby, in English, Portuguese or Spanish
   ("verification code", "código de verificação", "código de verificación"…);
@@ -250,7 +250,7 @@ MillionSend extracts them so the agent never parses HTML:
   two codes are equally likely, none is answered (`ambiguous`).
 - **Links** are sign-in, confirmation, reset and invitation links; unsubscribe,
   privacy and help links are skipped. Links are never fetched, by
-  MillionSend or anything else: a scanner that follows a single-use sign-in
+  Posta or anything else: a scanner that follows a single-use sign-in
   link spends it.
 - Only the subject and the reply part count, never quoted or hidden text.
 

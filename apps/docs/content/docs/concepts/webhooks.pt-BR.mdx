@@ -38,7 +38,7 @@ seja quem for que mudou. `data` traz o contato no formato do Resend — `id`,
 — mais `source`: `api`, `dashboard`, `hosted_page` (a central de preferências)
 ou `one_click` (um POST de header RFC 8058). O Resend emite apenas
 `contact.created`, `contact.updated` e `contact.deleted`; os demais são
-extensões do MillionSend.
+extensões do Posta.
 
 | Evento | Disparado quando | `data` extra |
 | --- | --- | --- |
@@ -89,7 +89,7 @@ mesmo `email_id` lista só esses.
 ### Eventos de caixas de entrada
 
 As [caixas de entrada](/pt-BR/concepts/inboxes) emitem os eventos `inbox.*`
-do Resend, mais dois do próprio MillionSend. Eles são **opt-in**: um endpoint
+do Resend, mais dois do próprio Posta. Eles são **opt-in**: um endpoint
 só os recebe quando os escolhe pelo nome, nunca por "todos os eventos".
 
 | Evento | Disparado quando | `data`, além de `source` e `inbox_id` |
@@ -97,13 +97,13 @@ só os recebe quando os escolhe pelo nome, nunca por "todos os eventos".
 | `inbox.created` | Uma caixa foi criada. | `inbox` |
 | `inbox.updated` | O nome, o nome de remetente, a validade ou as configurações de segurança de uma caixa mudaram. | `inbox` |
 | `inbox.deleted` | Uma caixa foi excluída, por uma pessoa, pela API, por ter expirado ou porque o domínio dela foi excluído. | |
-| `inbox.expired` | Uma caixa chegou ao `expires_at`; o `inbox.deleted` vem em seguida. Do MillionSend. | `inbox`, como estava |
+| `inbox.expired` | Uma caixa chegou ao `expires_at`; o `inbox.deleted` vem em seguida. Do Posta. | `inbox`, como estava |
 | `inbox.thread.created` | Uma conversa ganhou a primeira mensagem: a primeira entregue ou liberada, ou a primeira que a caixa enviou. | `thread_id`, `email_id`, `thread`, `email` |
 | `inbox.thread.folder.updated` | Uma conversa mudou de pasta, à mão ou porque um e-mail novo a trouxe de volta para `inbox`. | `from`, `to`, `thread_id`, `thread` |
 | `inbox.thread.labels.updated` | Uma etiqueta entrou ou saiu de uma conversa; uma etiqueta por evento. | `added`, `removed`, `thread_id`, `thread` |
 | `inbox.email.received` | Uma mensagem recebida foi entregue ou liberada numa conversa. | `thread_id`, `email_id`, `thread`, `email` |
 | `inbox.email.sent` | Um envio da caixa foi aceito. | `thread_id`, `email_id`, `thread`, `email` |
-| `inbox.email.quarantined` | Uma mensagem recebida foi para a quarentena. Do MillionSend. | `thread_id`, `email_id`, `reason`, `sender_trust`, `from`, `subject`, `received_at` |
+| `inbox.email.quarantined` | Uma mensagem recebida foi para a quarentena. Do Posta. | `thread_id`, `email_id`, `reason`, `sender_trust`, `from`, `subject`, `received_at` |
 | `inbox.draft.created` | Um rascunho foi criado, inclusive um envio retido para aprovação. | `draft_id`, `draft`; `thread_id` e `thread` nos rascunhos de resposta |
 | `inbox.draft.updated` | Um rascunho mudou. | igual ao de criação |
 | `inbox.draft.sent` | Um rascunho foi enviado; dispara antes do `inbox.email.sent`. | `thread_id`, `email_id`, `draft_id`, `thread`, `draft` |
@@ -184,7 +184,7 @@ Os SDKs de .NET e de Rust do Resend não conhecem os tipos de evento
 `inbox.*`: ler um webhook inscrito em algum deles pelo `GET /webhooks` falha
 nos dois, e o leitor de webhooks do .NET dá erro com esses payloads. Os
 próprios eventos de caixas do Resend fazem o mesmo hoje. Leia esses endpoints
-e as entregas deles com um SDK do MillionSend ou por HTTP direto.
+e as entregas deles com um SDK do Posta ou por HTTP direto.
 </Callout>
 
 ## Assinaturas (Standard Webhooks)
@@ -230,7 +230,7 @@ antigos.
 `POST /webhooks` aceita um `signing_secret` opcional: `whsec_` seguido de
 base64 padrão de 24 a 64 bytes — o formato que Resend e Svix emitem. Passe o
 segredo com que seu receptor já verifica e o endpoint continua funcionando sem
-novo deploy; omita e o MillionSend gera um. Qualquer outra coisa é rejeitada
+novo deploy; omita e o Posta gera um. Qualquer outra coisa é rejeitada
 com `422 signing_secret must be whsec_ followed by base64 of 24-64 bytes`.
 
 Para trazer um segredo de outro provedor, leia-o na API ou no painel dele (o

@@ -85,10 +85,10 @@ describe("system mail around customer text shaped like a lure", () => {
       expiresInDays: 3,
       locale: "en",
     });
-    expect(mail.subject).toBe("You've been invited to a team on MillionSend");
+    expect(mail.subject).toBe("You've been invited to a team on Posta");
     for (const part of [mail.text, mail.html]) {
       expect(readable(part)).toContain(
-        "ana@acme.dev invited you to join acme.dev on MillionSend as a member.",
+        "ana@acme.dev invited you to join acme.dev on Posta as a member.",
       );
       expect(readable(part)).toContain("(new@example.com)");
     }

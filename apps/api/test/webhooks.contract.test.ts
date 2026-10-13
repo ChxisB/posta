@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for webhooks: the official `resend` npm SDK against a live
- * MillionSend API — create/list/get/update/remove, signing_secret placement
+ * Posta API — create/list/get/update/remove, signing_secret placement
  * (create + get, never list rows), and that the secret we mint verifies with
  * the SDK's own standardwebhooks-based `webhooks.verify`.
  */

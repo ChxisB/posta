@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: The MillionSend HTTP API — Resend wire-compatible, generated from the server code.
+description: The Posta HTTP API — Resend wire-compatible, generated from the server code.
 ---
 
 The endpoint pages under this section are generated from the API's own route
@@ -56,7 +56,7 @@ omitted or null `domain_id` inherits that domain, and any other domain returns
 ## Resend compatibility
 
 Request and response shapes match Resend's API, so official Resend SDKs work
-against MillionSend by pointing their base URL at it. CI runs the official
+against Posta by pointing their base URL at it. CI runs the official
 `resend` npm package against every endpoint as a conformance gate. The few
 remaining deltas are deliberate and loud:
 
@@ -85,7 +85,7 @@ remaining deltas are deliberate and loud:
   (`screening`, `spam_verdict`, `virus_verdict`, `extracted_text`,
   `extracted` and more), `text` comes without invisible characters, and
   infected mail is held, with its downloads answering `410 email_blocked`.
-  MillionSend adds long-polling (`?wait=`), server-side
+  Posta adds long-polling (`?wait=`), server-side
   `POST /emails/receiving/{id}/reply` and `/forward`, and
   `DELETE /emails/receiving/{id}`. See [Receiving](/concepts/receiving).
 - Inboxes are supported (beta): the 26 endpoints of Resend's Inboxes
@@ -149,9 +149,9 @@ remaining deltas are deliberate and loud:
   (`List-Unsubscribe=One-Click`); anything else is a `422`. The two must come
   together, and `List-Unsubscribe` needs an `https` target. On a send with a
   `topic_id`, a pair you supply replaces the generated one: one-click requests
-  then reach your endpoint, MillionSend records no opt-out for them, and an
+  then reach your endpoint, Posta records no opt-out for them, and an
   `{{{UNSUBSCRIBE_URL}}}` placeholder in the body still resolves to
-  MillionSend's page.
+  Posta's page.
 - A send whose every `to` recipient is on the suppression list or opted out of
   the `topic_id` is refused with `422 all_recipients_suppressed` (message
   `All recipients are suppressed`); recipients dropped from a send that still
@@ -161,13 +161,13 @@ remaining deltas are deliberate and loud:
   must be a single mailbox — a display name containing `@` is rejected, and
   accepted addresses read back in canonical `Name <user@host>` form.
 - The instance's onboarding sender (`ONBOARDING_EMAIL_FROM`;
-  `hello@mail.posta.example` on the cloud) carries only MillionSend's own
+  `hello@mail.posta.example` on the cloud) carries only Posta's own
   onboarding email: as `from` on `POST /emails`, `POST /emails/batch` or a
   broadcast send it is refused with `422 reserved_sender`, in any letter case
   and with any display name. Send from a domain you
   [verified](/concepts/domains) instead.
 - Tag names starting with `posta_`, in any letter case, are
-  MillionSend's own: a `tags` entry with one on `POST /emails` or
+  Posta's own: a `tags` entry with one on `POST /emails` or
   `POST /emails/batch` is refused with `422 validation_error`.
 - Anything unsupported is rejected with `422` rather than silently dropped
   (e.g. `tls` on domain update).

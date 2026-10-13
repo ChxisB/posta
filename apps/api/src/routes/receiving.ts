@@ -146,7 +146,7 @@ function downloadHeaders(contentType: string, filename: string): Record<string, 
 
 /**
  * Resend's emails.receiving surface (list, get, attachments) plus the signed
- * downloads its links point at, MillionSend's extensions (long-poll, filters,
+ * downloads its links point at, Posta's extensions (long-poll, filters,
  * screening, the extracted read, erase) and an inbox's latest verification
  * code. The reads are registered whether or not this instance receives mail:
  * rows stored before receiving was switched off stay readable until
@@ -407,7 +407,7 @@ export function registerReceivingRoutes(
       method: "get",
       path: "/emails/receiving/{id}",
       summary: "Retrieve a received email",
-      description: `One received email with its html, text, headers, authentication results and a signed link to the original message, plus MillionSend's screening, verdicts, the extracted read and, where allowed, its verification code or sign-in link. Needs a full access key. An inbox-scoped key or an MCP token gets 403 email_quarantined for held mail, and 404 while it is being screened. ${untrusted}`,
+      description: `One received email with its html, text, headers, authentication results and a signed link to the original message, plus Posta's screening, verdicts, the extracted read and, where allowed, its verification code or sign-in link. Needs a full access key. An inbox-scoped key or an MCP token gets 403 email_quarantined for held mail, and 404 while it is being screened. ${untrusted}`,
       middleware,
       request: { params: z.object({ id: z.uuid() }), query: getReceivedEmailQuerySchema },
       responses: {
@@ -480,7 +480,7 @@ export function registerReceivingRoutes(
       path: "/emails/receiving/{id}",
       summary: "Delete a received email",
       description:
-        "MillionSend extension: erases one received email now, its sealed content, inbox memberships and received secrets with it, and threads it leaves empty. Needs a full access key that is not scoped to an inbox; for an MCP token, the owner or admin role. Webhook payloads already sent keep their metadata until the payload retention strips them.",
+        "Posta extension: erases one received email now, its sealed content, inbox memberships and received secrets with it, and threads it leaves empty. Needs a full access key that is not scoped to an inbox; for an MCP token, the owner or admin role. Webhook payloads already sent keep their metadata until the payload retention strips them.",
       middleware,
       request: { params: z.object({ id: z.uuid() }) },
       responses: {

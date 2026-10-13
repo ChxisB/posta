@@ -387,9 +387,9 @@ describe("UnsubscribePageView layout", () => {
     expect(out).not.toContain("ms-checkbox");
   });
 
-  it("credits MillionSend under the card unless the team turned it off", () => {
+  it("credits Posta under the card unless the team turned it off", () => {
     expect(out).toMatch(
-      /Powered by <span[^>]*><img[^>]*millionsend-favicon\.svg[^>]*\/>MillionSend<\/span><\/a>/,
+      /Powered by <span[^>]*><img[^>]*millionsend-favicon\.svg[^>]*\/>Posta<\/span><\/a>/,
     );
     const off = renderToStaticMarkup(
       createElement(UnsubscribePageView, {

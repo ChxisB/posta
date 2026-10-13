@@ -23,7 +23,7 @@ const mail = { send: async (m: SystemMailMessage) => void sent.push(m) };
 beforeEach(async () => {
   vi.stubEnv("MASTER_ENCRYPTION_KEY", randomBytes(32).toString("base64"));
   vi.stubEnv("APP_BASE_URL", "https://app.example.com");
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
   ({ db, close } = await createTestDb());
   teamId = await createTeam(db, "owner");
   await db.insert(schema.domains).values({
@@ -75,7 +75,7 @@ describe("product-updates opt-in", () => {
     expect(sent[0]).toMatchObject({
       kind: "updates.confirm",
       to: "op@example.com",
-      subject: "Confirme sua inscrição nas novidades do MillionSend",
+      subject: "Confirme sua inscrição nas novidades do Posta",
     });
     expect(await db.select().from(schema.contacts)).toHaveLength(0);
 

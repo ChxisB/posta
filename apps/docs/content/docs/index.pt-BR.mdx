@@ -1,13 +1,13 @@
 ---
 title: Introdução
-description: O que é o MillionSend e como as peças se encaixam.
+description: O que é o Posta e como as peças se encaixam.
 ---
 
-MillionSend é a plataforma de e-mail open source. Envie um. Envie um milhão.
+Posta é a plataforma de e-mail open source. Envie um. Envie um milhão.
 
 Use de duas formas, com o mesmo código nas duas:
 
-- **MillionSend Cloud** — o serviço hospedado em
+- **Posta Cloud** — o serviço hospedado em
   [posta.example](https://posta.example). Cadastre-se, verifique um
   domínio, envie. API em `api.posta.example`.
 - **Auto-hospedado** — rode na sua própria infraestrutura com Docker Compose,
@@ -26,7 +26,7 @@ A API HTTP é compatível com a do Resend: mesmos formatos de
 requisição e resposta, mesmo formato de erro. Os SDKs oficiais do Resend
 respeitam uma URL base configurável, então migrar uma integração existente
 significa trocar duas variáveis de ambiente — a chave de API e a URL base —
-sem reescrever seu código. O MillionSend também publica
+sem reescrever seu código. O Posta também publica
 [SDKs próprios](/pt-BR/sdks) para nove linguagens, espelhando o formato dos
 SDKs do Resend.
 
@@ -58,7 +58,7 @@ você segmenta com [segmentos](/pt-BR/concepts/segments) (filtros salvos) e
 
 ## Arquitetura em resumo
 
-O MillionSend envia pelo AWS SES — na Nuvem isso é gerenciado para você; em
+O Posta envia pelo AWS SES — na Nuvem isso é gerenciado para você; em
 uma implantação auto-hospedada é a sua própria conta SES, então você mantém a
 entregabilidade e o preço do SES. Uma implantação auto-hospedada são dois
 contêineres:

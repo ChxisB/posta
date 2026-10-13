@@ -157,7 +157,7 @@
     "mismatchFound": "O DNS responde com:\n{found}",
     "proxiedHint": "Este nome responde com endereços em vez do CNAME:\n{found}\nNo Cloudflare isso é a nuvem laranja (proxy). Mude o registro para somente DNS.",
     "dnsOnly": "Somente DNS",
-    "dnsOnlyHint": "No Cloudflare, mantenha o proxy desligado neste registro (nuvem cinza, \"Somente DNS\"). Um CNAME com proxy responde com os endereços do Cloudflare em vez deste alvo, e o TLS deste host é servido pelo MillionSend.",
+    "dnsOnlyHint": "No Cloudflare, mantenha o proxy desligado neste registro (nuvem cinza, \"Somente DNS\"). Um CNAME com proxy responde com os endereços do Cloudflare em vez deste alvo, e o TLS deste host é servido pelo Posta.",
     "inheritedDmarc": "Nenhum registro neste nome. Os servidores de destino recorrem a <code>{from}</code> (<code>p={policy}</code>), que já cobre este subdomínio.",
     "foundAwaitingProvider": "Registro encontrado no DNS; aguardando a confirmação do provedor (normalmente minutos, até 72 horas).",
     "goToProvider": "Ir para {provider}",

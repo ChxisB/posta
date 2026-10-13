@@ -3,7 +3,7 @@ title: Migrar do Resend
 description: Um comando move sua conta do Resend; duas linhas de ambiente movem seu código — o formato da API é idêntico.
 ---
 
-A API REST do MillionSend é compatível com a do Resend: mesmos
+A API REST do Posta é compatível com a do Resend: mesmos
 endpoints, mesmos formatos de requisição e resposta. Migrar é uma mudança de
 configuração, não uma reescrita. Os dados da conta — contatos, segmentos,
 tópicos, templates, webhooks, domínios, supressões — vêm com um comando.
@@ -21,7 +21,7 @@ Ou aponte o agente para ele: `https://docs.posta.example/pt-BR/prompts/migrate-f
 
 ## 1. Mova sua conta
 
-Crie uma chave de API `po_` com acesso total em **Chaves de API** (MillionSend
+Crie uma chave de API `po_` com acesso total em **Chaves de API** (Posta
 Cloud, ou sua própria instância [auto-hospedada](/pt-BR/self-hosting)) e rode,
 na sua máquina:
 
@@ -29,7 +29,7 @@ na sua máquina:
 npx @tack-labs/posta-cli migrate --from resend
 ```
 
-Ele pede sua chave do Resend (acesso total) e sua chave do MillionSend, lê sua
+Ele pede sua chave do Resend (acesso total) e sua chave do Posta, lê sua
 conta no Resend, mostra um plano, aguarda a confirmação, aplica e imprime um
 resumo. Auto-hospedado, informe a URL da API da sua instância:
 
@@ -46,7 +46,7 @@ O que ele faz:
   compartilhado com o seu envio em produção), reduzindo o ritmo conforme os cabeçalhos
   `ratelimit-*` e a cada `429`. `--rps` muda o ritmo.
 - **Suas chaves nunca saem da sua máquina.** A ferramenta fala apenas com
-  `api.resend.com` e com a sua API do MillionSend. As chaves ficam em memória
+  `api.resend.com` e com a sua API do Posta. As chaves ficam em memória
   durante a execução, nunca são gravadas em arquivo e são mascaradas em toda
   linha de log. Sem telemetria, sem verificação de atualização.
 - **Virada primeiro, enriquecimento depois.** A passagem 1 cria propriedades,
@@ -105,9 +105,9 @@ Três coisas encurtam isso:
 | Contatos | E-mail, nomes, `unsubscribed`, propriedades, inscrições em tópicos, associações a segmentos. Descadastros são preservados; ninguém é reinscrito. |
 | Segmentos, tópicos, propriedades | Casados por nome / nome / chave: criados quando faltam, atualizados quando diferem. |
 | Templates | Nome, alias, assunto, html, texto. `from`, `reply_to` e `variables` não podem ser armazenados — listados como passos manuais. |
-| Webhooks | Endpoint e eventos. O segredo de assinatura é copiado, então o receptor que você já roda continua verificando (as entregas carregam os headers `svix-*`). `--fresh-webhook-secrets` gera segredos novos. Eventos que o MillionSend também emite são levados junto — os oito tipos `email.*`, inclusive `email.received`, `contact.created`, `contact.updated` e `contact.deleted`, e os doze tipos `inbox.*` que o MillionSend envia; os demais (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) são descartados por webhook e listados. |
+| Webhooks | Endpoint e eventos. O segredo de assinatura é copiado, então o receptor que você já roda continua verificando (as entregas carregam os headers `svix-*`). `--fresh-webhook-secrets` gera segredos novos. Eventos que o Posta também emite são levados junto — os oito tipos `email.*`, inclusive `email.received`, `contact.created`, `contact.updated` e `contact.deleted`, e os doze tipos `inbox.*` que o Posta envia; os demais (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) são descartados por webhook e listados. |
 | Supressões | Bounces, reclamações e entradas manuais, com sua origem. |
-| Domínios | Criados com return path e configurações de rastreamento, na única região do SES atendida pela sua instância do MillionSend (MillionSend Cloud: `sa-east-1`) — a região do Resend não é levada junto. No MillionSend Cloud, as opções de rastreamento só vêm junto com um subdomínio de rastreamento; sem ele, o relatório as lista para você configurar no painel. Os registros DNS precisam ser adicionados de novo — veja o passo 3. |
+| Domínios | Criados com return path e configurações de rastreamento, na única região do SES atendida pela sua instância do Posta — a região do Resend não é levada junto. No Posta Cloud, as opções de rastreamento só vêm junto com um subdomínio de rastreamento; sem ele, o relatório as lista para você configurar no painel. Os registros DNS precisam ser adicionados de novo — veja o passo 3. |
 | Transmissões | Rascunhos e transmissões agendadas entram como rascunhos. As já enviadas são puladas, a menos que `--include-sent`. |
 
 O que não vem: **chaves de API** (o Resend expõe apenas os nomes — o relatório
@@ -119,7 +119,7 @@ descontinuadas no Resend, são puladas — segmentos as cobrem.
 Flags, variáveis de ambiente, arquivos, códigos de saída e uso em CI estão na
 [referência da CLI](/pt-BR/cli).
 
-## 2. Aponte seu código existente para o MillionSend
+## 2. Aponte seu código existente para o Posta
 
 Os SDKs oficiais do Resend respeitam `RESEND_BASE_URL`, então a migração são
 duas linhas de ambiente — nenhuma mudança de código:
@@ -148,7 +148,7 @@ Três detalhes que diferem do que uma integração com o Resend pode assumir:
   `x-batch-validation: permissive` para manter as linhas válidas quando algumas
   falham.
 
-Prefere usar um SDK oficial? Os [SDKs do MillionSend](/pt-BR/sdks)
+Prefere usar um SDK oficial? Os [SDKs do Posta](/pt-BR/sdks)
 cobrem nove linguagens com a mesma superfície:
 
 ```ts
@@ -161,7 +161,7 @@ const ms = new Posta("po_...", { baseUrl: "https://api.posta.example" });
 
 O resumo termina com um checklist. Três itens sempre estão nele:
 
-- **Adicione os registros DNS de cada domínio.** O MillionSend usa um par de
+- **Adicione os registros DNS de cada domínio.** O Posta usa um par de
   chaves DKIM próprio, então os registros são novos mesmo para um domínio que
   já envia pelo Resend. O relatório imprime uma tabela pronta para copiar com
   os registros por domínio (também em **Domínios** no painel). Os dois
@@ -172,14 +172,14 @@ O resumo termina com um checklist. Três itens sempre estão nele:
 
 Mais dois aparecem quando se aplicam: valores de `from` / `reply_to` de
 templates para definir por envio, e tipos de evento de webhook que o
-MillionSend não emite. Corpos de transmissão não precisam de mudança:
+Posta não emite. Corpos de transmissão não precisam de mudança:
 `{{{RESEND_UNSUBSCRIBE_URL}}}` é um alias suportado de
 `{{{UNSUBSCRIBE_URL}}}`.
 
 Também recebe e-mails pelo Resend? Ative o recebimento do domínio aqui depois
 que ele estiver verificado (**Ativar recebimento**, na página dele) e escolha
 quais endereços recebem. O Resend recebe em qualquer endereço do domínio;
-aqui isso é o **Pega-tudo**, na mesma página (um plano pago no MillionSend
+aqui isso é o **Pega-tudo**, na mesma página (um plano pago no Posta
 Cloud), ou então uma [caixa de entrada](/pt-BR/concepts/inboxes) por
 endereço. Depois troque o registro MX do domínio, do que o Resend passou para
 `mx.posta-dns.example` (na auto-hospedagem: o `RECEIVING_MX_HOST` da sua
@@ -189,11 +189,11 @@ chama `resend.emails.receiving.*` e handlers de `email.received` não precisam
 de mudança. Veja [Recebimento](/pt-BR/concepts/receiving).
 
 Usa o pré-lançamento das Inboxes do Resend? Aponte o
-`resend@6.32.1-preview-inboxes.6` para o MillionSend como qualquer outro SDK
+`resend@6.32.1-preview-inboxes.6` para o Posta como qualquer outro SDK
 do Resend, e crie de novo cada caixa com o mesmo endereço (`POST /inboxes`,
 ou **Caixas de entrada → Criar caixa de entrada**); as conversas e os
 rascunhos ficam no Resend. Uma caixa criada por um SDK do Resend é uma caixa
-de agente, com as proteções do MillionSend ligadas: o e-mail de remetentes
+de agente, com as proteções do Posta ligadas: o e-mail de remetentes
 que o próprio domínio não garante, por exemplo, espera na quarentena. Crie as
 caixas lidas por pessoas como `kind: "human"`, no painel ou por HTTP direto.
 O `forwarding: true` dá um `receiving_address` no domínio compartilhado das
@@ -205,4 +205,4 @@ E-mails — a migração é isso.
 
 ---
 
-Resend é uma marca registrada da Plus Five Five, Inc. O MillionSend não é afiliado nem endossado pelo Resend.
+Resend é uma marca registrada da Plus Five Five, Inc. O Posta não é afiliado nem endossado pelo Resend.

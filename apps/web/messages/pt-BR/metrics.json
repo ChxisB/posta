@@ -63,7 +63,7 @@
       "lift": "Como melhorar",
       "liftLine": "{title} · nota da conta sobe para {score}",
       "liftNone": "Não há mais o que ganhar no conteúdo. O que resta está nas taxas de resultado.",
-      "agentPrompt": "Na nossa conta MillionSend a nota é {score}/10 nos últimos 30 dias. A verificação de entregabilidade \"{title}\" falha em {emails} e-mails ({recipients} destinatários), custando {points} pontos da nota de conteúdo.\n\n{description}\n\nO que fazer: {advice}\n\nEncontre os templates ou o código que enviam esses e-mails e aplique a correção. Mantenha a mudança mínima e explique o que mudou."
+      "agentPrompt": "Na nossa conta Posta a nota é {score}/10 nos últimos 30 dias. A verificação de entregabilidade \"{title}\" falha em {emails} e-mails ({recipients} destinatários), custando {points} pontos da nota de conteúdo.\n\n{description}\n\nO que fazer: {advice}\n\nEncontre os templates ou o código que enviam esses e-mails e aplique a correção. Mantenha a mudança mínima e explique o que mudou."
     }
   },
   "open": {

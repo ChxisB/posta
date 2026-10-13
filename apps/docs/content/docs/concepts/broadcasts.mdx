@@ -23,7 +23,7 @@ draft → scheduled → sending → sent
   the response's `canceled_remaining` says how many were stopped, and
   `sent_count` on a read says how many had gone out.
 - On the wire, `scheduled` and `sending` both read as `queued` (matching the
-  Resend SDK's status union); `canceled` is a MillionSend extension. A
+  Resend SDK's status union); `canceled` is a Posta extension. A
   broadcast reads `queued` with `sent_at` null until its last email has gone
   out, however long that takes.
 

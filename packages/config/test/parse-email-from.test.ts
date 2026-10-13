@@ -13,12 +13,12 @@ it("parses a bare address", () => {
 });
 
 it("parses a display-name form, with or without quotes", () => {
-  expect(parseEmailFrom("MillionSend <no-reply@mail.example.com>")).toEqual({
-    name: "MillionSend",
+  expect(parseEmailFrom("Posta <no-reply@mail.example.com>")).toEqual({
+    name: "Posta",
     address: "no-reply@mail.example.com",
   });
-  expect(parseEmailFrom('"MillionSend" <no-reply@mail.example.com>')).toEqual({
-    name: "MillionSend",
+  expect(parseEmailFrom('"Posta" <no-reply@mail.example.com>')).toEqual({
+    name: "Posta",
     address: "no-reply@mail.example.com",
   });
   expect(parseEmailFrom("<no-reply@mail.example.com>")).toEqual({

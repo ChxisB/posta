@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for inboxes: Resend's preview SDK (the build that has
- * inboxes) against a live MillionSend API. The SDK parses nothing, so each
+ * inboxes) against a live Posta API. The SDK parses nothing, so each
  * call is judged by the data it hands back.
  */
 

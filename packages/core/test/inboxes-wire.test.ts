@@ -33,7 +33,7 @@ const ids = {
 };
 
 // Resend's field lists (Resend Inboxes SDK 6.32.1-preview-inboxes.6), then
-// MillionSend's extension keys: a serializer drifting from either fails here.
+// Posta's extension keys: a serializer drifting from either fails here.
 const RESEND = {
   inbox: [
     "object",

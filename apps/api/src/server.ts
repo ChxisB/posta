@@ -179,5 +179,5 @@ const app = createApi({
 
 const port = env.PORT;
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`millionsend api listening on :${info.port}`);
+  console.log(`posta api listening on :${info.port}`);
 });

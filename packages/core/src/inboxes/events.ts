@@ -144,7 +144,7 @@ export function threadLabelsEvent(
   );
 }
 
-/** MillionSend's: a held message, metadata only. `from` is the bare address. */
+/** Posta's: a held message, metadata only. `from` is the bare address. */
 export function emailQuarantinedEvent(p: {
   inboxId: string;
   threadId: string;

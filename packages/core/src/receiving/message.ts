@@ -923,7 +923,7 @@ export function heldFrom(
   return "pending";
 }
 
-/** MillionSend's keys on a GET /emails/receiving list item. */
+/** Posta's keys on a GET /emails/receiving list item. */
 export interface ReceivedListExtras {
   inbox_id: string | null;
   thread_id: string | null;
@@ -976,7 +976,7 @@ export interface ExtractedWire {
 }
 
 /**
- * MillionSend's keys on GET /emails/receiving/{id}. The code and link are
+ * Posta's keys on GET /emails/receiving/{id}. The code and link are
  * served only from delivered mail of a sender that did not fail
  * authentication, in an inbox that extracts codes; `codeServed` says one
  * was, for the code.read activity.

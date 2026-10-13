@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { reservedSenderRefusal } from "../src/onboarding-sender.js";
 
 describe("reservedSenderRefusal", () => {
-  const platform = "MillionSend <hello@ms.example>";
+  const platform = "Posta <hello@ms.example>";
   it("refuses the shared sender in any letter case or display name, and nothing else", () => {
     for (const from of [
       platform,
@@ -13,7 +13,7 @@ describe("reservedSenderRefusal", () => {
       expect(reservedSenderRefusal(from, platform)).toEqual({
         name: "reserved_sender",
         message:
-          "hello@ms.example is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
+          "hello@ms.example is reserved for Posta's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
       });
     }
     for (const from of [

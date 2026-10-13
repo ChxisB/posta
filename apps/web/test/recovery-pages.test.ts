@@ -9,7 +9,7 @@ afterEach(() => {
 });
 
 function stubRecoveryEnv(enabled: boolean) {
-  vi.stubEnv("AUTH_EMAIL_FROM", enabled ? "MillionSend <no-reply@mail.example.com>" : "");
+  vi.stubEnv("AUTH_EMAIL_FROM", enabled ? "Posta <no-reply@mail.example.com>" : "");
   vi.stubEnv("AWS_ACCESS_KEY_ID", enabled ? "test-key" : "");
   vi.stubEnv("AWS_SECRET_ACCESS_KEY", enabled ? "test-secret" : "");
   vi.stubEnv("AWS_DEFAULT_CHAIN", "");

@@ -21,7 +21,7 @@ const requiresApproval = z
   .boolean()
   .optional()
   .describe(
-    "MillionSend extension: hold the email as a draft that a person approves (202 with the Draft)",
+    "Posta extension: hold the email as a draft that a person approves (202 with the Draft)",
   );
 
 export const inboxReplyRequestSchema = z

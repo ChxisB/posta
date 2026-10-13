@@ -2,7 +2,7 @@ import type { AccountMailEntry, AccountMailKind, MailPhraseKey } from "../accoun
 
 export const ptBR = {
   welcome: {
-    subject: "Bem-vindo ao MillionSend",
+    subject: "Bem-vindo ao Posta",
     body: [
       "Olá, {name}, sua conta está pronta.",
       "Primeiro adicione um domínio de envio e publique os registros DNS; os envios saem assim que ele for verificado.",
@@ -12,7 +12,7 @@ export const ptBR = {
     muted: ["Documentação: {docsUrl}"],
   },
   password_changed: {
-    subject: "Sua senha do MillionSend foi alterada",
+    subject: "Sua senha do Posta foi alterada",
     body: [
       "A senha de {email} acabou de ser alterada e as outras sessões foram encerradas.",
       "Se foi você, não há nada a fazer. Se não foi, redefina agora — isso encerra a sessão de quem fez — e revise suas chaves de API e apps conectados.",
@@ -20,9 +20,9 @@ export const ptBR = {
     button: "Redefinir senha",
   },
   "mcp.connected": {
-    subject: "Um app foi conectado à sua conta do MillionSend",
+    subject: "Um app foi conectado à sua conta do Posta",
     body: [
-      "Você permitiu que {app} atue em {team} pelo servidor MCP do MillionSend com estas permissões: {scopes}.",
+      "Você permitiu que {app} atue em {team} pelo servidor MCP do Posta com estas permissões: {scopes}.",
       "Ele pode fazer o mesmo que você, em seu nome, até você revogar o acesso.",
     ],
     button: "Revisar apps conectados",
@@ -42,7 +42,7 @@ export const ptBR = {
       sending_access: "acesso de envio",
       apiKeyActor: "uma chave de API",
       mcpActor: "um cliente MCP",
-      systemActor: "o MillionSend",
+      systemActor: "o Posta",
     },
   },
   "webhook.secret_rotated": {

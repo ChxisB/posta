@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 function stubRecoveryEnv() {
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
   vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
   vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
   vi.stubEnv("AWS_DEFAULT_CHAIN", "");
@@ -62,15 +62,15 @@ describe("buildResetEmail", () => {
       url: "https://app.example.com/api/auth/reset-password/tok?callbackURL=%2Freset",
       locale: "en",
     });
-    expect(en.subject).toBe("Reset your MillionSend password");
-    expect(en.from).toBe("MillionSend <no-reply@mail.example.com>");
+    expect(en.subject).toBe("Reset your Posta password");
+    expect(en.from).toBe("Posta <no-reply@mail.example.com>");
     expect(en.text).toContain("Hi,");
     expect(en.text).toContain("https://app.example.com/api/auth/reset-password/tok");
     expect(en.text).toContain("30");
     expect(en.html).toContain("reset-password/tok");
 
     const pt = buildResetEmail({ to: "a@b.com", url: "https://x.com/r", locale: "pt-BR" });
-    expect(pt.subject).toBe("Redefina sua senha do MillionSend");
+    expect(pt.subject).toBe("Redefina sua senha do Posta");
     expect(pt.text).toContain("Olá,");
   });
 });
@@ -159,7 +159,7 @@ describe("sendPasswordResetEmail", () => {
       new Request("https://x.com", { headers: { cookie: "NEXT_LOCALE=pt-BR" } }),
     );
     await vi.waitFor(() => expect(sent).toHaveLength(1));
-    expect(sent[0]?.subject).toBe("Redefina sua senha do MillionSend");
+    expect(sent[0]?.subject).toBe("Redefina sua senha do Posta");
 
     const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
     await db.update(schema.verification).set({ createdAt: beforeWindow });
@@ -168,7 +168,7 @@ describe("sendPasswordResetEmail", () => {
       new Request("https://x.com", { headers: { "accept-language": "pt-BR,pt;q=0.9,en;q=0.5" } }),
     );
     await vi.waitFor(() => expect(sent).toHaveLength(2));
-    expect(sent[1]?.subject).toBe("Redefina sua senha do MillionSend");
+    expect(sent[1]?.subject).toBe("Redefina sua senha do Posta");
 
     await db.update(schema.verification).set({ createdAt: beforeWindow });
     await requestReset(
@@ -176,7 +176,7 @@ describe("sendPasswordResetEmail", () => {
       new Request("https://x.com", { headers: { "accept-language": "de" } }),
     );
     await vi.waitFor(() => expect(sent).toHaveLength(3));
-    expect(sent[2]?.subject).toBe("Reset your MillionSend password");
+    expect(sent[2]?.subject).toBe("Reset your Posta password");
   });
 
   it("writes in the account's stored language over the request's", async () => {
@@ -186,7 +186,7 @@ describe("sendPasswordResetEmail", () => {
       new Request("https://x.com", { headers: { "accept-language": "en-US" } }),
     );
     await vi.waitFor(() => expect(sent).toHaveLength(1));
-    expect(sent[0]?.subject).toBe("Redefina sua senha do MillionSend");
+    expect(sent[0]?.subject).toBe("Redefina sua senha do Posta");
   });
 
   it("prints no part of the account's name, whatever it says", async () => {
@@ -291,7 +291,7 @@ describe("password changed receipt", () => {
       expect(sent.map((m) => m.kind)).toEqual(["password_reset", "password_changed"]);
       expect(sent[1]).toMatchObject({
         to: "ada@example.com",
-        subject: "Your MillionSend password was changed",
+        subject: "Your Posta password was changed",
       });
       expect(sent[1]?.text).toContain("http://localhost:3000/forgot-password");
     } finally {

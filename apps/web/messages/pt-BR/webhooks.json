@@ -110,7 +110,7 @@
   "create": {
     "title": "Adicionar webhook",
     "url": "URL do endpoint",
-    "urlPlaceholder": "https://exemplo.com/webhooks/millionsend",
+    "urlPlaceholder": "https://exemplo.com/webhooks/posta",
     "description": "Descrição (opcional)",
     "descriptionPlaceholder": "Eventos de produção",
     "events": "Eventos",

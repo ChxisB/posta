@@ -6,12 +6,12 @@ import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApi } from "../src/app.js";
 
-const PLATFORM = "MillionSend <hello@ms.example>";
+const PLATFORM = "Posta <hello@ms.example>";
 const RESERVED = {
   statusCode: 422,
   name: "reserved_sender",
   message:
-    "hello@ms.example is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
+    "hello@ms.example is reserved for Posta's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
 };
 
 let db: Db;

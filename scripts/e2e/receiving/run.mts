@@ -891,9 +891,9 @@ try {
     secrets[label] = created.signing_secret;
   }
 
-  await startAndWait("worker", /millionsend worker running/);
+  await startAndWait("worker", /posta worker running/);
   await startAndWait("mx", /"event":"listening"/, 60_000);
-  await startAndWait("smtp", /millionsend smtp listening on/);
+  await startAndWait("smtp", /posta smtp listening on/);
 
   const sent = new Map<string, Buffer>();
   const latency: { deliver?: number; read?: number } = {};

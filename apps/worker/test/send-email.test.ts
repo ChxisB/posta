@@ -158,7 +158,7 @@ it("sends a queued email: MIME, join key, status, event row", async () => {
 });
 
 it("sends from the shared onboarding sender without a team domain, on the instance defaults", async () => {
-  const platform = "MillionSend <onboarding@ms.example>";
+  const platform = "Posta <onboarding@ms.example>";
   const { ses, sends } = fakeSes("mid-onboarding");
   const deps: SendDeps = {
     keyring,

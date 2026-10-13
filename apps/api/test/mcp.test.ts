@@ -221,7 +221,7 @@ describe("auth middleware", () => {
     expect(((await res.json()) as { error: string }).error).toBe("invalid_token");
   });
 
-  it("403s a token carrying no MillionSend scope", async () => {
+  it("403s a token carrying no Posta scope", async () => {
     const token = await mintToken({ scope: "openid profile" });
     const res = await app.request("/mcp", {
       method: "POST",
@@ -590,7 +590,7 @@ describe("tools", () => {
       keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
       isCloud: false,
       appBaseUrl,
-      onboardingEmailFrom: "MillionSend <hello@acme.dev>",
+      onboardingEmailFrom: "Posta <hello@acme.dev>",
       enqueueEmailSend: async () => {},
     });
     const client = await connect(await mintToken(), reserving);
@@ -955,7 +955,7 @@ it("webhook tools never carry the signing secret, in or out", async () => {
   const created = await client.callTool({
     name: "create_webhook",
     arguments: {
-      endpoint: "https://acme.dev/api/webhooks/millionsend",
+      endpoint: "https://acme.dev/api/webhooks/posta",
       events: ["email.bounced", "email.complained"],
     },
   });

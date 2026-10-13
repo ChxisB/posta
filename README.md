@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/logo/millionsend-banner.svg" alt="MillionSend" width="560">
+  <img src="apps/web/public/logo/millionsend-banner.svg" alt="Posta" width="560">
 </p>
 
 <p align="center"><b>The open-source email platform. Send one. Send a million.</b></p>
@@ -8,7 +8,7 @@ Self-host on your own AWS SES, or use the hosted cloud. Resend-compatible API â€
 means changing two environment variables, not rewriting your integration.
 
 <p align="center">
-  <img src=".github/screenshots/emails.png" alt="The MillionSend dashboard: the Emails page, with each send's delivery status" width="900">
+  <img src=".github/screenshots/emails.png" alt="The Posta dashboard: the Emails page, with each send's delivery status" width="900">
 </p>
 
 ## Features
@@ -55,11 +55,10 @@ Dashboard at http://localhost:3000, API at http://localhost:3001.
 
 ## License
 
-Code is licensed under [AGPL-3.0](LICENSE). SDKs ship separately under MIT
-(npm/PyPI package: `millionsend`).
+Code is licensed under [AGPL-3.0](LICENSE). The SDKs in `packages/sdk` and the CLI are MIT
+(npm: `@tack-labs/posta`, PyPI: `posta-sdk`).
 
-The MillionSend name, wordmark, and logos are trademarks of the MillionSend project and are
-not licensed under the AGPL.
+The Posta name, wordmark, and logos are not licensed under the AGPL.
 
 ## Community
 

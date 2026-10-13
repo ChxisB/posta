@@ -37,7 +37,7 @@ changed it. `data` carries the contact in Resend's shape — `id`, `email`,
 `first_name`, `last_name`, `unsubscribed`, `created_at`, `updated_at` — plus
 `source`: `api`, `dashboard`, `hosted_page` (the preference center) or
 `one_click` (an RFC 8058 header post). Resend emits only `contact.created`,
-`contact.updated` and `contact.deleted`; the rest are MillionSend extensions.
+`contact.updated` and `contact.deleted`; the rest are Posta extensions.
 
 | Event | Fired when | Extra `data` |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ addresses, another `email.received` with the same `email_id` lists only those.
 ### Inbox events
 
 [Inboxes](/concepts/inboxes) emit Resend's `inbox.*` events, plus two of
-MillionSend's own. They are **opt-in**: an endpoint gets them only by naming
+Posta's own. They are **opt-in**: an endpoint gets them only by naming
 them, never through "all events".
 
 | Event | Fired when | `data`, besides `source` and `inbox_id` |
@@ -95,13 +95,13 @@ them, never through "all events".
 | `inbox.created` | An inbox was created. | `inbox` |
 | `inbox.updated` | An inbox's name, from name, expiry or safety settings changed. | `inbox` |
 | `inbox.deleted` | An inbox was deleted, by a person, the API, an expiry or its domain's deletion. | |
-| `inbox.expired` | An inbox reached its `expires_at`; `inbox.deleted` follows. MillionSend's own. | `inbox`, as it was |
+| `inbox.expired` | An inbox reached its `expires_at`; `inbox.deleted` follows. Posta's own. | `inbox`, as it was |
 | `inbox.thread.created` | A thread got its first message: the first one delivered or released, or the first one the inbox sent. | `thread_id`, `email_id`, `thread`, `email` |
 | `inbox.thread.folder.updated` | A thread moved folders, by hand or when new mail brought it back to `inbox`. | `from`, `to`, `thread_id`, `thread` |
 | `inbox.thread.labels.updated` | A label was put on or taken off a thread; one label per event. | `added`, `removed`, `thread_id`, `thread` |
 | `inbox.email.received` | A received message was delivered or released into a thread. | `thread_id`, `email_id`, `thread`, `email` |
 | `inbox.email.sent` | The inbox's send was accepted. | `thread_id`, `email_id`, `thread`, `email` |
-| `inbox.email.quarantined` | A received message was quarantined. MillionSend's own. | `thread_id`, `email_id`, `reason`, `sender_trust`, `from`, `subject`, `received_at` |
+| `inbox.email.quarantined` | A received message was quarantined. Posta's own. | `thread_id`, `email_id`, `reason`, `sender_trust`, `from`, `subject`, `received_at` |
 | `inbox.draft.created` | A draft was created, including a send held for approval. | `draft_id`, `draft`; `thread_id` and `thread` on reply drafts |
 | `inbox.draft.updated` | A draft changed. | same as created |
 | `inbox.draft.sent` | A draft was sent; it fires before `inbox.email.sent`. | `thread_id`, `email_id`, `draft_id`, `thread`, `draft` |
@@ -180,7 +180,7 @@ doesn't reach it. In the dashboard: **Only these inboxes**.
 Resend's .NET and Rust SDKs don't know the `inbox.*` event types: reading a
 webhook subscribed to one through `GET /webhooks` fails in both, and the .NET
 webhook parser throws on these payloads. Resend's own inbox events do the
-same today. Read such endpoints and their deliveries with a MillionSend SDK or
+same today. Read such endpoints and their deliveries with a Posta SDK or
 plain HTTP.
 </Callout>
 
@@ -227,7 +227,7 @@ Always verify against the **raw** request body, and reject stale timestamps.
 `POST /webhooks` accepts an optional `signing_secret`: `whsec_` followed by
 standard base64 of 24–64 bytes — the format Resend and Svix issue. Pass the
 secret your receiver already verifies with and the endpoint keeps working
-without a redeploy; omit it and MillionSend generates one. Anything else is
+without a redeploy; omit it and Posta generates one. Anything else is
 rejected with `422 signing_secret must be whsec_ followed by base64 of 24-64
 bytes`.
 

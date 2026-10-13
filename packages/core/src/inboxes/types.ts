@@ -52,7 +52,7 @@ export interface InboxError {
   retryAfterSec?: number | undefined;
 }
 
-// Wire objects: Resend's fields first, MillionSend's extension keys after.
+// Wire objects: Resend's fields first, Posta's extension keys after.
 // Extensions are extra keys only, never new values in a Resend enum.
 
 export interface InboxWire {

@@ -63,7 +63,7 @@
       "lift": "How to raise",
       "liftLine": "{title} · account score to {score}",
       "liftNone": "Nothing left to gain from content. What remains is in the outcome rates.",
-      "agentPrompt": "In our MillionSend account the score is {score}/10 over the last 30 days. The deliverability check \"{title}\" fails on {emails} emails ({recipients} recipients), costing {points} points of the content sub-score.\n\n{description}\n\nWhat to do: {advice}\n\nFind the templates or code that send these emails and apply the fix. Keep the change minimal and explain what you changed."
+      "agentPrompt": "In our Posta account the score is {score}/10 over the last 30 days. The deliverability check \"{title}\" fails on {emails} emails ({recipients} recipients), costing {points} points of the content sub-score.\n\n{description}\n\nWhat to do: {advice}\n\nFind the templates or code that send these emails and apply the fix. Keep the change minimal and explain what you changed."
     }
   },
   "open": {

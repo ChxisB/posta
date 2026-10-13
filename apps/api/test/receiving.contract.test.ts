@@ -21,7 +21,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for receiving: the official `resend` SDK against a live
- * MillionSend API. emails.receiving.forward() is the strictest client: it
+ * Posta API. emails.receiving.forward() is the strictest client: it
  * downloads raw.download_url with a bare fetch (no API key), parses it with
  * postal-mime and posts the parts back to POST /emails.
  */

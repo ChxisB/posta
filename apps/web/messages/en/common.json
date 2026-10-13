@@ -1,7 +1,7 @@
 {
-  "appName": "MillionSend",
+  "appName": "Posta",
   "meta": {
-    "title": "MillionSend · The open-source email platform",
+    "title": "Posta · The open-source email platform",
     "description": "Open-source, Resend-compatible email API on AWS SES. Self-host for free or use the cloud: 100 emails a day free, no card. Migrate from Resend with two env vars."
   },
   "copy": "Copy",
@@ -98,9 +98,9 @@
   },
   "trackedLink": {
     "disabledTitle": "This link was disabled.",
-    "disabledBody": "It came in an email sent through MillionSend, and it no longer leads anywhere.",
+    "disabledBody": "It came in an email sent through Posta, and it no longer leads anywhere.",
     "confirmTitle": "Check where this link goes.",
-    "confirmBody": "It came in an email sent through MillionSend and leads to {host}. Its sender can no longer be confirmed, so continue only if you trust that site.",
+    "confirmBody": "It came in an email sent through Posta and leads to {host}. Its sender can no longer be confirmed, so continue only if you trust that site.",
     "confirmCta": "Continue to {host}"
   },
   "confirmWord": "DELETE",

@@ -210,7 +210,7 @@ describe("listTeamOwners", () => {
       { teamId: home, email: "ana@example.com", properties: { locale: "pt-BR" } },
       { teamId: home, email: "bob@example.com", properties: { locale: "xx" } },
     ]);
-    const owners = await listTeamOwners(db, teamId, "MillionSend <account@mail.example.com>");
+    const owners = await listTeamOwners(db, teamId, "Posta <account@mail.example.com>");
     expect(owners.map((o) => [o.email, o.locale]).sort()).toEqual([
       ["Ana@example.com", "pt-BR"],
       ["bob@example.com", "en"],
@@ -242,7 +242,7 @@ describe("listTeamOwners", () => {
     await db
       .insert(schema.contacts)
       .values({ teamId: home, email: "sol@example.com", properties: { locale: "pt-BR" } });
-    const sender = "MillionSend <account@stored.example.com>";
+    const sender = "Posta <account@stored.example.com>";
     const locales = async (from?: string) =>
       (await listTeamOwners(db, teamId, from)).map((o) => [o.email, o.locale]).sort();
     const expected = [

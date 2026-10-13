@@ -9,7 +9,7 @@
     "error": "Falha ao criar a equipe. Tente de novo."
   },
   "title": "Envie seu primeiro e-mail",
-  "subtitle": "Siga os passos para enviar um e-mail pela API do MillionSend.",
+  "subtitle": "Siga os passos para enviar um e-mail pela API do Posta.",
   "step1": {
     "title": "Adicione uma chave de API",
     "body": "As chaves autenticam cada requisição. A chave completa aparece uma única vez, na criação.",
@@ -32,7 +32,7 @@
     "keyCommentReplace": "substitua pela sua chave de API",
     "keyCommentLocked": "sua chave, após a criação",
     "sendCta": "Enviar e-mail",
-    "sendHint": "Ainda sem domínio? Receba um e-mail de teste do MillionSend — um por equipe, enviado ao proprietário da equipe.",
+    "sendHint": "Ainda sem domínio? Receba um e-mail de teste do Posta — um por equipe, enviado ao proprietário da equipe.",
     "sending": "Enviando…",
     "sentTo": "Enviado para {to}. Aparece abaixo assim que chegar.",
     "alreadySent": "O e-mail de teste desta equipe já foi enviado. Verifique um domínio para enviar os seus.",
@@ -61,7 +61,7 @@
     },
     "mcp": {
       "title": "Instale o MCP",
-      "body": "Conecte suas ferramentas e agentes de IA para enviar e-mail pelo MillionSend.",
+      "body": "Conecte suas ferramentas e agentes de IA para enviar e-mail pelo Posta.",
       "cta": "Instalar MCP"
     },
     "webhooks": {
@@ -83,7 +83,7 @@
   },
   "stepSes": {
     "title": "Conecte seu AWS SES",
-    "body": "O MillionSend envia pela sua própria conta AWS SES. Conecte uma vez nas configurações — o assistente cria tudo e testa a conexão.",
+    "body": "O Posta envia pela sua própria conta AWS SES. Conecte uma vez nas configurações — o assistente cria tudo e testa a conexão.",
     "cta": "Abrir configuração do SES"
   }
 }

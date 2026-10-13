@@ -3,7 +3,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { NotFoundPanel } from "@/components/not-found-panel";
 
-export const metadata: Metadata = { title: "Page not found · MillionSend Docs" };
+export const metadata: Metadata = { title: "Page not found · Posta Docs" };
 
 /**
  * Every content page is prerendered (dynamicParams = false), so a URL that

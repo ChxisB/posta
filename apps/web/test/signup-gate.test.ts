@@ -25,7 +25,7 @@ describe("a closed instance, end to end", () => {
     // A sender plus SES reach: verification is required, which is the
     // configuration under which better-auth answers a 403 from user creation
     // with a generic "check your inbox".
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
     vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
     vi.stubEnv("AWS_DEFAULT_CHAIN", "");

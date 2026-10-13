@@ -342,7 +342,7 @@ it("a warning that escalates to a pause notifies both once", async () => {
 });
 
 it("a suspended team hears none of its automated notices through the system mailer; others still do", async () => {
-  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "MillionSend <notify@mail.system.test>");
+  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "Posta <notify@mail.system.test>");
   const system = await createTeam(db, "system");
   await db.insert(schema.domains).values({
     teamId: system,
@@ -374,7 +374,7 @@ it("a suspended team hears none of its automated notices through the system mail
 });
 
 it("a suspended team hears no domain notice, and its security receipts only while the suspension is not silent", async () => {
-  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "MillionSend <notify@mail.system.test>");
+  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "Posta <notify@mail.system.test>");
   const system = await createTeam(db, "system");
   await db.insert(schema.domains).values({
     teamId: system,
@@ -835,7 +835,7 @@ it("a paid period that lapsed past its grace reads as the downgrade, keyed like 
 });
 
 it("an owner whose account contact is pt-BR reads the notice in pt-BR", async () => {
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <account@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <account@mail.example.com>");
   const home = await createTeam(db, "home");
   await db
     .insert(schema.domains)
@@ -1027,7 +1027,7 @@ it("skips an owner who turned inbox alerts off", async () => {
 });
 
 it("mutes inbox alerts for a suspended team", async () => {
-  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "MillionSend <notify@mail.system.test>");
+  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "Posta <notify@mail.system.test>");
   const system = await createTeam(db, "system");
   await db.insert(schema.domains).values({
     teamId: system,

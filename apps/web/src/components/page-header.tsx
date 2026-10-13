@@ -9,7 +9,7 @@ import { DotParts } from "./dot-parts";
 
 /**
  * Page chrome: breadcrumb, display H1 with its status badges, mono meta line,
- * actions — and the tab title ("Contacts · MillionSend"). The actions sit
+ * actions — and the tab title ("Contacts · Posta"). The actions sit
  * beside the title block while it keeps its natural width, and otherwise
  * take their own row under the meta line (components.css, .ms-page-row).
  */

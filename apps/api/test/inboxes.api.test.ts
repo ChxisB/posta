@@ -97,7 +97,7 @@ beforeAll(async () => {
 afterAll(() => close());
 
 describe("POST /inboxes and the inbox object", () => {
-  it("creates an inbox and answers Resend's fields plus MillionSend's", async () => {
+  it("creates an inbox and answers Resend's fields plus Posta's", async () => {
     const res = await call(teamKey, "POST", "/inboxes", {
       email_address: "support@in.acme.test",
       name: "Support",
@@ -291,7 +291,7 @@ describe("POST /inboxes and the inbox object", () => {
     });
     expect(patched.status).toBe(422);
     expect((await json(patched)).message).toBe(
-      "Hosted agent settings are not supported; MillionSend runs no agent of its own",
+      "Hosted agent settings are not supported; Posta runs no agent of its own",
     );
     expect((await call(teamKey, "GET", `/inboxes/${randomUUID()}/agent`)).status).toBe(404);
   });

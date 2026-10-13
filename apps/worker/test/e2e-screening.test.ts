@@ -20,7 +20,7 @@ import { type SendDeps, type SesSender, sendEmail } from "../src/handlers/send-e
 
 /**
  * Screening before SES, end to end: the official resend SDK sends through a
- * live MillionSend API, and the worker's own send, judge and drain handlers
+ * live Posta API, and the worker's own send, judge and drain handlers
  * move the mail as their queues would, with TypeSafe and SES faked. What the
  * judge holds back never reaches SES; what it clears does, once.
  */

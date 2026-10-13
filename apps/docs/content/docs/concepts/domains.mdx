@@ -11,7 +11,7 @@ the dashboard.
 
 Adding a domain registers it with SES and shows the DNS records to add:
 
-- **DKIM** — a single `posta._domainkey` TXT record. MillionSend
+- **DKIM** — a single `posta._domainkey` TXT record. Posta
   generates an RSA-2048 keypair per domain and hands the private key to SES
   (BYODKIM), so verification is one TXT record instead of three CNAMEs. The
   private key is never stored.
@@ -21,7 +21,7 @@ Two verification signals are shown side by side:
 
 - **SES status** — what SES reports. SES caches verification and can lag
   after you change records.
-- **Live DNS check** — MillionSend resolves each record itself and reports
+- **Live DNS check** — Posta resolves each record itself and reports
   Found / Missing / Mismatch immediately.
 
 The API (`GET /domains/{id}`, `POST /domains/{id}/verify`, and the `get_domain`
@@ -40,24 +40,24 @@ what public DNS answers right now) and, when a row is not verified, a one-line
 ## Regions
 
 A deployment provisions identities in the SES regions it serves — its
-`AWS_REGIONS`, or the one region in `AWS_REGION`; MillionSend Cloud serves
-`sa-east-1` (São Paulo) today. The dashboard's add-domain form lists the
-served regions, holds back one still in the SES sandbox while another has
-production access, and defaults to the first production region. The API's
-optional `region` field (the `create_domain` MCP tool included) accepts any
-served region — the values its schema lists — and defaults to the first;
-any other value is rejected with `422` naming the served regions.
-Configuration sets, event topics and SES tenants are regional, so a domain
-anywhere else would hand out DNS records but never send or report events.
+`AWS_REGIONS`, or the one region in `AWS_REGION`. The dashboard's
+add-domain form lists the served regions, holds back one still in the SES
+sandbox while another has production access, and defaults to the first
+production region. The API's optional `region` field (the `create_domain`
+MCP tool included) accepts any served region — the values its schema lists
+— and defaults to the first; any other value is rejected with `422` naming
+the served regions. Configuration sets, event topics and SES tenants are
+regional, so a domain anywhere else would hand out DNS records but never
+send or report events.
 
 A domain has exactly one region. To move it, delete it and add it again in
 the other region — its DNS records change, since SES identities are per
-region. On MillionSend Cloud a domain name another team holds is taken in
+region. On Posta Cloud a domain name another team holds is taken in
 every region.
 
 ## New domain warm-up
 
-On MillionSend Cloud a domain registered recently sends gradually while it
+On Posta Cloud a domain registered recently sends gradually while it
 builds a reputation with mailbox providers. The age is the registered domain's
 (`acme.com` for `mail.acme.com`; a name from a free subdomain service, such as
 `shop.eu.org`, counts as its own domain), read from public data when the
@@ -105,14 +105,14 @@ up in one call (a Resend-shaped call that omits them is unchanged).
 Tracking is served from the domain's own tracking subdomain: pass
 `tracking_subdomain` (a label such as `links`) and the response's `records[]`
 gains a Tracking CNAME whose status turns `verified` once it resolves. On
-MillionSend Cloud, turning either kind on without a subdomain is refused with a
+Posta Cloud, turning either kind on without a subdomain is refused with a
 422. Until the CNAME resolves, links are not routed through it — Cloud ships
 them clean, self-host falls back to the app host — and the domain shows as
 **Partial** in the dashboard: verified for sending, tracking not yet live. On
 Cloudflare the tracking record must stay **DNS only** (grey cloud): a proxied
 CNAME answers with Cloudflare's addresses instead of the target, which the
 records table reports as a mismatch, and TLS for the tracking host is served
-by MillionSend.
+by Posta.
 
 ## Open-rate accuracy
 
@@ -194,7 +194,7 @@ row never gates sending.
 (`true`) or only at its [inboxes'](/concepts/inboxes) addresses (`false`,
 the default; other addresses are refused). Owners and admins switch it with
 **Catch-all** on the domain page or `PATCH /domains/{id}` with
-`{ "receiving_catch_all": true }`; on MillionSend Cloud it needs a paid plan.
+`{ "receiving_catch_all": true }`; on Posta Cloud it needs a paid plan.
 See [Which addresses receive](/concepts/receiving#which-addresses-receive).
 Deleting a domain deletes its inboxes, with their threads and drafts, and
 revokes their API keys.

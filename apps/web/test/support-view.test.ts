@@ -130,7 +130,7 @@ const AUTH_SECRET = randomBytes(32).toString("base64");
 beforeEach(() => {
   vi.stubEnv("SUPPORT_VIEW", "on");
   vi.stubEnv("APP_BASE_URL", APP);
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <hello@example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <hello@example.com>");
   vi.stubEnv("BETTER_AUTH_SECRET", AUTH_SECRET);
   // No SES reach unless a test grants it, so the instance cannot email a
   // code and a recent sign-in stands in, as on an instance without mail.
@@ -519,9 +519,9 @@ describe("the emailed code in front of a start", () => {
     const mail = h.sent[0] as SystemMailMessage;
     const code = sentCode();
     expect(mail).toMatchObject({
-      from: "MillionSend <hello@example.com>",
+      from: "Posta <hello@example.com>",
       to: "op@example.com",
-      subject: "Your MillionSend console code",
+      subject: "Your Posta console code",
       kind: "console_code",
     });
     // The operator's own account mail names no team, so no suspension mutes it.
@@ -552,7 +552,7 @@ describe("the emailed code in front of a start", () => {
     } finally {
       await db.update(schema.user).set({ locale: null }).where(eq(schema.user.id, OPERATOR));
     }
-    expect(h.sent.at(-1)?.subject).toBe("Seu código do console MillionSend");
+    expect(h.sent.at(-1)?.subject).toBe("Seu código do console Posta");
     expect(h.sent.at(-1)?.text).toContain(`Ele vale uma vez, por ${CONSOLE_CODE_MINUTES} minutos.`);
   });
 
@@ -1215,7 +1215,7 @@ describe("the owner's side", () => {
   it("sees the live view, ends it, and both trails carry the rows", async () => {
     const grant = await start({ reason: "billing_dispute", reference: "INV-77" });
     const current = await owner().team.supportView.current();
-    // The card names MillionSend: nothing of the operator reaches the team.
+    // The card names Posta: nothing of the operator reaches the team.
     expect(current).toStrictEqual({
       enabled: true,
       live: {

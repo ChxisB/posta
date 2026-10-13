@@ -1,9 +1,9 @@
 ---
 title: CLI
-description: "@tack-labs/posta-cli — mova uma conta de e-mail para o MillionSend pelo terminal: plan, apply, status, rollback."
+description: "@tack-labs/posta-cli — mova uma conta de e-mail para o Posta pelo terminal: plan, apply, status, rollback."
 ---
 
-`@tack-labs/posta-cli` move uma conta de e-mail para o MillionSend — Cloud ou sua
+`@tack-labs/posta-cli` move uma conta de e-mail para o Posta — Cloud ou sua
 própria instância. Ele lê o provedor de origem, compara com o destino, aplica
 a diferença e grava um relatório. Hoje a única origem é o Resend.
 
@@ -62,9 +62,9 @@ posta --help | --version
 | `--from <provider>` | Provedor de origem. Só existe `resend`. |
 | `--from-key-stdin` | Lê a chave de API de origem do stdin (primeira linha). |
 | `--from-key <key>` | Chave de API de origem como argumento. Visível em listas de processos; a ferramenta avisa. Prefira a variável de ambiente. |
-| `--to-url <url>` | URL da API de uma instância auto-hospedada do MillionSend. Sem ela, o destino é o MillionSend Cloud (`https://api.posta.example`), como nos SDKs. |
-| `--to-key-stdin` | Lê a chave de API do MillionSend do stdin (segunda linha quando as duas flags de stdin estão presentes). |
-| `--to-key <key>` | Chave de API do MillionSend como argumento. Mesma ressalva. |
+| `--to-url <url>` | URL da API de uma instância auto-hospedada do Posta. Sem ela, o destino é o Posta Cloud (`https://api.posta.example`), como nos SDKs. |
+| `--to-key-stdin` | Lê a chave de API do Posta do stdin (segunda linha quando as duas flags de stdin estão presentes). |
+| `--to-key <key>` | Chave de API do Posta como argumento. Mesma ressalva. |
 | `--rps <n>` | Requisições por segundo contra a origem; padrão 8. O limite da equipe no Resend é 10, compartilhado com o seu envio em produção; a CLI mostra ao conectar o limite que detecta, se mantém abaixo dele e avisa quando o ritmo passa dele. Valores acima de 10 (até 100) são para um limite que o Resend aumentou sob pedido. |
 | `--only <a,b>` | Migra apenas estes recursos. |
 | `--skip <a,b>` | Pula estes recursos. `enrichment` é a passagem por contato que roda por último: inscrições em tópicos, depois propriedades, cada uma retomável. |
@@ -91,8 +91,8 @@ Nomes de recurso para `--only` e `--skip`, na ordem de aplicação: `domains`,
 | Variável | Significado |
 | --- | --- |
 | `RESEND_API_KEY` | Chave de API de origem, acesso total. A ferramenta só lê do Resend. |
-| `POSTA_API_KEY` | Chave de API do MillionSend, acesso total. |
-| `POSTA_BASE_URL` | URL da API de uma instância auto-hospedada, igual a `--to-url`. Sem ela, MillionSend Cloud. |
+| `POSTA_API_KEY` | Chave de API do Posta, acesso total. |
+| `POSTA_BASE_URL` | URL da API de uma instância auto-hospedada, igual a `--to-url`. Sem ela, Posta Cloud. |
 | `NO_COLOR` | Desativa cores. |
 | `FORCE_COLOR` | Cores mesmo em um pipe, o mesmo que `--color always`. |
 | `DO_NOT_TRACK` | Respeitada, sem efeito: a ferramenta não envia telemetria, nunca se conecta a servidores nossos e nunca verifica atualizações. |
@@ -100,8 +100,8 @@ Nomes de recurso para `--only` e `--skip`, na ordem de aplicação: `domains`,
 Cada chave é resolvida nesta ordem: variável de ambiente, depois a flag
 `-stdin`, depois a flag de argumento, depois — em um terminal — um prompt
 mascarado. A URL de destino vem de `POSTA_BASE_URL` ou `--to-url`; sem
-nenhuma das duas, um terminal oferece a escolha entre o MillionSend Cloud e uma
-URL auto-hospedada, e uma execução não interativa usa o MillionSend Cloud,
+nenhuma das duas, um terminal oferece a escolha entre o Posta Cloud e uma
+URL auto-hospedada, e uma execução não interativa usa o Posta Cloud,
 como nos SDKs.
 
 ## Arquivos
@@ -113,7 +113,7 @@ uma chave:
 | --- | --- |
 | `.posta/migrate-state.json` | Cada id que a ferramenta criou por recurso, cursores de retomada, o hash do plano. Gravado após cada lote, então uma execução interrompida retoma de onde parou. |
 | `.posta/migrate-report.json` | O relatório da última execução como dados. |
-| `.posta/migrate-report.md` | O mesmo relatório em Markdown: contagens, o checklist, os registros DNS por domínio, o mapa de ids (ids de tópicos e segmentos na origem → ids no MillionSend, para código que os referencia), os itens manuais. |
+| `.posta/migrate-report.md` | O mesmo relatório em Markdown: contagens, o checklist, os registros DNS por domínio, o mapa de ids (ids de tópicos e segmentos na origem → ids no Posta, para código que os referencia), os itens manuais. |
 
 `.posta/` é acrescentado ao `.gitignore` quando existe um no diretório
 atual; a ferramenta avisa uma vez.
@@ -123,12 +123,12 @@ atual; a ferramenta avisa uma vez.
 - **Somente leitura na origem.** Toda requisição ao Resend é um `GET` a um
   endpoint documentado, enviada com o `User-Agent`
   `posta-cli/<versão>`. Escritas vão apenas para a sua API do
-  MillionSend.
+  Posta.
 - **As chaves ficam em memória.** Nunca são gravadas em arquivo e são
   mascaradas em toda linha de log (`re_…`, `po_…`, `whsec_…` e headers
   `Authorization`).
 - **Dois hosts, nenhum terceiro.** A ferramenta contata `api.resend.com` e a
-  URL da API do MillionSend que você informou. Sem telemetria, sem
+  URL da API do Posta que você informou. Sem telemetria, sem
   verificação de atualização.
 - **401 ou 403 de qualquer lado interrompe a execução.** Sem retentativa,
   sem contorno.
@@ -188,4 +188,4 @@ posta migrate plan --from resend --json | jq '.counts'
 
 ---
 
-Resend é uma marca registrada da Plus Five Five, Inc. O MillionSend não é afiliado nem endossado pelo Resend.
+Resend é uma marca registrada da Plus Five Five, Inc. O Posta não é afiliado nem endossado pelo Resend.

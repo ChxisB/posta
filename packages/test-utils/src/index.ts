@@ -101,7 +101,7 @@ export const LURE_NAMES = [
   "acme-support\u2024com",
   "acme-sup\u200bport.com",
   "\u202emoc.troppus-emca\u202c",
-  "Security notice\nVisit acme-support.com\n\nThe MillionSend team",
+  "Security notice\nVisit acme-support.com\n\nThe Posta team",
   `${"Urgent: verify your account now. ".repeat(3)}acme-support.com`,
   "Account locked? Call +1 (888) 555-0199",
   "Ligue 0800 555 0199 para desbloquear",

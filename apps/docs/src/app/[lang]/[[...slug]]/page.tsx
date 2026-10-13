@@ -71,7 +71,7 @@ export async function generateMetadata(props: PageParams): Promise<Metadata> {
     // Page-level openGraph replaces the layout's wholesale, so the image
     // rides along here or vanishes from article pages.
     openGraph: {
-      siteName: "MillionSend Docs",
+      siteName: "Posta Docs",
       type: "article",
       locale: lang === "pt-BR" ? "pt_BR" : "en_US",
       url: absoluteUrl(page.url),

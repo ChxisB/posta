@@ -381,7 +381,7 @@ describe("domains.create", () => {
   it("refuses public mailbox providers, and in cloud the platform and system-mail domains", async () => {
     const teamId = await createTeam(db);
     const caller = callerFor(teamId, fakeSes().deps);
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.ms-ops.dev>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.ms-ops.dev>");
     await expect(
       caller.domains.create({ name: "gmail.com", region: "us-east-1" }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });

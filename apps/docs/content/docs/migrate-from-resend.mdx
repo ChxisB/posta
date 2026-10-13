@@ -3,7 +3,7 @@ title: Migrate from Resend
 description: One command moves your Resend account; two environment lines move your code — the wire format is identical.
 ---
 
-MillionSend's REST API is wire-compatible with Resend's: same endpoints, same
+Posta's REST API is wire-compatible with Resend's: same endpoints, same
 request and response shapes. Migrating is a configuration change, not a
 rewrite. The account data — contacts, segments, topics, templates, webhooks,
 domains, suppressions — moves with one command.
@@ -20,7 +20,7 @@ Or point the agent at it: `https://docs.posta.example/prompts/migrate-from-resen
 
 ## 1. Move your account
 
-Create a `po_` API key with full access under **API keys** (MillionSend
+Create a `po_` API key with full access under **API keys** (Posta
 Cloud, or your own [self-hosted](/self-hosting) instance), then run, on your
 machine:
 
@@ -28,7 +28,7 @@ machine:
 npx @tack-labs/posta-cli migrate --from resend
 ```
 
-It asks for your Resend key (full access) and your MillionSend key, reads
+It asks for your Resend key (full access) and your Posta key, reads
 your Resend account, shows a plan, waits for confirmation, applies it and
 prints a summary. Self-hosted, name your instance's API URL:
 
@@ -45,7 +45,7 @@ What it does:
   your production sending), backing off on the `ratelimit-*` headers and on
   every `429`. `--rps` changes the rate.
 - **Your keys never leave your machine.** The tool talks to `api.resend.com`
-  and to your MillionSend API only. Keys live in memory for the run, are never
+  and to your Posta API only. Keys live in memory for the run, are never
   written to a file, and are redacted from every log line. No telemetry, no
   update check.
 - **Cutover first, enrichment after.** Pass 1 creates properties, topics,
@@ -102,9 +102,9 @@ Three things shorten it:
 | Contacts | Email, names, `unsubscribed`, properties, topic subscriptions, segment memberships. Opt-outs are preserved; nobody is re-subscribed. |
 | Segments, topics, properties | Matched by name / name / key: created when missing, updated when different. |
 | Templates | Name, alias, subject, html, text. `from`, `reply_to` and `variables` cannot be stored — listed as manual steps. |
-| Webhooks | Endpoint and events. The signing secret is copied, so the receiver you already run keeps verifying (deliveries carry the `svix-*` headers). `--fresh-webhook-secrets` mints new ones. Events MillionSend also emits carry over — the eight `email.*` types, `email.received` included, `contact.created`, `contact.updated` and `contact.deleted`, and the twelve `inbox.*` types MillionSend sends; the rest (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) are dropped per webhook and listed. |
+| Webhooks | Endpoint and events. The signing secret is copied, so the receiver you already run keeps verifying (deliveries carry the `svix-*` headers). `--fresh-webhook-secrets` mints new ones. Events Posta also emits carry over — the eight `email.*` types, `email.received` included, `contact.created`, `contact.updated` and `contact.deleted`, and the twelve `inbox.*` types Posta sends; the rest (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) are dropped per webhook and listed. |
 | Suppressions | Bounces, complaints and manual entries, with their origin. |
-| Domains | Created with return path and tracking settings, in the one SES region your MillionSend instance serves (MillionSend Cloud: `sa-east-1`) — the Resend region does not carry over. On MillionSend Cloud, tracking toggles only carry over together with a tracking subdomain; without one the report lists them for you to set up in the dashboard. DNS records must be added again — see step 3. |
+| Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves — the Resend region does not carry over. On Posta Cloud, tracking toggles only carry over together with a tracking subdomain; without one the report lists them for you to set up in the dashboard. DNS records must be added again — see step 3. |
 | Broadcasts | Drafts and scheduled ones import as drafts. Sent ones are skipped unless `--include-sent`. |
 
 What cannot move: **API keys** (Resend exposes their names only — the report
@@ -116,7 +116,7 @@ are skipped — segments cover them.
 Flags, environment variables, files, exit codes and CI usage are on the
 [CLI reference](/cli).
 
-## 2. Point your existing code at MillionSend
+## 2. Point your existing code at Posta
 
 The official Resend SDKs honor `RESEND_BASE_URL`, so the migration is two
 environment lines — no code changes:
@@ -144,7 +144,7 @@ Three details that differ from what a Resend integration may assume:
   `POST /contacts/batch?on_conflict=upsert` as JSON, up to 1,000 per call, with
   `x-batch-validation: permissive` to keep the valid rows when some fail.
 
-Prefer first-party clients? The [MillionSend SDKs](/sdks) cover nine
+Prefer first-party clients? The [Posta SDKs](/sdks) cover nine
 languages with the same surface:
 
 ```ts
@@ -157,7 +157,7 @@ const ms = new Posta("po_...", { baseUrl: "https://api.posta.example" });
 
 The summary ends with a checklist. Three items are always on it:
 
-- **Add DNS records for each domain.** MillionSend uses its own DKIM keypair,
+- **Add DNS records for each domain.** Posta uses its own DKIM keypair,
   so the records are new even for a domain that already sends through
   Resend. The report prints a copy-ready table of the records per domain
   (also under **Domains** in the dashboard). Both providers can stay verified
@@ -167,14 +167,14 @@ The summary ends with a checklist. Three items are always on it:
   `staging`) under **API keys**.
 
 Two more appear when they apply: template `from` / `reply_to` values to set
-per send, and webhook event types MillionSend does not emit. Broadcast bodies
+per send, and webhook event types Posta does not emit. Broadcast bodies
 need no change: `{{{RESEND_UNSUBSCRIBE_URL}}}` is a supported alias of
 `{{{UNSUBSCRIBE_URL}}}`.
 
 Receiving mail through Resend too? Turn receiving on for the domain here once
 it is verified (**Enable receiving** on its page), then choose which addresses
 take mail. Resend receives at every address of the domain; here that is
-**Catch-all**, on the same page (a paid plan on MillionSend Cloud), or else
+**Catch-all**, on the same page (a paid plan on Posta Cloud), or else
 an [inbox](/concepts/inboxes) per address. Then change the domain's MX
 record from the one Resend gave you to `mx.posta-dns.example`
 (self-hosted: your instance's `RECEIVING_MX_HOST`). Mail goes to the MX
@@ -184,10 +184,10 @@ Resend already received stays there. Code calling
 change. See [Receiving](/concepts/receiving).
 
 Using Resend's Inboxes preview? Point `resend@6.32.1-preview-inboxes.6` at
-MillionSend like any other Resend SDK, and create each inbox again with the
+Posta like any other Resend SDK, and create each inbox again with the
 same address (`POST /inboxes`, or **Inboxes → Create inbox**); threads and
 drafts stay at Resend. An inbox created through a Resend SDK is an agent's
-inbox, with MillionSend's protections on: mail from senders whose domain
+inbox, with Posta's protections on: mail from senders whose domain
 doesn't vouch for them, for one, waits in quarantine. Create inboxes read by
 people as `kind: "human"`, in the dashboard or over plain HTTP. `forwarding: true` gives a `receiving_address` on the
 instance's shared inbox domain, so it needs one. See
@@ -198,4 +198,4 @@ the Emails page — that is the whole migration.
 
 ---
 
-Resend is a registered trademark of Plus Five Five, Inc. MillionSend is not affiliated with or endorsed by Resend.
+Resend is a registered trademark of Plus Five Five, Inc. Posta is not affiliated with or endorsed by Resend.

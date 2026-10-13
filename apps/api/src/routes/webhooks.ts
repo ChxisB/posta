@@ -245,7 +245,7 @@ export function registerWebhookRoutes(app: OpenAPIHono<Env>, db: Db, keyring: Ke
       path: "/webhooks/{id}/rotate",
       summary: "Rotate a webhook's signing secret",
       description:
-        "MillionSend extension. Mints a new signing secret (or takes the one in signing_secret) and " +
+        "Posta extension. Mints a new signing secret (or takes the one in signing_secret) and " +
         "returns it. For overlap_hours the previous secret keeps signing too: every delivery in that " +
         "window carries both signatures, space-separated in webhook-signature, so the receiver can " +
         "switch at any point without a gap. A second rotation inside the window replaces the previous secret.",

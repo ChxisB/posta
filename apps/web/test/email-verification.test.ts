@@ -25,7 +25,7 @@ afterEach(async () => {
 });
 
 function stubSender() {
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
   vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
   vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
   vi.stubEnv("AWS_DEFAULT_CHAIN", "");
@@ -72,8 +72,8 @@ describe("email verification", () => {
     expect(sent[0]).toMatchObject({
       kind: "email_verification",
       to: "ada@example.com",
-      from: "MillionSend <no-reply@mail.example.com>",
-      subject: "Confirme seu e-mail do MillionSend",
+      from: "Posta <no-reply@mail.example.com>",
+      subject: "Confirme seu e-mail do Posta",
     });
     const url = new URL(sent[0]?.text.match(/https?:\/\/\S+/)?.[0] ?? "");
     expect(url.pathname).toBe("/api/auth/verify-email");
@@ -98,7 +98,7 @@ describe("email verification", () => {
       "email_verification",
       "welcome",
     ]);
-    expect(sent[2]).toMatchObject({ to: "ada@example.com", subject: "Bem-vindo ao MillionSend" });
+    expect(sent[2]).toMatchObject({ to: "ada@example.com", subject: "Bem-vindo ao Posta" });
     expect((await signIn(a)).token).toBeTruthy();
     // The verified sign-in sends nothing: the next mail out is the reset.
     await a.api.requestPasswordReset({ body: { email: "ada@example.com", redirectTo: "/x" } });
@@ -122,13 +122,13 @@ describe("email verification", () => {
       url: "https://x.com/v?token=t",
       locale: "en",
     });
-    expect(mail.subject).toBe("Verify your MillionSend email");
+    expect(mail.subject).toBe("Verify your Posta email");
     expect(mail.html).toContain("https://x.com/v?token=t");
     expect(mail.text).toContain("https://x.com/v?token=t");
     expect(mail.text).toContain("60");
     expect(mail.text).toMatch(/^Hi,$/m);
     const pt = buildVerificationEmail({ to: "a@b.com", url: "https://x.com/v", locale: "pt-BR" });
-    expect(pt.subject).toBe("Confirme seu e-mail do MillionSend");
+    expect(pt.subject).toBe("Confirme seu e-mail do Posta");
     expect(pt.text).toMatch(/^Olá,$/m);
   });
 

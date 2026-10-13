@@ -158,7 +158,7 @@
     "notCheckedWhy": "DNS state unavailable at send time.",
     "notApplicableToggle": "{count, plural, one {# check not applicable} other {# checks not applicable}}",
     "byDesign": "by design",
-    "byDesignNote": "MillionSend enforces this structurally — it cannot fail here.",
+    "byDesignNote": "Posta enforces this structurally — it cannot fail here.",
     "adviceLabel": "What to do",
     "detailLabel": "Detail",
     "kb": "{kb} KB",
@@ -171,12 +171,12 @@
       "auth_alignment": {
         "title": "SPF and DKIM alignment",
         "description": "SPF and DKIM pass and align with your From domain — the base requirement of every major mailbox provider.",
-        "advice": "Nothing to do — MillionSend verifies SPF and DKIM on your domain before any send leaves."
+        "advice": "Nothing to do — Posta verifies SPF and DKIM on your domain before any send leaves."
       },
       "list_unsubscribe": {
         "title": "One-click unsubscribe headers",
         "description": "The message carries List-Unsubscribe and List-Unsubscribe-Post headers. Gmail and Yahoo require one-click unsubscribe for bulk senders.",
-        "advice": "Send marketing through broadcasts or topics — MillionSend injects both headers automatically."
+        "advice": "Send marketing through broadcasts or topics — Posta injects both headers automatically."
       },
       "link_domains_match": {
         "title": "Links match your domain",
@@ -267,7 +267,7 @@
     "handoffLabel": "Hand it to your agent",
     "handoffHint": "A ready-made instruction with the check, the reason and the fix.",
     "copyForAgent": "Copy instructions",
-    "agentPrompt": "In our MillionSend integration, the email \"{subject}\" (id {id}) fails the deliverability check \"{title}\".\n\n{description}\n\nWhat to do: {advice}{detail}\n\nFind the code or template that sends this email and apply the fix. Keep the change minimal and explain what you changed."
+    "agentPrompt": "In our Posta integration, the email \"{subject}\" (id {id}) fails the deliverability check \"{title}\".\n\n{description}\n\nWhat to do: {advice}{detail}\n\nFind the code or template that sends this email and apply the fix. Keep the change minimal and explain what you changed."
   },
   "bouncedDrawer": {
     "title": "Bounced details",

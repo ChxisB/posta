@@ -6,13 +6,13 @@ description: Team-global contacts with subscribe state and custom properties.
 Contacts are **team-global**: one list per team, one row per email address
 (case-insensitive unique). There is no "audiences" concept — a contact belongs
 to your team directly, and you target subsets with
-[segments](/concepts/segments) and [topics](/concepts/topics). On MillionSend
+[segments](/concepts/segments) and [topics](/concepts/topics). On Posta
 Cloud the Free plan holds up to 1,000 contacts (creating one past that returns
 `403 plan_limit_reached`; existing contacts still update); paid plans have no
 contact limit.
 
 If you are migrating from Resend: the Resend SDK's contact methods work
-against MillionSend whenever `audienceId` is omitted — the contact paths are
+against Posta whenever `audienceId` is omitted — the contact paths are
 the same, minus the audience nesting.
 
 ## What a contact holds
@@ -36,7 +36,7 @@ Contacts are managed via `POST/GET/PATCH/DELETE /contacts` and
 path segment accepts either the contact UUID or its email address; email
 matching is case-insensitive.
 
-Two MillionSend extensions make reading an audience cheap. `GET /contacts`
+Two Posta extensions make reading an audience cheap. `GET /contacts`
 and `GET /segments/{id}/contacts` accept `include=properties,topics` and
 attach to every item the `{type, value}` property map and the topic rows that
 `GET /contacts/{id}` and `GET /contacts/{id}/topics` return; without `include`
@@ -73,7 +73,7 @@ skipped. Deleting keeps the contact's emails in the log, where they age out
 with the team's retention window; `erase: true` also scrubs each address from
 email history, event payloads and API logs, the same as
 `DELETE /contacts/{id}?erase=true`. Resend has no bulk deletion; this is a
-MillionSend extension, also exposed as the `delete_contacts` MCP tool.
+Posta extension, also exposed as the `delete_contacts` MCP tool.
 
 ```sh
 curl -X POST "https://api.posta.example/contacts/batch/remove" \
@@ -85,7 +85,7 @@ curl -X POST "https://api.posta.example/contacts/batch/remove" \
 ## Bulk create
 
 `POST /contacts/batch` takes a JSON array of 1–1000 items, each shaped like
-a `POST /contacts` body, and writes them in one transaction (a MillionSend
+a `POST /contacts` body, and writes them in one transaction (a Posta
 extension — Resend imports contacts only via CSV). The `on_conflict` query
 parameter decides what happens to an item whose email already belongs to a
 contact, or repeats inside the batch:

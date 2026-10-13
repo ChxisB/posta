@@ -31,9 +31,8 @@ import { type MediaFindings, renderMediaLines } from "./media.js";
  * attachments (their text, brands, links and Pix payees) follows in sections
  * of its own; no recipient address, raw HTML, image or file is ever part of
  * it, and the block itself is never stored anywhere: it exists in the judge
- * call only. Section 5 of the landing page's privacy
- * policy (millionsend-lp src/app/privacy/page.tsx) lists these fields;
- * change them together.
+ * call only. A hosted privacy policy that lists these fields must change
+ * with them.
  */
 
 /** The visible text's cap, kept as its first two thirds and its last third. */

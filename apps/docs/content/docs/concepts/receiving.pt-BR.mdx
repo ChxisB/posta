@@ -5,10 +5,10 @@ description: Receba e-mails no seu próprio domínio, leia pela API compatível 
 
 O recebimento transforma um domínio que você verificou num lugar que recebe
 e-mails. Um e-mail enviado para os endereços dele chega ao servidor de e-mail
-do MillionSend, fica guardado com criptografia e volta para você pela API,
+do Posta, fica guardado com criptografia e volta para você pela API,
 pelo webhook `email.received`, pelo painel (**Caixas de entrada → Todos os
 recebidos**) e pelo [servidor MCP](/pt-BR/mcp). A API é a de recebimento do
-Resend, então os SDKs oficiais do Resend funcionam com o MillionSend sem
+Resend, então os SDKs oficiais do Resend funcionam com o Posta sem
 mudanças, `forward()` incluído.
 
 Quais endereços recebem é você quem decide: o endereço de cada
@@ -32,13 +32,13 @@ o servidor de quem envia consulta o registro MX do domínio do destinatário e
 entrega no host que ele indica.
 
 1. O servidor de quem envia lê o registro MX do seu domínio e se conecta ao
-   MX do MillionSend.
+   MX do Posta.
 2. Para cada destinatário (`RCPT TO`), o MX confere se o domínio recebe aqui
    e se o endereço tem uma caixa de entrada, a não ser que o pega-tudo do
    domínio esteja ligado. Um endereço de qualquer outro domínio é recusado,
    então o MX nunca repassa e-mail para lugar nenhum.
 3. A mensagem vai chegando (no máximo 40 MB). O MX verifica SPF, DKIM, DMARC
-   e ARC; o MillionSend passa a mensagem pelo antivírus, onde a instância roda
+   e ARC; o Posta passa a mensagem pelo antivírus, onde a instância roda
    um, dá uma nota de spam e a guarda antes de o MX responder `250`. A partir
    daí a mensagem é sua, e o servidor de quem enviou terminou o trabalho.
 4. O `email.received` dispara, e a mensagem aparece na API e no painel. O
@@ -46,7 +46,7 @@ entrega no host que ele indica.
    quando é entregue ou liberado.
 
 Toda recusa acontece durante essa conversa SMTP, então o servidor de quem
-envia continua com a mensagem e decide o que fazer com ela. O MillionSend
+envia continua com a mensagem e decide o que fazer com ela. O Posta
 nunca envia um bounce por conta própria.
 
 | Resposta | Quando | O servidor de quem envia |
@@ -56,7 +56,7 @@ nunca envia um bounce por conta própria.
 | `550 5.7.1` | A equipe dona do domínio está suspensa. | Devolve a mensagem ao remetente. |
 | `552 5.3.4` | A mensagem passa de 40 MB. | Devolve a mensagem ao remetente. |
 | `452 4.2.2` | A franquia de recebimento da equipe acabou (veja [preços](#preços)), ou a caixa recebeu mais e-mails do que pode numa hora (200 mensagens numa caixa de agente, 2.000 numa caixa de pessoas). | Guarda a mensagem e tenta de novo mais tarde. |
-| Outros `4xx`, como `451 4.3.0` | Um problema temporário do lado do MillionSend, ou mais destinatários do que uma entrega aceita (50). | Guarda a mensagem e tenta de novo, por dias se precisar. |
+| Outros `4xx`, como `451 4.3.0` | Um problema temporário do lado do Posta, ou mais destinatários do que uma entrega aceita (50). | Guarda a mensagem e tenta de novo, por dias se precisar. |
 
 ## Configuração
 
@@ -169,7 +169,7 @@ Donos e admins ligam o pega-tudo na página do domínio, ou com
 `PATCH /domains/{id}` e `{ "receiving_catch_all": true }`; as respostas de
 domínio trazem `receiving_catch_all`. Ele começa desligado, e foi ligado em
 todo domínio que já recebia e-mail antes de as caixas existirem. No
-MillionSend Cloud ele exige um plano pago (o Free responde
+Posta Cloud ele exige um plano pago (o Free responde
 `403 plan_limit_reached`); depois de ligado, continua ligado mesmo depois de
 um downgrade.
 
@@ -239,8 +239,8 @@ caixas de entrada em si são grátis.
 
 ## Lendo e-mails recebidos
 
-Use um [SDK do MillionSend](/pt-BR/sdks) a partir da 0.9.0
-(`emails.receiving`), o SDK oficial do Resend apontado para o MillionSend
+Use um [SDK do Posta](/pt-BR/sdks) a partir da 0.9.0
+(`emails.receiving`), o SDK oficial do Resend apontado para o Posta
 (`RESEND_BASE_URL`) ou HTTP direto. Todo endpoint abaixo exige uma chave de
 **acesso total**; uma chave de somente envio recebe
 `403 restricted_api_key`. Uma chave restrita a um domínio só lê os e-mails
@@ -323,7 +323,7 @@ curl "https://api.posta.example/emails/receiving?limit=20" \
 
 A listagem mostra os e-mails de endereços do pega-tudo e os entregues numa
 caixa; os retidos ficam de fora, a não ser que você peça. Os itens trazem os
-campos do MillionSend depois dos do Resend:
+campos do Posta depois dos do Resend:
 
 - `inbox_id` e `thread_id`: a caixa em que a mensagem foi entregue (com uma
   chave restrita a uma caixa, a dela), senão `null`. `inboxes` lista todas as
@@ -464,7 +464,7 @@ autenticação e um link de download da mensagem original:
   (de largura zero, de direção do texto, tags Unicode), com as quebras de
   linha mantidas.
 - `message_id` vem do cabeçalho `Message-ID` da mensagem. Quando ela não tem
-  um, o MillionSend cria `<id@received.invalid>`.
+  um, o Posta cria `<id@received.invalid>`.
 - `extracted_text` é a parte da resposta da mensagem, sem o texto que uma
   pessoa não vê, com o histórico citado e as assinaturas separados (veja
   [Segurança de agentes](/pt-BR/concepts/agent-safety#texto-oculto-e-extracted_text)).

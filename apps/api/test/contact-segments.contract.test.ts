@@ -158,7 +158,7 @@ describe("official resend SDK: segments membership + audiences alias", () => {
     expect(gone.error?.name).toBe("not_found");
   });
 
-  it("a filter segment resolves contacts dynamically (MillionSend extension)", async () => {
+  it("a filter segment resolves contacts dynamically (Posta extension)", async () => {
     // The SDK posts the create payload verbatim, so the extra `filter` field
     // reaches the wire even though its type only declares `name`.
     const created = await resend.segments.create({

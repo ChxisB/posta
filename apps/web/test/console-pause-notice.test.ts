@@ -38,7 +38,7 @@ const teams = () =>
   }).console.teams;
 
 it("an operator's broadcast pause emails an active team's owner, never a suspended team's", async () => {
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <account@example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <account@example.com>");
   const id = await createTeam(db, "held");
   await db.insert(schema.teamMembers).values({ teamId: id, userId: "owner", role: "owner" });
 

@@ -324,7 +324,7 @@ it("names the team's tier in the operator's language, never by its key", async (
 });
 
 it("still emails the operator about a suspended team, through the system mailer", async () => {
-  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "MillionSend <notify@mail.system.test>");
+  vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "Posta <notify@mail.system.test>");
   try {
     const system = await createTeam(db, "system");
     await db.insert(schema.domains).values({

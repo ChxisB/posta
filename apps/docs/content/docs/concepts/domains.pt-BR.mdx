@@ -11,7 +11,7 @@ e verificados no painel.
 
 Adicionar um domínio o registra no SES e mostra os registros DNS a criar:
 
-- **DKIM** — um único registro TXT `posta._domainkey`. O MillionSend
+- **DKIM** — um único registro TXT `posta._domainkey`. O Posta
   gera um par de chaves RSA-2048 por domínio e entrega a chave privada ao SES
   (BYODKIM), então a verificação é um registro TXT em vez de três CNAMEs. A
   chave privada nunca é armazenada.
@@ -21,7 +21,7 @@ Dois sinais de verificação aparecem lado a lado:
 
 - **Status no SES** — o que o SES reporta. O SES faz cache da verificação e
   pode atrasar depois que você muda registros.
-- **Checagem de DNS ao vivo** — o MillionSend resolve cada registro por conta
+- **Checagem de DNS ao vivo** — o Posta resolve cada registro por conta
   própria e reporta Encontrado / Ausente / Divergente imediatamente.
 
 A API (`GET /domains/{id}`, `POST /domains/{id}/verify` e as ferramentas MCP
@@ -41,25 +41,24 @@ dizendo por quê.
 ## Regiões
 
 Uma instalação provisiona identidades nas regiões do SES que atende — a sua
-`AWS_REGIONS`, ou a única região em `AWS_REGION`; o MillionSend Cloud atende
-`sa-east-1` (São Paulo) hoje. O formulário de novo domínio do painel lista
-as regiões atendidas, segura uma que ainda está no sandbox do SES enquanto
-outra tem acesso de produção, e usa por padrão a primeira região em produção.
-O campo opcional `region` da API (inclusive na ferramenta MCP `create_domain`)
-aceita qualquer região atendida — os valores que o schema lista — e usa a
-primeira por padrão; qualquer outro valor é recusado com `422` informando as
-regiões atendidas. Configuration sets, tópicos de eventos e tenants do SES são
-regionais, então um domínio em outra região receberia registros DNS, mas nunca
-enviaria nem reportaria eventos.
+`AWS_REGIONS`, ou a única região em `AWS_REGION`. O formulário de novo domínio
+do painel lista as regiões atendidas, segura uma que ainda está no sandbox do
+SES enquanto outra tem acesso de produção, e usa por padrão a primeira região
+em produção. O campo opcional `region` da API (inclusive na ferramenta MCP
+`create_domain`) aceita qualquer região atendida — os valores que o schema
+lista — e usa a primeira por padrão; qualquer outro valor é recusado com `422`
+informando as regiões atendidas. Configuration sets, tópicos de eventos e
+tenants do SES são regionais, então um domínio em outra região receberia
+registros DNS, mas nunca enviaria nem reportaria eventos.
 
 Um domínio tem exatamente uma região. Para mudá-la, exclua o domínio e
 adicione de novo na outra região — os registros DNS mudam, já que as
-identidades do SES são por região. No MillionSend Cloud, um nome de domínio
+identidades do SES são por região. No Posta Cloud, um nome de domínio
 que outra equipe já tem está tomado em todas as regiões.
 
 ## Aquecimento de domínio novo
 
-No MillionSend Cloud, um domínio registrado há pouco tempo envia aos poucos
+No Posta Cloud, um domínio registrado há pouco tempo envia aos poucos
 enquanto constrói reputação com os provedores de e-mail. A idade é a do
 domínio registrado (`acme.com` para `mail.acme.com`; um nome de um serviço
 gratuito de subdomínios, como `shop.eu.org`, conta como domínio próprio),
@@ -111,14 +110,14 @@ domínio já rastreado em uma chamada (uma chamada no formato do Resend, sem ele
 segue igual). O rastreamento é servido pelo subdomínio de rastreamento do próprio
 domínio: informe `tracking_subdomain` (um rótulo como `links`) e o `records[]`
 da resposta ganha um CNAME de rastreamento, cujo status passa a `verified` assim
-que ele resolve. No MillionSend Cloud, ligar qualquer um dos dois sem um
+que ele resolve. No Posta Cloud, ligar qualquer um dos dois sem um
 subdomínio é recusado com 422. Enquanto o CNAME não resolve, os links não passam
-por ele — o MillionSend Cloud os envia limpos, uma instância auto-hospedada recorre ao host do app — e o
+por ele — o Posta Cloud os envia limpos, uma instância auto-hospedada recorre ao host do app — e o
 domínio aparece como **Parcial** no painel: verificado para enviar, com o
 rastreamento ainda não ativo. No Cloudflare, o registro de rastreamento precisa
 ficar como **somente DNS** (nuvem cinza): um CNAME com proxy responde com os
 endereços do Cloudflare em vez do alvo, o que a tabela de registros mostra como
-divergência, e o TLS do host de rastreamento é servido pelo MillionSend.
+divergência, e o TLS do host de rastreamento é servido pelo Posta.
 
 ## Precisão da taxa de abertura
 
@@ -206,7 +205,7 @@ O `receiving_catch_all` diz se o domínio recebe em qualquer endereço
 (`true`) ou só nos endereços das [caixas de entrada](/pt-BR/concepts/inboxes)
 dele (`false`, o padrão; os outros endereços são recusados). Donos e admins
 ligam e desligam no **Pega-tudo** da página do domínio ou com
-`PATCH /domains/{id}` e `{ "receiving_catch_all": true }`; no MillionSend
+`PATCH /domains/{id}` e `{ "receiving_catch_all": true }`; no Posta
 Cloud ele exige um plano pago. Veja
 [Quais endereços recebem](/pt-BR/concepts/receiving#quais-endereços-recebem).
 Excluir um domínio exclui as caixas dele, com as conversas e os rascunhos, e

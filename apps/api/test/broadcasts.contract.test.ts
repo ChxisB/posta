@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for broadcasts: the official `resend` npm SDK against a
- * live MillionSend API — create/list/get/update/send/cancel/remove, plus the
+ * live Posta API — create/list/get/update/send/cancel/remove, plus the
  * draft-only rules after a send.
  */
 

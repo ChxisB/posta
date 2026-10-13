@@ -1,6 +1,6 @@
 ---
 title: Referência da API
-description: A API HTTP do MillionSend — compatível com Resend, gerada a partir do código do servidor.
+description: A API HTTP do Posta — compatível com Resend, gerada a partir do código do servidor.
 ---
 
 As páginas de endpoint desta seção são geradas a partir das próprias
@@ -59,7 +59,7 @@ retorna `403 restricted_api_key`.
 ## Compatibilidade com Resend
 
 Os formatos de requisição e resposta correspondem aos da API do Resend, então
-os SDKs oficiais do Resend funcionam contra o MillionSend apontando a URL
+os SDKs oficiais do Resend funcionam contra o Posta apontando a URL
 base para ele. O CI executa o pacote oficial `resend` do npm contra todos os
 endpoints como um teste de conformidade. As poucas diferenças restantes são
 deliberadas e explícitas:
@@ -89,7 +89,7 @@ deliberadas e explícitas:
   e-mails recebidos ganham campos de extensão (`screening`, `spam_verdict`,
   `virus_verdict`, `extracted_text`, `extracted` e outros), o `text` vem sem
   caracteres invisíveis, e o e-mail infectado fica retido, com os downloads
-  respondendo `410 email_blocked`. O MillionSend acrescenta long-polling
+  respondendo `410 email_blocked`. O Posta acrescenta long-polling
   (`?wait=`), `POST /emails/receiving/{id}/reply` e `/forward` pelo servidor,
   e `DELETE /emails/receiving/{id}`. Veja
   [Recebimento](/pt-BR/concepts/receiving).
@@ -158,9 +158,9 @@ deliberadas e explícitas:
   (`List-Unsubscribe=One-Click`); qualquer outro é `422`. Os dois vêm juntos, e
   `List-Unsubscribe` precisa de um alvo `https`. Em um envio com `topic_id`, o
   par que você informa substitui o gerado: os pedidos de um clique passam a
-  chegar no seu endpoint, o MillionSend não registra opt-out por eles, e um
+  chegar no seu endpoint, o Posta não registra opt-out por eles, e um
   placeholder `{{{UNSUBSCRIBE_URL}}}` no corpo continua apontando para a página
-  do MillionSend.
+  do Posta.
 - Um envio em que todos os destinatários de `to` estão na lista de supressão ou
   saíram do `topic_id` é recusado com `422 all_recipients_suppressed` (mensagem
   `All recipients are suppressed`); destinatários removidos de um envio que
@@ -171,12 +171,12 @@ deliberadas e explícitas:
   `Nome <usuario@host>`.
 - O remetente de onboarding da instância (`ONBOARDING_EMAIL_FROM`;
   `hello@mail.posta.example` na nuvem) leva só o e-mail de onboarding do
-  próprio MillionSend: como `from` em `POST /emails`, `POST /emails/batch` ou
+  próprio Posta: como `from` em `POST /emails`, `POST /emails/batch` ou
   no envio de uma transmissão ele é recusado com `422 reserved_sender`, com
   qualquer caixa de letras e qualquer nome de exibição. Envie de um domínio que
   você [verificou](/pt-BR/concepts/domains).
 - Nomes de tag que começam com `posta_`, com qualquer caixa de letras,
-  são do próprio MillionSend: uma entrada de `tags` com um deles em
+  são do próprio Posta: uma entrada de `tags` com um deles em
   `POST /emails` ou `POST /emails/batch` é recusada com `422 validation_error`.
 - Qualquer coisa não suportada é rejeitada com `422` em vez de descartada em
   silêncio (ex.: `tls` na atualização de domínio).

@@ -1,9 +1,9 @@
 ---
 title: CLI
-description: "@tack-labs/posta-cli — move an email account to MillionSend from your terminal: plan, apply, status, rollback."
+description: "@tack-labs/posta-cli — move an email account to Posta from your terminal: plan, apply, status, rollback."
 ---
 
-`@tack-labs/posta-cli` moves an email account to MillionSend — Cloud or your own
+`@tack-labs/posta-cli` moves an email account to Posta — Cloud or your own
 instance. It reads the source provider, diffs it against the target, applies
 the difference and writes a report. Only Resend is a source today.
 
@@ -62,9 +62,9 @@ posta --help | --version
 | `--from <provider>` | Source provider. Only `resend` exists. |
 | `--from-key-stdin` | Read the source API key from stdin (first line). |
 | `--from-key <key>` | Source API key as an argument. Visible in process lists; the tool warns. Prefer the env var. |
-| `--to-url <url>` | API URL of a self-hosted MillionSend instance. Unset, the target is MillionSend Cloud (`https://api.posta.example`), like the SDKs. |
-| `--to-key-stdin` | Read the MillionSend API key from stdin (second line when both stdin flags are set). |
-| `--to-key <key>` | MillionSend API key as an argument. Same caveat. |
+| `--to-url <url>` | API URL of a self-hosted Posta instance. Unset, the target is Posta Cloud (`https://api.posta.example`), like the SDKs. |
+| `--to-key-stdin` | Read the Posta API key from stdin (second line when both stdin flags are set). |
+| `--to-key <key>` | Posta API key as an argument. Same caveat. |
 | `--rps <n>` | Requests per second against the source; default 8. Resend's team limit is 10, shared with your production sending; the CLI prints the limit it detects on connect, paces under it, and warns when the rate is above it. Values above 10 (up to 100) are for a limit Resend raised on request. |
 | `--only <a,b>` | Migrate only these resources. |
 | `--skip <a,b>` | Skip these resources. `enrichment` is the per-contact pass that runs last: topic subscriptions, then properties, each resumable. |
@@ -91,8 +91,8 @@ Resource names for `--only` and `--skip`, in apply order: `domains`,
 | Variable | Meaning |
 | --- | --- |
 | `RESEND_API_KEY` | Source API key, full access. The tool only ever reads from Resend. |
-| `POSTA_API_KEY` | MillionSend API key, full access. |
-| `POSTA_BASE_URL` | API URL of a self-hosted instance, same as `--to-url`. Unset means MillionSend Cloud. |
+| `POSTA_API_KEY` | Posta API key, full access. |
+| `POSTA_BASE_URL` | API URL of a self-hosted instance, same as `--to-url`. Unset means Posta Cloud. |
 | `NO_COLOR` | Disable colors. |
 | `FORCE_COLOR` | Colors even when piped, same as `--color always`. |
 | `DO_NOT_TRACK` | Honored, as a no-op: the tool sends no telemetry, never phones home and never checks for updates. |
@@ -100,8 +100,8 @@ Resource names for `--only` and `--skip`, in apply order: `domains`,
 Each key is resolved in this order: environment variable, then the `-stdin`
 flag, then the argument flag, then — in a terminal — a masked prompt. The
 target URL comes from `POSTA_BASE_URL` or `--to-url`; with neither set,
-a terminal offers a choice between MillionSend Cloud and a self-hosted URL,
-and a non-interactive run targets MillionSend Cloud, like the SDKs.
+a terminal offers a choice between Posta Cloud and a self-hosted URL,
+and a non-interactive run targets Posta Cloud, like the SDKs.
 
 ## Files
 
@@ -111,7 +111,7 @@ Written next to where you run the tool, mode 0600, never containing a key:
 | --- | --- |
 | `.posta/migrate-state.json` | Every id the tool created per resource, resume cursors, the plan hash. Written after every batch, so an interrupted run resumes where it stopped. |
 | `.posta/migrate-report.json` | The last run's report as data. |
-| `.posta/migrate-report.md` | The same report as Markdown: counts, the checklist, the DNS records per domain, the id map (source topic and segment ids → MillionSend ids, for code that references them), the manual items. |
+| `.posta/migrate-report.md` | The same report as Markdown: counts, the checklist, the DNS records per domain, the id map (source topic and segment ids → Posta ids, for code that references them), the manual items. |
 
 `.posta/` is appended to `.gitignore` when one exists in the current
 directory; the tool says so once.
@@ -120,12 +120,12 @@ directory; the tool says so once.
 
 - **Read-only against the source.** Every request to Resend is a `GET` to a
   documented endpoint, sent with the `User-Agent`
-  `posta-cli/<version>`. Writes go to your MillionSend API only.
+  `posta-cli/<version>`. Writes go to your Posta API only.
 - **Keys stay in memory.** They are never written to any file and are
   redacted from every log line (`re_…`, `po_…`, `whsec_…` and
   `Authorization` headers).
 - **Two hosts, no third party.** The tool contacts `api.resend.com` and the
-  MillionSend API URL you named. No telemetry, no update check.
+  Posta API URL you named. No telemetry, no update check.
 - **401 or 403 from either side stops the run.** No retry, no workaround.
 - **Rate limits are respected.** 429s wait for `retry-after`; 5xx and network
   errors back off exponentially, 5 attempts. Every retry is logged.
@@ -180,4 +180,4 @@ posta migrate plan --from resend --json | jq '.counts'
 
 ---
 
-Resend is a registered trademark of Plus Five Five, Inc. MillionSend is not affiliated with or endorsed by Resend.
+Resend is a registered trademark of Plus Five Five, Inc. Posta is not affiliated with or endorsed by Resend.

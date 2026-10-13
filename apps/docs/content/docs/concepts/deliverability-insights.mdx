@@ -3,7 +3,7 @@ title: Deliverability Insights
 description: Best-practice checks and a score for every email you send.
 ---
 
-MillionSend runs a set of sending best-practice checks on every email at send
+Posta runs a set of sending best-practice checks on every email at send
 time, and turns the results into two numbers: a 0–10 score per email, and a
 rolling 30-day account score. The score measures **compliance with sending
 best practices** — it is not a prediction of inbox placement. Nobody outside
@@ -51,12 +51,12 @@ Each check reports one of five statuses: `pass`, `fail`, `passed_by_design`,
 | `images_offsite` | info | 0 | All | Images are hosted on your own domain. |
 | `reply_to_present` | info | 0 | All | A Reply-To exists when the From address is `no-reply@`. |
 
-Some checks can't fail on MillionSend and report `passed_by_design`:
+Some checks can't fail on Posta and report `passed_by_design`:
 
 - `auth_alignment` — always. You can only send from a verified domain, and
   domain verification is a hard gate before any send, so SPF and DKIM
   alignment is guaranteed by construction.
-- `list_unsubscribe` — on broadcast and topic sends, where MillionSend
+- `list_unsubscribe` — on broadcast and topic sends, where Posta
   injects the one-click unsubscribe headers itself. On plain API sends the
   check reads the headers you supplied.
 

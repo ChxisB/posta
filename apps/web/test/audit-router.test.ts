@@ -107,7 +107,7 @@ describe("audit.list", () => {
     });
   });
 
-  it("never lists trust & safety flags and shows the operator only as MillionSend; the console keeps both", async () => {
+  it("never lists trust & safety flags and shows the operator only as Posta; the console keeps both", async () => {
     // The instance operator is the first registered user, and no member of the team.
     await db
       .insert(schema.user)
@@ -159,7 +159,7 @@ describe("audit.list", () => {
     }
   });
 
-  it("keeps the operator MillionSend for what it did on a team before it joined", async () => {
+  it("keeps the operator Posta for what it did on a team before it joined", async () => {
     vi.stubEnv("SUPPORT_VIEW", "on");
     await db
       .insert(schema.user)

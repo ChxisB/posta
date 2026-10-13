@@ -20,7 +20,7 @@ export async function GET(
   return generateOGImage({
     title: page.data.title,
     description: page.data.description,
-    site: "MillionSend Docs",
+    site: "Posta Docs",
     primaryColor: "#7F8791",
     primaryTextColor: "#F4F1EA",
   });

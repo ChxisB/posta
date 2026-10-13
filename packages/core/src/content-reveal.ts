@@ -16,8 +16,8 @@ export type ContentRevealReason = (typeof CONTENT_REVEAL_REASONS)[number];
 
 /**
  * Reasons that read one named message, never a window: a customer asks about
- * a message, and the law names what it requires. Mirrors "a specific message"
- * in the hosted privacy policy (millionsend-lp src/app/privacy/page.tsx, §5).
+ * a message, and the law names what it requires. A hosted privacy policy
+ * that describes this access should say "a specific message" to match.
  */
 export const CONTENT_REVEAL_ONE_MESSAGE_REASONS: readonly ContentRevealReason[] = [
   "legal_request",

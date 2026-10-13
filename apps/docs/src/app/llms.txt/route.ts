@@ -14,9 +14,9 @@ export function GET(): Response {
   });
 
   const body = [
-    "# MillionSend Docs",
+    "# Posta Docs",
     "",
-    "> MillionSend is an open-source, Resend-compatible email platform — hosted at posta.example (API: api.posta.example) or self-hosted on your own AWS SES.",
+    "> Posta is an open-source, Resend-compatible email platform — hosted at posta.example (API: api.posta.example) or self-hosted on your own AWS SES.",
     "",
     "Every page is available as raw markdown by appending `.md` to its URL.",
     `The full documentation in one file: ${absoluteUrl("/llms-full.txt")}`,

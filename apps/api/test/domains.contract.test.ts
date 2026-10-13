@@ -12,7 +12,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for domain management: the official `resend` npm SDK
- * against a live MillionSend API with a stubbed SES identity client —
+ * against a live Posta API with a stubbed SES identity client —
  * domains.create/list/get/update/verify/remove.
  */
 

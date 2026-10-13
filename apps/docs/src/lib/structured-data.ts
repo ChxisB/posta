@@ -8,14 +8,14 @@ type DocsPage = InferPageType<typeof source>;
 
 const WEBSITE = {
   "@type": "WebSite",
-  name: "MillionSend Docs",
+  name: "Posta Docs",
   url: DOCS_ORIGIN,
   inLanguage: i18n.languages,
 };
 
 const PUBLISHER = {
   "@type": "Organization",
-  name: "MillionSend",
+  name: "Posta",
   url: "https://posta.example",
 };
 

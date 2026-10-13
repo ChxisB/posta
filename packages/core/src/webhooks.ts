@@ -52,7 +52,7 @@ export const WEBHOOK_EVENT_TYPES = [
   "suppression.added",
   "suppression.removed",
   // Inbox events, every one opt-in (OPT_IN_EVENT_TYPES). Resend's names and
-  // payloads; inbox.expired and inbox.email.quarantined are MillionSend's.
+  // payloads; inbox.expired and inbox.email.quarantined are Posta's.
   "inbox.created",
   "inbox.updated",
   "inbox.deleted",

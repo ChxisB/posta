@@ -7,12 +7,12 @@ Contatos são **globais à equipe**: uma lista por equipe, uma linha por endere�
 de e-mail (único, sem diferenciar maiúsculas). Não existe o conceito de
 "audiences" — um contato pertence diretamente à sua equipe, e você segmenta
 com [segmentos](/pt-BR/concepts/segments) e [tópicos](/pt-BR/concepts/topics).
-No MillionSend Cloud o plano Free guarda até 1.000 contatos (criar um além
+No Posta Cloud o plano Free guarda até 1.000 contatos (criar um além
 disso retorna `403 plan_limit_reached`; contatos existentes continuam sendo
 atualizados); planos pagos não têm limite de contatos.
 
 Se você está migrando do Resend: os métodos de contato do SDK do Resend
-funcionam contra o MillionSend sempre que `audienceId` for omitido — os
+funcionam contra o Posta sempre que `audienceId` for omitido — os
 caminhos de contato são os mesmos, sem o aninhamento de audience.
 
 ## O que um contato armazena
@@ -36,7 +36,7 @@ Contatos são gerenciados via `POST/GET/PATCH/DELETE /contacts` e
 segmento de caminho `{id}` aceita tanto o UUID do contato quanto seu endereço
 de e-mail; a comparação de e-mail não diferencia maiúsculas.
 
-Duas extensões do MillionSend tornam barata a leitura de uma audiência.
+Duas extensões do Posta tornam barata a leitura de uma audiência.
 `GET /contacts` e `GET /segments/{id}/contacts` aceitam
 `include=properties,topics` e anexam a cada item o mapa de propriedades
 `{type, value}` e as linhas de tópicos que `GET /contacts/{id}` e
@@ -75,7 +75,7 @@ desconhecidas são ignoradas. Excluir mantém os e-mails do contato no log, onde
 expiram com a janela de retenção da equipe; `erase: true` também apaga cada
 endereço do histórico de e-mails, dos payloads de eventos e dos logs da API,
 igual a `DELETE /contacts/{id}?erase=true`. O Resend não tem exclusão em
-massa; é uma extensão do MillionSend, também exposta como a ferramenta MCP
+massa; é uma extensão do Posta, também exposta como a ferramenta MCP
 `delete_contacts`.
 
 ```sh
@@ -89,7 +89,7 @@ curl -X POST "https://api.posta.example/contacts/batch/remove" \
 
 `POST /contacts/batch` recebe um array JSON de 1 a 1000 itens, cada um no
 formato de um corpo de `POST /contacts`, e grava todos em uma única transação
-(uma extensão do MillionSend — o Resend só importa contatos via CSV). O
+(uma extensão do Posta — o Resend só importa contatos via CSV). O
 parâmetro de query `on_conflict` decide o que acontece com um item cujo e-mail
 já pertence a um contato, ou que se repete dentro do lote:
 

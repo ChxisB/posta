@@ -369,7 +369,7 @@ export function registerInboxSendRoutes(
       path: "/inboxes/{inbox_id}/drafts/{draft_id}/reject",
       summary: "Reject a draft",
       description:
-        "MillionSend extension: a person or a team-wide full access key turns down a draft waiting for approval. It stays readable with status rejected; webhooks report it deleted.",
+        "Posta extension: a person or a team-wide full access key turns down a draft waiting for approval. It stays readable with status rejected; webhooks report it deleted.",
       request: { params: draftParams },
       responses: { 200: json(draftSchema, "Rejected"), ...errors },
     }),
@@ -434,7 +434,7 @@ export function registerInboxSendRoutes(
       path: "/emails/receiving/{id}/reply",
       summary: "Reply to a received email",
       description:
-        "MillionSend extension: replies server-side, threaded with In-Reply-To and References. It goes out from the inbox the email reached (`inbox_id` picks one), else from the first address it was received for, or from `from`. A reply from an inbox runs its rules and may be held as a draft (202). Accepts an `Idempotency-Key`. Needs a full access key.",
+        "Posta extension: replies server-side, threaded with In-Reply-To and References. It goes out from the inbox the email reached (`inbox_id` picks one), else from the first address it was received for, or from `from`. A reply from an inbox runs its rules and may be held as a draft (202). Accepts an `Idempotency-Key`. Needs a full access key.",
       middleware: [opts.requireFullAccess],
       request: {
         params: z.object({ id: z.uuid() }),
@@ -471,7 +471,7 @@ export function registerInboxSendRoutes(
       path: "/emails/receiving/{id}/forward",
       summary: "Forward a received email",
       description:
-        "MillionSend extension: forwards server-side, inline under a note (default) or with the original attached as forwarded_message.eml (`mode: attachment`), within 10 MiB. An email that carries malware is never forwarded. Sender rules and the 202 draft answer are those of the reply. Accepts an `Idempotency-Key`. Needs a full access key.",
+        "Posta extension: forwards server-side, inline under a note (default) or with the original attached as forwarded_message.eml (`mode: attachment`), within 10 MiB. An email that carries malware is never forwarded. Sender rules and the 202 draft answer are those of the reply. Accepts an `Idempotency-Key`. Needs a full access key.",
       middleware: [opts.requireFullAccess],
       request: {
         params: z.object({ id: z.uuid() }),

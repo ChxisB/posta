@@ -55,7 +55,7 @@ export function parseInboxActor(encoded: string): ParsedInboxActor {
   return { kind: "system" };
 }
 
-/** A webhook's data.source. Resend's "agent" is never emitted: MillionSend runs no agent of its own. */
+/** A webhook's data.source. Resend's "agent" is never emitted: Posta runs no agent of its own. */
 export function webhookSource(a: InboxActor): "api" | "dashboard" | "system" {
   if (a.kind === "user") return "dashboard";
   return a.kind === "system" ? "system" : "api";

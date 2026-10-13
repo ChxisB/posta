@@ -9,7 +9,7 @@
     "error": "Team creation failed. Try again."
   },
   "title": "Send your first email",
-  "subtitle": "Follow the steps to send an email using the MillionSend API.",
+  "subtitle": "Follow the steps to send an email using the Posta API.",
   "step1": {
     "title": "Add an API key",
     "body": "Keys authenticate every request. The full key is shown once, at creation.",
@@ -32,7 +32,7 @@
     "keyCommentReplace": "replace with your API key",
     "keyCommentLocked": "your key, once created",
     "sendCta": "Send email",
-    "sendHint": "No domain yet? Get a test email from MillionSend — one per team, sent to the team owner.",
+    "sendHint": "No domain yet? Get a test email from Posta — one per team, sent to the team owner.",
     "sending": "Sending…",
     "sentTo": "Sent to {to}. It shows up below the moment it lands.",
     "alreadySent": "This team's test email already went out. Verify a domain to send your own.",
@@ -61,7 +61,7 @@
     },
     "mcp": {
       "title": "Install MCP",
-      "body": "Connect your AI tools and agents to send email through MillionSend.",
+      "body": "Connect your AI tools and agents to send email through Posta.",
       "cta": "Install MCP"
     },
     "webhooks": {
@@ -83,7 +83,7 @@
   },
   "stepSes": {
     "title": "Connect your AWS SES",
-    "body": "MillionSend sends through your own AWS SES account. Connect it once in settings — the wizard creates everything and tests the connection.",
+    "body": "Posta sends through your own AWS SES account. Connect it once in settings — the wizard creates everything and tests the connection.",
     "cta": "Open SES setup"
   }
 }

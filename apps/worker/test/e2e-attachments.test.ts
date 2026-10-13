@@ -13,7 +13,7 @@ import { type SesSender, sendEmail } from "../src/handlers/send-email.js";
 
 /**
  * Refused files, end to end: the official resend SDK sends through a live
- * MillionSend API, and the worker hands what it accepts to a fake SES.
+ * Posta API, and the worker hands what it accepts to a fake SES.
  * Program files never reach a row, a send job or SES.
  */
 

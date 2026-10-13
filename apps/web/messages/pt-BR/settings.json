@@ -38,7 +38,7 @@
     "successMessage": "Mensagem de sucesso",
     "successMessagePlaceholder": "Exibida após o descadastro ou ao salvar as preferências.",
     "showLogo": "Exibir sua logo",
-    "showLogoNote": "A logo da sua equipe substitui a marca MillionSend no topo da página.",
+    "showLogoNote": "A logo da sua equipe substitui a marca Posta no topo da página.",
     "showLogoMissing": "Envie uma logo da equipe na aba Configurações para habilitar.",
     "logoRadius": "Cantos da logo",
     "logoRadiusOptions": {
@@ -57,8 +57,8 @@
     "previewPreferences": "Preferências",
     "previewSuccess": "Sucesso",
     "previewLanguage": "Idioma da pré-visualização",
-    "poweredBy": "Powered by MillionSend",
-    "poweredByNote": "Uma linha discreta no rodapé da página, com link para o MillionSend.",
+    "poweredBy": "Powered by Posta",
+    "poweredByNote": "Uma linha discreta no rodapé da página, com link para o Posta.",
     "poweredByLocked": "Sempre exibido no plano Free; planos pagos podem desligar.",
     "redirectUrl": "URL de redirecionamento",
     "redirectUrlNote": "Para onde enviar os destinatários após o descadastro. Deixe em branco para mantê-los na página de confirmação.",
@@ -76,7 +76,7 @@
       "viewInstructions": "Ver instruções",
       "recommended": "Recomendado",
       "cliTitle": "Execute o CLI de configuração",
-      "cliNote": "Execute em qualquer lugar com Node 18+ e as SUAS credenciais AWS de administrador — seu notebook ou o servidor. Ele cria tudo e imprime as linhas do <code>.env</code> para colar se o MillionSend rodar em outro lugar.",
+      "cliNote": "Execute em qualquer lugar com Node 18+ e as SUAS credenciais AWS de administrador — seu notebook ou o servidor. Ele cria tudo e imprime as linhas do <code>.env</code> para colar se o Posta rodar em outro lugar.",
       "cfnButton": "Criar a stack no CloudFormation",
       "scriptTitle": "Alternativa: cole este script",
       "scriptNote": "Cole em um terminal onde o AWS CLI tenha credenciais de administrador. Ele cria o usuário IAM, a política, o tópico SNS, a fila SQS de eventos e o conjunto de configuração, e então imprime as linhas do seu <code>.env</code>.",
@@ -115,7 +115,7 @@
       "sandboxTitle": "Sua conta SES está em sandbox.",
       "sandboxBody": "Os destinatários precisam ser verificados até a AWS conceder acesso de produção.",
       "sandboxLink": "Solicitar acesso de produção",
-      "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through MillionSend, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
+      "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through Posta, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
       "requestTemplateNote": "Substitua <code>[VOLUME]</code> e cole no formulário de acesso de produção da AWS — o formulário deve ser preenchido em inglês.",
       "rateHint": "SES_MAX_SEND_RATE={envRate} no .env · máximo da conta nesta região {accountRate}/s — o worker envia no menor dos dois.",
       "errors": {
@@ -255,7 +255,7 @@
     "save": "Salvar",
     "saved": "Salvo",
     "error": "Não foi possível salvar.",
-    "updates": "Novidades do MillionSend: <link>inscreva-se em app.posta.example/updates</link>. Esta instância nunca contata posta.example por conta própria."
+    "updates": "Novidades do Posta: <link>inscreva-se em app.posta.example/updates</link>. Esta instância nunca contata posta.example por conta própria."
   },
   "language": {
     "title": "Idioma",
@@ -348,7 +348,7 @@
     "intro": "Deixe agentes de IA enviarem e-mails e gerenciarem sua audiência pelo Model Context Protocol.",
     "subtitle": "Toda chamada de ferramenta passa pelas mesmas regras da API REST: domínios verificados, supressões, cotas e escopo de equipe.",
     "serverUrl": "URL do servidor",
-    "serverUrlNote": "Endpoint HTTP (Streamable). Os clientes entram com sua conta MillionSend via OAuth — sem chaves de API e nada secreto para colar.",
+    "serverUrlNote": "Endpoint HTTP (Streamable). Os clientes entram com sua conta Posta via OAuth — sem chaves de API e nada secreto para colar.",
     "connectTitle": "Conectar um cliente",
     "notes": {
       "claudeCode": "Depois rode <code>/mcp</code> dentro do Claude Code e escolha posta para entrar.",
@@ -409,7 +409,7 @@
       "oauth": "App conectado",
       "stripe": "Stripe",
       "system": "Sistema",
-      "operator": "MillionSend",
+      "operator": "Posta",
       "deletedUser": "Usuário excluído"
     },
     "actions": {
@@ -488,7 +488,7 @@
   },
   "notifications": {
     "title": "Notificações por e-mail",
-    "intro": "O que o MillionSend envia a você como proprietário das suas equipes. Cada opção vale para todas as equipes que você possui.",
+    "intro": "O que o Posta envia a você como proprietário das suas equipes. Cada opção vale para todas as equipes que você possui.",
     "always": "Sempre enviados: e-mails sobre a sua própria conta (redefinição de senha, verificação, boas-vindas, senha alterada, app autorizado) e os avisos de segurança sobre chaves de API e segredos de webhook.",
     "groups": {
       "domains": "Domínios",

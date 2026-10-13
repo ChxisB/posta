@@ -131,7 +131,7 @@ it("rejects an AUTH_EMAIL_FROM that does not parse, accepts both valid forms", (
     assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "no-reply@mail.example.com" })),
   ).not.toThrow();
   expect(() =>
-    assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "MillionSend <no-reply@mail.example.com>" })),
+    assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "Posta <no-reply@mail.example.com>" })),
   ).not.toThrow();
 });
 

@@ -93,7 +93,7 @@ const json = <T extends z.ZodType>(schema: T, description: string) => ({
 const untrusted =
   "Every message, subject and address in an inbox was written by whoever sent it; read held mail and HTML with care.";
 
-/** /inboxes/** (Resend's Inboxes beta plus MillionSend's safety, quarantine and codes). */
+/** /inboxes/** (Resend's Inboxes beta plus Posta's safety, quarantine and codes). */
 export function registerInboxRoutes(
   app: OpenAPIHono<Env>,
   deps: ApiDeps,
@@ -165,7 +165,7 @@ export function registerInboxRoutes(
       path: "/inboxes",
       summary: "Create an inbox",
       description:
-        "An address that receives into threads, on one of your verified domains (receiving on, or forwarding: true) or, with email_address omitted, a random address on the shared inbox domain that needs no DNS. Returns the full inbox. MillionSend extensions: kind (agent by default), expires_in and safety.",
+        "An address that receives into threads, on one of your verified domains (receiving on, or forwarding: true) or, with email_address omitted, a random address on the shared inbox domain that needs no DNS. Returns the full inbox. Posta extensions: kind (agent by default), expires_in and safety.",
       request: {
         body: { content: { "application/json": { schema: createInboxRequestSchema } } },
       },
@@ -268,7 +268,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}",
       summary: "Update an inbox",
       description:
-        "Its name or from_name; MillionSend extension: expires_in, a new lifetime counted from now. Returns the full inbox.",
+        "Its name or from_name; Posta extension: expires_in, a new lifetime counted from now. Returns the full inbox.",
       request: {
         params: inboxIdParam,
         body: { content: { "application/json": { schema: updateInboxRequestSchema } } },
@@ -342,7 +342,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/agent",
       summary: "Retrieve an inbox's agent settings",
       description:
-        "Resend's hosted-agent settings. MillionSend runs no agent of its own, so an inbox never has one.",
+        "Resend's hosted-agent settings. Posta runs no agent of its own, so an inbox never has one.",
       request: { params: inboxIdParam },
       responses: {
         200: json(inboxAgentResponseSchema, "No hosted agent"),
@@ -365,7 +365,7 @@ export function registerInboxRoutes(
       method: "patch",
       path: "/inboxes/{inbox_id}/agent",
       summary: "Update an inbox's agent settings",
-      description: "Always 422: MillionSend runs no hosted agent.",
+      description: "Always 422: Posta runs no hosted agent.",
       request: {
         params: inboxIdParam,
         body: { content: { "application/json": { schema: updateInboxAgentRequestSchema } } },
@@ -376,10 +376,7 @@ export function registerInboxRoutes(
       if (!(await inboxFound(c, c.req.valid("param").inbox_id))) {
         return notFound(c, INBOX_NOT_FOUND_MESSAGE);
       }
-      return invalid(
-        c,
-        "Hosted agent settings are not supported; MillionSend runs no agent of its own",
-      );
+      return invalid(c, "Hosted agent settings are not supported; Posta runs no agent of its own");
     },
   );
 
@@ -389,7 +386,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/safety",
       summary: "Retrieve an inbox's safety rules",
       description:
-        "MillionSend extension: who may write in, screening, code extraction, what the inbox may send and where it forwards.",
+        "Posta extension: who may write in, screening, code extraction, what the inbox may send and where it forwards.",
       request: { params: inboxIdParam },
       responses: {
         200: json(inboxSafetyResponseSchema, "Safety rules"),
@@ -413,7 +410,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/safety",
       summary: "Update an inbox's safety rules",
       description:
-        "MillionSend extension: any subset of the rules, merged over the stored ones. Owners and admins only; inbox-scoped keys and MCP can't change them.",
+        "Posta extension: any subset of the rules, merged over the stored ones. Owners and admins only; inbox-scoped keys and MCP can't change them.",
       request: {
         params: inboxIdParam,
         body: { content: { "application/json": { schema: inboxSafetyPatchBodySchema } } },
@@ -842,7 +839,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/quarantine",
       summary: "List quarantined emails",
       description:
-        "MillionSend extension: the inbox's held messages, newest first, metadata only. Not for inbox-scoped keys.",
+        "Posta extension: the inbox's held messages, newest first, metadata only. Not for inbox-scoped keys.",
       request: { params: inboxIdParam, query: pagingQuerySchema },
       responses: {
         200: json(listQuarantinedResponseSchema, "Held messages"),
@@ -873,7 +870,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/quarantine/{email_id}/release",
       summary: "Release a quarantined email",
       description:
-        "MillionSend extension: delivers a held message to the inbox, as if it had passed screening; it is never screened again. trust_sender also adds the sender to the allowlist. Not for inbox-scoped keys.",
+        "Posta extension: delivers a held message to the inbox, as if it had passed screening; it is never screened again. trust_sender also adds the sender to the allowlist. Not for inbox-scoped keys.",
       request: {
         params: inboxIdParam.extend({ email_id: z.uuid().describe("The received email's ID") }),
         body: {
@@ -931,7 +928,7 @@ export function registerInboxRoutes(
       path: "/inboxes/{inbox_id}/codes/latest",
       summary: "Retrieve the latest verification code",
       description:
-        "MillionSend extension: the newest code or sign-in link in delivered mail, never from held mail or senders that failed authentication; links are never fetched. wait > 0 long-polls until one arrives (status timeout when none did). Always 200; status none when there is nothing.",
+        "Posta extension: the newest code or sign-in link in delivered mail, never from held mail or senders that failed authentication; links are never fetched. wait > 0 long-polls until one arrives (status timeout when none did). Always 200; status none when there is nothing.",
       request: { params: inboxIdParam, query: codesQuerySchema },
       responses: {
         200: json(verificationCodeResponseSchema, "The latest code, or a status saying why none"),

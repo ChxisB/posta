@@ -19,7 +19,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type ApiDeps, createApi } from "../src/app.js";
 
 /**
- * The receiving surface with inboxes: who sees held mail, MillionSend's
+ * The receiving surface with inboxes: who sees held mail, Posta's
  * extension keys, the long-poll, erase, the virus block and codes/latest.
  */
 

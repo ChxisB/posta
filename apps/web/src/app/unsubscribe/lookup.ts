@@ -28,7 +28,7 @@ export interface UnsubscribeCustomization {
   backgroundColor: string | null;
   textColor: string | null;
   accentColor: string | null;
-  /** The "Powered by MillionSend" line: the team's choice, or forced by its plan. */
+  /** The "Powered by Posta" line: the team's choice, or forced by its plan. */
   poweredBy: boolean;
 }
 
@@ -145,7 +145,7 @@ export async function targetForToken(db: Db, token: string): Promise<Unsubscribe
 
   const customization: UnsubscribeCustomization = {
     // No explicit brand name → the team's name, so recipients always see who
-    // is emailing them rather than the MillionSend wordmark.
+    // is emailing them rather than the Posta wordmark.
     brandName: contact.brandName ?? contact.teamName,
     message: contact.message,
     successMessage: contact.successMessage,

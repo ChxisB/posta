@@ -28,7 +28,7 @@ describe("isReservedSenderDomain", () => {
   });
 
   it("reserves the platform and system-mail domains only in cloud", () => {
-    const authEmailFrom = "MillionSend <no-reply@mail.ms-ops.dev>";
+    const authEmailFrom = "Posta <no-reply@mail.ms-ops.dev>";
     expect(isReservedSenderDomain("posta.example", { isCloud: true })).toBe(true);
     expect(isReservedSenderDomain("app.posta.example", { isCloud: true })).toBe(true);
     expect(isReservedSenderDomain("mail.ms-ops.dev", { isCloud: true, authEmailFrom })).toBe(true);

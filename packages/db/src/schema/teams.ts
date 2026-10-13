@@ -92,14 +92,14 @@ export const teams = pgTable(
     unsubscribeBackgroundColor: text("unsubscribe_background_color"),
     unsubscribeTextColor: text("unsubscribe_text_color"),
     unsubscribeAccentColor: text("unsubscribe_accent_color"),
-    // Default on: recipients should see the sender's brand, not MillionSend's.
+    // Default on: recipients should see the sender's brand, not Posta's.
     unsubscribeHideBranding: boolean("unsubscribe_hide_branding").notNull().default(true),
     unsubscribeLogoRadius: unsubscribeLogoRadiusEnum("unsubscribe_logo_radius")
       .notNull()
       .default("gentle"),
     // Success-state copy shown after preferences are saved.
     unsubscribeSuccessMessage: text("unsubscribe_success_message"),
-    // "Powered by MillionSend" under the page. Default on; on the cloud a free
+    // "Powered by Posta" under the page. Default on; on the cloud a free
     // plan cannot turn it off (the settings router and the page enforce it).
     unsubscribePoweredBy: boolean("unsubscribe_powered_by").notNull().default(true),
     // Public URL of the uploaded team logo (S3-compatible storage), including a

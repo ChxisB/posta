@@ -418,7 +418,7 @@ export const webhooksRouter = router({
         created_at: new Date().toISOString(),
         data: {
           email_id: "00000000-0000-0000-0000-000000000000",
-          from: "MillionSend <test@example.com>",
+          from: "Posta <test@example.com>",
           to: ["delivered@example.com"],
           subject: "Test event",
         },

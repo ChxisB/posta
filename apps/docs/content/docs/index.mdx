@@ -1,13 +1,13 @@
 ---
 title: Introduction
-description: What MillionSend is and how the pieces fit together.
+description: What Posta is and how the pieces fit together.
 ---
 
-MillionSend is the open-source email platform. Send one. Send a million.
+Posta is the open-source email platform. Send one. Send a million.
 
 Use it two ways, running the same code either way:
 
-- **MillionSend Cloud** — the hosted service at
+- **Posta Cloud** — the hosted service at
   [posta.example](https://posta.example). Sign up, verify a domain, send.
   API at `api.posta.example`.
 - **Self-hosted** — run it on your own infrastructure with Docker Compose,
@@ -24,7 +24,7 @@ webhooks, contacts, broadcasts, and an SMTP relay.
 The HTTP API is wire-compatible with Resend: same request and response shapes,
 same error format. Official Resend SDKs honor a configurable base URL, so
 migrating an existing integration means changing two environment variables —
-the API key and the base URL — not rewriting your code. MillionSend also ships
+the API key and the base URL — not rewriting your code. Posta also ships
 [its own SDKs](/sdks) for nine languages that mirror the Resend SDK shapes.
 
 One deliberate difference: **contacts are team-global**. There is no
@@ -55,7 +55,7 @@ target subsets with [segments](/concepts/segments) (saved filters) and
 
 ## Architecture at a glance
 
-MillionSend sends through AWS SES — on Cloud that's managed for you; on a
+Posta sends through AWS SES — on Cloud that's managed for you; on a
 self-hosted deployment it's your own SES account, so you keep SES's
 deliverability and pricing. A self-hosted deployment is two containers:
 

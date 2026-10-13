@@ -18,7 +18,7 @@ import type { Context } from "@/server/trpc";
 const MASTER_KEY = randomBytes(32).toString("base64");
 process.env.MASTER_ENCRYPTION_KEY = MASTER_KEY;
 
-const PLATFORM = "MillionSend <hello@ms.example>";
+const PLATFORM = "Posta <hello@ms.example>";
 
 let db: Db;
 let close: () => Promise<void>;
@@ -139,7 +139,7 @@ describe("onboarding.sendFirstEmail", () => {
   });
 
   it("goes to a verified owner only, where the instance verifies, and a refusal leaves the team free to try again", async () => {
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <auth@ms.example>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <auth@ms.example>");
     vi.stubEnv("AWS_ACCESS_KEY_ID", "AKIA");
     vi.stubEnv("AWS_SECRET_ACCESS_KEY", "secret");
     const teamId = await seedTeam("team-b", { ownerVerified: false });

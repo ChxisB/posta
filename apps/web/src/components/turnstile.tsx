@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 const SCRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 /* Global Turnstile calls once the API is usable: the supported "ready" signal
    for a script added at runtime (turnstile.ready() throws for async tags). */
-const ONLOAD_CALLBACK = "__millionsendTurnstileLoaded";
+const ONLOAD_CALLBACK = "__postaTurnstileLoaded";
 /* A token request that never settles must fail visibly, not hang the button. */
 const TOKEN_TIMEOUT_MS = 30_000;
 

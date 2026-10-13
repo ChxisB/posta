@@ -1166,7 +1166,7 @@ describe("suspend / reinstate and the team's SES tenant", () => {
 // Last: the audit log is append-only, and the audit tests above count suspensions.
 describe("review holds", () => {
   it("a review hold converts to phishing or is released without a word to the owner", async () => {
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@posta.test>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@posta.test>");
     const heldTeam = await createTeam(db, "held");
     await db.insert(schema.teamMembers).values({ teamId: heldTeam, userId: MEMBER, role: "owner" });
     const heldAt = new Date("2026-10-09T12:03:00Z");

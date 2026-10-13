@@ -91,7 +91,7 @@ async function settleTeam(teamId: string): Promise<void> {
 }
 
 function stubSender(): void {
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
   vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
   vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
 }
@@ -297,11 +297,11 @@ describe("settings.invitations email + resend", () => {
     await caller.settings.invitations.create({ email: "ana@example.com" });
     await caller.settings.invitations.create({ email: "new@example.com" });
     expect(sent.map((m) => m.subject)).toEqual([
-      "Você recebeu um convite para uma equipe no MillionSend",
-      "You've been invited to a team on MillionSend",
+      "Você recebeu um convite para uma equipe no Posta",
+      "You've been invited to a team on Posta",
     ]);
     expect(sent[0]?.text).toContain(
-      "Você recebeu um convite para entrar em uma equipe no MillionSend como membro.",
+      "Você recebeu um convite para entrar em uma equipe no Posta como membro.",
     );
   });
 
@@ -317,9 +317,9 @@ describe("settings.invitations email + resend", () => {
     expect(sent).toHaveLength(1);
     expect(sent[0]?.to).toBe("new@example.com");
     expect(sent[0]?.from).toContain("no-reply@mail.example.com");
-    expect(sent[0]?.subject).toBe("You've been invited to a team on MillionSend");
+    expect(sent[0]?.subject).toBe("You've been invited to a team on Posta");
     expect(readable(sent[0]?.text)).toContain(
-      "owner1@example.com invited you to join acme on MillionSend as a member.",
+      "owner1@example.com invited you to join acme on Posta as a member.",
     );
     expect(sent[0]?.html).toContain(created.acceptUrl);
     expect(sent[0]?.text).toContain(created.acceptUrl);
@@ -433,22 +433,20 @@ describe("settings.invitations email content", () => {
 
   it("names a new team's inviter by verified address, and the team by no name", async () => {
     const read = await invitation({ verified: true, settled: false });
-    expect(read).toContain(
-      "owner1@example.com invited you to join a team on MillionSend as a member.",
-    );
+    expect(read).toContain("owner1@example.com invited you to join a team on Posta as a member.");
     expect(read).not.toContain("Zebra");
   });
 
   it("names the team once it is past the new tier", async () => {
     const read = await invitation({ verified: true, settled: true });
     expect(read).toContain(
-      "owner1@example.com invited you to join Zebra Labs on MillionSend as a member.",
+      "owner1@example.com invited you to join Zebra Labs on Posta as a member.",
     );
   });
 
   it("names neither when the inviter's address is unverified", async () => {
     const read = await invitation({ verified: false, settled: true });
-    expect(read).toContain("You've been invited to join a team on MillionSend as a member.");
+    expect(read).toContain("You've been invited to join a team on Posta as a member.");
     expect(read).not.toMatch(/owner1|Zebra/);
   });
 });
@@ -532,7 +530,7 @@ describe("settings.invitations send accounting", () => {
     expect(mail.text).toContain("bob+$'@");
     expect(mail.text).toContain("Acme $$ Co");
     expect(mail.text).not.toMatch(/\{(inviter|team|role|days|email)\}/);
-    expect(mail.subject).toBe("You've been invited to a team on MillionSend");
+    expect(mail.subject).toBe("You've been invited to a team on Posta");
   });
 });
 

@@ -504,7 +504,7 @@ describe("POST /domains in cloud (shared AWS account)", () => {
   });
 
   it("422s public mailbox providers everywhere and platform/system-mail domains in cloud", async () => {
-    const authEmailFrom = "MillionSend <no-reply@mail.ms-ops.dev>";
+    const authEmailFrom = "Posta <no-reply@mail.ms-ops.dev>";
     const cloud = makeApp({ ...fakeSes(), isCloud: true, authEmailFrom });
     for (const name of ["gmail.com", "posta.example", "mail.ms-ops.dev"]) {
       const res = await call(cloud, fullKey, "POST", "/domains", { name });

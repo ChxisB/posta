@@ -38,7 +38,7 @@
     "successMessage": "Success message",
     "successMessagePlaceholder": "Shown after someone unsubscribes or saves their preferences.",
     "showLogo": "Show your logo",
-    "showLogoNote": "Your team logo replaces the MillionSend wordmark at the top of the page.",
+    "showLogoNote": "Your team logo replaces the Posta wordmark at the top of the page.",
     "showLogoMissing": "Upload a team logo in the Settings tab to enable this.",
     "logoRadius": "Logo corner radius",
     "logoRadiusOptions": {
@@ -57,8 +57,8 @@
     "previewPreferences": "Preferences",
     "previewSuccess": "Success",
     "previewLanguage": "Preview language",
-    "poweredBy": "Powered by MillionSend",
-    "poweredByNote": "A small line under the page, linking to MillionSend.",
+    "poweredBy": "Powered by Posta",
+    "poweredByNote": "A small line under the page, linking to Posta.",
     "poweredByLocked": "Always shown on the Free plan; paid plans can turn it off.",
     "redirectUrl": "Redirect URL",
     "redirectUrlNote": "Where to send recipients after they unsubscribe. Leave blank to keep them on the confirmation page.",
@@ -76,7 +76,7 @@
       "viewInstructions": "View instructions",
       "recommended": "Recommended",
       "cliTitle": "Run the setup CLI",
-      "cliNote": "Run it anywhere Node 18+ and YOUR AWS admin credentials live — your laptop or the server. It creates everything and prints the <code>.env</code> lines to paste if MillionSend runs elsewhere.",
+      "cliNote": "Run it anywhere Node 18+ and YOUR AWS admin credentials live — your laptop or the server. It creates everything and prints the <code>.env</code> lines to paste if Posta runs elsewhere.",
       "cfnButton": "Create the stack in CloudFormation",
       "scriptTitle": "Alternative: paste this script",
       "scriptNote": "Paste into a terminal where the AWS CLI has admin credentials. It creates the IAM user, policy, SNS topic, SQS events queue, and configuration set, then prints your <code>.env</code> lines.",
@@ -115,7 +115,7 @@
       "sandboxTitle": "Your SES account is in sandbox.",
       "sandboxBody": "Recipients must be verified until AWS grants production access.",
       "sandboxLink": "Request production access",
-      "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through MillionSend, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
+      "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through Posta, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
       "requestTemplateNote": "Replace <code>[VOLUME]</code>, then paste it into the AWS production access request form.",
       "rateHint": "SES_MAX_SEND_RATE={envRate} in .env · this region's account max {accountRate}/s — the worker sends at the lower of the two.",
       "errors": {
@@ -255,7 +255,7 @@
     "save": "Save",
     "saved": "Saved",
     "error": "Could not save.",
-    "updates": "Product updates from MillionSend: <link>subscribe at app.posta.example/updates</link>. This instance never contacts posta.example on its own."
+    "updates": "Product updates from Posta: <link>subscribe at app.posta.example/updates</link>. This instance never contacts posta.example on its own."
   },
   "language": {
     "title": "Language",
@@ -348,7 +348,7 @@
     "intro": "Let AI agents send email and manage your audience over the Model Context Protocol.",
     "subtitle": "Every tool call goes through the same rules as the REST API: verified domains, suppressions, quotas and team scoping.",
     "serverUrl": "Server URL",
-    "serverUrlNote": "Streamable HTTP endpoint. Clients sign in with your MillionSend account through OAuth — no API keys and nothing secret to paste.",
+    "serverUrlNote": "Streamable HTTP endpoint. Clients sign in with your Posta account through OAuth — no API keys and nothing secret to paste.",
     "connectTitle": "Connect a client",
     "notes": {
       "claudeCode": "Then run <code>/mcp</code> inside Claude Code and pick posta to sign in.",
@@ -409,7 +409,7 @@
       "oauth": "Connected app",
       "stripe": "Stripe",
       "system": "System",
-      "operator": "MillionSend",
+      "operator": "Posta",
       "deletedUser": "Deleted user"
     },
     "actions": {
@@ -488,7 +488,7 @@
   },
   "notifications": {
     "title": "Email notifications",
-    "intro": "What MillionSend emails you as an owner of your teams. Each switch applies to every team you own.",
+    "intro": "What Posta emails you as an owner of your teams. Each switch applies to every team you own.",
     "always": "Always sent: mail about your own account (password reset, verification, the welcome, a password change, an app granted access) and the security receipts for API keys and webhook secrets.",
     "groups": {
       "domains": "Domains",

@@ -26,7 +26,7 @@ export function effectivePlan(
   return currentPeriodEnd.getTime() + PLAN_GRACE_DAYS * DAY_MS < now.getTime() ? "free" : plan;
 }
 
-/** Whether a plan may drop the "Powered by MillionSend" line from the hosted unsubscribe page. */
+/** Whether a plan may drop the "Powered by Posta" line from the hosted unsubscribe page. */
 export function planCanHidePoweredBy(plan: Plan): boolean {
   return plan !== "free";
 }

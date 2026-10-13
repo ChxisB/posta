@@ -12,7 +12,7 @@ seus domínios de recebimento, ou um endereço aleatório no domínio
 compartilhado da instância, pronto sem mexer em DNS.
 
 A API espelha as Inboxes do Resend, então o SDK de pré-lançamento do Resend
-funciona com o MillionSend. O que o MillionSend acrescenta vem como campos e
+funciona com o Posta. O que o Posta acrescenta vem como campos e
 endpoints extras; veja
 [Compatibilidade com o Resend](#compatibilidade-com-o-resend).
 
@@ -92,7 +92,7 @@ A resposta é a caixa inteira, com `201`:
 rascunhos não enviados, `last_received` quando uma conversa teve atividade
 pela última vez, `quarantined` as mensagens retidas e ainda não liberadas, e
 `pending_approval` os rascunhos esperando uma pessoa. Os cinco últimos campos
-são do MillionSend.
+são do Posta.
 
 | Campo | Regras |
 | --- | --- |
@@ -155,7 +155,7 @@ endereço para o qual o servidor de quem envia entregou:
    quem enviou devolve a mensagem ao remetente.
 
 O pega-tudo começa desligado, e fica ligado nos domínios que já recebiam
-e-mail antes de as caixas existirem. No MillionSend Cloud ele exige um plano
+e-mail antes de as caixas existirem. No Posta Cloud ele exige um plano
 pago. Veja
 [Quais endereços recebem](/pt-BR/concepts/receiving#quais-endereços-recebem).
 
@@ -334,7 +334,7 @@ Para responder a qualquer e-mail recebido, numa caixa ou não, use o
 ## Rascunhos e aprovação
 
 Os rascunhos são os do Resend: avulsos, para uma conversa nova, ou respostas,
-com `thread_id` e `reply_to_email_id` juntos. O MillionSend acrescenta o
+com `thread_id` e `reply_to_email_id` juntos. O Posta acrescenta o
 `status`:
 
 | `status` | Quer dizer |
@@ -604,16 +604,16 @@ ser escolher o `accept_from` ao criar uma caixa, e nunca aprova rascunhos.
 
 Os 26 endpoints do pré-lançamento das Inboxes do Resend estão nos mesmos
 caminhos e com os mesmos formatos, então `resend.inboxes.*` do
-`resend@6.32.1-preview-inboxes.6` funciona com o MillionSend, e a ordem das
+`resend@6.32.1-preview-inboxes.6` funciona com o Posta, e a ordem das
 listagens segue a do Resend (veja [Paginação](/pt-BR/api-reference#paginação)).
-Onde o Resend deixa espaço, ou o MillionSend é diferente:
+Onde o Resend deixa espaço, ou o Posta é diferente:
 
 - Criar uma caixa ou um rascunho devolve o objeto inteiro; o
   `{ object, id }` do Resend vem dentro dele.
 - O `kind` padrão é `agent`, porque um SDK do Resend não consegue enviá-lo,
   então as caixas criadas por um deles ganham as proteções de agente. Crie
-  caixas `human` no painel, com um SDK do MillionSend ou por HTTP direto.
-- O MillionSend não roda um agente hospedado: `GET /inboxes/{id}/agent`
+  caixas `human` no painel, com um SDK do Posta ou por HTTP direto.
+- O Posta não roda um agente hospedado: `GET /inboxes/{id}/agent`
   responde
   `{ "object": "inbox_agent", "instructions": null, "tone": null, "enabled_actions": [] }`,
   e `PATCH /inboxes/{id}/agent` responde `422`.
@@ -632,7 +632,7 @@ Onde o Resend deixa espaço, ou o MillionSend é diferente:
   [Erros](/pt-BR/api-reference#erros)). Um endereço já em uso, ou um rascunho
   editado depois de enviado ou enquanto outra requisição o mudava, responde
   `409 validation_error`.
-- O que o MillionSend acrescenta são campos extras (`kind`, `shared`,
+- O que o Posta acrescenta são campos extras (`kind`, `shared`,
   `expires_at`, `screening`, `extracted_text` e outros) e endpoints extras
   (`/safety`, `/quarantine`, `/codes/latest`, `/drafts/{id}/reject`). Os enums
   do Resend nunca ganham valores novos: o e-mail em quarentena some da vista
@@ -643,5 +643,5 @@ Onde o Resend deixa espaço, ou o MillionSend é diferente:
 - O `from_name` mantém os 78 caracteres do Resend, mas só aceita um nome
   simples: sem `@`, links nem números de telefone, que respondem `422`.
 - Os eventos de webhook `inbox.*` são opcionais (só vão para quem os
-  escolhe); `inbox.expired` e `inbox.email.quarantined` são do MillionSend, e
+  escolhe); `inbox.expired` e `inbox.email.quarantined` são do Posta, e
   `inbox.thread.assigned` e `inbox.thread.unassigned` não são enviados.

@@ -32,7 +32,6 @@ export const IMITATED_BRANDS: readonly string[] = [
   "Binance",
   "Coinbase",
   "Roblox",
-  "MillionSend",
   "Correios",
   "Receita Federal",
   "gov.br",
@@ -64,10 +63,12 @@ export const IMITATED_BRANDS: readonly string[] = [
 ];
 
 /**
- * Brands that are everyday words too ("free", "claro", "oi"): a team
- * matches one only when its whole name is that brand.
+ * Brands that are everyday words too ("free", "claro", "oi", and "posta",
+ * which is mail in Italian): a team matches one only when its whole name is
+ * that brand.
  */
 export const IMITATED_BRAND_WORDS: readonly string[] = [
+  "Posta",
   "Free",
   "Orange",
   "Prime",

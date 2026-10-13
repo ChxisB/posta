@@ -27,7 +27,7 @@ beforeEach(async () => {
   vi.stubEnv("ALLOW_SIGNUP", "true");
   // A sender whose domain a team verified; no SES credentials, so the
   // verification gate stays off and sign-up yields a session.
-  vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
   vi.stubEnv("AWS_ACCESS_KEY_ID", "");
   vi.stubEnv("AWS_SECRET_ACCESS_KEY", "");
   vi.stubEnv("AWS_DEFAULT_CHAIN", "");
@@ -98,8 +98,8 @@ describe("enrollment and the sign-up flag", () => {
     expect(sends[0]).toMatchObject({
       kind: "welcome",
       to: "ada@example.com",
-      from: "MillionSend <no-reply@mail.example.com>",
-      subject: "Bem-vindo ao MillionSend",
+      from: "Posta <no-reply@mail.example.com>",
+      subject: "Bem-vindo ao Posta",
     });
     expect(sends[0]?.text).toContain("Olá, Ada Lovelace");
     expect(sends[0]?.text).toContain("http://localhost:3000/domains");
@@ -186,7 +186,7 @@ describe("accounts as contacts of the account-mail team", () => {
       .insert(schema.emails)
       .values({
         teamId,
-        from: "MillionSend <no-reply@mail.example.com>",
+        from: "Posta <no-reply@mail.example.com>",
         to: ["ada@example.com"],
         subject: "Reset your password",
         latestStatus: "sent",

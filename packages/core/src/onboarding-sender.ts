@@ -29,6 +29,6 @@ export function reservedSenderRefusal(
   const address = parseSingleSender(onboardingFrom)?.address ?? onboardingFrom;
   return {
     name: "reserved_sender",
-    message: `${address} is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: ${DOMAINS_DOCS_URL}`,
+    message: `${address} is reserved for Posta's own onboarding email. Add and verify a domain to send your own emails: ${DOMAINS_DOCS_URL}`,
   };
 }

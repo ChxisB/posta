@@ -11,7 +11,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for topics: the official `resend` npm SDK against a live
- * MillionSend API — topics create/list/get/remove and contacts.topics.update.
+ * Posta API — topics create/list/get/remove and contacts.topics.update.
  */
 
 let db: Db;

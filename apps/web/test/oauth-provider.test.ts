@@ -728,7 +728,7 @@ describe("OAuth authorization server", () => {
 
 describe("connected-app receipt", () => {
   it("mails the granting user once per fresh consent, naming the app, the team and the scopes", async () => {
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
     const { userId, cookie } = await signUp("ada@example.com");
     const teamId = await createTeam(db, "acme");
     await addMember(userId, teamId);
@@ -737,7 +737,7 @@ describe("connected-app receipt", () => {
     await authorize(clientId, cookie);
     expect(sent.map((m) => m.kind)).toEqual(["mcp.connected"]);
     expect(sent[0]).toMatchObject({ to: "ada@example.com" });
-    expect(sent[0]?.subject).toBe("An app is connected to your MillionSend account");
+    expect(sent[0]?.subject).toBe("An app is connected to your Posta account");
     expect(sent[0]?.text).toContain("You allowed Claude Code to act on acme");
     expect(sent[0]?.text).toContain("emails:send");
     expect(sent[0]?.text).toContain("/settings/connected-apps");
@@ -753,7 +753,7 @@ describe("connected-app receipt", () => {
   });
 
   it("writes in the account's stored language, not the consenting browser's", async () => {
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <no-reply@mail.example.com>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
     const { userId, cookie } = await signUp("ada@example.com", { "accept-language": "pt-BR" });
     // The new session carries the account's language to the browser...
     expect(cookie.split("; ")).toContain("NEXT_LOCALE=pt-BR");
@@ -767,6 +767,6 @@ describe("connected-app receipt", () => {
       .filter((c) => !c.startsWith("NEXT_LOCALE="))
       .join("; ");
     await authorize(clientId, bare);
-    expect(sent[0]?.subject).toBe("Um app foi conectado à sua conta do MillionSend");
+    expect(sent[0]?.subject).toBe("Um app foi conectado à sua conta do Posta");
   });
 });

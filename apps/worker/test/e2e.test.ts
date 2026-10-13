@@ -20,7 +20,7 @@ import { type SesSender, sendEmail } from "../src/handlers/send-email.js";
 
 /**
  * The whole loop, end to end: the OFFICIAL resend SDK sends through a live
- * MillionSend API; the worker send handler pushes it through a fake SES;
+ * Posta API; the worker send handler pushes it through a fake SES;
  * SES events come back as cryptographically signed SNS posts to the live
  * ingestion endpoint; the event handler drives status and auto-suppression;
  * and the next send enforces that suppression. Only SES itself is faked.

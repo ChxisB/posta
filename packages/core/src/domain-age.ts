@@ -17,7 +17,7 @@ import { DAY_MS } from "./utc-day.js";
  * bought and moved to another registrar, is only as old as that event.
  */
 
-/** Names MillionSend to every registry and log it asks. */
+/** Names Posta to every registry and log it asks. */
 export const DOMAIN_AGE_USER_AGENT = `Posta-domain-age/1.0 (+${SITE_URL})`;
 
 export const RDAP_BOOTSTRAP_URL = "https://data.iana.org/rdap/dns.json";

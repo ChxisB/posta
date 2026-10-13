@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApi } from "../src/app.js";
 
 /**
- * Bulk reads (MillionSend extension): `include=properties,topics` on the
+ * Bulk reads (Posta extension): `include=properties,topics` on the
  * contact lists, and POST /contacts/batch/get by id or email. Without
  * `include` the list item keeps the Resend shape, key for key.
  */

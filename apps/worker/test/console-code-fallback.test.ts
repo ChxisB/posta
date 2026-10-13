@@ -27,7 +27,7 @@ let domainId: string;
 const keyring = EnvKeyring.fromBase64(randomBytes(32).toString("base64"));
 const operatorId = crypto.randomUUID();
 const operatorEmail = "op@example.com";
-const FROM = "MillionSend <hello@mail.example.com>";
+const FROM = "Posta <hello@mail.example.com>";
 
 beforeAll(async () => {
   ({ db, close } = await createTestDb());
@@ -79,7 +79,7 @@ async function codeMail(): Promise<string> {
     {
       from: FROM,
       to: operatorEmail,
-      subject: "Your MillionSend console code",
+      subject: "Your Posta console code",
       html: "<h1>123456</h1>",
       text: "123456",
       kind: "console_code",
@@ -226,7 +226,7 @@ describe("a console code email the queue accepted and could not deliver", () => 
       {
         from: FROM,
         to: [operatorEmail],
-        subject: "Your MillionSend console code",
+        subject: "Your Posta console code",
         text: "000000",
         domainId,
         tags: { [SYSTEM_MAIL_TAG]: "console_code" },

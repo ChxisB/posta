@@ -11,7 +11,7 @@ address on one of your receiving domains, or a random address on the
 instance's shared domain, ready with no DNS.
 
 The API mirrors Resend's Inboxes, so Resend's preview SDK works against
-MillionSend. What MillionSend adds comes as extra fields and extra endpoints;
+Posta. What Posta adds comes as extra fields and extra endpoints;
 see [Resend compatibility](#resend-compatibility).
 
 <Callout type="info">
@@ -86,7 +86,7 @@ The answer is the whole inbox, with `201`:
 `unread` counts threads with an unread message, `drafts` the unsent drafts,
 `last_received` when a thread was last active, `quarantined` the messages
 held and not released, and `pending_approval` the drafts waiting for a
-person. The last five fields are MillionSend's.
+person. The last five fields are Posta's.
 
 | Field | Rules |
 | --- | --- |
@@ -149,7 +149,7 @@ server delivered to:
    message to its sender.
 
 Catch-all starts off, and is on for domains that already received mail
-before inboxes existed. On MillionSend Cloud it needs a paid plan. See
+before inboxes existed. On Posta Cloud it needs a paid plan. See
 [Which addresses receive](/concepts/receiving#which-addresses-receive).
 
 Mail sent from an inbox's address follows the inbox's rules on every
@@ -320,7 +320,7 @@ To reply to any received email, in an inbox or not, use
 ## Drafts and approval
 
 Drafts are Resend's: standalone, for a new conversation, or replies, with
-`thread_id` and `reply_to_email_id` together. MillionSend adds `status`:
+`thread_id` and `reply_to_email_id` together. Posta adds `status`:
 
 | `status` | Means |
 | --- | --- |
@@ -580,16 +580,16 @@ approves drafts.
 
 The 26 endpoints of Resend's Inboxes preview are served at the same paths
 and with the same shapes, so `resend.inboxes.*` from
-`resend@6.32.1-preview-inboxes.6` works against MillionSend, and list orders
+`resend@6.32.1-preview-inboxes.6` works against Posta, and list orders
 follow Resend's (see [Pagination](/api-reference#pagination)). Where Resend
-leaves room, or MillionSend differs:
+leaves room, or Posta differs:
 
 - Creating an inbox or a draft answers the whole object; Resend's
   `{ object, id }` is part of it.
 - `kind` defaults to `agent`, since a Resend SDK can't send it, so inboxes
   created through one get an agent's protections. Create `human` inboxes in
-  the dashboard, with a MillionSend SDK or over plain HTTP.
-- MillionSend runs no hosted agent: `GET /inboxes/{id}/agent` answers
+  the dashboard, with a Posta SDK or over plain HTTP.
+- Posta runs no hosted agent: `GET /inboxes/{id}/agent` answers
   `{ "object": "inbox_agent", "instructions": null, "tone": null, "enabled_actions": [] }`,
   and `PATCH /inboxes/{id}/agent` answers `422`.
 - Thread search reads subjects, senders and recipients, not bodies or
@@ -605,7 +605,7 @@ leaves room, or MillionSend differs:
   [Errors](/api-reference#errors)). An address already in use, or a draft
   edited after it was sent or while another request changed it, answers
   `409 validation_error`.
-- MillionSend's additions are extra fields (`kind`, `shared`, `expires_at`,
+- Posta's additions are extra fields (`kind`, `shared`, `expires_at`,
   `screening`, `extracted_text` and others) and extra endpoints (`/safety`,
   `/quarantine`, `/codes/latest`, `/drafts/{id}/reject`). Resend's enums
   never gain a value: quarantined mail is hidden from agents rather than put
@@ -615,5 +615,5 @@ leaves room, or MillionSend differs:
 - `from_name` keeps Resend's 78 characters but takes a plain name only: no
   `@`, links or phone numbers, which answer `422`.
 - `inbox.*` webhook events are opt-in; `inbox.expired` and
-  `inbox.email.quarantined` are MillionSend's own, and
+  `inbox.email.quarantined` are Posta's own, and
   `inbox.thread.assigned` and `inbox.thread.unassigned` aren't sent.

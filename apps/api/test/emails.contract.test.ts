@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * THE wire-compat gate: the official `resend` npm SDK, pointed at a live
- * MillionSend API via its own baseUrl option. If these fail, migration by
+ * Posta API via its own baseUrl option. If these fail, migration by
  * env-var (docs/resend-compatibility.md) is broken.
  */
 
@@ -53,7 +53,7 @@ afterAll(async () => {
   await closeDb();
 });
 
-describe("official resend SDK against MillionSend", () => {
+describe("official resend SDK against Posta", () => {
   it("sends an email and reads it back", async () => {
     const sent = await resend.emails.send({
       from: "Acme <onboarding@acme.dev>",

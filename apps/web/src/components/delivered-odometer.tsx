@@ -15,12 +15,11 @@ const WHEEL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * The LP hero's odometer (millionsend-lp hero-odometer.tsx, same mechanics)
- * pointed at a live number: seven masked wheels climb from zero to `value`
- * as a lockstep cascade with a motion blur scaled to each wheel's speed, and
- * every later increase rolls on from where the wheels stand. The units cell
- * is lit steel once the count is live. Under reduced motion it renders the
- * value static.
+ * A landing-page hero odometer pointed at a live number: seven masked
+ * wheels climb from zero to `value` as a lockstep cascade with a motion blur
+ * scaled to each wheel's speed, and every later increase rolls on from where
+ * the wheels stand. The units cell is lit steel once the count is live.
+ * Under reduced motion it renders the value static.
  */
 export function DeliveredOdometer({ value, locale }: { value: number; locale: string }) {
   const rootRef = useRef<HTMLSpanElement>(null);

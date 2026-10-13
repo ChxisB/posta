@@ -1,13 +1,13 @@
 ---
 title: Quickstart
-description: Get MillionSend and send your first email in a few minutes.
+description: Get Posta and send your first email in a few minutes.
 ---
 
-MillionSend runs the same on [MillionSend Cloud](https://posta.example) and
+Posta runs the same on [Posta Cloud](https://posta.example) and
 on your own infrastructure — same dashboard, same API, same SDKs. Pick your
 deployment below; the tabs remember your choice across the docs.
 
-## 1. Get MillionSend
+## 1. Get Posta
 
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
@@ -28,7 +28,7 @@ to send to anyone.
 One command, in an empty directory — no clone needed:
 
 ```sh
-mkdir millionsend && cd millionsend
+mkdir posta && cd posta
 npx @tack-labs/posta-setup
 ```
 
@@ -49,13 +49,13 @@ hand, or ready for production? See [Self-hosting](/self-hosting).
 
 ## 2. Verify a sending domain
 
-MillionSend only sends from domains you have verified.
+Posta only sends from domains you have verified.
 
 1. In the dashboard, go to **Domains** and add a domain you control
    (e.g. `acme.dev`).
 2. Add the DNS records it shows you — a DKIM TXT record plus MAIL FROM
    records — at your DNS provider.
-3. Click **Verify DNS records**. MillionSend also resolves the records live,
+3. Click **Verify DNS records**. Posta also resolves the records live,
    so you can see immediately which ones are still missing.
 
 ## 3. Create an API key
@@ -93,7 +93,7 @@ curl -X POST https://api.posta.example/emails \
   -d '{
     "from": "Acme <onboarding@acme.dev>",
     "to": ["success@simulator.amazonses.com"],
-    "subject": "Hello from MillionSend",
+    "subject": "Hello from Posta",
     "html": "<strong>It works!</strong>"
   }'
 ```
@@ -126,7 +126,7 @@ require the SES event pipeline the setup wizard configures — see
 On Cloud they flow automatically.
 </Callout>
 
-Already on Resend? Point the official Resend SDK at MillionSend instead — set
+Already on Resend? Point the official Resend SDK at Posta instead — set
 `RESEND_BASE_URL` to your base URL and use your `po_` key. The wire format is
 identical.
 
@@ -143,7 +143,7 @@ identical.
   even while your AWS account is in the SES sandbox, and AWS still bills each
   message.
 - The simulator's `bounce@`, `complaint@` and `suppressionlist@` addresses
-  produce bounces and complaints that MillionSend treats as real: the address
+  produce bounces and complaints that Posta treats as real: the address
   goes on your team's [suppression list](/concepts/suppressions) and counts
   toward your bounce or complaint rate, which can pause sending. Use them by
   hand, not in automated test runs. Each address is suppressed after its first

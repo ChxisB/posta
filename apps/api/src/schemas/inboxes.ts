@@ -14,7 +14,7 @@ import {
 } from "@posta/core";
 
 /**
- * Resend's Inboxes beta (/inboxes/**), plus MillionSend's extension keys.
+ * Resend's Inboxes beta (/inboxes/**), plus Posta's extension keys.
  * Every string in a thread email came from whoever sent the message.
  */
 
@@ -79,7 +79,7 @@ export const createInboxRequestSchema = z
       .string()
       .optional()
       .describe(
-        "An address on one of your verified domains; it needs receiving on unless forwarding is true. MillionSend extension: omitted, the inbox gets a random address on the shared inbox domain (no DNS), which only replies in its threads and expires.",
+        "An address on one of your verified domains; it needs receiving on unless forwarding is true. Posta extension: omitted, the inbox gets a random address on the shared inbox domain (no DNS), which only replies in its threads and expires.",
       ),
     name: z
       .string()
@@ -98,18 +98,18 @@ export const createInboxRequestSchema = z
     kind: inboxKindSchema
       .optional()
       .describe(
-        "MillionSend extension: agent (default; threads, screening, drafts that wait for approval) or human (a team mailbox)",
+        "Posta extension: agent (default; threads, screening, drafts that wait for approval) or human (a team mailbox)",
       ),
     expires_in: z
       .string()
       .nullable()
       .optional()
       .describe(
-        'MillionSend extension: lifetime like "1h" or "7d"; null never expires. Shared addresses default to 24h, at most 30d, and always expire.',
+        'Posta extension: lifetime like "1h" or "7d"; null never expires. Shared addresses default to 24h, at most 30d, and always expire.',
       ),
     safety: inboxSafetyPatchBodySchema
       .optional()
-      .describe("MillionSend extension: safety rules over the kind's defaults"),
+      .describe("Posta extension: safety rules over the kind's defaults"),
   })
   .openapi("CreateInboxRequest");
 
@@ -121,7 +121,7 @@ export const updateInboxRequestSchema = z
       .string()
       .nullable()
       .optional()
-      .describe('MillionSend extension: a new lifetime from now, like "24h"; null never expires'),
+      .describe('Posta extension: a new lifetime from now, like "24h"; null never expires'),
   })
   .openapi("UpdateInboxRequest");
 
@@ -228,7 +228,7 @@ export const threadSummarySchema = z
     quarantined: z
       .number()
       .int()
-      .describe("MillionSend extension: held messages; 0 for inbox-scoped keys"),
+      .describe("Posta extension: held messages; 0 for inbox-scoped keys"),
   })
   .openapi("InboxThread");
 
@@ -327,7 +327,7 @@ export const threadEmailSchema = z
       extracted_text: z
         .string()
         .nullable()
-        .describe("MillionSend extension: hidden text, quotes and signature removed"),
+        .describe("Posta extension: hidden text, quotes and signature removed"),
       screening: screeningSchema,
       spam_verdict: z.enum(["pass", "gray", "fail"]).nullable(),
       virus_verdict: z.enum(["pass", "fail", "processing_failed"]).nullable(),
@@ -335,7 +335,7 @@ export const threadEmailSchema = z
     z.object({
       ...threadEmailFields,
       direction: z.literal("outbound"),
-      status: z.string().describe("MillionSend extension: the email's last event"),
+      status: z.string().describe("Posta extension: the email's last event"),
     }),
   ])
   .openapi("InboxThreadEmail");
@@ -411,11 +411,11 @@ export const pagingQuerySchema = z.object(pagingFields);
 
 export const listInboxesQuerySchema = z.object({
   ...pagingFields,
-  kind: inboxKindSchema.optional().describe("MillionSend extension: agent or human inboxes only"),
+  kind: inboxKindSchema.optional().describe("Posta extension: agent or human inboxes only"),
 });
 
 const includeQuarantined = optionalString(
-  "MillionSend extension: true includes held messages (owner views; a full access key that is not inbox-scoped)",
+  "Posta extension: true includes held messages (owner views; a full access key that is not inbox-scoped)",
 );
 
 export const threadEmailsQuerySchema = z.object({

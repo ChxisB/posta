@@ -1,13 +1,13 @@
 ---
 title: Auto-hospedagem
-description: Implante o MillionSend na sua própria infraestrutura com Docker Compose e sua própria conta AWS SES.
+description: Implante o Posta na sua própria infraestrutura com Docker Compose e sua própria conta AWS SES.
 ---
 
-O MillionSend auto-hospedado envia pela sua própria conta AWS SES. Uma
+O Posta auto-hospedado envia pela sua própria conta AWS SES. Uma
 implantação são dois contêineres: Postgres e um contêiner de app rodando a
 API (porta 3001), o worker e o painel web (porta 3000). Um terceiro contêiner
 opcional roda o relay SMTP (porta 2587). (Prefere não operar infraestrutura?
-O [MillionSend Cloud](https://posta.example) é a mesma plataforma,
+O [Posta Cloud](https://posta.example) é a mesma plataforma,
 hospedada.)
 
 **Pré-requisitos:** Docker com Compose; uma conta AWS com acesso ao SES na
@@ -231,17 +231,17 @@ do TLS, então só defina essas para um MX em outro host.
 
 ## Configuração da AWS
 
-A etapa de AWS do `npx @tack-labs/posta-setup` cria tudo de que o MillionSend
+A etapa de AWS do `npx @tack-labs/posta-setup` cria tudo de que o Posta
 precisa na AWS — política IAM + usuário + chave de acesso, o tópico SNS de
 eventos, a fila SQS de eventos (`posta-events`) que o worker consome por
 long polling e o configuration set do SES. Um `APP_BASE_URL` HTTPS recebe
 adicionalmente os eventos por push; a fila funciona sem URL pública nenhuma.
 
 Rode onde houver Node 18+ e suas credenciais de administrador da AWS — laptop ou
-servidor; o servidor do MillionSend nunca precisa de credenciais de administrador.
+servidor; o servidor do Posta nunca precisa de credenciais de administrador.
 Ele verifica sua identidade AWS, mostra o plano, cria tudo e escreve as
 linhas `AWS_*` no `.env` do diretório atual (sem `.env` lá → imprime para
-você colar onde o MillionSend roda). `--dry-run` imprime o plano completo e
+você colar onde o Posta roda). `--dry-run` imprime o plano completo e
 sai.
 
 `npx @tack-labs/posta-setup teardown` apaga tudo que o setup criou, incluindo
@@ -314,7 +314,7 @@ segura só os próprios domínios quando sua cota de 24 horas acaba.
 Preço: desde 2026-07-21 uma conta × região do SES sem envios anteriores começa
 no plano Essentials (US$ 0,16 por 1.000 mensagens em vez dos US$ 0,10 à la
 carte). Depois de provisionar, o assistente lê o plano da região e, se for
-Essentials, pergunta se deve cancelá-lo; nada que o MillionSend usa precisa de
+Essentials, pergunta se deve cancelá-lo; nada que o Posta usa precisa de
 plano, e o cancelamento de um plano atribuído por padrão vale na hora. À mão:
 `aws sesv2 put-account-pricing-attributes --plan NONE --region <região>`.
 
@@ -343,7 +343,7 @@ ARN no `.env` como `SNS_TOPIC_ARNS`; um configuration set do SES com um event
 destination apontando para o tópico (tipos de evento: Delivery, Delivery
 Delay, Bounce, Complaint, Reject, Rendering Failure — NÃO inscreva Open nem
 Click, pois isso faz o SES reescrever todo link e injetar o próprio pixel,
-enquanto o MillionSend rastreia o engajamento por conta própria), com o nome
+enquanto o Posta rastreia o engajamento por conta própria), com o nome
 no `.env` como `SES_CONFIGURATION_SET`. Reinicie depois de defini-los. Sem
 `SES_CONFIGURATION_SET`, os envios saem sem configuration set e não emitem
 eventos.
@@ -352,7 +352,7 @@ O assistente também configura a lista de supressão da conta do SES para
 apenas bounces. Essa lista é por região e compartilhada por todas as equipes da
 instância: uma caixa que deu hard bounce está morta para todo mundo, então o
 SES pode barrá-la para a conta inteira, mas uma denúncia de spam diz respeito
-ao e-mail de um remetente — o MillionSend a suprime só para aquela equipe, e
+ao e-mail de um remetente — o Posta a suprime só para aquela equipe, e
 deixada na lista do SES ela bloquearia também o recibo de outra equipe ou uma
 redefinição de senha para a mesma pessoa. Se você provisionou à mão ou com o
 template do CloudFormation, ajuste você mesmo no console do SES (Suppression
@@ -373,7 +373,7 @@ perdidos.
 
 ## Tenants do SES (reputação por equipe)
 
-Com `SES_TENANTS=true` (padrão no MillionSend Cloud) cada equipe ganha o próprio tenant do
+Com `SES_TENANTS=true` (padrão no Posta Cloud) cada equipe ganha o próprio tenant do
 SES, nomeado pelo id da equipe, em cada região onde tem um domínio. A identidade
 do domínio e o `SES_CONFIGURATION_SET` compartilhado são associados ao tenant na
 criação do domínio, e todo envio a partir dele nomeia o tenant, então o SES
@@ -485,7 +485,7 @@ O [recebimento](/pt-BR/concepts/receiving) precisa de mais um processo: o MX,
 que atende SMTP na porta 25 para os domínios de recebimento das suas equipes e
 entrega cada mensagem à API por HTTP. Ele não tem banco de dados nem chaves,
 só as variáveis `MX_*`, então pode rodar ao lado do app ou numa máquina
-pequena separada com a porta 25 aberta, que é como o MillionSend Cloud o
+pequena separada com a porta 25 aberta, que é como o Posta Cloud o
 roda. Ele nunca repassa e-mail, não oferece AUTH e nunca envia bounce: recusa
 durante a sessão SMTP.
 
@@ -663,7 +663,7 @@ hostname — é o que o painel mostra como base da API e ao que os tokens MCP
 ficam vinculados; sem definir, a API é assumida na porta 3001 do host do
 painel.
 
-`/etc/nginx/conf.d/millionsend.conf`:
+`/etc/nginx/conf.d/posta.conf`:
 
 ```nginx
 map $http_upgrade $connection_upgrade {
@@ -805,7 +805,7 @@ sudo ufw enable
 
 Opcional. Com um bucket compatível com S3 configurado, administradores da equipe podem
 enviar uma logo pelo painel; ela também marca as páginas hospedadas de
-descadastro quando a marca do MillionSend está oculta. UM conjunto de
+descadastro quando a marca do Posta está oculta. UM conjunto de
 credenciais `S3_*` é compartilhado com o job de backup abaixo — cada recurso
 é então habilitado pela sua própria variável de bucket.
 
@@ -932,7 +932,7 @@ parecidos) e um sufixo público (`com.br`, `github.io`) nunca são recusados.
 
 ## E-mails de conta, contatos e novidades
 
-Os e-mails do próprio MillionSend — redefinição de senha, confirmação de
+Os e-mails do próprio Posta — redefinição de senha, confirmação de
 e-mail, convites para equipes e os avisos de cota e entregabilidade aos proprietários
 das equipes — saem de `AUTH_EMAIL_FROM` e `NOTIFICATIONS_EMAIL_FROM`.
 Verifique o domínio do remetente em **Domínios** em uma equipe e, a partir daí,
@@ -1026,7 +1026,7 @@ e-mail do onboarding só vai para um proprietário que confirmou.
 Nada em uma instância auto-hospedada contata posta.example por conta
 própria. O assistente de configuração oferece, uma vez e só de forma
 interativa, inscrever o e-mail do operador nas notas de lançamento do
-MillionSend; é o assistente na sua máquina enviando a sua resposta, e um link
+Posta; é o assistente na sua máquina enviando a sua resposta, e um link
 de confirmação chega antes de qualquer coisa ser armazenada. Quando não
 consegue alcançar posta.example, ele imprime a página,
 [app.posta.example/updates?source=self-host](https://app.posta.example/updates?source=self-host), e **Configurações →
@@ -1114,7 +1114,7 @@ segurança (abertas, encerradas ou reabertas) nem as ações do monitor de conte
 (a pausa de transmissões, a retomada e um ajuste de amostragem), que continuam
 no console. Ele mostra uma pausa de transmissões sobre a qual o proprietário
 não recebeu e-mail sem o motivo nem a nota, e toda ação do operador como
-MillionSend, nunca o nome ou o e-mail do operador.
+Posta, nunca o nome ou o e-mail do operador.
 
 O IP e o navegador de cada cadastro ficam em um registro que só o console lê,
 separado das sessões de login, que expiram. Ele sobrevive à conta: a limpeza
@@ -1341,7 +1341,7 @@ privacidade da instância (veja também o
 [política de privacidade](https://typesafe.ai/legal/privacy-policy) dela).
 
 **Exatamente o que o Jev vê**, montado em memória a cada chamada e nunca
-armazenado pelo MillionSend: o nome da equipe, os domínios verificados (mais o domínio
+armazenado pelo Posta: o nome da equipe, os domínios verificados (mais o domínio
 registrável de cada um, a forma em que os links aparecem, quando o sufixo é
 inequívoco), os
 dias desde o primeiro envio e o plano; os cabeçalhos `From` e `Reply-To` como
@@ -1760,7 +1760,7 @@ contagem por nome de procedimento e nunca o que um procedimento devolveu.
 **O que o proprietário vê.** Nenhum e-mail. A sessão aparece na hora em
 Configurações → Registro de auditoria da equipe, e o cartão Acesso de
 suporte em Configurações a mostra enquanto ela está ativa, com um botão
-"Encerrar sessão". Os dois mostram MillionSend, nunca o operador: nenhum
+"Encerrar sessão". Os dois mostram Posta, nunca o operador: nenhum
 nome, e-mail ou id de usuário chega à equipe.
 
 ```sh

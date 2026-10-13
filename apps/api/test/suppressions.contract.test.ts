@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for suppressions: the official `resend` npm SDK against a
- * live MillionSend API — add/list/get/remove by id and by email, plus
+ * live Posta API — add/list/get/remove by id and by email, plus
  * suppressions.batch.add/remove.
  */
 

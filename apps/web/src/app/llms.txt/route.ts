@@ -1,8 +1,8 @@
 import { DOCS_URL, SITE_URL } from "@posta/config/site";
 
-const BODY = `# MillionSend
+const BODY = `# Posta
 
-> This host is the MillionSend dashboard (sign-in required). Documentation and product information live on the public hosts below.
+> This host is the Posta dashboard (sign-in required). Documentation and product information live on the public hosts below.
 
 - Documentation index: ${DOCS_URL}/llms.txt
 - Full documentation in one file: ${DOCS_URL}/llms-full.txt

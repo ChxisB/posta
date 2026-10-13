@@ -69,7 +69,7 @@ function TopicName({ name }: { name: string }) {
 
 const BRAND_MARK_URL = "/logo/millionsend-favicon.svg";
 
-/** "Powered by MillionSend", under the card, linking to the site. */
+/** "Powered by Posta", under the card, linking to the site. */
 function PoweredBy({ template }: { template: string }) {
   return (
     <a
@@ -98,7 +98,7 @@ function PoweredBy({ template }: { template: string }) {
           >
             {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
             <img src={BRAND_MARK_URL} alt="" width={16} height={16} style={{ borderRadius: 4 }} />
-            MillionSend
+            Posta
           </span>
         ),
       })}
@@ -142,17 +142,12 @@ function Wordmark() {
   return (
     <>
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
-      <img
-        className="ms-dark-only"
-        src="/logo/millionsend-wordmark.svg"
-        alt="MillionSend"
-        height={20}
-      />
+      <img className="ms-dark-only" src="/logo/millionsend-wordmark.svg" alt="Posta" height={20} />
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
       <img
         className="ms-light-only"
         src="/logo/millionsend-wordmark-light.svg"
-        alt="MillionSend"
+        alt="Posta"
         height={20}
       />
     </>

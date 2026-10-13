@@ -181,8 +181,8 @@ const STYLE = [
 ].join("\n");
 
 const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;line-height:0">
-      <img class="ms-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="MillionSend" style="display:block;height:24px;width:auto;border:0">
-      <!--[if !mso]><!--><img class="ms-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="MillionSend" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
+      <img class="ms-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="Posta" style="display:block;height:24px;width:auto;border:0">
+      <!--[if !mso]><!--><img class="ms-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="Posta" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
     </a>`;
 
 /**

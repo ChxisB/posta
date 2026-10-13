@@ -18,16 +18,16 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
   return {
     metadataBase: new URL(DOCS_ORIGIN),
     icons: { icon: "/logo/millionsend-favicon.svg" },
-    openGraph: { siteName: "MillionSend Docs", type: "website", images: "/og.png" },
+    openGraph: { siteName: "Posta Docs", type: "website", images: "/og.png" },
     twitter: { card: "summary_large_image" },
     title: {
-      template: "%s · MillionSend Docs",
-      default: "MillionSend Docs",
+      template: "%s · Posta Docs",
+      default: "Posta Docs",
     },
     description:
       lang === "pt-BR"
-        ? "Documentação do MillionSend — a plataforma de email open source, compatível com Resend, disponível como serviço hospedado ou auto-hospedada."
-        : "Documentation for MillionSend — the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
+        ? "Documentação do Posta — a plataforma de email open source, compatível com Resend, disponível como serviço hospedado ou auto-hospedada."
+        : "Documentation for Posta — the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
   };
 }
 

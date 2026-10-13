@@ -69,7 +69,7 @@ const serverDeps = () => ({
   keyring,
   isCloud: true,
   allowInsecureAuth: true,
-  onboardingEmailFrom: "MillionSend <hello@ms.example>",
+  onboardingEmailFrom: "Posta <hello@ms.example>",
   enqueueEmailSend: async (emailId: string, opts?: { startAfter?: Date }) => {
     enqueued.push({ emailId, ...(opts?.startAfter ? { startAfter: opts.startAfter } : {}) });
   },
@@ -276,13 +276,13 @@ describe("smtp relay", () => {
       verifiedAt: new Date(),
     });
     const auth = { user: SMTP_USERNAME, pass: token };
-    for (const from of ["MillionSend <hello@ms.example>", "HELLO@ms.example"]) {
+    for (const from of ["Posta <hello@ms.example>", "HELLO@ms.example"]) {
       await expect(
         transport(auth).sendMail({ from, to: "r@example.com", subject: "s", text: "t" }),
       ).rejects.toMatchObject({
         responseCode: 550,
         response: expect.stringContaining(
-          "hello@ms.example is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
+          "hello@ms.example is reserved for Posta's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
         ),
       });
     }

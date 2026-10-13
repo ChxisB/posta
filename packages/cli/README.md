@@ -25,7 +25,7 @@ Node 18 or newer; no dependencies.
 | Templates | Name, alias, subject, html, text. From, reply-to and variables cannot be stored — listed as manual steps. |
 | Webhooks | Endpoint and events. Signing secrets are copied so receivers keep verifying (`--fresh-webhook-secrets` mints new ones, shown once). Events Posta also emits carry over (`email.*`, `contact.created`, `contact.updated`, `contact.deleted`); the rest are dropped per webhook and listed. |
 | Suppressions | Bounces, complaints and manual entries, with their origin. |
-| Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves (Posta Cloud: `sa-east-1`) — the Resend region does not carry over. DNS records must be added again (DKIM keys are per provider); the report prints a copy-ready table. Both providers can stay verified side by side. |
+| Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves — the Resend region does not carry over. DNS records must be added again (DKIM keys are per provider); the report prints a copy-ready table. Both providers can stay verified side by side. |
 | Broadcasts | Drafts and scheduled ones import as drafts; sent ones are skipped unless `--include-sent`. |
 | API keys | Not recreated (the source only exposes names); the report lists them as a to-do. |
 

@@ -88,7 +88,7 @@ e-mail cujo bounce ou reclamação a criou.
   um id por endereço distinto, na ordem de entrada; o remove lista só as
   linhas de fato removidas.
 
-Três particularidades do MillionSend: `origin` no add é aceito (o tipo do SDK
+Três particularidades do Posta: `origin` no add é aceito (o tipo do SDK
 do Resend não tem esse campo, então envie por uma requisição crua),
 `origin: "unsubscribe"` é um valor a mais que o Resend não tem (a união de
 tipos do SDK dele não o inclui) e se comporta como um opt-out de um clique —
@@ -101,7 +101,7 @@ id sem restaurá-lo.
 ## Por que isso importa
 
 O SES acompanha taxas de bounce e reclamação e pausa remetentes que cruzam
-seus limites. A página de métricas do MillionSend acompanha suas taxas contra
+seus limites. A página de métricas do Posta acompanha suas taxas contra
 esses limites, e o [envio de transmissões](/pt-BR/concepts/broadcasts#proteções)
 é bloqueado automaticamente quando uma taxa cruza o limite de pausa.
 

@@ -381,46 +381,46 @@ const senderTrustSchema = z.enum(SENDER_TRUSTS);
 const spamVerdictSchema = z.enum(["pass", "gray", "fail"]);
 const virusVerdictSchema = z.enum(["pass", "fail", "processing_failed"]);
 
-/** MillionSend's keys on a received email: Resend's fields are untouched, these come after them. */
+/** Posta's keys on a received email: Resend's fields are untouched, these come after them. */
 const receivedExtensionFields = {
   inbox_id: z
     .uuid()
     .nullable()
     .describe(
-      "MillionSend extension: the inbox this read is about (an inbox-scoped key's own, the inbox_id filter's, else the oldest inbox the email reached); null for mail no inbox took",
+      "Posta extension: the inbox this read is about (an inbox-scoped key's own, the inbox_id filter's, else the oldest inbox the email reached); null for mail no inbox took",
     ),
-  thread_id: z.uuid().nullable().describe("MillionSend extension: that inbox's thread"),
+  thread_id: z.uuid().nullable().describe("Posta extension: that inbox's thread"),
   inboxes: z
     .array(z.object({ inbox_id: z.uuid(), thread_id: z.uuid(), verdict: screeningVerdictSchema }))
     .optional()
     .describe(
-      "MillionSend extension, full access keys only: every inbox the email reached and its screening verdict there",
+      "Posta extension, full access keys only: every inbox the email reached and its screening verdict there",
     ),
   spam_verdict: spamVerdictSchema
     .nullable()
     .describe(
-      "MillionSend extension: the local spam score's verdict; null for mail from before it existed",
+      "Posta extension: the local spam score's verdict; null for mail from before it existed",
     ),
   virus_verdict: virusVerdictSchema
     .nullable()
     .describe(
-      "MillionSend extension: clamd's verdict (fail blocks every download for good); null when nothing scanned it",
+      "Posta extension: clamd's verdict (fail blocks every download for good); null when nothing scanned it",
     ),
   read: z
     .boolean()
     .optional()
-    .describe("MillionSend extension, with an inbox in context: whether that inbox marked it read"),
+    .describe("Posta extension, with an inbox in context: whether that inbox marked it read"),
 };
 
 const receivedListItemExtensions = receivedEmailListItemSchema.extend({
   ...receivedExtensionFields,
   screening: z
     .object({ verdict: screeningVerdictSchema, sender_trust: senderTrustSchema })
-    .describe("MillionSend extension: the screening verdict and the sender's trust tier"),
+    .describe("Posta extension: the screening verdict and the sender's trust tier"),
   extracted: z
     .object({ kinds: z.array(z.enum(["code", "link"])) })
     .describe(
-      "MillionSend extension: whether a verification code or sign-in link was found; the values come with GET of one email",
+      "Posta extension: whether a verification code or sign-in link was found; the values come with GET of one email",
     ),
 });
 
@@ -441,7 +441,7 @@ export const listReceivedEmailsResponseSchema = z
       )
       .optional()
       .describe(
-        "MillionSend extension, with wait only: matching mail that arrived but is held (being screened or quarantined), ids and why only",
+        "Posta extension, with wait only: matching mail that arrived but is held (being screened or quarantined), ids and why only",
       ),
   })
   .openapi("ListReceivedEmailsResponse");
@@ -469,22 +469,22 @@ export const getReceivedEmailResponseSchema = receivedEmailListItemSchema
         hidden_text_removed: z.boolean(),
       })
       .describe(
-        "MillionSend extension: the screening verdict, the sender's trust tier, why it was held, the inbound judge's reasons and scores (0-100), and whether hidden text was removed from what agents read",
+        "Posta extension: the screening verdict, the sender's trust tier, why it was held, the inbound judge's reasons and scores (0-100), and whether hidden text was removed from what agents read",
       ),
     spam_score: z
       .number()
       .int()
       .nullable()
-      .describe("MillionSend extension: the local spam score, 0-100"),
+      .describe("Posta extension: the local spam score, 0-100"),
     virus_signature: z
       .string()
       .nullable()
-      .describe("MillionSend extension: clamd's signature name when it failed"),
+      .describe("Posta extension: clamd's signature name when it failed"),
     extracted_text: z
       .string()
       .nullable()
       .describe(
-        "MillionSend extension: what a person sees of the reply, as text with light markdown: hidden text, invisible characters, quoted history and signature taken out. null once the content retention removed it",
+        "Posta extension: what a person sees of the reply, as text with light markdown: hidden text, invisible characters, quoted history and signature taken out. null once the content retention removed it",
       ),
     extracted: z
       .object({
@@ -495,7 +495,7 @@ export const getReceivedEmailResponseSchema = receivedEmailListItemSchema
         ambiguous: z.boolean(),
       })
       .describe(
-        "MillionSend extension: the verification code or sign-in link, served only from delivered mail of a sender that did not fail authentication, in an inbox that extracts codes. Links are never fetched.",
+        "Posta extension: the verification code or sign-in link, served only from delivered mail of a sender that did not fail authentication, in an inbox that extracts codes. Links are never fetched.",
       ),
     object: z.literal("email"),
     html: z.string().nullable(),
@@ -596,14 +596,14 @@ export const deliverabilityResponseSchema = z
   .openapi("DeliverabilityResponse");
 
 /**
- * GET /usage (MillionSend extension): the plan and quota picture a client
+ * GET /usage (Posta extension): the plan and quota picture a client
  * needs before bulk work. Plan and limits are null off Cloud, where no plan
  * applies.
  */
 export const usageResponseSchema = z
   .object({
     object: z.literal("usage"),
-    cloud: z.boolean().describe("True on MillionSend Cloud, where plan limits apply"),
+    cloud: z.boolean().describe("True on Posta Cloud, where plan limits apply"),
     plan: z
       .enum(["free", "starter", "pro", "scale"])
       .nullable()
@@ -701,46 +701,41 @@ export const listReceivedEmailsQuerySchema = oneCursor(
       .max(LONG_POLL_MAX_SECONDS)
       .optional()
       .describe(
-        `MillionSend extension: hold the request up to this many seconds (0-${LONG_POLL_MAX_SECONDS}) until matching mail newer than the cursor arrives; an empty list with 200 when none did`,
+        `Posta extension: hold the request up to this many seconds (0-${LONG_POLL_MAX_SECONDS}) until matching mail newer than the cursor arrives; an empty list with 200 when none did`,
       ),
     since: z.iso
       .datetime({ offset: true })
       .optional()
       .describe(
-        "MillionSend extension: only mail received after this instant; with wait and no cursor it defaults to one minute before the request",
+        "Posta extension: only mail received after this instant; with wait and no cursor it defaults to one minute before the request",
       ),
-    inbox_id: z
-      .uuid()
-      .optional()
-      .describe("MillionSend extension: only mail delivered into this inbox"),
+    inbox_id: z.uuid().optional().describe("Posta extension: only mail delivered into this inbox"),
     to: z
       .string()
       .max(320)
       .optional()
-      .describe("MillionSend extension: only mail with this address in received_for"),
+      .describe("Posta extension: only mail with this address in received_for"),
     from: z
       .string()
       .max(320)
       .optional()
       .describe(
-        "MillionSend extension: a sender address, or a domain matching itself and its subdomains",
+        "Posta extension: a sender address, or a domain matching itself and its subdomains",
       ),
     subject_contains: z
       .string()
       .max(200)
       .optional()
-      .describe("MillionSend extension: case-insensitive subject substring"),
+      .describe("Posta extension: case-insensitive subject substring"),
     unread: booleanQuery
       .optional()
-      .describe("MillionSend extension, with inbox_id: read state in that inbox"),
+      .describe("Posta extension, with inbox_id: read state in that inbox"),
     include_quarantined: booleanQuery
       .optional()
-      .describe(
-        "MillionSend extension, full access keys only: list held mail too, flagged by screening",
-      ),
+      .describe("Posta extension, full access keys only: list held mail too, flagged by screening"),
     quarantined: booleanQuery
       .optional()
-      .describe("MillionSend extension, full access keys only: list held mail only"),
+      .describe("Posta extension, full access keys only: list held mail only"),
   }),
 ).refine((q) => q.unread === undefined || q.inbox_id !== undefined, {
   message: "unread needs inbox_id",
@@ -766,7 +761,7 @@ const contactIncludeQuery = z
     message: "include accepts properties and topics, comma-separated",
   })
   .describe(
-    "MillionSend extension: comma-separated facets attached to every item — `properties` (the {type, value} map GET /contacts/{id} returns) and `topics` (the rows GET /contacts/{id}/topics returns). Omitted, each item has the Resend shape.",
+    "Posta extension: comma-separated facets attached to every item — `properties` (the {type, value} map GET /contacts/{id} returns) and `topics` (the rows GET /contacts/{id}/topics returns). Omitted, each item has the Resend shape.",
   );
 export const listContactsQuerySchema = oneCursor(
   listQueryFields.extend({ include: contactIncludeQuery }),
@@ -977,7 +972,7 @@ export const removeContactSegmentResponseSchema = z
   .openapi("RemoveContactSegmentResponse");
 
 /**
- * POST /contacts/batch (MillionSend extension; Resend imports contacts only
+ * POST /contacts/batch (Posta extension; Resend imports contacts only
  * via CSV). Items are untyped here for the same reason as BatchEmailRequest:
  * the handler validates each against CreateContactRequest itself so the
  * x-batch-validation header can decide between failing the whole batch
@@ -1272,7 +1267,7 @@ export const cancelBroadcastResponseSchema = z
   .openapi("CancelBroadcastResponse");
 
 /**
- * Segments (MillionSend extension, docs/resend-compatibility.md). A segment
+ * Segments (Posta extension, docs/resend-compatibility.md). A segment
  * is a saved filter over the team's contacts. The filter's field/operator
  * semantics are validated by @posta/core's `segmentFilterSchema` in the
  * handler (422 on a bad shape); this schema only pins the wire structure for
@@ -1413,7 +1408,7 @@ const CLICK_TRACKING_DESC =
 const OPEN_TRACKING_DESC =
   "Inject a tracking pixel served from the tracking subdomain and record email.opened events. Off by default.";
 const TRACKING_SUBDOMAIN_DESC =
-  'DNS label of the branded tracking host, e.g. "links" for links.<domain>. Setting it adds a Tracking CNAME to records[]; links are tracked through it once that CNAME resolves. Required on MillionSend Cloud to turn tracking on.';
+  'DNS label of the branded tracking host, e.g. "links" for links.<domain>. Setting it adds a Tracking CNAME to records[]; links are tracked through it once that CNAME resolves. Required on Posta Cloud to turn tracking on.';
 
 const capabilityStatusSchema = z.enum(["enabled", "disabled"]);
 
@@ -1492,7 +1487,7 @@ export const updateDomainRequestSchema = z
       .boolean()
       .optional()
       .describe(
-        "MillionSend extension: store mail to addresses without an inbox (true) or refuse it at RCPT (false). Turning it on needs receiving enabled and, on MillionSend Cloud, a paid plan.",
+        "Posta extension: store mail to addresses without an inbox (true) or refuse it at RCPT (false). Turning it on needs receiving enabled and, on Posta Cloud, a paid plan.",
       ),
   })
   .openapi("UpdateDomainRequest");
@@ -1557,7 +1552,7 @@ const domainSchema = z.object({
   receiving_catch_all: z
     .boolean()
     .describe(
-      "MillionSend extension: whether mail to an address without an inbox is stored (true) or refused at RCPT (false)",
+      "Posta extension: whether mail to an address without an inbox is stored (true) or refused at RCPT (false)",
     ),
 });
 
@@ -1605,7 +1600,7 @@ const webhookEndpointUrl = z
   });
 
 const INBOX_IDS_DESC =
-  "MillionSend extension: inbox events and email.received reach this endpoint only for these inboxes of the team (at most 100). null means every inbox.";
+  "Posta extension: inbox events and email.received reach this endpoint only for these inboxes of the team (at most 100). null means every inbox.";
 const webhookInboxIds = z.array(z.uuid()).max(100).nullable();
 
 export const createWebhookRequestSchema = z
@@ -1728,7 +1723,7 @@ export const createApiKeyRequestSchema = z
       .uuid()
       .nullish()
       .describe(
-        "MillionSend extension: restricts the key to one inbox of the team. It reads that inbox's " +
+        "Posta extension: restricts the key to one inbox of the team. It reads that inbox's " +
           "threads, drafts and received mail and sends only from its address; every other route " +
           "answers 403 restricted_api_key. Needs full_access, can't be combined with domain_id, " +
           "and an inbox holds at most 5 active keys (outside the team's 25).",
@@ -1752,7 +1747,7 @@ export const listApiKeysResponseSchema = z
         inbox_id: z
           .uuid()
           .nullable()
-          .describe("MillionSend extension: the one inbox the key is restricted to, or null"),
+          .describe("Posta extension: the one inbox the key is restricted to, or null"),
       }),
     ),
     has_more: z.boolean(),
@@ -1901,7 +1896,7 @@ export const batchRemoveSuppressionsResponseSchema = z
 
 /**
  * Templates — wire-compatible with the resend SDK's templates surface.
- * MillionSend templates have no draft/publish cycle and no version history
+ * Posta templates have no draft/publish cycle and no version history
  * (every save is live), so on the wire `status` is always "published",
  * `published_at` is created_at, `current_version_id` is the template id and
  * `has_unpublished_versions` is false. `from`, `reply_to` and `variables` are

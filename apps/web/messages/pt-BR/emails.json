@@ -158,7 +158,7 @@
     "notCheckedWhy": "Estado do DNS indisponível no momento do envio.",
     "notApplicableToggle": "{count, plural, one {# verificação não aplicável} other {# verificações não aplicáveis}}",
     "byDesign": "garantido",
-    "byDesignNote": "O MillionSend garante isso estruturalmente — não há como falhar aqui.",
+    "byDesignNote": "O Posta garante isso estruturalmente — não há como falhar aqui.",
     "adviceLabel": "O que fazer",
     "detailLabel": "Detalhe",
     "kb": "{kb} KB",
@@ -171,12 +171,12 @@
       "auth_alignment": {
         "title": "Alinhamento SPF e DKIM",
         "description": "SPF e DKIM passam e se alinham ao domínio do remetente — o requisito básico de todos os grandes provedores.",
-        "advice": "Nada a fazer — o MillionSend verifica SPF e DKIM do seu domínio antes de qualquer envio sair."
+        "advice": "Nada a fazer — o Posta verifica SPF e DKIM do seu domínio antes de qualquer envio sair."
       },
       "list_unsubscribe": {
         "title": "Cabeçalhos de descadastro em um clique",
         "description": "A mensagem carrega os cabeçalhos List-Unsubscribe e List-Unsubscribe-Post. Gmail e Yahoo exigem descadastro em um clique para remetentes em massa.",
-        "advice": "Envie marketing por transmissões ou tópicos — o MillionSend injeta os dois cabeçalhos automaticamente."
+        "advice": "Envie marketing por transmissões ou tópicos — o Posta injeta os dois cabeçalhos automaticamente."
       },
       "link_domains_match": {
         "title": "Links no seu domínio",
@@ -267,7 +267,7 @@
     "handoffLabel": "Passe para o seu agente",
     "handoffHint": "Uma instrução pronta com a verificação, o motivo e a correção.",
     "copyForAgent": "Copiar instruções",
-    "agentPrompt": "Na nossa integração com o MillionSend, o e-mail \"{subject}\" (id {id}) falha na verificação de entregabilidade \"{title}\".\n\n{description}\n\nO que fazer: {advice}{detail}\n\nEncontre o código ou template que envia este e-mail e aplique a correção. Mantenha a mudança mínima e explique o que mudou."
+    "agentPrompt": "Na nossa integração com o Posta, o e-mail \"{subject}\" (id {id}) falha na verificação de entregabilidade \"{title}\".\n\n{description}\n\nO que fazer: {advice}{detail}\n\nEncontre o código ou template que envia este e-mail e aplique a correção. Mantenha a mudança mínima e explique o que mudou."
   },
   "bouncedDrawer": {
     "title": "Detalhes do bounce",

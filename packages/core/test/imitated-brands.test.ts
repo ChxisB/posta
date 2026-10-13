@@ -60,6 +60,7 @@ describe("imitatedBrandIn", () => {
       ["T.I.M.", "TIM"],
       ["99", "99"],
       ["Prime", "Prime"],
+      ["P0sta", "Posta"],
     ] as const) {
       expect(imitatedBrandIn(name), name).toBe(brand);
     }
@@ -74,6 +75,8 @@ describe("imitatedBrandIn", () => {
       "Sky High",
       "Viva Vivo",
       "99 Problemas",
+      "Posta Express",
+      "Fermo Posta Milano",
     ]) {
       expect(imitatedBrandIn(name), name).toBeNull();
     }

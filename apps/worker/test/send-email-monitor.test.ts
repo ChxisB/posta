@@ -113,7 +113,7 @@ it("keeps the send's outcome when the draw throws, and draws nothing without the
 });
 
 it("never draws the fixed onboarding email, nor counts it as the team's first send", async () => {
-  const onboardingEmailFrom = "MillionSend <hello@ms.example>";
+  const onboardingEmailFrom = "Posta <hello@ms.example>";
   const fresh = await createTeam(db, "onboarding-only");
   const queued: string[] = [];
   const monitor: MonitorDeps = {

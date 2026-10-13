@@ -4,11 +4,11 @@ description: Receive email on your own domain, read it through the Resend-compat
 ---
 
 Receiving turns a domain you verified into a place that takes mail. Mail sent
-to its addresses reaches MillionSend's mail server, is stored encrypted, and
+to its addresses reaches Posta's mail server, is stored encrypted, and
 comes back to you through the API, the `email.received` webhook, the
 dashboard (**Inboxes → All received**) and the [MCP server](/mcp). The API
 is Resend's receiving API, so the official Resend SDKs work against
-MillionSend unchanged, `forward()` included.
+Posta unchanged, `forward()` included.
 
 Which addresses take mail is up to you: the address of each
 [inbox](/concepts/inboxes) you create, which keeps its mail in threads with
@@ -28,13 +28,13 @@ Mail reaches you the way it reaches any mailbox: the sending server looks up
 the MX record of the recipient's domain and delivers to the host it names.
 
 1. The sender's server reads your domain's MX record and connects to
-   MillionSend's MX.
+   Posta's MX.
 2. For each recipient (`RCPT TO`), the MX checks that the domain receives
    here and that the address has an inbox, unless the domain's catch-all is
    on. An address at any other domain is refused, so the MX never relays mail
    anywhere.
 3. The message streams in (40 MB at most). The MX checks SPF, DKIM, DMARC and
-   ARC; MillionSend scans it for viruses where the instance runs a scanner,
+   ARC; Posta scans it for viruses where the instance runs a scanner,
    scores it for spam, and stores it before the MX answers `250`. From that
    moment the message is yours, and the sending server's job is done.
 4. `email.received` fires, and the message shows in the API and the
@@ -42,7 +42,7 @@ the MX record of the recipient's domain and delivers to the host it names.
    fires once it is delivered or released.
 
 Every refusal happens during that SMTP conversation, so the sending server
-still holds the message and decides what to do with it. MillionSend never
+still holds the message and decides what to do with it. Posta never
 sends a bounce of its own.
 
 | Reply | When | The sending server |
@@ -52,7 +52,7 @@ sends a bounce of its own.
 | `550 5.7.1` | The team that owns the domain is suspended. | Returns the message to its sender. |
 | `552 5.3.4` | The message is larger than 40 MB. | Returns the message to its sender. |
 | `452 4.2.2` | The team's receiving allowance is used up (see [pricing](#pricing)), or the inbox took more mail than it may in an hour (200 messages for an agent inbox, 2,000 for a people inbox). | Keeps the message and tries again later. |
-| Other `4xx`, such as `451 4.3.0` | A temporary problem on MillionSend's side, or more recipients than one delivery takes (50). | Keeps the message and tries again, for days if needed. |
+| Other `4xx`, such as `451 4.3.0` | A temporary problem on Posta's side, or more recipients than one delivery takes (50). | Keeps the message and tries again, for days if needed. |
 
 ## Set up
 
@@ -159,7 +159,7 @@ threads and in **All received**; mail to a catch-all address shows in
 Owners and admins switch catch-all on the domain page, or with
 `PATCH /domains/{id}` and `{ "receiving_catch_all": true }`; domain responses
 carry `receiving_catch_all`. It starts off, and was switched on for every
-domain that received mail before inboxes existed. On MillionSend Cloud it
+domain that received mail before inboxes existed. On Posta Cloud it
 needs a paid plan (Free answers `403 plan_limit_reached`); once on, it stays
 on after a downgrade.
 
@@ -223,8 +223,8 @@ themselves are free.
 
 ## Reading received mail
 
-Use a [MillionSend SDK](/sdks) from 0.9.0 (`emails.receiving`), the official
-Resend SDK pointed at MillionSend (`RESEND_BASE_URL`), or plain HTTP. Every
+Use a [Posta SDK](/sdks) from 0.9.0 (`emails.receiving`), the official
+Resend SDK pointed at Posta (`RESEND_BASE_URL`), or plain HTTP. Every
 endpoint below needs a **full access** key; a sending-only key gets
 `403 restricted_api_key`. A key scoped to a domain reads only mail received
 at that domain, and a key scoped to an inbox only mail delivered into that
@@ -305,7 +305,7 @@ curl "https://api.posta.example/emails/receiving?limit=20" \
 ```
 
 The list shows mail at catch-all addresses and mail delivered into an inbox;
-held mail stays out unless asked for. Items carry MillionSend's fields after
+held mail stays out unless asked for. Items carry Posta's fields after
 Resend's:
 
 - `inbox_id` and `thread_id`: the inbox the message was delivered into (with
@@ -440,7 +440,7 @@ a download link for the original message:
 - `html` is exactly as received. `text` comes without invisible characters
   (zero-width and text-direction characters, Unicode tags), line breaks kept.
 - `message_id` comes from the message's `Message-ID` header. When it has
-  none, MillionSend makes one up as `<id@received.invalid>`.
+  none, Posta makes one up as `<id@received.invalid>`.
 - `extracted_text` is the reply part of the message, cleaned of text a person
   can't see, with quoted history and signatures set apart (see
   [Agent safety](/concepts/agent-safety#hidden-text-and-extracted_text)).

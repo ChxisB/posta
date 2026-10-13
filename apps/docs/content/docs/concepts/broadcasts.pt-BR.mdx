@@ -25,7 +25,7 @@ draft → scheduled → sending → sent
   `sent_count` de uma leitura diz quantos já tinham saído.
 - Na API, `scheduled` e `sending` aparecem ambos como `queued`
   (correspondendo à união de status do SDK do Resend); `canceled` é uma
-  extensão do MillionSend. Uma transmissão aparece como `queued` com `sent_at`
+  extensão do Posta. Uma transmissão aparece como `queued` com `sent_at`
   nulo até o último e-mail sair, leve o tempo que levar.
 
 ## O que o fan-out faz

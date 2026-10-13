@@ -3,7 +3,7 @@ title: Insights de entregabilidade
 description: Verificações de boas práticas e uma nota para cada e-mail enviado.
 ---
 
-O MillionSend executa um conjunto de verificações de boas práticas de envio
+O Posta executa um conjunto de verificações de boas práticas de envio
 em cada e-mail no momento do envio, e transforma os resultados em dois
 números: uma nota de 0 a 10 por e-mail, e uma nota da conta sobre uma janela
 móvel de 30 dias. A nota mede **conformidade com boas práticas de envio** —
@@ -54,17 +54,17 @@ pontos.
 | `images_offsite` | info | 0 | Todos | Imagens hospedadas no seu próprio domínio. |
 | `reply_to_present` | info | 0 | Todos | Um Reply-To existe quando o From é `no-reply@`. |
 
-Algumas verificações não podem falhar no MillionSend e reportam
+Algumas verificações não podem falhar no Posta e reportam
 `passed_by_design`:
 
 - `auth_alignment` — sempre. Você só envia de um domínio verificado, e a
   verificação de domínio é uma etapa obrigatória antes de qualquer envio,
   então o alinhamento de SPF e DKIM é sempre garantido.
 - `list_unsubscribe` — em transmissões e envios por tópico, onde o próprio
-  MillionSend injeta os headers de descadastro em um clique. Em envios pela
+  Posta injeta os headers de descadastro em um clique. Em envios pela
   API a verificação lê os headers que você forneceu.
 
-No MillionSend Cloud, o rastreamento de abertura/clique só roda no seu subdomínio de
+No Posta Cloud, o rastreamento de abertura/clique só roda no seu subdomínio de
 rastreamento próprio, então `tracking_unbranded` só pode falhar em instâncias
 auto-hospedadas que usam um host de rastreamento compartilhado.
 

@@ -13,7 +13,7 @@ describe("endpointSubscribes", () => {
     expect(endpointSubscribes(["email.prefetched"], "email.prefetched")).toBe(true);
   });
 
-  it("registers Resend's inbox events plus MillionSend's two, every one opt-in", () => {
+  it("registers Resend's inbox events plus Posta's two, every one opt-in", () => {
     const inbox = WEBHOOK_EVENT_TYPES.filter((type) => type.startsWith("inbox."));
     expect(inbox).toEqual([
       "inbox.created",
