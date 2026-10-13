@@ -41,9 +41,9 @@ function collector() {
 function env(extra: Record<string, string> = {}): Record<string, string> {
   return {
     RESEND_API_KEY: fake.token,
-    MILLIONSEND_CLI_RESEND_URL: fake.url,
-    MILLIONSEND_API_KEY: api.apiKey,
-    MILLIONSEND_BASE_URL: api.baseUrl,
+    POSTA_CLI_RESEND_URL: fake.url,
+    POSTA_API_KEY: api.apiKey,
+    POSTA_BASE_URL: api.baseUrl,
     ...extra,
   };
 }
@@ -385,7 +385,7 @@ describe("millionsend migrate", () => {
         });
         const { code, stderr } = await run(["migrate", "--from", "resend", "--yes"], {
           cwd: dir,
-          env: { MILLIONSEND_API_KEY: other.apiKey, MILLIONSEND_BASE_URL: other.baseUrl },
+          env: { POSTA_API_KEY: other.apiKey, POSTA_BASE_URL: other.baseUrl },
         });
         expect(code).toBe(1);
         expect(stderr).toContain("Resend rejected the API key (401)");
@@ -695,7 +695,7 @@ describe("plan, apply and status edge cases (own target)", () => {
   });
   afterAll(() => mine.stop());
 
-  const target = () => ({ MILLIONSEND_API_KEY: mine.apiKey, MILLIONSEND_BASE_URL: mine.baseUrl });
+  const target = () => ({ POSTA_API_KEY: mine.apiKey, POSTA_BASE_URL: mine.baseUrl });
   const freshDir = () => mkdtempSync(join(tmpdir(), "millionsend-cli-edge-"));
   const seed = (dir: string, partial: Partial<MigrateState>): MigrateState => {
     const state: MigrateState = {
@@ -751,12 +751,12 @@ describe("plan, apply and status edge cases (own target)", () => {
   it("refuses to send the Resend key to the MillionSend host, before connecting", async () => {
     const { code, stdout, stderr } = await run(["migrate", "plan", "--from", "resend"], {
       cwd: freshDir(),
-      env: { ...target(), MILLIONSEND_CLI_RESEND_URL: mine.baseUrl },
+      env: { ...target(), POSTA_CLI_RESEND_URL: mine.baseUrl },
     });
     expect(code).toBe(1);
     expect(stderr).toContain("is the MillionSend host");
-    expect(stderr).toContain("MILLIONSEND_CLI_RESEND_URL");
-    expect(stderr).toContain("MILLIONSEND_BASE_URL");
+    expect(stderr).toContain("POSTA_CLI_RESEND_URL");
+    expect(stderr).toContain("POSTA_BASE_URL");
     expect(stdout).not.toContain("✓ Resend");
   });
 

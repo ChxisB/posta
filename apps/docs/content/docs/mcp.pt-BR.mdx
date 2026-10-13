@@ -35,13 +35,13 @@ exata em **Configurações → MCP**.
 <Tab value="Claude Code">
 
 ```sh
-claude mcp add --transport http millionsend https://api.millionsend.com/mcp
+claude mcp add --transport http posta https://api.millionsend.com/mcp
 ```
 
 Isso registra o servidor só no projeto atual; adicione `--scope user` para
 deixá-lo disponível em todos os projetos da sua máquina.
 
-Depois rode `/mcp` dentro do Claude Code e escolha `millionsend` para entrar.
+Depois rode `/mcp` dentro do Claude Code e escolha `posta` para entrar.
 
 </Tab>
 <Tab value="Claude">
@@ -55,7 +55,7 @@ então o `mcp-remote` faz a ponte para o endpoint HTTP:
 ```json title="claude_desktop_config.json"
 {
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "command": "npx",
       "args": ["-y", "mcp-remote@0.8.2", "https://api.millionsend.com/mcp"]
     }
@@ -69,7 +69,7 @@ então o `mcp-remote` faz a ponte para o endpoint HTTP:
 ```json title=".cursor/mcp.json"
 {
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "url": "https://api.millionsend.com/mcp"
     }
   }
@@ -84,7 +84,7 @@ Salve no projeto, ou em `~/.cursor/mcp.json` para todos os projetos.
 ```json title=".vscode/mcp.json"
 {
   "servers": {
-    "millionsend": {
+    "posta": {
       "type": "http",
       "url": "https://api.millionsend.com/mcp"
     }

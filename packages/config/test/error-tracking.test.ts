@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { type Env, errorTrackingConfig } from "../src/env.js";
 
 function fakeEnv(overrides: Record<string, string | number>): Env {
-  return { MILLIONSEND_REVISION: "unknown", ...overrides } as unknown as Env;
+  return { POSTA_REVISION: "unknown", ...overrides } as unknown as Env;
 }
 
 const DSN = "https://public@errors.example.com/7";
@@ -32,7 +32,7 @@ describe("errorTrackingConfig", () => {
         "server",
         fakeEnv({
           SENTRY_DSN: DSN,
-          MILLIONSEND_REVISION: "c8ce832",
+          POSTA_REVISION: "c8ce832",
           SENTRY_ENVIRONMENT: "staging",
         }),
       ),

@@ -217,7 +217,7 @@ describe("createHttp", () => {
     target.catch(() => {});
     await vi.runAllTimersAsync();
     await expect(target).rejects.toThrow(
-      "MillionSend: GET /usage failed 1 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / MILLIONSEND_BASE_URL",
+      "MillionSend: GET /usage failed 1 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / POSTA_BASE_URL",
     );
   });
 

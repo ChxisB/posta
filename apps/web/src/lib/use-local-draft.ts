@@ -11,7 +11,7 @@ export interface RecoveredDraft<T> {
 /**
  * Crash/close protection for the editor pages: mirrors the current form state
  * into localStorage (never synced anywhere), debounced, one key per entity
- * (`ms-draft:broadcast:<id|new>` etc.). A draft identical to the persisted
+ * (`po-draft:broadcast:<id|new>` etc.). A draft identical to the persisted
  * baseline is deleted rather than stored, so the key only exists while there
  * is genuinely unsaved work.
  *

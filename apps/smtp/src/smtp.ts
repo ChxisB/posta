@@ -22,7 +22,7 @@ import { type AddressObject, type ParsedMail, simpleParser } from "mailparser";
 import { SMTPServer, type SMTPServerDataStream, type SMTPServerSession } from "smtp-server";
 
 /** Mirrors Resend's SMTP contract: fixed username, an API key as password. */
-export const SMTP_USERNAME = "millionsend";
+export const SMTP_USERNAME = "posta";
 
 // Nothing larger than SES takes can ever send.
 export const MAX_MESSAGE_BYTES = SES_MAX_MESSAGE_BYTES;
@@ -228,7 +228,7 @@ async function handleMessage(
 /**
  * SMTP relay speaking the same accept pipeline as POST /emails. AUTH
  * PLAIN/LOGIN is required on every session (no open relay): username
- * "millionsend", password an ms_ API key.
+ * "posta", password an ms_ API key.
  */
 export function createSmtpServer(deps: SmtpDeps): SMTPServer {
   const maxMessageBytes = deps.maxMessageBytes ?? MAX_MESSAGE_BYTES;

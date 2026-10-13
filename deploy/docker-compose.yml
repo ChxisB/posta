@@ -5,7 +5,7 @@
 #   docker compose up -d
 # Upgrade: docker compose pull && docker compose up -d — migrations run on boot.
 # The default image is the latest tagged release (:edge follows main); to hold
-# a version, set MILLIONSEND_IMAGE in .env to a version tag or an immutable
+# a version, set POSTA_IMAGE in .env to a version tag or an immutable
 # @sha256 digest.
 #
 # Optional services sit behind compose profiles — COMPOSE_PROFILES in .env:
@@ -34,7 +34,7 @@ services:
       retries: 10
 
   millionsend:
-    image: "${MILLIONSEND_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
     env_file: .env
     environment:
       PROCESS: all
@@ -60,7 +60,7 @@ services:
       - /app/apps/docs/.source
 
   docs:
-    image: "${MILLIONSEND_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
     env_file: .env
     environment:
       PROCESS: docs
@@ -82,7 +82,7 @@ services:
       - /app/apps/docs/.source
 
   smtp:
-    image: "${MILLIONSEND_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
     env_file: .env
     environment:
       PROCESS: smtp
@@ -108,7 +108,7 @@ services:
       - /app/apps/docs/.source
 
   mx:
-    image: "${MILLIONSEND_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
     # Its own variables only, not env_file: the MX faces the internet and has
     # no use for the app's keys.
     environment:
@@ -159,7 +159,7 @@ services:
 
   backup:
     # Published from scripts/backup on the same tags as the app.
-    image: "${MILLIONSEND_BACKUP_IMAGE:-ghcr.io/millionsend/backup:latest}"
+    image: "${POSTA_BACKUP_IMAGE:-ghcr.io/millionsend/backup:latest}"
     env_file: .env
     # Stays a no-op (prints a hint, exits 0, restart "no") until
     # S3_BACKUP_BUCKET and the S3_* credentials are set in .env.

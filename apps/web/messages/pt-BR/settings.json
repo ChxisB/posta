@@ -351,7 +351,7 @@
     "serverUrlNote": "Endpoint HTTP (Streamable). Os clientes entram com sua conta MillionSend via OAuth — sem chaves de API e nada secreto para colar.",
     "connectTitle": "Conectar um cliente",
     "notes": {
-      "claudeCode": "Depois rode <code>/mcp</code> dentro do Claude Code e escolha millionsend para entrar.",
+      "claudeCode": "Depois rode <code>/mcp</code> dentro do Claude Code e escolha posta para entrar.",
       "claudeDesktop": "Adicione ao <code>claude_desktop_config.json</code> — ou pule o arquivo: Settings → Connectors → Add custom connector, e cole a URL do servidor.",
       "cursor": "Salve como <code>.cursor/mcp.json</code> no projeto, ou <code>~/.cursor/mcp.json</code> para todos os projetos.",
       "vscode": "Salve como <code>.vscode/mcp.json</code> no workspace e inicie o servidor pelo painel de MCP do editor."

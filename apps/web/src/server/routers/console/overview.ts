@@ -48,7 +48,7 @@ export const consoleOverviewRouter = router({
     ]);
     const probe = (key: (typeof PROBE_KEYS)[number]) => probes.get(key) ?? null;
     return {
-      version: env.MILLIONSEND_REVISION,
+      version: env.POSTA_REVISION,
       host: env.APP_BASE_URL ? new URL(env.APP_BASE_URL).host : null,
       cloud: isCloudDeployment(),
       regions: {

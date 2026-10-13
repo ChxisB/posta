@@ -62,7 +62,7 @@ só isso. O arquivo compose
 roda `ghcr.io/millionsend/millionsend:latest`, a release mais recente com tag
 (as tags `:1.2.3` e `:1.2` existem ao lado dela; `:edge` acompanha a `main`,
 onde todo build passou pela suíte de testes antes). Para fixar uma versão, defina
-`MILLIONSEND_IMAGE` no `.env` com uma tag de versão ou um digest imutável
+`POSTA_IMAGE` no `.env` com uma tag de versão ou um digest imutável
 (`ghcr.io/millionsend/millionsend@sha256:…`; `docker image ls --digests`
 mostra o que está rodando) e rode `docker compose up -d`. Colocar de volta o
 pin anterior é o rollback — com a ressalva de que as migrações de schema só
@@ -146,7 +146,7 @@ auto-hospedada não tem limites de plano.
 
 | Variável | Propósito |
 | --- | --- |
-| `MILLIONSEND_IMAGE` | Só no deploy standalone: qual imagem rodar. O padrão `ghcr.io/millionsend/millionsend:latest` é a release mais recente com tag (`:edge` acompanha a `main`), então `docker compose pull` é a atualização. Defina uma tag de versão ou um digest imutável `ghcr.io/millionsend/millionsend@sha256:…` para fixar uma versão (`MILLIONSEND_BACKUP_IMAGE` fixa o sidecar de backup do mesmo jeito). |
+| `POSTA_IMAGE` | Só no deploy standalone: qual imagem rodar. O padrão `ghcr.io/millionsend/millionsend:latest` é a release mais recente com tag (`:edge` acompanha a `main`), então `docker compose pull` é a atualização. Defina uma tag de versão ou um digest imutável `ghcr.io/millionsend/millionsend@sha256:…` para fixar uma versão (`POSTA_BACKUP_IMAGE` fixa o sidecar de backup do mesmo jeito). |
 | `ALLOW_SIGNUP` | O primeiro usuário sempre pode se registrar; depois disso o cadastro fica fechado a menos que isto seja `true`. Mantenha `false` quando o painel é acessível pela internet. |
 | `TRUSTED_PROXIES` | Reverse proxies cujos headers de IP do cliente (`X-Forwarded-For`, `CF-Connecting-IP`) são confiáveis, IPs ou CIDRs separados por vírgula. O padrão `127.0.0.1,::1` cobre um proxy no mesmo host; adicione o endereço do seu proxy quando ele roda em outro lugar. Veja a [seção de nginx](#produção-nginx--tls). |
 | `WEBHOOK_ALLOW_LOCALHOST` | Só para desenvolvimento local: permite que endpoints de webhook (disparos de teste incluídos) apontem para `http://` e endereços de loopback/privados em qualquer porta. Mantenha `false` em qualquer instância acessível pela internet. |
@@ -409,7 +409,7 @@ Dados de conexão:
 - **Host:** onde o serviço `smtp` estiver acessível (os arquivos compose o
   publicam no host do Docker).
 - **Porta:** `2587` (`SMTP_PORT` para mudar).
-- **Usuário:** `millionsend` (fixo).
+- **Usuário:** `posta` (fixo).
 - **Senha:** uma chave de API `ms_` do painel.
 - **Criptografia:** STARTTLS é oferecido (e exigido antes do AUTH) quando
   `SMTP_TLS_CERT_PATH` e `SMTP_TLS_KEY_PATH` apontam para um par PEM. Sem ele,
@@ -455,7 +455,7 @@ import nodemailer from "nodemailer";
 const transport = nodemailer.createTransport({
   host: "localhost",
   port: 2587,
-  auth: { user: "millionsend", pass: "ms_..." },
+  auth: { user: "posta", pass: "ms_..." },
 });
 
 await transport.sendMail({
@@ -873,8 +873,8 @@ faça backup dessa chave separadamente, ou os corpos restaurados ficam
 irrecuperáveis.
 
 O `deploy/docker-compose.yml` standalone roda a imagem publicada
-`ghcr.io/millionsend/backup` (`MILLIONSEND_BACKUP_IMAGE` a fixa, como
-`MILLIONSEND_IMAGE` fixa o app); um clone do repositório a constrói a partir de
+`ghcr.io/millionsend/backup` (`POSTA_BACKUP_IMAGE` a fixa, como
+`POSTA_IMAGE` fixa o app); um clone do repositório a constrói a partir de
 `scripts/backup`. A restauração usa o mesmo contêiner nos dois casos.
 
 Para um dump avulso (antes de um salto grande de versão, por exemplo), rode um
@@ -1591,7 +1591,7 @@ outros nomes do serviço.
 
 Senão a idade fica desconhecida: `.de`, `.eu` e `.ch`, por exemplo, não
 publicam data de criação. As requisições levam o User-Agent
-`MillionSend-domain-age/1.0 (+https://millionsend.com)`, um `429` é respeitado
+`Posta-domain-age/1.0 (+https://posta.example)`, um `429` é respeitado
 até o seu `Retry-After`, e uma consulta que falha tenta de novo com espera
 crescente antes de o domínio ficar como desconhecido. O worker precisa, então,
 de HTTPS de saída para `data.iana.org`, os servidores RDAP dos registros e

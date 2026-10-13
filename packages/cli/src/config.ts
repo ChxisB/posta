@@ -62,8 +62,8 @@ export const RPS_CEILING = 100;
 /** Requests per second left to production sending when a raised limit is detected and --rps was not given. */
 export const RPS_HEADROOM = 2;
 
-export const TARGET_KEY_ENV = "MILLIONSEND_API_KEY";
-export const TARGET_URL_ENV = "MILLIONSEND_BASE_URL";
+export const TARGET_KEY_ENV = "POSTA_API_KEY";
+export const TARGET_URL_ENV = "POSTA_BASE_URL";
 
 /** RESEND_API_KEY for `resend`. */
 export const sourceKeyEnv = (provider: ProviderId): string => `${provider.toUpperCase()}_API_KEY`;

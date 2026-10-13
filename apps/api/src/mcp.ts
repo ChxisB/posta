@@ -495,8 +495,8 @@ function buildServer(
 ): McpServer {
   const server = new McpServer(
     {
-      name: "millionsend",
-      title: "MillionSend",
+      name: "posta",
+      title: "Posta",
       version: "1.0.0",
       websiteUrl: "https://millionsend.com",
       icons: [

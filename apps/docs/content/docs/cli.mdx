@@ -91,15 +91,15 @@ Resource names for `--only` and `--skip`, in apply order: `domains`,
 | Variable | Meaning |
 | --- | --- |
 | `RESEND_API_KEY` | Source API key, full access. The tool only ever reads from Resend. |
-| `MILLIONSEND_API_KEY` | MillionSend API key, full access. |
-| `MILLIONSEND_BASE_URL` | API URL of a self-hosted instance, same as `--to-url`. Unset means MillionSend Cloud. |
+| `POSTA_API_KEY` | MillionSend API key, full access. |
+| `POSTA_BASE_URL` | API URL of a self-hosted instance, same as `--to-url`. Unset means MillionSend Cloud. |
 | `NO_COLOR` | Disable colors. |
 | `FORCE_COLOR` | Colors even when piped, same as `--color always`. |
 | `DO_NOT_TRACK` | Honored, as a no-op: the tool sends no telemetry, never phones home and never checks for updates. |
 
 Each key is resolved in this order: environment variable, then the `-stdin`
 flag, then the argument flag, then — in a terminal — a masked prompt. The
-target URL comes from `MILLIONSEND_BASE_URL` or `--to-url`; with neither set,
+target URL comes from `POSTA_BASE_URL` or `--to-url`; with neither set,
 a terminal offers a choice between MillionSend Cloud and a self-hosted URL,
 and a non-interactive run targets MillionSend Cloud, like the SDKs.
 
@@ -150,8 +150,8 @@ Pass keys through the environment or stdin, never as arguments:
 
 ```sh
 export RESEND_API_KEY=re_...
-export MILLIONSEND_API_KEY=ms_...
-export MILLIONSEND_BASE_URL=https://api.millionsend.com   # or your instance's URL
+export POSTA_API_KEY=ms_...
+export POSTA_BASE_URL=https://api.millionsend.com   # or your instance's URL
 
 millionsend migrate plan --from resend --out plan.json
 # exit 2 when there is something to apply
@@ -161,7 +161,7 @@ millionsend migrate apply plan.json --yes
 Or on stdin, first line source, second line target:
 
 ```sh
-printf '%s\n%s\n' "$RESEND_KEY" "$MS_KEY" | millionsend migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.your-instance
+printf '%s\n%s\n' "$RESEND_KEY" "$POSTA_KEY" | millionsend migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.your-instance
 ```
 
 Progress is printed one line per step (`✓`, `✗`, `⟳` with `n/N` counters),

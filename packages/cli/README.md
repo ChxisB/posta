@@ -36,8 +36,8 @@ Audiences (deprecated in Resend) are skipped — segments cover them.
 | Variable | Meaning |
 | --- | --- |
 | `RESEND_API_KEY` | Source key (full access; the tool only ever reads). Alternatives: `--from-key-stdin`, or a masked prompt in a terminal. |
-| `MILLIONSEND_API_KEY` | MillionSend key (full access). Alternatives: `--to-key-stdin`, or a masked prompt. |
-| `MILLIONSEND_BASE_URL` | API URL of a self-hosted MillionSend instance. Same as `--to-url`. Unset, the target is MillionSend Cloud (`https://api.millionsend.com`), like the SDKs; a terminal asks. |
+| `POSTA_API_KEY` | MillionSend key (full access). Alternatives: `--to-key-stdin`, or a masked prompt. |
+| `POSTA_BASE_URL` | API URL of a self-hosted MillionSend instance. Same as `--to-url`. Unset, the target is MillionSend Cloud (`https://api.millionsend.com`), like the SDKs; a terminal asks. |
 | `NO_COLOR` | Disables ANSI colors. |
 | `DO_NOT_TRACK` | Honored as a no-op: the tool sends no telemetry, never phones home and never checks for updates. |
 

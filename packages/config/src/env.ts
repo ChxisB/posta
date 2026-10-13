@@ -88,7 +88,7 @@ export function abuseVisionProfile(region: string): string | null {
 }
 
 const SENTRY_ENVIRONMENT_DEFAULT = "production";
-/** MILLIONSEND_REVISION outside an image built with a GIT_SHA. */
+/** POSTA_REVISION outside an image built with a GIT_SHA. */
 const REVISION_UNKNOWN = "unknown";
 
 const emailAddress = z.email();
@@ -133,7 +133,7 @@ export const env = createEnv({
     PORT: z.coerce.number().int().min(1).max(65535).default(3001),
     // Git SHA baked into the image (Dockerfile ARG GIT_SHA); reported by the
     // API's /health so a running deployment can be matched to a commit.
-    MILLIONSEND_REVISION: z.string().default(REVISION_UNKNOWN),
+    POSTA_REVISION: z.string().default(REVISION_UNKNOWN),
     API_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(600),
     DATABASE_URL: z.url(),
 
@@ -664,7 +664,7 @@ export function errorTrackingConfig(
   const dsn = side === "server" ? e.SENTRY_DSN : e.SENTRY_BROWSER_DSN;
   if (!dsn) return null;
   const rate = Number(e.SENTRY_TRACES_SAMPLE_RATE);
-  const revision = e.MILLIONSEND_REVISION;
+  const revision = e.POSTA_REVISION;
   return {
     dsn,
     environment: e.SENTRY_ENVIRONMENT || SENTRY_ENVIRONMENT_DEFAULT,

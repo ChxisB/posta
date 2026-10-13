@@ -30,8 +30,8 @@ Plan first (read-only; exit code 2 means there are changes, 0 nothing to do, 1 a
 
 ```sh
 export RESEND_API_KEY=re_...
-export MILLIONSEND_API_KEY=ms_...
-export MILLIONSEND_BASE_URL=https://api.millionsend.com   # or the instance's URL
+export POSTA_API_KEY=ms_...
+export POSTA_BASE_URL=https://api.millionsend.com   # or the instance's URL
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
 ```

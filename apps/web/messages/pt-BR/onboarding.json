@@ -37,7 +37,7 @@
     "sentTo": "Enviado para {to}. Aparece abaixo assim que chegar.",
     "alreadySent": "O e-mail de teste desta equipe já foi enviado. Verifique um domínio para enviar os seus.",
     "sendError": "Não foi possível enviar. Tente de novo.",
-    "selfHostBase": "Auto-hospedado: aponte os SDKs para esta instância com MILLIONSEND_BASE_URL={url}.",
+    "selfHostBase": "Auto-hospedado: aponte os SDKs para esta instância com POSTA_BASE_URL={url}.",
     "captchaFailed": "A verificação falhou. Tente de novo."
   },
   "step3": {

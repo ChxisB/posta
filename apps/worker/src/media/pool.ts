@@ -37,7 +37,7 @@ export const MEDIA_QUEUE_MAX = 64;
 export const MEDIA_THREAD_WASM_MAX_BYTES = 512 * 1024 * 1024;
 /** A thread not ready by then is replaced; a slow boot is never a job's fault. */
 const THREAD_BOOT_TIMEOUT_MS = 60_000;
-const THREAD = "millionsend-media-thread";
+const THREAD = "posta-media-thread";
 const THREAD_HEAP_MB = 512;
 
 export class MediaPoolError extends Error {

@@ -4,8 +4,8 @@ import { CLOUD_API_URL, TRADEMARK_NOTICE } from "../src/meta.js";
 
 const env = {
   RESEND_API_KEY: "re_x",
-  MILLIONSEND_API_KEY: "ms_y",
-  MILLIONSEND_BASE_URL: "https://api.example.com/",
+  POSTA_API_KEY: "ms_y",
+  POSTA_BASE_URL: "https://api.example.com/",
 };
 
 describe("parseConfig", () => {
@@ -107,7 +107,7 @@ describe("parseConfig", () => {
     expect(config.fromKey).toEqual({ source: "stdin", value: null });
     expect(config.toKey).toEqual({ source: "flag", value: "ms_k" });
     expect(config.warnings).toEqual([
-      "--to-key is visible to other users in process lists; prefer MILLIONSEND_API_KEY or --to-key-stdin.",
+      "--to-key is visible to other users in process lists; prefer POSTA_API_KEY or --to-key-stdin.",
     ]);
   });
 
@@ -155,12 +155,12 @@ describe("parseConfig", () => {
     );
     expect(() =>
       parseConfig(["migrate", "--from", "resend"], { RESEND_API_KEY: "re_x" }, false),
-    ).toThrow("Missing MillionSend API key. Set MILLIONSEND_API_KEY or pass --to-key-stdin");
+    ).toThrow("Missing MillionSend API key. Set POSTA_API_KEY or pass --to-key-stdin");
     // No instance named: MillionSend Cloud, like the SDKs.
     expect(
       parseConfig(
         ["migrate", "--from", "resend", "--yes"],
-        { RESEND_API_KEY: "re_x", MILLIONSEND_API_KEY: "ms_y" },
+        { RESEND_API_KEY: "re_x", POSTA_API_KEY: "ms_y" },
         false,
       ).toUrl,
     ).toBe(CLOUD_API_URL);
@@ -220,8 +220,8 @@ describe("helpText", () => {
       "FORCE_COLOR",
       "--fresh                    ignore resume progress; keeps what earlier runs created so rollback still works",
       "RESEND_API_KEY",
-      "MILLIONSEND_API_KEY",
-      "MILLIONSEND_BASE_URL",
+      "POSTA_API_KEY",
+      "POSTA_BASE_URL",
       "DO_NOT_TRACK",
       "3 partial",
       TRADEMARK_NOTICE,

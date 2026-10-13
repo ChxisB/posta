@@ -394,7 +394,7 @@ describe("settings.smtp", () => {
     const teamId = await createTeam(db, "acme");
     await addMember(teamId, "u1", "owner");
     const smtp = await callerFor("u1", teamId, "owner").settings.smtp.get();
-    expect(smtp.user).toBe("millionsend");
+    expect(smtp.user).toBe("posta");
     expect(smtp.port).toBe(2587);
     expect(smtp.host.length).toBeGreaterThan(0);
     expect(smtp.passwordPlaceholder).toBe("YOUR_API_KEY");

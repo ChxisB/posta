@@ -30,8 +30,8 @@ Primeiro o plano (somente leitura; código de saída 2 significa que há mudanç
 
 ```sh
 export RESEND_API_KEY=re_...
-export MILLIONSEND_API_KEY=ms_...
-export MILLIONSEND_BASE_URL=https://api.millionsend.com   # ou a URL da instância
+export POSTA_API_KEY=ms_...
+export POSTA_BASE_URL=https://api.millionsend.com   # ou a URL da instância
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
 ```

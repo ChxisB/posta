@@ -26,14 +26,14 @@ const CLIENT_LABELS: Record<Client, string> = {
 function clientSnippet(client: Client, url: string): { code: string; language: HighlightLanguage } {
   switch (client) {
     case "claudeCode":
-      return { code: `claude mcp add --transport http millionsend ${url}`, language: "bash" };
+      return { code: `claude mcp add --transport http posta ${url}`, language: "bash" };
     // Claude Desktop's config file only launches stdio servers; mcp-remote
     // bridges it to the Streamable HTTP endpoint.
     case "claudeDesktop":
       return {
         code: `{
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "command": "npx",
       "args": ["-y", "${MCP_REMOTE}", "${url}"]
     }
@@ -45,7 +45,7 @@ function clientSnippet(client: Client, url: string): { code: string; language: H
       return {
         code: `{
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "url": "${url}"
     }
   }
@@ -56,7 +56,7 @@ function clientSnippet(client: Client, url: string): { code: string; language: H
       return {
         code: `{
   "servers": {
-    "millionsend": {
+    "posta": {
       "type": "http",
       "url": "${url}"
     }

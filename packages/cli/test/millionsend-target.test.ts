@@ -106,7 +106,7 @@ describe("probe", () => {
     expect(restricted).toBeInstanceOf(AuthError);
     expect((restricted as AuthError).status).toBe(403);
     expect((restricted as Error).message).toContain("full-access key (ms_…)");
-    expect((restricted as Error).message).toContain("MILLIONSEND_API_KEY");
+    expect((restricted as Error).message).toContain("POSTA_API_KEY");
 
     const wrong = await targetFor(cloud, "ms_not_a_key")
       .probe()
@@ -127,7 +127,7 @@ describe("probe", () => {
         .probe()
         .catch((e: unknown) => e)) as Error;
       expect(error.message).toBe(
-        `MillionSend at ${baseUrl} has no GET /usage: either ${baseUrl} is not the API URL of your instance (check --to-url / MILLIONSEND_BASE_URL) or the instance predates CLI ${VERSION}; upgrade it.`,
+        `MillionSend at ${baseUrl} has no GET /usage: either ${baseUrl} is not the API URL of your instance (check --to-url / POSTA_BASE_URL) or the instance predates CLI ${VERSION}; upgrade it.`,
       );
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));

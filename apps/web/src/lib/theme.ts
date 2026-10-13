@@ -2,7 +2,7 @@ export type Theme = "dark" | "light";
 
 /* localStorage key; mirrored to a same-named cookie so SSR can render the
    attribute and avoid a theme flash. */
-export const THEME_KEY = "ms-theme";
+export const THEME_KEY = "po-theme";
 
 /* Dark is the default: the html attribute only ever carries "light"; absent
    means dark. System preference is deliberately not followed — the toggle in

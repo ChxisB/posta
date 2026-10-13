@@ -144,7 +144,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     [topicId, segmentId, name, from, subject, replyTo, html, text, document],
   );
   const draft = useLocalDraft<ComposerDraft>({
-    storageKey: `ms-draft:broadcast:${initial?.id ?? "new"}`,
+    storageKey: `po-draft:broadcast:${initial?.id ?? "new"}`,
     state: draftState,
     initialState: {
       topicId: initial?.topicId ?? "",

@@ -101,7 +101,7 @@ const app = createApi({
   onboardingEmailFrom: env.ONBOARDING_EMAIL_FROM,
   openaiAppsChallengeToken: env.OPENAI_APPS_CHALLENGE_TOKEN,
   rateLimitPerMinute: env.API_RATE_LIMIT_PER_MINUTE,
-  revision: env.MILLIONSEND_REVISION,
+  revision: env.POSTA_REVISION,
   appBaseUrl: env.APP_BASE_URL,
   unsubscribeBaseUrl: unsubscribeBaseUrl(),
   publicApiUrl: env.PUBLIC_API_URL,

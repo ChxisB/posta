@@ -881,7 +881,7 @@ export function createSettingsRouter(
           // Raw process.env carries no zod default under SKIP_ENV_VALIDATION, so
           // fall back to the relay's default listen port.
           port: Number(env.SMTP_PORT) || 2587,
-          user: "millionsend",
+          user: "posta",
           passwordPlaceholder: SMTP_PASSWORD_PLACEHOLDER,
           // Mirrors the relay's AUTH gate (apps/smtp/src/server.ts): AUTH needs
           // STARTTLS (cert+key both set) unless the insecure escape hatch is on.

@@ -4502,7 +4502,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
         // is always present.
         message_id: email.sesMessageId
           ? sesMessageIdHeader(email.sesMessageId)
-          : `<${email.id}@unsent.millionsend>`,
+          : `<${email.id}@unsent.posta>`,
         last_event: wireLastEvent(email.latestStatus),
         score: insights ? insights.scoreTenths / 10 : null,
       },

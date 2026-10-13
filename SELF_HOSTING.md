@@ -86,7 +86,7 @@ docker compose up -d
 Migrations run on boot, so that is the whole upgrade for a small instance. The compose file runs
 `ghcr.io/millionsend/millionsend:latest`, the latest tagged release (`:1.2.3`
 and `:1.2` tags exist alongside it; `:edge` follows `main`, where every build
-passed the test suite first). To hold a version, set `MILLIONSEND_IMAGE`
+passed the test suite first). To hold a version, set `POSTA_IMAGE`
 in `.env` to a version tag or an immutable digest
 (`ghcr.io/millionsend/millionsend@sha256:…`; `docker image ls --digests` shows
 what is running) and `docker compose up -d`. The previous pin put back is the
@@ -300,7 +300,7 @@ Connection details:
 - Host: wherever the `smtp` service is reachable (compose binds it to the Docker
   host's loopback interface by default).
 - Port: `2587` (`SMTP_PORT` to change).
-- Username: `millionsend` (fixed).
+- Username: `posta` (fixed).
 - Password: an `ms_` API key from the dashboard.
 - Encryption: STARTTLS is offered (and required before AUTH) when
   `SMTP_TLS_CERT_PATH` and `SMTP_TLS_KEY_PATH` point at a PEM keypair. Without
@@ -340,7 +340,7 @@ import nodemailer from "nodemailer";
 const transport = nodemailer.createTransport({
   host: "localhost",
   port: 2587,
-  auth: { user: "millionsend", pass: "ms_..." },
+  auth: { user: "posta", pass: "ms_..." },
 });
 
 await transport.sendMail({
@@ -815,8 +815,8 @@ The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY` — back
 that key up separately, or restored bodies are unrecoverable.
 
 The standalone `deploy/docker-compose.yml` runs the published
-`ghcr.io/millionsend/backup` image (`MILLIONSEND_BACKUP_IMAGE` pins it, the way
-`MILLIONSEND_IMAGE` pins the app); a repository clone builds it from
+`ghcr.io/millionsend/backup` image (`POSTA_BACKUP_IMAGE` pins it, the way
+`POSTA_IMAGE` pins the app); a repository clone builds it from
 `scripts/backup`.
 Restores use the same container either way.
 

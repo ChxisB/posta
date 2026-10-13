@@ -118,7 +118,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
     [name, subject, html, text, document],
   );
   const draft = useLocalDraft<TemplateDraft>({
-    storageKey: `ms-draft:template:${initial?.id ?? "new"}`,
+    storageKey: `po-draft:template:${initial?.id ?? "new"}`,
     state: draftState,
     initialState: {
       name: initial?.name ?? "",

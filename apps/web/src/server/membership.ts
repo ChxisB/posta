@@ -13,7 +13,7 @@ export type TeamPlan = (typeof schema.planEnum.enumValues)[number];
  * is re-validated against teamMembers on every request. It is never an
  * authorization input.
  */
-export const ACTIVE_TEAM_COOKIE = "ms_active_team";
+export const ACTIVE_TEAM_COOKIE = "po_active_team";
 
 export interface ActiveMembership {
   teamId: string;

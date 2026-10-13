@@ -452,7 +452,7 @@ describe("providers registry", () => {
   it("exposes resend with a CLI-only base URL override", () => {
     expect(providers.resend.label).toBe("Resend");
     expect(providers.resend.baseUrl({})).toBe("https://api.resend.com");
-    expect(resendBaseUrl({ MILLIONSEND_CLI_RESEND_URL: "http://127.0.0.1:9" })).toBe(
+    expect(resendBaseUrl({ POSTA_CLI_RESEND_URL: "http://127.0.0.1:9" })).toBe(
       "http://127.0.0.1:9",
     );
     // The app-side cutover variable must never redirect the Resend key.

@@ -1196,7 +1196,7 @@ describe("what a view can and cannot see", () => {
   it("refuses the CSV export under a view and serves it without one", async () => {
     const grant = await start();
     h.session = { user: user(OPERATOR) };
-    h.cookies.set("ms_support_view", grant.id);
+    h.cookies.set("po_support_view", grant.id);
     const refused = await exportRoute.GET(new Request(`${APP}/export/contacts`), {
       params: Promise.resolve({ resource: "contacts" }),
     });
@@ -1297,7 +1297,7 @@ describe("through the tRPC route (cookie to context)", () => {
     const grantId = started.data.grantId as string;
     // The grant rides in an httpOnly, same-site cookie that dies with it.
     expect(h.cookieSets.at(-1)).toMatchObject({
-      name: "ms_support_view",
+      name: "po_support_view",
       value: grantId,
       options: { httpOnly: true, sameSite: "lax", path: "/" },
     });
@@ -1316,8 +1316,8 @@ describe("through the tRPC route (cookie to context)", () => {
     await owner().team.supportView.end();
     const after = await call("team.list");
     expect(after.data.activeTeamId).toBe(ownTeamId);
-    expect(h.cookieDeletes).toContain("ms_support_view");
-    expect(h.cookies.has("ms_support_view")).toBe(false);
+    expect(h.cookieDeletes).toContain("po_support_view");
+    expect(h.cookies.has("po_support_view")).toBe(false);
   });
 
   it("replaces the live view a closed tab left behind, through the cookie it left", async () => {
@@ -1329,14 +1329,14 @@ describe("through the tRPC route (cookie to context)", () => {
     });
     const firstId = first.data.grantId as string;
     // The tab is gone; its cookie still rides on every console request.
-    expect(h.cookies.get("ms_support_view")).toBe(firstId);
+    expect(h.cookies.get("po_support_view")).toBe(firstId);
     const second = await mutate("console.teams.startSupportView", {
       id: teamId,
       reason: "other",
       reference: "#2",
     });
     expect(second.status).toBe(200);
-    expect(h.cookies.get("ms_support_view")).toBe(second.data.grantId);
+    expect(h.cookies.get("po_support_view")).toBe(second.data.grantId);
     expect(await grantRow(firstId)).toMatchObject({ endedBy: "operator" });
     expect((await call("support.current")).data).toMatchObject({ grantId: second.data.grantId });
   });
@@ -1344,12 +1344,12 @@ describe("through the tRPC route (cookie to context)", () => {
   it("ignores a grant of another operator's making", async () => {
     const grant = await start();
     h.session = { user: user(OWNER) };
-    h.cookies.set("ms_support_view", grant.id);
+    h.cookies.set("po_support_view", grant.id);
     const list = await call("team.list");
     expect(list.data.activeTeamId).toBe(teamId);
     // Bob is the owner of acme: reads are his own, not counted on the grant.
     expect((await grantRow(grant.id)).procedures).toEqual({});
-    expect(h.cookieDeletes).toContain("ms_support_view");
+    expect(h.cookieDeletes).toContain("po_support_view");
   });
 });
 

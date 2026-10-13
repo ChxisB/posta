@@ -11,7 +11,7 @@ import { uploadsEnabled } from "./storage";
  * nothing on its own: the grant must be the session user's and still live,
  * re-checked on every request, or the cookie is ignored.
  */
-export const SUPPORT_VIEW_COOKIE = "ms_support_view";
+export const SUPPORT_VIEW_COOKIE = "po_support_view";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

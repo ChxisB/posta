@@ -209,7 +209,7 @@ describe("get email wire shape", () => {
     const body = (await (await get(id)).json()) as { last_event: string; message_id: string };
     // 'queued_quota' is not a member of the SDK's last_event union.
     expect(body.last_event).toBe("queued");
-    expect(body.message_id).toBe(`<${id}@unsent.millionsend>`);
+    expect(body.message_id).toBe(`<${id}@unsent.posta>`);
   });
 
   it("emits an RFC 5322 message_id from the stored SES message id", async () => {

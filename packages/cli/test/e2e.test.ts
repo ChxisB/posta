@@ -71,9 +71,9 @@ function run(
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     RESEND_API_KEY: fake.token,
-    MILLIONSEND_CLI_RESEND_URL: fake.url,
-    MILLIONSEND_API_KEY: cloud.apiKey,
-    MILLIONSEND_BASE_URL: cloud.baseUrl,
+    POSTA_CLI_RESEND_URL: fake.url,
+    POSTA_API_KEY: cloud.apiKey,
+    POSTA_BASE_URL: cloud.baseUrl,
   };
   delete env.NO_COLOR;
   delete env.FORCE_COLOR;
@@ -599,8 +599,8 @@ describe("millionsend (built bundle)", () => {
       const { code, stdout } = await run(["migrate", "status"], {
         env: {
           RESEND_API_KEY: undefined,
-          MILLIONSEND_API_KEY: undefined,
-          MILLIONSEND_BASE_URL: undefined,
+          POSTA_API_KEY: undefined,
+          POSTA_BASE_URL: undefined,
         },
       });
       expect(code).toBe(0);
@@ -680,7 +680,7 @@ describe("millionsend (built bundle)", () => {
             "--to-url",
             `${self.baseUrl}/`,
           ],
-          { cwd: dir, env: { MILLIONSEND_API_KEY: self.apiKey, MILLIONSEND_BASE_URL: undefined } },
+          { cwd: dir, env: { POSTA_API_KEY: self.apiKey, POSTA_BASE_URL: undefined } },
         );
         expect(stderr).toBe("");
         expect(code).toBe(0);

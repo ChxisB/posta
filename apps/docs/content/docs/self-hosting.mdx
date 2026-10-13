@@ -59,7 +59,7 @@ Migrations run on boot, so that is the whole upgrade for a small instance. The
 compose file runs
 `ghcr.io/millionsend/millionsend:latest`, the latest tagged release (`:1.2.3`
 and `:1.2` tags exist alongside it; `:edge` follows `main`, where every build
-passed the test suite first). To hold a version, set `MILLIONSEND_IMAGE`
+passed the test suite first). To hold a version, set `POSTA_IMAGE`
 in `.env` to a version tag or an immutable digest
 (`ghcr.io/millionsend/millionsend@sha256:…`; `docker image ls --digests` shows
 what is running) and `docker compose up -d`. The previous pin put back is the
@@ -141,7 +141,7 @@ deployments — see [Billing](/billing); a self-hosted instance has no plan limi
 
 | Variable | Purpose |
 | --- | --- |
-| `MILLIONSEND_IMAGE` | Standalone deploy only: which image to run. The default `ghcr.io/millionsend/millionsend:latest` is the latest tagged release (`:edge` follows `main`), so `docker compose pull` is the upgrade. Set a version tag or an immutable `ghcr.io/millionsend/millionsend@sha256:…` digest to hold a version (`MILLIONSEND_BACKUP_IMAGE` pins the backup sidecar the same way). |
+| `POSTA_IMAGE` | Standalone deploy only: which image to run. The default `ghcr.io/millionsend/millionsend:latest` is the latest tagged release (`:edge` follows `main`), so `docker compose pull` is the upgrade. Set a version tag or an immutable `ghcr.io/millionsend/millionsend@sha256:…` digest to hold a version (`POSTA_BACKUP_IMAGE` pins the backup sidecar the same way). |
 | `ALLOW_SIGNUP` | The first user can always register; after that signup stays closed unless this is `true`. Keep `false` when the dashboard is reachable from the internet. |
 | `TRUSTED_PROXIES` | Reverse proxies whose forwarded-client-IP headers (`X-Forwarded-For`, `CF-Connecting-IP`) are believed, comma-separated IPs or CIDRs. Default `127.0.0.1,::1` covers a proxy on the same host; add your proxy's address when it runs elsewhere. See the [nginx section](#production-nginx--tls). |
 | `WEBHOOK_ALLOW_LOCALHOST` | Local development only: lets webhook endpoints (test fires included) target `http://` and loopback/private addresses on any port. Keep `false` on any internet-reachable instance. |
@@ -396,7 +396,7 @@ Connection details:
 - **Host:** wherever the `smtp` service is reachable (the compose files
   publish it on the Docker host).
 - **Port:** `2587` (`SMTP_PORT` to change).
-- **Username:** `millionsend` (fixed).
+- **Username:** `posta` (fixed).
 - **Password:** an `ms_` API key from the dashboard.
 - **Encryption:** STARTTLS is offered (and required before AUTH) when
   `SMTP_TLS_CERT_PATH` and `SMTP_TLS_KEY_PATH` point at a PEM keypair. Without
@@ -441,7 +441,7 @@ import nodemailer from "nodemailer";
 const transport = nodemailer.createTransport({
   host: "localhost",
   port: 2587,
-  auth: { user: "millionsend", pass: "ms_..." },
+  auth: { user: "posta", pass: "ms_..." },
 });
 
 await transport.sendMail({
@@ -837,8 +837,8 @@ The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY` — back
 that key up separately, or restored bodies are unrecoverable.
 
 The standalone `deploy/docker-compose.yml` runs the published
-`ghcr.io/millionsend/backup` image (`MILLIONSEND_BACKUP_IMAGE` pins it, the way
-`MILLIONSEND_IMAGE` pins the app); a repository clone builds it from
+`ghcr.io/millionsend/backup` image (`POSTA_BACKUP_IMAGE` pins it, the way
+`POSTA_IMAGE` pins the app); a repository clone builds it from
 `scripts/backup`. Restores use the same container either way.
 
 For a one-off dump (before a big upgrade, say), run one cycle by hand; it
@@ -1519,7 +1519,7 @@ other names.
 
 Otherwise the age is unknown: `.de`, `.eu` and `.ch`, for instance, publish
 no creation date. Requests carry the User-Agent
-`MillionSend-domain-age/1.0 (+https://millionsend.com)`, a `429` is honoured
+`Posta-domain-age/1.0 (+https://posta.example)`, a `429` is honoured
 until its `Retry-After`, and a failed lookup retries with backoff before the
 domain is recorded as unknown. The worker therefore needs outbound HTTPS to
 `data.iana.org`, the registries' RDAP servers and `crt.sh`, and outbound TCP

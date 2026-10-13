@@ -41,10 +41,10 @@ function makeEnv(fake, cloud, extra = {}) {
   const env = {
     ...process.env,
     RESEND_API_KEY: fake.token,
-    MILLIONSEND_CLI_RESEND_URL: fake.url,
+    POSTA_CLI_RESEND_URL: fake.url,
     RESEND_BASE_URL: fake.url,
-    MILLIONSEND_API_KEY: cloud.apiKey,
-    MILLIONSEND_BASE_URL: cloud.baseUrl,
+    POSTA_API_KEY: cloud.apiKey,
+    POSTA_BASE_URL: cloud.baseUrl,
   };
   for (const k of ["NO_COLOR", "FORCE_COLOR", "COLUMNS", "LINES"]) delete env[k];
   for (const [k, v] of Object.entries(extra)) {
@@ -195,9 +195,7 @@ for (const build of builds) {
     const env = makeEnv(
       fake,
       cloud,
-      s.self
-        ? { MILLIONSEND_API_KEY: self.apiKey, MILLIONSEND_BASE_URL: undefined, ...s.env }
-        : s.env,
+      s.self ? { POSTA_API_KEY: self.apiKey, POSTA_BASE_URL: undefined, ...s.env } : s.env,
     );
     const args = s.args.map((a) => (a === "SELF_URL" ? self.baseUrl : a));
     const parts = [];
@@ -238,7 +236,7 @@ for (const build of builds) {
 const shown = (s) => {
   const cmd = `millionsend ${s.args.map((a) => (a === "SELF_URL" ? "http://127.0.0.1:<port>" : a)).join(" ")}`;
   const envPrefix = s.self
-    ? "MILLIONSEND_API_KEY=<self-hosted key> "
+    ? "POSTA_API_KEY=<self-hosted key> "
     : s.env?.RESEND_API_KEY
       ? `RESEND_API_KEY=${BAD_KEY} `
       : "";

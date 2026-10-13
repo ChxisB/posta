@@ -117,13 +117,13 @@ chmod 600 .env
 `.env`, exactly these four lines:
 
 ```bash
-MILLIONSEND_TAG=0.8.0
+POSTA_TAG=0.8.0
 MX_HOSTNAME=mx.millionsend-dns.com
 MX_INGEST_URL=https://api.millionsend.com/internal/mx
 MX_INGEST_SECRET=<the same value as MX_INGEST_SECRET in the app's .env>
 ```
 
-- `MILLIONSEND_TAG`: the release the app runs (the line above is an example),
+- `POSTA_TAG`: the release the app runs (the line above is an example),
   since both sides ship the MX ↔ app contract. `edge` follows `main`, for
   testing ahead of a release.
 - `MX_HOSTNAME`: the greeting name. It is the A record above and the app's
@@ -249,7 +249,7 @@ sender trust is built from. An older app ignores them and a newer app accepts
 mail without them, so neither order loses mail; app first means they are
 stored from the box's first message on.
 
-Once the app runs the new release, set `MILLIONSEND_TAG` in `.env` to it,
+Once the app runs the new release, set `POSTA_TAG` in `.env` to it,
 then:
 
 ```bash

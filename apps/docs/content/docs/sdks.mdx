@@ -27,7 +27,7 @@ Your instance's API origin (e.g. `https://api.acme.dev`, or
 `http://localhost:3001` locally). Every SDK takes it through the same option
 the examples pass the Cloud URL to — `baseUrl` / `base_url` / `BaseURL`
 depending on the language's conventions — and the Node SDK also reads the
-`MILLIONSEND_BASE_URL` environment variable. See
+`POSTA_BASE_URL` environment variable. See
 [Self-hosting](/self-hosting) for deploying the instance itself.
 
 Every SDK refuses a plain `http://` base URL unless the host is loopback
@@ -232,7 +232,7 @@ end
 
 ```elixir
 config :millionsend, MillionSend.Client,
-  api_key: System.get_env("MILLIONSEND_API_KEY"),
+  api_key: System.get_env("POSTA_API_KEY"),
   base_url: "https://api.millionsend.com"
 
 {:ok, email} =

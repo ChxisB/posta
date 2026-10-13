@@ -278,7 +278,7 @@ export function createHttp(options: HttpOptions): HttpClient {
         if (failures >= maxAttempts) {
           const hint =
             name === "MillionSend"
-              ? "check --to-url / MILLIONSEND_BASE_URL"
+              ? "check --to-url / POSTA_BASE_URL"
               : `check your network to ${url.host}`;
           throw new ApiError(
             0,

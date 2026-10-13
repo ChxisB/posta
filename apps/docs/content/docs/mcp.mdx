@@ -34,13 +34,13 @@ exact URL under **Settings → MCP**.
 <Tab value="Claude Code">
 
 ```sh
-claude mcp add --transport http millionsend https://api.millionsend.com/mcp
+claude mcp add --transport http posta https://api.millionsend.com/mcp
 ```
 
 That registers the server for the current project only; add `--scope user` to
 make it available in every project on your machine.
 
-Then run `/mcp` inside Claude Code and pick `millionsend` to sign in.
+Then run `/mcp` inside Claude Code and pick `posta` to sign in.
 
 </Tab>
 <Tab value="Claude">
@@ -54,7 +54,7 @@ bridges it to the HTTP endpoint:
 ```json title="claude_desktop_config.json"
 {
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "command": "npx",
       "args": ["-y", "mcp-remote@0.8.2", "https://api.millionsend.com/mcp"]
     }
@@ -68,7 +68,7 @@ bridges it to the HTTP endpoint:
 ```json title=".cursor/mcp.json"
 {
   "mcpServers": {
-    "millionsend": {
+    "posta": {
       "url": "https://api.millionsend.com/mcp"
     }
   }
@@ -83,7 +83,7 @@ Save in the project, or in `~/.cursor/mcp.json` for every project.
 ```json title=".vscode/mcp.json"
 {
   "servers": {
-    "millionsend": {
+    "posta": {
       "type": "http",
       "url": "https://api.millionsend.com/mcp"
     }

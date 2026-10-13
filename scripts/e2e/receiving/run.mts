@@ -2915,7 +2915,7 @@ try {
         port: PORTS.smtp,
         requireTLS: true,
         tls: { ca: [hookTls.pem] },
-        auth: { user: "millionsend", pass: key },
+        auth: { user: "posta", pass: key },
       });
       try {
         const refusal = await relay

@@ -367,7 +367,7 @@
     "send": "Enviar e-mail",
     "batch": "Enviar e-mails em lote",
     "retrieve": "Consultar e-mail",
-    "keyHint": "Substitua ms_xxxxxxxxx por uma chave da página de Chaves de API. Todos os SDKs também aceitam as variáveis de ambiente MILLIONSEND_API_KEY e MILLIONSEND_BASE_URL."
+    "keyHint": "Substitua ms_xxxxxxxxx por uma chave da página de Chaves de API. Todos os SDKs também aceitam as variáveis de ambiente POSTA_API_KEY e POSTA_BASE_URL."
   },
   "unsubscribedDrawer": {
     "title": "Detalhes do descadastro",

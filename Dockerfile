@@ -39,7 +39,7 @@ WORKDIR /app
 ARG GIT_SHA=unknown
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV MILLIONSEND_REVISION=$GIT_SHA
+ENV POSTA_REVISION=$GIT_SHA
 RUN groupadd --system millionsend && useradd --system --gid millionsend millionsend
 # Root-owned tree: the process that runs this source cannot rewrite it. Only
 # Next's runtime caches (image optimizer, fetch cache) and the docs' MDX

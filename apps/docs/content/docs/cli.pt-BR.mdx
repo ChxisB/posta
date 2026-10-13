@@ -91,15 +91,15 @@ Nomes de recurso para `--only` e `--skip`, na ordem de aplicação: `domains`,
 | Variável | Significado |
 | --- | --- |
 | `RESEND_API_KEY` | Chave de API de origem, acesso total. A ferramenta só lê do Resend. |
-| `MILLIONSEND_API_KEY` | Chave de API do MillionSend, acesso total. |
-| `MILLIONSEND_BASE_URL` | URL da API de uma instância auto-hospedada, igual a `--to-url`. Sem ela, MillionSend Cloud. |
+| `POSTA_API_KEY` | Chave de API do MillionSend, acesso total. |
+| `POSTA_BASE_URL` | URL da API de uma instância auto-hospedada, igual a `--to-url`. Sem ela, MillionSend Cloud. |
 | `NO_COLOR` | Desativa cores. |
 | `FORCE_COLOR` | Cores mesmo em um pipe, o mesmo que `--color always`. |
 | `DO_NOT_TRACK` | Respeitada, sem efeito: a ferramenta não envia telemetria, nunca se conecta a servidores nossos e nunca verifica atualizações. |
 
 Cada chave é resolvida nesta ordem: variável de ambiente, depois a flag
 `-stdin`, depois a flag de argumento, depois — em um terminal — um prompt
-mascarado. A URL de destino vem de `MILLIONSEND_BASE_URL` ou `--to-url`; sem
+mascarado. A URL de destino vem de `POSTA_BASE_URL` ou `--to-url`; sem
 nenhuma das duas, um terminal oferece a escolha entre o MillionSend Cloud e uma
 URL auto-hospedada, e uma execução não interativa usa o MillionSend Cloud,
 como nos SDKs.
@@ -157,8 +157,8 @@ stdin, nunca como argumentos:
 
 ```sh
 export RESEND_API_KEY=re_...
-export MILLIONSEND_API_KEY=ms_...
-export MILLIONSEND_BASE_URL=https://api.millionsend.com   # ou a URL da sua instância
+export POSTA_API_KEY=ms_...
+export POSTA_BASE_URL=https://api.millionsend.com   # ou a URL da sua instância
 
 millionsend migrate plan --from resend --out plan.json
 # saída 2 quando há algo a aplicar
@@ -168,7 +168,7 @@ millionsend migrate apply plan.json --yes
 Ou pelo stdin, primeira linha origem, segunda linha destino:
 
 ```sh
-printf '%s\n%s\n' "$RESEND_KEY" "$MS_KEY" | millionsend migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.sua-instancia
+printf '%s\n%s\n' "$RESEND_KEY" "$POSTA_KEY" | millionsend migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.sua-instancia
 ```
 
 O progresso é impresso uma linha por passo (`✓`, `✗`, `⟳` com contadores

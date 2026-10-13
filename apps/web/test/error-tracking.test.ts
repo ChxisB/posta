@@ -99,7 +99,7 @@ describe("the browser", () => {
 
   it("gets its DSN and the image's revision at runtime from the root layout", async () => {
     vi.stubEnv("SENTRY_BROWSER_DSN", DSN);
-    vi.stubEnv("MILLIONSEND_REVISION", "c8ce832");
+    vi.stubEnv("POSTA_REVISION", "c8ce832");
     expect((await trackerIn())?.props).toEqual({
       config: { dsn: DSN, environment: "production", release: "c8ce832", tracesSampleRate: 0 },
     });

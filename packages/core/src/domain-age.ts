@@ -17,7 +17,7 @@ import { DAY_MS } from "./utc-day.js";
  */
 
 /** Names MillionSend to every registry and log it asks. */
-export const DOMAIN_AGE_USER_AGENT = "MillionSend-domain-age/1.0 (+https://millionsend.com)";
+export const DOMAIN_AGE_USER_AGENT = "Posta-domain-age/1.0 (+https://posta.example)";
 
 export const RDAP_BOOTSTRAP_URL = "https://data.iana.org/rdap/dns.json";
 
