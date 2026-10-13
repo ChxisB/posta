@@ -13,7 +13,7 @@ describe("StatusPage", () => {
         actions: createElement("a", { href: "/" }, "Home"),
       }),
     );
-    expect(html).toContain('class="ms-digits ms-status-code">404<');
+    expect(html).toContain('class="po-digits po-status-code">404<');
     expect(html.indexOf("No such page.")).toBeLessThan(html.indexOf("Wrong address."));
     expect(html.indexOf("Wrong address.")).toBeLessThan(html.indexOf('href="/"'));
   });

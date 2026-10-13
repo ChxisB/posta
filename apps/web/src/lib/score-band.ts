@@ -24,14 +24,14 @@ export function checkGlyph(check: EmailCheckResult): { glyph: string; color: str
         glyph: "✕",
         color:
           check.severity === "critical" || check.severity === "major"
-            ? "var(--ms-danger)"
-            : "var(--ms-warn)",
+            ? "var(--po-danger)"
+            : "var(--po-warn)",
       };
     case "unknown":
-      return { glyph: "?", color: "var(--ms-muted)" };
+      return { glyph: "?", color: "var(--po-muted)" };
     case "not_applicable":
-      return { glyph: "—", color: "var(--ms-faint)" };
+      return { glyph: "—", color: "var(--po-faint)" };
     default:
-      return { glyph: "✓", color: "var(--ms-success)" };
+      return { glyph: "✓", color: "var(--po-success)" };
   }
 }

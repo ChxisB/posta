@@ -13,7 +13,7 @@ function renderString(value: string, keyPath: string[], requestPath: string): Re
     return (
       <span className="hljs-string">
         "
-        <Link href={href} className="ms-json-link">
+        <Link href={href} className="po-json-link">
           {value}
         </Link>
         "
@@ -21,7 +21,7 @@ function renderString(value: string, keyPath: string[], requestPath: string): Re
     );
   }
   return (
-    <span className={MARKER_RE.test(value) ? "hljs-string ms-json-marker" : "hljs-string"}>
+    <span className={MARKER_RE.test(value) ? "hljs-string po-json-marker" : "hljs-string"}>
       {JSON.stringify(value)}
     </span>
   );
@@ -74,10 +74,10 @@ function render(value: unknown, keyPath: string[], depth: number, requestPath: s
 }
 
 /**
- * A logged JSON body rendered as hljs-classed spans (the .ms-hl palette in
+ * A logged JSON body rendered as hljs-classed spans (the .po-hl palette in
  * components.css), with every UUID the request path and key attribute to a
  * dashboard resource turned into a link chip. Meant to sit inside a
- * pre.ms-mono.ms-hl.ms-json (components.css: long strings wrap on a desktop,
+ * pre.po-mono.po-hl.po-json (components.css: long strings wrap on a desktop,
  * the block scrolls sideways on a phone).
  */
 export function JsonView({ value, requestPath }: { value: unknown; requestPath: string }) {

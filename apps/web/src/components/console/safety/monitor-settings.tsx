@@ -127,7 +127,7 @@ export function MonitorSettingsView() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!canSave}
             onClick={submit}
           >
@@ -137,10 +137,10 @@ export function MonitorSettingsView() {
         }
       />
 
-      <div className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+      <div className="po-card" style={{ padding: 20, marginBottom: 16 }}>
         <CardHead title={t("judge.title")} />
         {judge.on ? (
-          <dl className="ms-kv ms-kv-cols">
+          <dl className="po-kv po-kv-cols">
             <KvRow label={t("judge.provider")}>{judge.provider}</KvRow>
             <KvRow label={t("judge.model")}>{judge.model}</KvRow>
             {judge.region ? <KvRow label={t("judge.region")}>{judge.region}</KvRow> : null}
@@ -149,21 +149,21 @@ export function MonitorSettingsView() {
         ) : (
           <p style={{ margin: 0, fontSize: 13 }}>{t("judge.off")}</p>
         )}
-        <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           {t(judge.on ? "judge.change" : "judge.offLead")}{" "}
           <a href={CONTENT_MONITORING_DOCS_URL} target="_blank" rel="noreferrer">
             {t("judge.docs")}
           </a>
         </p>
         {judge.on ? null : (
-          <pre className="ms-mono" style={{ margin: "10px 0 0", fontSize: 12 }}>
+          <pre className="po-mono" style={{ margin: "10px 0 0", fontSize: 12 }}>
             {"ABUSE_JUDGE=typesafe\nABUSE_JUDGE_API_KEY=...\nABUSE_JUDGE_MODEL=jev-1.13.0"}
           </pre>
         )}
       </div>
 
       {GROUPS.map((group) => (
-        <div key={group.key} className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+        <div key={group.key} className="po-card" style={{ padding: 20, marginBottom: 16 }}>
           <CardHead title={t(`groups.${group.key}`)} subtitle={t(`groupsSub.${group.key}`)} />
           <div style={{ display: "flex", flexWrap: "wrap", gap: "16px 24px" }}>
             {group.fields.map((key) => {
@@ -189,13 +189,13 @@ export function MonitorSettingsView() {
             })}
           </div>
           {group.key === "thresholds" && !ordered ? (
-            <p className="ms-field-error" style={{ marginTop: 12 }}>
+            <p className="po-field-error" style={{ marginTop: 12 }}>
               {t("order")}
             </p>
           ) : null}
         </div>
       ))}
-      <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>
+      <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>
         {safety("monitor.footnote")}
       </p>
     </>
@@ -231,12 +231,12 @@ function Field({
   const shownSource = draft === undefined ? setting.source : draft === null ? fallbackSource : "db";
   const resettable = draft === undefined ? setting.source === "db" : draft !== null;
   const meta = (
-    <div style={{ display: "flex", gap: 10, fontSize: 12, color: "var(--ms-muted)", marginTop: 6 }}>
+    <div style={{ display: "flex", gap: 10, fontSize: 12, color: "var(--po-muted)", marginTop: 6 }}>
       <span>{t(`source.${shownSource}`, { value: String(setting.fallback) })}</span>
       {resettable ? (
         <button
           type="button"
-          className="ms-link"
+          className="po-link"
           style={{ font: "inherit", padding: 0, background: "none", border: 0, cursor: "pointer" }}
           disabled={disabled}
           onClick={onReset}
@@ -252,7 +252,7 @@ function Field({
         ? Boolean(draft === null ? setting.fallback : setting.value)
         : draft === true;
     return (
-      <div className="ms-field" style={{ flex: "1 1 260px", maxWidth: 320 }}>
+      <div className="po-field" style={{ flex: "1 1 260px", maxWidth: 320 }}>
         <label htmlFor={id}>{t(`fields.${setting.key}`)}</label>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Switch
@@ -263,7 +263,7 @@ function Field({
           />
           <span style={{ fontSize: 13 }}>{t(checked ? "on" : "off")}</span>
         </div>
-        <div style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 4 }}>
           {t(`hints.${setting.key}`)}
         </div>
         {meta}
@@ -277,12 +277,12 @@ function Field({
         ? String(setting.fallback)
         : String(draft);
   return (
-    <div className="ms-field" style={{ flex: "1 1 260px", maxWidth: 320 }}>
+    <div className="po-field" style={{ flex: "1 1 260px", maxWidth: 320 }}>
       <label htmlFor={id}>{t(`fields.${setting.key}`)}</label>
       <input
         id={id}
         type="number"
-        className={invalid ? "ms-input ms-number error" : "ms-input ms-number"}
+        className={invalid ? "po-input po-number error" : "po-input po-number"}
         style={{ width: "100%" }}
         step={setting.kind === "rate" ? "any" : 1}
         min={setting.kind === "multiplier" ? 1 : 0}
@@ -291,7 +291,7 @@ function Field({
         value={shown}
         onChange={(event) => onChange(event.target.value)}
       />
-      <div style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 4 }}>
+      <div style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 4 }}>
         {/* The kind ("número inteiro") stays whole and its dot never starts a
             line; unlike DotParts, it may share the hint's last line. */}
         {t(`hints.${setting.key}`)}
@@ -315,11 +315,11 @@ function SettingsSkeleton() {
         </div>
       </div>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+        <div key={i} className="po-card" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", marginBottom: 16 }}>
             <Skeleton width={140} height={22} />
           </div>
-          <div className="ms-wrap-row" style={{ display: "flex", gap: 24 }}>
+          <div className="po-wrap-row" style={{ display: "flex", gap: 24 }}>
             <Skeleton width={260} height={60} />
             <Skeleton width={260} height={60} />
           </div>

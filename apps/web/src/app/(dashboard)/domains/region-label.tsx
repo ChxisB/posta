@@ -19,9 +19,9 @@ export function RegionLabel({
     <>
       {regionFlag(region)} {regionName(region, t)}{" "}
       {variant === "list" ? (
-        <span style={{ color: "var(--ms-faint)" }}>({region})</span>
+        <span style={{ color: "var(--po-faint)" }}>({region})</span>
       ) : (
-        <span className="ms-mono" style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+        <span className="po-mono" style={{ fontSize: 12, color: "var(--po-muted)" }}>
           {region}
         </span>
       )}

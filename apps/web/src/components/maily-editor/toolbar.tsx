@@ -37,7 +37,7 @@ function ToolButton({
   return (
     <button
       type="button"
-      className="ms-maily-tool"
+      className="po-maily-tool"
       data-active={active || undefined}
       disabled={disabled}
       aria-label={title}
@@ -53,7 +53,7 @@ function ToolButton({
 }
 
 function Sep() {
-  return <span className="ms-maily-sep" aria-hidden="true" />;
+  return <span className="po-maily-sep" aria-hidden="true" />;
 }
 
 export function EditorToolbar({
@@ -78,7 +78,7 @@ export function EditorToolbar({
   };
 
   return (
-    <div className="ms-maily-toolbar" role="toolbar" aria-label={t("toolbar.formatting")}>
+    <div className="po-maily-toolbar" role="toolbar" aria-label={t("toolbar.formatting")}>
       <ToolButton
         title={t("panel.bold")}
         disabled={off}
@@ -188,7 +188,7 @@ export function EditorToolbar({
         <ClearFormatIcon />
       </ToolButton>
 
-      <span className="ms-maily-toolbar-spacer" />
+      <span className="po-maily-toolbar-spacer" />
 
       <VariablePicker fields={fields} onInsert={insertVariable} />
     </div>

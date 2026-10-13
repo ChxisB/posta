@@ -49,7 +49,7 @@ function useWebhookEventOptions() {
       ...(WEBHOOK_EVENT_META[value].optIn ? { excludedFromAll: true, hint: t("optInHint") } : {}),
       adornment: (
         <span
-          className="ms-dot"
+          className="po-dot"
           style={{ background: WEBHOOK_EVENT_META[value].dot }}
           aria-hidden="true"
         />
@@ -125,7 +125,7 @@ export function InboxFilterField({
   }));
   if (!receiving || options.length === 0) return null;
   return (
-    <div className="ms-field">
+    <div className="po-field">
       <label htmlFor={id}>{t("onlyInboxes")}</label>
       <ChipMultiSelect
         id={id}
@@ -137,7 +137,7 @@ export function InboxFilterField({
         removeLabel={(label) => ti("safety.remove", { value: label })}
         disabled={disabled}
       />
-      <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>{t("inboxOptIn")}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}>{t("inboxOptIn")}</p>
     </div>
   );
 }
@@ -225,11 +225,11 @@ export function WebhookEditModal({
           submit();
         }}
       >
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="webhook-edit-url">{t("create.url")}</label>
           <input
             id="webhook-edit-url"
-            className="ms-input mono"
+            className="po-input mono"
             style={{ width: "100%" }}
             value={url}
             disabled={mutation.isPending}
@@ -239,11 +239,11 @@ export function WebhookEditModal({
             onChange={(event) => setUrl(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="webhook-edit-description">{t("create.description")}</label>
           <input
             id="webhook-edit-description"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             value={description}
             disabled={mutation.isPending}
@@ -252,7 +252,7 @@ export function WebhookEditModal({
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="webhook-edit-events">{t("create.events")}</label>
           <EventTypesPicker
             id="webhook-edit-events"
@@ -270,12 +270,12 @@ export function WebhookEditModal({
           disabled={mutation.isPending}
         />
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!submittable || mutation.isPending}
           >
             <BtnSpinner on={mutation.isPending} />
@@ -350,15 +350,15 @@ export function WebhookRotateModal({
           }}
         >
           <div>
-            <div className="ms-microlabel" style={{ marginBottom: 6 }}>
+            <div className="po-microlabel" style={{ marginBottom: 6 }}>
               {t("reveal.secretLabel")}
             </div>
             <CopyChip value={revealed.secret} />
           </div>
-          <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+          <p style={{ margin: 0, color: "var(--po-warn)", fontSize: "var(--po-fs-label)" }}>
             {t("reveal.warning")}
           </p>
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
             {revealed.until
               ? t("rotate.previousUntil", {
                   date: new Intl.DateTimeFormat(locale, {
@@ -369,7 +369,7 @@ export function WebhookRotateModal({
               : t("rotate.previousDropped")}
           </p>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button type="submit" className="ms-btn ms-btn-primary">
+            <button type="submit" className="po-btn po-btn-primary">
               {t("reveal.done")} <ConfirmKeycap />
             </button>
           </div>
@@ -382,10 +382,10 @@ export function WebhookRotateModal({
             submit();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t.rich("rotate.body", { ...codeRichTags, url: displayUrl(webhook.url) })}
           </p>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="webhook-rotate-overlap">{t("rotate.overlap")}</label>
             <Select
               id="webhook-rotate-overlap"
@@ -401,10 +401,10 @@ export function WebhookRotateModal({
             />
           </div>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
-            <button type="submit" className="ms-btn ms-btn-primary" disabled={mutation.isPending}>
+            <button type="submit" className="po-btn po-btn-primary" disabled={mutation.isPending}>
               <BtnSpinner on={mutation.isPending} />
               {t("rotate.confirm")} <ConfirmKeycap />
             </button>

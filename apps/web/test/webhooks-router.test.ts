@@ -73,7 +73,7 @@ it("annotates every event type in WEBHOOK_EVENT_META with a known group and no o
   expect(Object.keys(WEBHOOK_EVENT_META).sort()).toEqual([...WEB_WEBHOOK_EVENT_TYPES].sort());
   for (const meta of Object.values(WEBHOOK_EVENT_META)) {
     expect(WEBHOOK_EVENT_GROUPS).toContain(meta.group);
-    expect(meta.dot).toMatch(/^var\(--ms-dot-/);
+    expect(meta.dot).toMatch(/^var\(--po-dot-/);
   }
 });
 

@@ -27,7 +27,7 @@ function Tile({
     <>
       <button
         type="button"
-        className="ms-card"
+        className="po-card"
         style={{
           // A block button centres its content in a taller grid row; the
           // column keeps every tile's label on one top line.
@@ -43,11 +43,11 @@ function Tile({
         }}
         onClick={() => setOpen(true)}
       >
-        <div className="ms-microlabel">{label}</div>
-        <div className="ms-digits" style={{ fontSize: 26, lineHeight: 1.2, marginTop: 4 }}>
+        <div className="po-microlabel">{label}</div>
+        <div className="po-digits" style={{ fontSize: 26, lineHeight: 1.2, marginTop: 4 }}>
           {value}
         </div>
-        <div style={{ fontSize: 13, color: "var(--ms-muted)", marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: "var(--po-muted)", marginTop: 2 }}>
           <DotParts text={sub} />
         </div>
       </button>
@@ -75,7 +75,7 @@ export function StatTiles({ summary }: { summary: Summary }) {
           return common(`duration.${unit}`, { n });
         })();
   return (
-    <div className="ms-grid ms-grid-4" style={{ marginBottom: 16 }}>
+    <div className="po-grid po-grid-4" style={{ marginBottom: 16 }}>
       <Tile
         label={t("tiles.teams")}
         value={count(teams.total)}
@@ -118,7 +118,7 @@ export function StatTiles({ summary }: { summary: Summary }) {
         value={
           <>
             {count(domains.verified)}
-            <span style={{ color: "var(--ms-muted)", fontWeight: 500, fontSize: 16 }}>
+            <span style={{ color: "var(--po-muted)", fontWeight: 500, fontSize: 16 }}>
               {" "}
               / {count(domains.total)}
             </span>

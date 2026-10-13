@@ -121,13 +121,13 @@ export function ConsentForm({
           style={{
             display: "grid",
             gap: 4,
-            border: "1px solid var(--ms-warn-border)",
-            background: "var(--ms-warn-bg)",
-            borderRadius: "var(--ms-r-input)",
+            border: "1px solid var(--po-warn-border)",
+            background: "var(--po-warn-bg)",
+            borderRadius: "var(--po-r-input)",
             padding: "9px 14px",
-            fontSize: "var(--ms-fs-label)",
+            fontSize: "var(--po-fs-label)",
             lineHeight: 1.5,
-            color: "var(--ms-warn)",
+            color: "var(--po-warn)",
             overflowWrap: "anywhere",
           }}
         >
@@ -156,14 +156,14 @@ export function ConsentForm({
           style={{
             display: "grid",
             gap: 2,
-            fontSize: "var(--ms-fs-micro)",
-            color: "var(--ms-faint)",
+            fontSize: "var(--po-fs-micro)",
+            color: "var(--po-faint)",
             overflowWrap: "anywhere",
           }}
         >
           {app.unverified ? null : redirects}
           <span>
-            {t("clientId")} <span className="ms-mono">{app.clientId}</span>
+            {t("clientId")} <span className="po-mono">{app.clientId}</span>
           </span>
         </div>
       ) : null}
@@ -174,7 +174,7 @@ export function ConsentForm({
           decide(true);
         }}
       >
-        <div className={`ms-field ${styles.field}`}>
+        <div className={`po-field ${styles.field}`}>
           <label htmlFor="consent-team">{t("team")}</label>
           {teams.length > 0 ? (
             <Select
@@ -198,15 +198,15 @@ export function ConsentForm({
             style={{
               display: "block",
               lineHeight: 1.45,
-              fontSize: "var(--ms-fs-micro)",
-              color: "var(--ms-faint)",
+              fontSize: "var(--po-fs-micro)",
+              color: "var(--po-faint)",
             }}
           >
             {teamId === ALL_TEAMS ? t("allTeamsNote") : t("teamNote")}
           </span>
         </div>
-        <div className={`ms-field ${styles.field}`}>
-          <span className="ms-microlabel">{t("permissions")}</span>
+        <div className={`po-field ${styles.field}`}>
+          <span className="po-microlabel">{t("permissions")}</span>
           <div style={{ marginTop: 6, display: "grid", gap: 6 }}>
             {visible.map((scope) => (
               <label
@@ -215,13 +215,13 @@ export function ConsentForm({
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  fontSize: "var(--ms-fs-label)",
+                  fontSize: "var(--po-fs-label)",
                   cursor: "pointer",
                 }}
               >
                 <input
                   type="checkbox"
-                  className="ms-checkbox"
+                  className="po-checkbox"
                   checked={granted.has(scope)}
                   onChange={() => toggle(scope)}
                   disabled={pending !== null}
@@ -238,7 +238,7 @@ export function ConsentForm({
         ) : null}
         <button
           type="submit"
-          className={`ms-btn ms-btn-primary ${styles.button}`}
+          className={`po-btn po-btn-primary ${styles.button}`}
           disabled={pending !== null || teams.length === 0 || nothingGranted}
         >
           <BtnSpinner on={pending === "allow"} />
@@ -246,7 +246,7 @@ export function ConsentForm({
         </button>
         <button
           type="button"
-          className={`ms-btn ms-btn-secondary ${styles.button}`}
+          className={`po-btn po-btn-secondary ${styles.button}`}
           disabled={pending !== null}
           onClick={() => decide(false)}
         >

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 export function BetaPill() {
   const t = useTranslations("common");
   return (
-    <span className="ms-chip" style={{ fontSize: 10.5, padding: "1px 7px", marginLeft: 7 }}>
+    <span className="po-chip" style={{ fontSize: 10.5, padding: "1px 7px", marginLeft: 7 }}>
       {t("beta")}
     </span>
   );

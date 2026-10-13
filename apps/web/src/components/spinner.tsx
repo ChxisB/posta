@@ -1,6 +1,6 @@
-/** The .ms-spinner rotation ring, size-parametrized (the class fixes 11px). */
+/** The .po-spinner rotation ring, size-parametrized (the class fixes 11px). */
 export function Spinner({ size = 11 }: { size?: number }) {
-  return <span className="ms-spinner" style={{ width: size, height: size }} aria-hidden="true" />;
+  return <span className="po-spinner" style={{ width: size, height: size }} aria-hidden="true" />;
 }
 
 /**
@@ -20,7 +20,7 @@ export function BtnSpinner({ on }: { on: boolean }) {
         width: on ? 14 : 0,
         marginRight: on ? 0 : -8,
         transition:
-          "width var(--ms-dur-fast) var(--ms-ease), margin var(--ms-dur-fast) var(--ms-ease)",
+          "width var(--po-dur-fast) var(--po-ease), margin var(--po-dur-fast) var(--po-ease)",
       }}
     >
       {on ? <Spinner size={14} /> : null}

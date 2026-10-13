@@ -38,18 +38,18 @@ type KnownActivityType = (typeof ACTIVITY_TYPES)[number];
    stays neutral. The rail between dots belongs to neither, so it keeps the
    line token. */
 const ACTIVITY_DOT: Record<KnownActivityType, string> = {
-  contact_created: "var(--ms-neutral)",
-  topic_opt_in: "var(--ms-success)",
-  resubscribed: "var(--ms-success)",
-  topic_opt_out: "var(--ms-danger)",
-  unsubscribed: "var(--ms-danger)",
-  unsubscribed_team_suspended: "var(--ms-danger)",
-  segment_added: "var(--ms-neutral)",
-  segment_removed: "var(--ms-neutral)",
+  contact_created: "var(--po-neutral)",
+  topic_opt_in: "var(--po-success)",
+  resubscribed: "var(--po-success)",
+  topic_opt_out: "var(--po-danger)",
+  unsubscribed: "var(--po-danger)",
+  unsubscribed_team_suspended: "var(--po-danger)",
+  segment_added: "var(--po-neutral)",
+  segment_removed: "var(--po-neutral)",
 };
 
 function EmptyValue() {
-  return <span style={{ color: "var(--ms-faint)" }}>—</span>;
+  return <span style={{ color: "var(--po-faint)" }}>—</span>;
 }
 
 /** Wrapping row of linked name pills (segments on the detail page). */
@@ -62,13 +62,13 @@ function ChipList({
 }) {
   if (items.length === 0) {
     return (
-      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--ms-muted)" }}>{emptyLabel}</p>
+      <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--po-muted)" }}>{emptyLabel}</p>
     );
   }
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
       {items.map((item) => (
-        <Link key={item.name} className="ms-chip" href={item.href}>
+        <Link key={item.name} className="po-chip" href={item.href}>
           {item.name}
         </Link>
       ))}
@@ -252,7 +252,7 @@ export default function ContactDetailPage() {
                   "opt out of all" / "leave every segment". */}
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 disabled={!topicsQuery.isSuccess || !segmentsQuery.isSuccess}
                 onClick={openEdit}
               >
@@ -260,7 +260,7 @@ export default function ContactDetailPage() {
               </button>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 disabled={updateMutation.isPending}
                 onClick={() => void toggleSubscription()}
               >
@@ -269,7 +269,7 @@ export default function ContactDetailPage() {
               </button>
               <button
                 type="button"
-                className="ms-btn ms-btn-destructive"
+                className="po-btn po-btn-destructive"
                 onClick={() => setConfirmingDelete(true)}
               >
                 {t("contacts.delete")}
@@ -280,7 +280,7 @@ export default function ContactDetailPage() {
       ) : (
         // Mirrors the loaded PageHeader's boxes (breadcrumb + avatar + H1 + actions).
         <div
-          className="ms-page-row"
+          className="po-page-row"
           style={{
             display: "flex",
             alignItems: "flex-end",
@@ -289,16 +289,16 @@ export default function ContactDetailPage() {
             marginBottom: 28,
           }}
         >
-          <div className="ms-page-title" style={{ minWidth: 0 }}>
+          <div className="po-page-title" style={{ minWidth: 0 }}>
             <div style={{ display: "flex", fontSize: 13, lineHeight: 1, marginBottom: 10 }}>
               <Skeleton width={200} height="1lh" />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <Skeleton width={44} height={44} radius="50%" />
               <h1
-                className="ms-display"
+                className="po-display"
                 style={{
-                  fontSize: "var(--ms-fs-h1)",
+                  fontSize: "var(--po-fs-h1)",
                   fontWeight: 600,
                   margin: 0,
                   display: "flex",
@@ -309,23 +309,23 @@ export default function ContactDetailPage() {
               </h1>
             </div>
           </div>
-          <div className="ms-page-actions" style={{ display: "flex", gap: 10 }}>
-            <Skeleton width={64} height={30} radius="var(--ms-r-input)" />
-            <Skeleton width={106} height={30} radius="var(--ms-r-input)" />
-            <Skeleton width={72} height={30} radius="var(--ms-r-input)" />
+          <div className="po-page-actions" style={{ display: "flex", gap: 10 }}>
+            <Skeleton width={64} height={30} radius="var(--po-r-input)" />
+            <Skeleton width={106} height={30} radius="var(--po-r-input)" />
+            <Skeleton width={72} height={30} radius="var(--po-r-input)" />
           </div>
         </div>
       )}
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
           gap: 28,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <MetaItem label={t("detail.email")}>
@@ -337,7 +337,7 @@ export default function ContactDetailPage() {
         <MetaItem label={t("detail.status")}>
           {row ? (
             <span
-              className={`ms-badge ${row.unsubscribed ? "ms-badge-neutral" : "ms-badge-success"}`}
+              className={`po-badge ${row.unsubscribed ? "po-badge-neutral" : "po-badge-success"}`}
             >
               {row.unsubscribed ? t("contacts.unsubscribedBadge") : t("contacts.subscribed")}
             </span>
@@ -352,17 +352,17 @@ export default function ContactDetailPage() {
       </div>
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: 28,
           padding: "20px 0",
-          borderBottom: "1px solid var(--ms-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div>
-          <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+          <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
             {t("detail.segments")}
           </p>
           {segmentsQuery.isSuccess ? (
@@ -382,12 +382,12 @@ export default function ContactDetailPage() {
           )}
         </div>
         <div>
-          <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+          <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
             {t("detail.topics")}
           </p>
           {topicsQuery.isSuccess ? (
             topicsQuery.data.length === 0 ? (
-              <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--ms-muted)" }}>
+              <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--po-muted)" }}>
                 {t("detail.noTopics")}
               </p>
             ) : (
@@ -403,11 +403,11 @@ export default function ContactDetailPage() {
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 14, color: "var(--ms-bone)" }}>
+                      <p style={{ margin: 0, fontSize: 14, color: "var(--po-bone)" }}>
                         {topic.name}
                       </p>
                       {topic.description ? (
-                        <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+                        <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
                           {topic.description}
                         </p>
                       ) : null}
@@ -438,13 +438,13 @@ export default function ContactDetailPage() {
         </div>
       </div>
 
-      <div style={{ padding: "20px 0", borderBottom: "1px solid var(--ms-line)" }}>
-        <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+      <div style={{ padding: "20px 0", borderBottom: "1px solid var(--po-line)" }}>
+        <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
           {t("detail.properties")}
         </p>
         {row ? (
           <div
-            className="ms-meta-grid"
+            className="po-meta-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
@@ -462,7 +462,7 @@ export default function ContactDetailPage() {
           </div>
         ) : (
           <div
-            className="ms-meta-grid"
+            className="po-meta-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
@@ -479,16 +479,16 @@ export default function ContactDetailPage() {
       </div>
 
       <div style={{ padding: "20px 0" }}>
-        <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+        <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
           {t("detail.activity.title")}
         </p>
         {activitiesQuery.isSuccess ? (
           activities.length === 0 ? (
-            <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--ms-muted)" }}>
+            <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--po-muted)" }}>
               {t("detail.activity.empty")}
             </p>
           ) : (
-            <div className="ms-card" style={{ marginTop: 12, padding: "8px 18px" }}>
+            <div className="po-card" style={{ marginTop: 12, padding: "8px 18px" }}>
               {activities.map((activity, index) => {
                 const activityName =
                   typeof activity.data?.name === "string" ? activity.data.name : "";
@@ -510,7 +510,7 @@ export default function ContactDetailPage() {
                           width: 1,
                           height: 14,
                           flex: "none",
-                          background: index === 0 ? "transparent" : "var(--ms-line)",
+                          background: index === 0 ? "transparent" : "var(--po-line)",
                         }}
                       />
                       <span
@@ -530,7 +530,7 @@ export default function ContactDetailPage() {
                           width: 1,
                           flex: 1,
                           background:
-                            index === activities.length - 1 ? "transparent" : "var(--ms-line)",
+                            index === activities.length - 1 ? "transparent" : "var(--po-line)",
                         }}
                       />
                     </div>
@@ -545,12 +545,12 @@ export default function ContactDetailPage() {
                         padding: "8px 0 14px",
                       }}
                     >
-                      <span style={{ fontSize: 14, color: "var(--ms-bone)" }}>
+                      <span style={{ fontSize: 14, color: "var(--po-bone)" }}>
                         {t(`detail.activity.${activity.type as KnownActivityType}`, {
                           name: activityName,
                         })}
                       </span>
-                      <span style={{ fontSize: 12.5, color: "var(--ms-muted)", flex: "none" }}>
+                      <span style={{ fontSize: 12.5, color: "var(--po-muted)", flex: "none" }}>
                         <RelativeTime date={activity.createdAt} />
                       </span>
                     </div>
@@ -580,22 +580,22 @@ export default function ContactDetailPage() {
           }}
         >
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="edit-first">{t("contacts.firstNameLabel")}</label>
               <input
                 id="edit-first"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 disabled={saving}
                 value={editFirst}
                 onChange={(event) => setEditFirst(event.target.value)}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="edit-last">{t("contacts.lastNameLabel")}</label>
               <input
                 id="edit-last"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 disabled={saving}
                 value={editLast}
@@ -603,7 +603,7 @@ export default function ContactDetailPage() {
               />
             </div>
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="edit-topics">{t("detail.topics")}</label>
             <ChipMultiSelect
               id="edit-topics"
@@ -619,7 +619,7 @@ export default function ContactDetailPage() {
               disabled={saving}
             />
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="edit-segments">{t("detail.segments")}</label>
             <ChipMultiSelect
               id="edit-segments"
@@ -636,7 +636,7 @@ export default function ContactDetailPage() {
             />
           </div>
           <div style={{ marginTop: 18 }}>
-            <p className="ms-microlabel" style={{ margin: "0 0 8px", fontSize: 10.5 }}>
+            <p className="po-microlabel" style={{ margin: "0 0 8px", fontSize: 10.5 }}>
               {t("detail.properties")}
             </p>
             {/* A shrinkable track: an auto one takes the two inputs' intrinsic
@@ -648,7 +648,7 @@ export default function ContactDetailPage() {
                 // biome-ignore lint/suspicious/noArrayIndexKey: no stable id per row
                 <div key={i} style={{ display: "flex", gap: 8 }}>
                   <input
-                    className="ms-input"
+                    className="po-input"
                     style={{ flex: 1, minWidth: 0 }}
                     placeholder={t("detail.propKeyPlaceholder")}
                     disabled={saving}
@@ -660,7 +660,7 @@ export default function ContactDetailPage() {
                     }
                   />
                   <input
-                    className="ms-input"
+                    className="po-input"
                     style={{ flex: 1, minWidth: 0 }}
                     placeholder={t("detail.propValuePlaceholder")}
                     disabled={saving}
@@ -673,7 +673,7 @@ export default function ContactDetailPage() {
                   />
                   <button
                     type="button"
-                    className="ms-btn ms-btn-ghost"
+                    className="po-btn po-btn-ghost"
                     aria-label={t("detail.removeProperty")}
                     disabled={saving}
                     onClick={() => setEditProps((rows) => rows.filter((_, j) => j !== i))}
@@ -685,7 +685,7 @@ export default function ContactDetailPage() {
             </div>
             <button
               type="button"
-              className="ms-btn ms-btn-ghost"
+              className="po-btn po-btn-ghost"
               // Zero side padding: the ghost label sits flush with the field column above.
               style={{ marginTop: 8, paddingLeft: 0, paddingRight: 0 }}
               disabled={saving}
@@ -695,10 +695,10 @@ export default function ContactDetailPage() {
             </button>
           </div>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeEdit}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeEdit}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
-            <button type="submit" className="ms-btn ms-btn-primary" disabled={saving}>
+            <button type="submit" className="po-btn po-btn-primary" disabled={saving}>
               <BtnSpinner on={saving} />
               {t("detail.saveConfirm")} <ConfirmKeycap />
             </button>
@@ -718,16 +718,16 @@ export default function ContactDetailPage() {
             submitDelete();
           }}
         >
-          <p style={{ margin: "0 0 22px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("contacts.deleteBody", { email: row?.email ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

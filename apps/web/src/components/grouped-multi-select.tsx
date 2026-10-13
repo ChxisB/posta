@@ -26,7 +26,7 @@ export interface OptionGroup {
 }
 
 /**
- * Multi-select sibling of <Select>: a searchable .ms-menu popover whose rows
+ * Multi-select sibling of <Select>: a searchable .po-menu popover whose rows
  * are grouped under headers and toggle on and off (checkmark on the right),
  * with an optional "all" row at the top. The menu stays open across picks.
  * ARIA combobox pattern — focus rests on the search input; the trigger shows a
@@ -71,7 +71,7 @@ export function GroupedMultiSelect({
   };
   width?: number | string;
   disabled?: boolean;
-  /** Forwarded to the trigger so an ms-field <label htmlFor> can target it. */
+  /** Forwarded to the trigger so an po-field <label htmlFor> can target it. */
   id?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -221,7 +221,7 @@ export function GroupedMultiSelect({
         role="option"
         aria-selected={checked}
         tabIndex={-1}
-        className={index === activeIndex ? "ms-menu-item active" : "ms-menu-item"}
+        className={index === activeIndex ? "po-menu-item active" : "po-menu-item"}
         onMouseEnter={() => setActiveIndex(index)}
         onClick={onClick}
       >
@@ -229,7 +229,7 @@ export function GroupedMultiSelect({
           {adornment}
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
           {hint ? (
-            <span style={{ color: "var(--ms-faint)", fontSize: 12, flex: "none" }}>{hint}</span>
+            <span style={{ color: "var(--po-faint)", fontSize: 12, flex: "none" }}>{hint}</span>
           ) : null}
         </span>
         {checked ? <span aria-hidden="true">✓</span> : null}
@@ -251,7 +251,7 @@ export function GroupedMultiSelect({
         ref={triggerRef}
         type="button"
         {...(id !== undefined ? { id } : {})}
-        className="ms-input"
+        className="po-input"
         role="combobox"
         aria-label={ariaLabel}
         aria-expanded={open}
@@ -275,7 +275,7 @@ export function GroupedMultiSelect({
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {summary}
         </span>
-        <span style={{ flexShrink: 0, display: "flex", color: "var(--ms-faint)" }}>
+        <span style={{ flexShrink: 0, display: "flex", color: "var(--po-faint)" }}>
           <ChevronGlyph />
         </span>
       </button>
@@ -283,18 +283,18 @@ export function GroupedMultiSelect({
         ? createPortal(
             <div
               ref={menuRef}
-              className="ms-menu"
+              className="po-menu"
               style={{
                 ...panelStyle,
                 width: "max-content",
                 maxWidth: `min(320px, ${PANEL_MAX_WIDTH})`,
                 padding: 0,
                 overflow: "hidden",
-                zIndex: "var(--ms-z-menu)",
+                zIndex: "var(--po-z-menu)",
               }}
             >
               <input
-                className="ms-menu-search"
+                className="po-menu-search"
                 style={{ width: "100%", margin: 0 }}
                 // Search is the typing surface while the popover is open.
                 // biome-ignore lint/a11y/noAutofocus: focus moves into the popover by design, Esc restores the trigger
@@ -335,7 +335,7 @@ export function GroupedMultiSelect({
                   />
                 ) : null}
                 {orderedFiltered.length === 0 ? (
-                  <div style={{ padding: "7px 12px", fontSize: 13, color: "var(--ms-muted)" }}>
+                  <div style={{ padding: "7px 12px", fontSize: 13, color: "var(--po-muted)" }}>
                     {noResultsLabel}
                   </div>
                 ) : (
@@ -344,7 +344,7 @@ export function GroupedMultiSelect({
                     if (rows.length === 0) return null;
                     return (
                       <div key={group.key}>
-                        {group.label ? <div className="ms-menu-label">{group.label}</div> : null}
+                        {group.label ? <div className="po-menu-label">{group.label}</div> : null}
                         {rows.map((option) => {
                           const index = allOffset + orderedFiltered.indexOf(option);
                           return (

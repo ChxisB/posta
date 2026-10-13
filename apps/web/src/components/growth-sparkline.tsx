@@ -74,7 +74,7 @@ export function GrowthSparkline({
   if (series.length === 0) {
     return (
       <svg
-        className="ms-sparkline"
+        className="po-sparkline"
         width="100%"
         height={height}
         viewBox={`0 0 ${width} ${height}`}
@@ -87,7 +87,7 @@ export function GrowthSparkline({
           y1={height - 1}
           x2={width}
           y2={height - 1}
-          stroke="var(--ms-line-strong)"
+          stroke="var(--po-line-strong)"
           strokeDasharray="3 4"
           vectorEffect="non-scaling-stroke"
         />
@@ -125,7 +125,7 @@ export function GrowthSparkline({
   return (
     <div
       ref={plotRef}
-      className="ms-sparkline"
+      className="po-sparkline"
       style={{ position: "relative", width: "100%", maxWidth: width, height, touchAction: "pan-y" }}
       onPointerMove={track}
       onPointerDown={track}
@@ -140,11 +140,11 @@ export function GrowthSparkline({
         aria-hidden="true"
         style={{ display: "block" }}
       >
-        <path d={area} fill="color-mix(in srgb, var(--ms-success) 22%, transparent)" />
+        <path d={area} fill="color-mix(in srgb, var(--po-success) 22%, transparent)" />
         <polyline
           points={totalPoints.join(" ")}
           fill="none"
-          stroke="var(--ms-success)"
+          stroke="var(--po-success)"
           strokeWidth="1.5"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
@@ -152,7 +152,7 @@ export function GrowthSparkline({
         <polyline
           points={outPoints.join(" ")}
           fill="none"
-          stroke="var(--ms-danger)"
+          stroke="var(--po-danger)"
           strokeWidth="1.2"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
@@ -164,15 +164,15 @@ export function GrowthSparkline({
               x2={x(hover.index)}
               y1={0}
               y2={height}
-              stroke="var(--ms-line-strong)"
+              stroke="var(--po-line-strong)"
               vectorEffect="non-scaling-stroke"
             />
             {/* Dots as zero-length round-capped strokes: a circle would stretch
                 into an oval with the svg on a phone; a non-scaling stroke stays round. */}
             {(
               [
-                [hovered.total, "var(--ms-success)"],
-                [hovered.out, "var(--ms-danger)"],
+                [hovered.total, "var(--po-success)"],
+                [hovered.out, "var(--po-danger)"],
               ] as const
             ).map(([value, color]) => (
               <g key={color}>
@@ -181,7 +181,7 @@ export function GrowthSparkline({
                   x2={x(hover.index)}
                   y1={y(value)}
                   y2={y(value)}
-                  stroke="var(--ms-panel)"
+                  stroke="var(--po-panel)"
                   strokeWidth={8}
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
@@ -204,15 +204,15 @@ export function GrowthSparkline({
       {hover && hovered ? (
         <ChartTip plot={plotRef} pointer={hover.pointer}>
           <div
-            className="ms-mono"
-            style={{ fontSize: 11, color: "var(--ms-muted)", marginBottom: 4 }}
+            className="po-mono"
+            style={{ fontSize: 11, color: "var(--po-muted)", marginBottom: 4 }}
           >
             {formatDay(hovered.day)}
           </div>
           {(
             [
-              { label: totalLabel, color: "var(--ms-success)", value: hovered.total },
-              { label: outLabel, color: "var(--ms-danger)", value: hovered.out },
+              { label: totalLabel, color: "var(--po-success)", value: hovered.total },
+              { label: outLabel, color: "var(--po-danger)", value: hovered.out },
             ] as const
           ).map((row) => (
             <div
@@ -234,8 +234,8 @@ export function GrowthSparkline({
                   flex: "none",
                 }}
               />
-              <span style={{ color: "var(--ms-muted)" }}>{row.label}</span>
-              <span className="ms-mono" style={{ marginLeft: "auto", color: "var(--ms-bone)" }}>
+              <span style={{ color: "var(--po-muted)" }}>{row.label}</span>
+              <span className="po-mono" style={{ marginLeft: "auto", color: "var(--po-bone)" }}>
                 {formatValue(row.value)}
               </span>
             </div>

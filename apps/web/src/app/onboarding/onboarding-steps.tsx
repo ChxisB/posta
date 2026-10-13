@@ -49,7 +49,7 @@ function StepRail({
 }) {
   return (
     <div
-      className="ms-stepper-rail"
+      className="po-stepper-rail"
       style={{
         width: 30,
         flex: "none",
@@ -58,11 +58,11 @@ function StepRail({
         alignItems: "center",
       }}
     >
-      <span className="ms-mono" style={{ fontSize: 11, color }}>
+      <span className="po-mono" style={{ fontSize: 11, color }}>
         {marker}
       </span>
       {line ? (
-        <span style={{ flex: 1, width: 1, background: "var(--ms-line)", marginTop: 6 }} />
+        <span style={{ flex: 1, width: 1, background: "var(--po-line)", marginTop: 6 }} />
       ) : null}
     </div>
   );
@@ -84,7 +84,7 @@ function StepCard({
 }) {
   return (
     <section
-      className="ms-card"
+      className="po-card"
       style={{
         flex: 1,
         padding: 22,
@@ -94,16 +94,16 @@ function StepCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: "var(--ms-bone)" }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: "var(--po-bone)" }}>
           {title}
         </h2>
         {done ? (
-          <span aria-hidden="true" style={{ color: "var(--ms-success)", fontSize: 14 }}>
+          <span aria-hidden="true" style={{ color: "var(--po-success)", fontSize: 14 }}>
             ✓
           </span>
         ) : null}
       </div>
-      <p style={{ margin: "4px 0 0", fontSize: 13.5, color: "var(--ms-muted)" }}>{body}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 13.5, color: "var(--po-muted)" }}>{body}</p>
       {children}
     </section>
   );
@@ -123,9 +123,9 @@ function StampRow({ children, at }: { children: React.ReactNode; at?: Date | str
         alignItems: "baseline",
         gap: "2px 12px",
         padding: "8px 2px",
-        borderBottom: "1px solid var(--ms-line)",
+        borderBottom: "1px solid var(--po-line)",
         fontSize: 13.5,
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
       }}
     >
       <span
@@ -141,7 +141,7 @@ function StampRow({ children, at }: { children: React.ReactNode; at?: Date | str
       </span>
       {at ? (
         <span
-          style={{ fontSize: 11, color: "var(--ms-faint)", whiteSpace: "nowrap" }}
+          style={{ fontSize: 11, color: "var(--po-faint)", whiteSpace: "nowrap" }}
           title={formatUtcTimestamp(at)}
         >
           {formatDayTime(at, locale)}
@@ -294,7 +294,7 @@ export function OnboardingSteps({
 
   const explore = (
     <div style={{ marginTop: 56 }}>
-      <div className="ms-microlabel" style={{ marginBottom: 10 }}>
+      <div className="po-microlabel" style={{ marginBottom: 10 }}>
         {t("explore.label")}
       </div>
       <div
@@ -307,22 +307,22 @@ export function OnboardingSteps({
         {EXPLORE.map((card) => (
           <div
             key={card.key}
-            className="ms-card"
+            className="po-card"
             style={{ display: "flex", flexDirection: "column" }}
           >
             <div style={{ padding: 18, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ms-bone)" }}>
+                <span style={{ fontSize: 14.5, fontWeight: 600, color: "var(--po-bone)" }}>
                   {t(`explore.${card.key}.title`)}
                 </span>
                 {"recommended" in card ? (
-                  <span className="ms-badge ms-badge-success">{t("explore.recommended")}</span>
+                  <span className="po-badge po-badge-success">{t("explore.recommended")}</span>
                 ) : null}
               </div>
               <p
                 style={{
                   fontSize: 12.5,
-                  color: "var(--ms-muted)",
+                  color: "var(--po-muted)",
                   margin: "4px 0 0",
                   lineHeight: 1.5,
                 }}
@@ -330,10 +330,10 @@ export function OnboardingSteps({
                 {t(`explore.${card.key}.body`)}
               </p>
             </div>
-            <div style={{ borderTop: "1px solid var(--ms-line)", padding: "12px 18px" }}>
+            <div style={{ borderTop: "1px solid var(--po-line)", padding: "12px 18px" }}>
               <Link
                 href={card.href}
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 {...("external" in card ? { target: "_blank", rel: "noreferrer" } : {})}
               >
                 {t(`explore.${card.key}.cta`)}
@@ -344,10 +344,10 @@ export function OnboardingSteps({
         ))}
       </div>
       {showInstanceHint ? (
-        <p style={{ fontSize: 12.5, color: "var(--ms-muted)", margin: "14px 0 0" }}>
+        <p style={{ fontSize: 12.5, color: "var(--po-muted)", margin: "14px 0 0" }}>
           {t.rich("explore.instance", {
             link: (chunks) => (
-              <Link href="/settings" style={{ color: "var(--ms-bone)" }}>
+              <Link href="/settings" style={{ color: "var(--po-bone)" }}>
                 {chunks}
               </Link>
             ),
@@ -360,12 +360,12 @@ export function OnboardingSteps({
   if (loading) {
     return (
       <div>
-        <h1 className="ms-display" style={{ fontSize: "var(--ms-fs-h1)", margin: 0 }}>
+        <h1 className="po-display" style={{ fontSize: "var(--po-fs-h1)", margin: 0 }}>
           <KeepHyphenated text={t("title")} />
         </h1>
         <div style={{ marginTop: 32, display: "grid", gap: 20 }}>
-          <Skeleton width="100%" height={132} radius="var(--ms-r-card)" />
-          <Skeleton width="100%" height={320} radius="var(--ms-r-card)" />
+          <Skeleton width="100%" height={132} radius="var(--po-r-card)" />
+          <Skeleton width="100%" height={320} radius="var(--po-r-card)" />
         </div>
       </div>
     );
@@ -379,18 +379,18 @@ export function OnboardingSteps({
         alignItems: "center",
         gap: 10,
         padding: "8px 12px",
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line-strong)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line-strong)",
         borderRadius: 10,
       }}
     >
       <span
-        className="ms-mono"
+        className="po-mono"
         style={{
           flex: 1,
           minWidth: 0,
           fontSize: 13,
-          color: "var(--ms-bone)",
+          color: "var(--po-bone)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -402,7 +402,7 @@ export function OnboardingSteps({
         <>
           <button
             type="button"
-            className="ms-btn ms-btn-ghost"
+            className="po-btn po-btn-ghost"
             style={{ height: "auto", padding: "2px 6px", fontSize: 12 }}
             onClick={() => setRevealed((v) => !v)}
           >
@@ -411,7 +411,7 @@ export function OnboardingSteps({
           <CopyGlyph value={token} />
         </>
       ) : (
-        <span style={{ fontSize: 12, color: "var(--ms-muted)", flex: "none" }}>
+        <span style={{ fontSize: 12, color: "var(--po-muted)", flex: "none" }}>
           {t("step1.doneMeta")}
         </span>
       )}
@@ -421,8 +421,8 @@ export function OnboardingSteps({
   const codePanel = (
     <div
       style={{
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line)",
         borderRadius: 10,
         overflow: "hidden",
         marginTop: 14,
@@ -431,13 +431,13 @@ export function OnboardingSteps({
       <div
         role="tablist"
         aria-label={t("step2.title")}
-        className="ms-scroll-x"
+        className="po-scroll-x"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 4,
           padding: "7px 8px",
-          borderBottom: "1px solid var(--ms-line)",
+          borderBottom: "1px solid var(--po-line)",
           overflowX: "auto",
         }}
       >
@@ -447,7 +447,7 @@ export function OnboardingSteps({
             type="button"
             role="tab"
             aria-selected={key === lang}
-            className={key === lang ? "ms-code-tab active" : "ms-code-tab"}
+            className={key === lang ? "po-code-tab active" : "po-code-tab"}
             onClick={() => setLang(key)}
           >
             {key !== "curl" ? <LangIcon path={LANG_META[key].icon.path} /> : null}
@@ -459,13 +459,13 @@ export function OnboardingSteps({
         </span>
       </div>
       <pre
-        className="ms-mono ms-hl"
+        className="po-mono po-hl"
         style={{
           margin: 0,
           padding: "14px 16px",
           fontSize: 13,
           lineHeight: 1.7,
-          color: "var(--ms-bone)",
+          color: "var(--po-bone)",
           overflowX: "auto",
         }}
       >
@@ -473,18 +473,18 @@ export function OnboardingSteps({
       </pre>
       {sender && hasKey ? (
         <div
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 12,
             padding: "12px 14px",
-            borderTop: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
           }}
         >
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={verifying || sendFirst.isPending}
             onClick={async () => {
               setCaptchaFailed(false);
@@ -504,19 +504,19 @@ export function OnboardingSteps({
           </button>
           {turnstile.slot}
           {sendFirst.data?.sent ? (
-            <span style={{ fontSize: 13, color: "var(--ms-muted)" }}>
+            <span style={{ fontSize: 13, color: "var(--po-muted)" }}>
               {t("step2.sentTo", { to: sendFirst.data.to })}
             </span>
           ) : sendFirst.data ? (
-            <span style={{ fontSize: 13, color: "var(--ms-muted)" }}>{t("step2.alreadySent")}</span>
+            <span style={{ fontSize: 13, color: "var(--po-muted)" }}>{t("step2.alreadySent")}</span>
           ) : captchaFailed || sendFirst.error?.data?.code === "FORBIDDEN" ? (
-            <span style={{ fontSize: 13, color: "var(--ms-danger)" }}>
+            <span style={{ fontSize: 13, color: "var(--po-danger)" }}>
               {t("step2.captchaFailed")}
             </span>
           ) : sendFirst.isError ? (
-            <span style={{ fontSize: 13, color: "var(--ms-danger)" }}>{t("step2.sendError")}</span>
+            <span style={{ fontSize: 13, color: "var(--po-danger)" }}>{t("step2.sendError")}</span>
           ) : (
-            <span style={{ fontSize: 13, color: "var(--ms-muted)" }}>{t("step2.sendHint")}</span>
+            <span style={{ fontSize: 13, color: "var(--po-muted)" }}>{t("step2.sendHint")}</span>
           )}
         </div>
       ) : null}
@@ -525,22 +525,22 @@ export function OnboardingSteps({
 
   return (
     <div style={{ overflow: "hidden" }}>
-      <h1 className="ms-display" style={{ fontSize: "var(--ms-fs-h1)", margin: 0 }}>
+      <h1 className="po-display" style={{ fontSize: "var(--po-fs-h1)", margin: 0 }}>
         <KeepHyphenated text={t("title")} />
       </h1>
-      <div style={{ fontSize: 14, color: "var(--ms-muted)", marginTop: 6 }}>{t("subtitle")}</div>
+      <div style={{ fontSize: 14, color: "var(--po-muted)", marginTop: 6 }}>{t("subtitle")}</div>
 
       {success ? (
         <>
           <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 8 }}>
             <StampRow at={bankedKey?.createdAt}>
-              <span style={{ color: "var(--ms-success)" }}>✓</span>
+              <span style={{ color: "var(--po-success)" }}>✓</span>
               {t("success.keyAdded")}
             </StampRow>
             <StampRow at={firstEmail.createdAt}>
               {deliveredSeconds ? (
                 <>
-                  <span style={{ color: "var(--ms-success)" }}>✓</span>
+                  <span style={{ color: "var(--po-success)" }}>✓</span>
                   {t("success.emailDelivered", { to: toDisplay, seconds: deliveredSeconds })}
                 </>
               ) : (
@@ -554,13 +554,13 @@ export function OnboardingSteps({
 
           <div style={{ textAlign: "center", marginTop: 56 }}>
             <DeliveredOdometer value={deliveredCount} locale={locale} />
-            <div style={{ fontSize: 15, color: "var(--ms-bone)", marginTop: 18 }}>
+            <div style={{ fontSize: 15, color: "var(--po-bone)", marginTop: 18 }}>
               {t("success.counting", { count: deliveredCount })}
             </div>
             {deliveredSeconds ? (
               <div
-                className="ms-mono"
-                style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 8 }}
+                className="po-mono"
+                style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 8 }}
               >
                 {t("success.deliveredIn", { seconds: deliveredSeconds })}
               </div>
@@ -568,8 +568,8 @@ export function OnboardingSteps({
             {/* The first send's route only reads as a story while it is the only one. */}
             {detail && emailCount <= 1 ? (
               <div
-                className="ms-mono"
-                style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 3 }}
+                className="po-mono"
+                style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 3 }}
               >
                 {detail.from} → {toDisplay}
               </div>
@@ -580,12 +580,12 @@ export function OnboardingSteps({
         <div style={{ marginTop: 32, display: "flex", flexDirection: "column" }}>
           {!sesReady ? (
             /* Leading step — connect AWS SES before anything can send */
-            <div className="ms-step" style={{ display: "flex", gap: 18 }}>
-              <StepRail marker="01" color="var(--ms-bone)" />
+            <div className="po-step" style={{ display: "flex", gap: 18 }}>
+              <StepRail marker="01" color="var(--po-bone)" />
               <StepCard title={t("stepSes.title")} body={t("stepSes.body")}>
                 <Link
                   href="/settings/ses"
-                  className="ms-btn ms-btn-primary"
+                  className="po-btn po-btn-primary"
                   style={{ marginTop: 16 }}
                 >
                   {t("stepSes.cta")}
@@ -595,10 +595,10 @@ export function OnboardingSteps({
           ) : null}
 
           {/* Add an API key */}
-          <div className="ms-step" style={{ display: "flex", gap: 18 }}>
+          <div className="po-step" style={{ display: "flex", gap: 18 }}>
             <StepRail
               marker={hasKey ? "✓" : marker(1)}
-              color={hasKey ? "var(--ms-success)" : "var(--ms-bone)"}
+              color={hasKey ? "var(--po-success)" : "var(--po-bone)"}
             />
             <StepCard
               title={t("step1.title")}
@@ -610,13 +610,13 @@ export function OnboardingSteps({
               ) : (
                 <>
                   {createKey.isError ? (
-                    <div style={{ fontSize: 13, color: "var(--ms-danger)", marginTop: 10 }}>
+                    <div style={{ fontSize: 13, color: "var(--po-danger)", marginTop: 10 }}>
                       {t("step1.error")}
                     </div>
                   ) : null}
                   <button
                     type="button"
-                    className="ms-btn ms-btn-primary"
+                    className="po-btn po-btn-primary"
                     style={{ marginTop: 16 }}
                     disabled={createKey.isPending}
                     onClick={() => createKey.mutate({ name: t("step1.keyName") })}
@@ -630,8 +630,8 @@ export function OnboardingSteps({
           </div>
 
           {/* Send an email */}
-          <div className="ms-step" style={{ display: "flex", gap: 18 }}>
-            <StepRail marker={marker(2)} color={hasKey ? "var(--ms-bone)" : "var(--ms-faint)"} />
+          <div className="po-step" style={{ display: "flex", gap: 18 }}>
+            <StepRail marker={marker(2)} color={hasKey ? "var(--po-bone)" : "var(--po-faint)"} />
             <StepCard
               title={t("step2.title")}
               body={hasKey ? t("step2.bodyReady") : t("step2.bodyLocked")}
@@ -640,8 +640,8 @@ export function OnboardingSteps({
               {codePanel}
               {showInstanceHint && lang !== "curl" ? (
                 <p
-                  className="ms-mono"
-                  style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ms-muted)" }}
+                  className="po-mono"
+                  style={{ margin: "10px 0 0", fontSize: 12, color: "var(--po-muted)" }}
                 >
                   {t("step2.selfHostBase", { url: apiUrl })}
                 </p>
@@ -650,14 +650,14 @@ export function OnboardingSteps({
           </div>
 
           {/* Watch it arrive */}
-          <div className="ms-step" style={{ display: "flex", gap: 18 }}>
-            <StepRail marker={marker(3)} color="var(--ms-faint)" line={false} />
+          <div className="po-step" style={{ display: "flex", gap: 18 }}>
+            <StepRail marker={marker(3)} color="var(--po-faint)" line={false} />
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-              <span style={{ fontSize: 14, color: hasKey ? "var(--ms-muted)" : "var(--ms-faint)" }}>
+              <span style={{ fontSize: 14, color: hasKey ? "var(--po-muted)" : "var(--po-faint)" }}>
                 {t("step3.title")}
               </span>
               {hasKey ? (
-                <span className="ms-mono" style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+                <span className="po-mono" style={{ fontSize: 12, color: "var(--po-muted)" }}>
                   {t("step3.waiting")}
                 </span>
               ) : null}

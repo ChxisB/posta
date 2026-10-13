@@ -72,7 +72,7 @@ function renderNodes(nodes: HastNode[], keyPrefix: string): ReactNode[] {
 
 /**
  * Syntax-highlighted code as React spans carrying hljs class names — the
- * palette lives in components.css under .ms-hl, on the design tokens.
+ * palette lives in components.css under .po-hl, on the design tokens.
  */
 export function CodeHighlight({ code, language }: { code: string; language: HighlightLanguage }) {
   const tree = lowlight.highlight(language, code) as unknown as { children: HastNode[] };

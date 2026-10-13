@@ -17,7 +17,7 @@ export interface CodeEditorHandle {
  * font metrics, kept scroll-aligned from the textarea's scroll events. Find
  * matches paint on a third layer under the highlight — plain text made
  * transparent, so its <mark>s land under the very same glyphs. Tab inserts
- * two spaces (the palette lives under .ms-code-editor in components.css).
+ * two spaces (the palette lives under .po-code-editor in components.css).
  */
 export function CodeEditor({
   id,
@@ -90,7 +90,7 @@ export function CodeEditor({
   }
 
   return (
-    <div className="ms-code-editor">
+    <div className="po-code-editor">
       {/* Trailing newline: a value ending in "\n" shows an empty last line in
           the textarea, and the mirrors must scroll exactly as far. */}
       {marks.length > 0 ? (
@@ -104,21 +104,21 @@ export function CodeEditor({
             el.scrollTop = ta.scrollTop;
             el.scrollLeft = ta.scrollLeft;
           }}
-          className="ms-code-editor-hl ms-code-editor-marks"
+          className="po-code-editor-hl po-code-editor-marks"
           aria-hidden="true"
         >
           {marked}
           {"\n"}
         </pre>
       ) : null}
-      <pre ref={preRef} className="ms-code-editor-hl ms-hl" aria-hidden="true">
+      <pre ref={preRef} className="po-code-editor-hl po-hl" aria-hidden="true">
         <CodeHighlight code={value} language={language} />
         {"\n"}
       </pre>
       <textarea
         ref={textareaRef}
         id={id}
-        className="ms-code-editor-input"
+        className="po-code-editor-input"
         value={value}
         spellCheck={false}
         autoCapitalize="off"

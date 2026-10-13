@@ -180,7 +180,7 @@ export function ApiKeysView() {
             {canExport ? <ExportCsvLink href="/export/api-keys" /> : null}
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               onClick={() => setCreateOpen(true)}
             >
               <PlusGlyph size={14} />
@@ -201,7 +201,7 @@ export function ApiKeysView() {
           cta={
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               onClick={() => setCreateOpen(true)}
             >
               <PlusGlyph />
@@ -236,7 +236,7 @@ export function ApiKeysView() {
                         {key.name}
                       </span>
                       <span
-                        className={`ms-badge ms-badge-${
+                        className={`po-badge po-badge-${
                           key.permission === "sending_access" ? "info" : "neutral"
                         }`}
                       >
@@ -244,7 +244,7 @@ export function ApiKeysView() {
                       </span>
                       {key.domainName ? (
                         <span
-                          className="ms-badge ms-badge-neutral ms-badge-clip"
+                          className="po-badge po-badge-neutral po-badge-clip"
                           title={key.domainName}
                         >
                           {key.domainName}
@@ -252,7 +252,7 @@ export function ApiKeysView() {
                       ) : null}
                       {key.inboxAddress ? (
                         <span
-                          className="ms-badge ms-badge-info ms-badge-clip"
+                          className="po-badge po-badge-info po-badge-clip"
                           title={key.inboxAddress}
                         >
                           {key.inboxAddress}
@@ -261,7 +261,7 @@ export function ApiKeysView() {
                     </span>
                   </td>
                   <td>
-                    <span className="ms-mono">{maskApiKey(key.tokenPrefix, key.last4)}</span>
+                    <span className="po-mono">{maskApiKey(key.tokenPrefix, key.last4)}</span>
                   </td>
                   <td>
                     {key.lastUsedAt ? <RelativeTime date={key.lastUsedAt} /> : t("neverUsed")}
@@ -315,11 +315,11 @@ export function ApiKeysView() {
             <div style={{ justifySelf: "start", maxWidth: "100%" }}>
               <CopyChip value={revealedToken} />
             </div>
-            <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+            <p style={{ margin: 0, color: "var(--po-warn)", fontSize: "var(--po-fs-label)" }}>
               {t("reveal.warning")}
             </p>
             <ModalFooter>
-              <button type="submit" className="ms-btn ms-btn-primary">
+              <button type="submit" className="po-btn po-btn-primary">
                 {t("reveal.done")} <ConfirmKeycap />
               </button>
             </ModalFooter>
@@ -332,11 +332,11 @@ export function ApiKeysView() {
               confirmCreate();
             }}
           >
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="api-key-name">{t("create.name")}</label>
               <input
                 id="api-key-name"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 value={name}
                 disabled={createMutation.isPending}
@@ -344,8 +344,8 @@ export function ApiKeysView() {
                 onChange={(event) => setName(event.target.value)}
               />
             </div>
-            <div className="ms-field">
-              <div className="ms-label-row">
+            <div className="po-field">
+              <div className="po-label-row">
                 <label htmlFor="api-key-permission">{t("create.permission")}</label>
                 <Tooltip text={t("create.permissionTooltip")} />
               </div>
@@ -364,7 +364,7 @@ export function ApiKeysView() {
                 ]}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="api-key-domain">{t("create.domain")}</label>
               <Select
                 id="api-key-domain"
@@ -380,8 +380,8 @@ export function ApiKeysView() {
               />
             </div>
             {inboxes.length > 0 ? (
-              <div className="ms-field">
-                <div className="ms-label-row">
+              <div className="po-field">
+                <div className="po-label-row">
                   <label htmlFor="api-key-inbox">{t("create.restrictInbox")}</label>
                   <Tooltip text={t("create.restrictInboxHint")} />
                 </div>
@@ -408,7 +408,7 @@ export function ApiKeysView() {
             ) : null}
             {createError ? (
               <div
-                className="ms-field-error"
+                className="po-field-error"
                 style={{
                   margin: 0,
                   display: "flex",
@@ -421,12 +421,12 @@ export function ApiKeysView() {
               </div>
             ) : null}
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={name.trim().length === 0 || createMutation.isPending}
               >
                 <BtnSpinner on={createMutation.isPending} />
@@ -451,16 +451,16 @@ export function ApiKeysView() {
               confirmRevoke();
             }}
           >
-            <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+            <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
               {t("revokeConfirm.body", { name: revokeTarget.name })}
             </p>
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeRevoke}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeRevoke}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-destructive"
+                className="po-btn po-btn-destructive"
                 disabled={revokeMutation.isPending}
               >
                 <BtnSpinner on={revokeMutation.isPending} />
@@ -485,11 +485,11 @@ export function ApiKeysView() {
               confirmRename();
             }}
           >
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="api-key-rename">{t("renameDialog.name")}</label>
               <input
                 id="api-key-rename"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 value={renameName}
                 maxLength={80}
@@ -498,12 +498,12 @@ export function ApiKeysView() {
               />
             </div>
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeRename}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeRename}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={renameMutation.isPending || renameName.trim().length === 0}
               >
                 <BtnSpinner on={renameMutation.isPending} />

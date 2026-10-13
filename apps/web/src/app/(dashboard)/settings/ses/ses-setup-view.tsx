@@ -28,7 +28,7 @@ function StepRail({ marker, done, line }: { marker: string; done: boolean; line:
   return (
     <div
       aria-hidden="true"
-      className="ms-stepper-rail"
+      className="po-stepper-rail"
       style={{
         width: 30,
         flex: "none",
@@ -38,13 +38,13 @@ function StepRail({ marker, done, line }: { marker: string; done: boolean; line:
       }}
     >
       <span
-        className="ms-mono"
-        style={{ fontSize: 11, color: done ? "var(--ms-success)" : "var(--ms-bone)" }}
+        className="po-mono"
+        style={{ fontSize: 11, color: done ? "var(--po-success)" : "var(--po-bone)" }}
       >
         {done ? "✓" : marker}
       </span>
       {line ? (
-        <span style={{ flex: 1, width: 1, background: "var(--ms-line)", marginTop: 6 }} />
+        <span style={{ flex: 1, width: 1, background: "var(--po-line)", marginTop: 6 }} />
       ) : null}
     </div>
   );
@@ -64,16 +64,16 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <div className="ms-step" style={{ display: "flex", gap: 18 }}>
+    <div className="po-step" style={{ display: "flex", gap: 18 }}>
       <StepRail marker={marker} done={done} line={!last} />
       {/* minWidth 0 so wide <pre> content scrolls inside its block, never the page */}
       <div style={{ flex: 1, minWidth: 0, paddingBottom: last ? 0 : 24 }}>
         <h2
-          className="ms-display"
+          className="po-display"
           style={{
-            fontSize: "var(--ms-fs-h2)",
+            fontSize: "var(--po-fs-h2)",
             lineHeight: 1,
-            color: "var(--ms-bone)",
+            color: "var(--po-bone)",
             margin: "0 0 14px",
           }}
         >
@@ -99,7 +99,7 @@ function MonoBlock({
   const [open, setOpen] = useState(false);
   const header = (
     <>
-      <span className="ms-mono" style={{ fontSize: 11.5, color: "var(--ms-muted)" }}>
+      <span className="po-mono" style={{ fontSize: 11.5, color: "var(--po-muted)" }}>
         {title}
       </span>
       <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
@@ -111,7 +111,7 @@ function MonoBlock({
           <CopyGlyph value={value} />
         </span>
         {collapsible ? (
-          <span style={{ display: "flex", alignItems: "center", color: "var(--ms-muted)" }}>
+          <span style={{ display: "flex", alignItems: "center", color: "var(--po-muted)" }}>
             <ChevronGlyph direction={open ? "up" : "down"} />
           </span>
         ) : null}
@@ -120,16 +120,16 @@ function MonoBlock({
   );
   const pre = (
     <pre
-      className="ms-mono"
+      className="po-mono"
       style={{
         margin: 0,
         padding: "13px 16px",
         fontSize: 12,
         lineHeight: 1.65,
-        color: "var(--ms-bone)",
+        color: "var(--po-bone)",
         overflow: "auto",
         maxHeight,
-        borderTop: "1px solid var(--ms-line)",
+        borderTop: "1px solid var(--po-line)",
       }}
     >
       {value}
@@ -143,9 +143,9 @@ function MonoBlock({
   return (
     <div
       style={{
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line)",
-        borderRadius: "var(--ms-r-input)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line)",
+        borderRadius: "var(--po-r-input)",
         overflow: "hidden",
         maxWidth: "100%",
       }}
@@ -176,25 +176,25 @@ function CheckRow({ ok, name, detail }: { ok: boolean; name: string; detail: Rea
         flexWrap: "wrap",
         gap: 10,
         padding: "8px 0",
-        borderBottom: "1px solid var(--ms-line)",
+        borderBottom: "1px solid var(--po-line)",
       }}
     >
       <span
-        className="ms-mono"
+        className="po-mono"
         style={{
           fontSize: 11,
           width: 14,
           flex: "none",
-          color: ok ? "var(--ms-success)" : "var(--ms-warn)",
+          color: ok ? "var(--po-success)" : "var(--po-warn)",
         }}
         aria-hidden="true"
       >
         {ok ? "✓" : "✗"}
       </span>
-      <span className="ms-mono" style={{ fontSize: 12.5, color: "var(--ms-bone)" }}>
+      <span className="po-mono" style={{ fontSize: 12.5, color: "var(--po-bone)" }}>
         {name}
       </span>
-      <span style={{ fontSize: 12.5, color: "var(--ms-muted)" }}>{detail}</span>
+      <span style={{ fontSize: 12.5, color: "var(--po-muted)" }}>{detail}</span>
     </div>
   );
 }
@@ -202,14 +202,14 @@ function CheckRow({ ok, name, detail }: { ok: boolean; name: string; detail: Rea
 function QuotaFigure({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
     <div>
-      <div className="ms-microlabel">{label}</div>
+      <div className="po-microlabel">{label}</div>
       <div
-        className="ms-digits"
-        style={{ fontSize: "var(--ms-fs-kpi)", color: "var(--ms-bone)", marginTop: 6 }}
+        className="po-digits"
+        style={{ fontSize: "var(--po-fs-kpi)", color: "var(--po-bone)", marginTop: 6 }}
       >
         {value}
         {unit ? (
-          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ms-muted)" }}> {unit}</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--po-muted)" }}> {unit}</span>
         ) : null}
       </div>
     </div>
@@ -224,7 +224,7 @@ const stepBodyStyle: React.CSSProperties = {
   margin: 0,
   fontSize: 13,
   lineHeight: 1.55,
-  color: "var(--ms-bone)",
+  color: "var(--po-bone)",
 };
 
 /** Compact card shown once a step's env vars are in place; the toggle reveals
@@ -249,24 +249,24 @@ function StepDoneCard({
         display: "flex",
         alignItems: "center",
         gap: 10,
-        backgroundColor: "var(--ms-ground)",
+        backgroundColor: "var(--po-ground)",
         backgroundImage: statusGlow("success", 15),
-        border: "1px solid var(--ms-success-border)",
+        border: "1px solid var(--po-success-border)",
         borderRadius: 14,
         padding: small ? "12px 16px" : "16px 22px",
       }}
     >
       <span
-        className="ms-mono"
+        className="po-mono"
         aria-hidden="true"
-        style={{ fontSize: 11, color: "var(--ms-success)" }}
+        style={{ fontSize: 11, color: "var(--po-success)" }}
       >
         ✓
       </span>
-      <span style={{ fontSize: small ? 13 : 13.5, color: "var(--ms-bone)" }}>{message}</span>
+      <span style={{ fontSize: small ? 13 : 13.5, color: "var(--po-bone)" }}>{message}</span>
       <button
         type="button"
-        className="ms-btn ms-btn-ghost"
+        className="po-btn po-btn-ghost"
         aria-expanded={open}
         style={{ marginLeft: "auto" }}
         onClick={onToggle}
@@ -282,7 +282,7 @@ function ConsoleCard() {
   const t = useTranslations("console.settingsCard");
   return (
     <section
-      className="ms-card"
+      className="po-card"
       style={{
         padding: 24,
         // Sits in the stepper's content column (rail 30px + gap 18px), not under the rail.
@@ -296,12 +296,12 @@ function ConsoleCard() {
       }}
     >
       <div style={{ flex: "1 1 320px" }}>
-        <h2 className="ms-display" style={{ fontSize: "var(--ms-fs-section)", margin: "0 0 6px" }}>
+        <h2 className="po-display" style={{ fontSize: "var(--po-fs-section)", margin: "0 0 6px" }}>
           {t("title")}
         </h2>
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{t("body")}</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{t("body")}</p>
       </div>
-      <Link href="/console" className="ms-btn ms-btn-secondary">
+      <Link href="/console" className="po-btn po-btn-secondary">
         {t("open")} →
       </Link>
     </section>
@@ -358,7 +358,7 @@ export function SesSetupView() {
     return (
       <div style={{ maxWidth: 880 }}>
         <Step marker="01" title={t("setup.stepTitle")}>
-          <section className="ms-card" style={{ ...stepCardStyle, padding: 22 }}>
+          <section className="po-card" style={{ ...stepCardStyle, padding: 22 }}>
             <div style={{ fontSize: 16, fontWeight: 600, display: "flex" }}>
               <Skeleton width={220} height="1lh" />
             </div>
@@ -371,7 +371,7 @@ export function SesSetupView() {
           </section>
         </Step>
         <Step marker="02" title={t("credentials.title")}>
-          <section className="ms-card" style={{ ...stepCardStyle, padding: 24 }}>
+          <section className="po-card" style={{ ...stepCardStyle, padding: 24 }}>
             <p style={{ margin: "0 0 8px", fontSize: 13, display: "flex" }}>
               <Skeleton width={280} height="1lh" />
             </p>
@@ -379,10 +379,10 @@ export function SesSetupView() {
               {[300, 220].map((width) => (
                 <div
                   key={width}
-                  className="ms-mono"
+                  className="po-mono"
                   style={{
                     padding: "8px 0",
-                    borderBottom: "1px solid var(--ms-line)",
+                    borderBottom: "1px solid var(--po-line)",
                     fontSize: 12.5,
                     display: "flex",
                   }}
@@ -392,19 +392,19 @@ export function SesSetupView() {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
-              <Skeleton width={130} height={30} radius="var(--ms-r-input)" />
+              <Skeleton width={130} height={30} radius="var(--po-r-input)" />
             </div>
           </section>
         </Step>
         <Step marker="03" last title={t("events.title")}>
-          <section className="ms-card" style={{ ...stepCardStyle, padding: 24 }}>
+          <section className="po-card" style={{ ...stepCardStyle, padding: 24 }}>
             {[240, 280].map((width) => (
               <div
                 key={width}
-                className="ms-mono"
+                className="po-mono"
                 style={{
                   padding: "8px 0",
-                  borderBottom: "1px solid var(--ms-line)",
+                  borderBottom: "1px solid var(--po-line)",
                   fontSize: 12.5,
                   display: "flex",
                 }}
@@ -446,27 +446,27 @@ export function SesSetupView() {
         ) : null}
         {!credentialsOk || setupDetailsOpen ? (
           <div style={{ marginTop: credentialsOk ? 14 : 0 }}>
-            <section className="ms-card" style={{ ...stepCardStyle, padding: 22 }}>
+            <section className="po-card" style={{ ...stepCardStyle, padding: 22 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16, fontWeight: 600, color: "var(--ms-bone)" }}>
+                <span style={{ fontSize: 16, fontWeight: 600, color: "var(--po-bone)" }}>
                   {t("setup.cliTitle")}
                 </span>
-                <span className="ms-badge ms-badge-success">{t("setup.recommended")}</span>
+                <span className="po-badge po-badge-success">{t("setup.recommended")}</span>
               </div>
               <p style={{ margin: "12px 0 0" }}>
                 <CopyChip value="npx @tack-labs/posta-setup" />
               </p>
-              <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+              <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
                 {t.rich("setup.cliNote", codeRichTags)}
               </p>
             </section>
 
-            <section className="ms-card" style={{ ...stepCardStyle, padding: 22, marginTop: 14 }}>
+            <section className="po-card" style={{ ...stepCardStyle, padding: 22, marginTop: 14 }}>
               <a
                 href={cfnQuickCreateUrl(readiness.data.region)}
                 target="_blank"
                 rel="noreferrer"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
               >
                 {t("setup.cfnButton")} ↗
               </a>
@@ -478,7 +478,7 @@ export function SesSetupView() {
                   flexWrap: "wrap",
                   margin: "12px 0 0",
                   fontSize: 12.5,
-                  color: "var(--ms-muted)",
+                  color: "var(--po-muted)",
                 }}
               >
                 {t.rich("setup.cfnNote", codeRichTags)}
@@ -486,15 +486,15 @@ export function SesSetupView() {
               </p>
             </section>
 
-            <section className="ms-card" style={{ ...stepCardStyle, padding: 22, marginTop: 14 }}>
-              <span style={{ fontSize: 13.5, color: "var(--ms-bone)" }}>
+            <section className="po-card" style={{ ...stepCardStyle, padding: 22, marginTop: 14 }}>
+              <span style={{ fontSize: 13.5, color: "var(--po-bone)" }}>
                 {t("setup.scriptTitle")}
               </span>
-              <p style={{ margin: "10px 0 14px", fontSize: 13, color: "var(--ms-muted)" }}>
+              <p style={{ margin: "10px 0 14px", fontSize: 13, color: "var(--po-muted)" }}>
                 {t.rich("setup.scriptNote", codeRichTags)}
               </p>
               {pushIncluded ? null : (
-                <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "var(--ms-warn)" }}>
+                <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "var(--po-warn)" }}>
                   {t.rich("setup.eventsSkipped", codeRichTags)}
                 </p>
               )}
@@ -506,7 +506,7 @@ export function SesSetupView() {
               />
             </section>
 
-            <section className="ms-card" style={{ ...stepCardStyle, padding: 24, marginTop: 14 }}>
+            <section className="po-card" style={{ ...stepCardStyle, padding: 24, marginTop: 14 }}>
               <details onToggle={(e) => setManualOpen(e.currentTarget.open)}>
                 <summary
                   style={{
@@ -516,11 +516,11 @@ export function SesSetupView() {
                     cursor: "pointer",
                     listStyle: "none",
                     fontSize: 13.5,
-                    color: "var(--ms-bone)",
+                    color: "var(--po-bone)",
                   }}
                 >
                   <span>{t("setup.manualTitle")}</span>
-                  <span style={{ display: "flex", alignItems: "center", color: "var(--ms-muted)" }}>
+                  <span style={{ display: "flex", alignItems: "center", color: "var(--po-muted)" }}>
                     <ChevronGlyph direction={manualOpen ? "up" : "down"} />
                   </span>
                 </summary>
@@ -541,7 +541,7 @@ export function SesSetupView() {
                       href={IAM_CREATE_POLICY_URL}
                       target="_blank"
                       rel="noreferrer"
-                      className="ms-btn ms-btn-secondary"
+                      className="po-btn po-btn-secondary"
                     >
                       {t("setup.step1Link")} ↗
                     </a>
@@ -562,8 +562,8 @@ export function SesSetupView() {
       </Step>
 
       <Step marker="02" done={credentialsOk} title={t("credentials.title")}>
-        <section className="ms-card" style={{ ...stepCardStyle, padding: 24 }}>
-          <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <section className="po-card" style={{ ...stepCardStyle, padding: 24 }}>
+          <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--po-muted)" }}>
             {t("subtitle")}
           </p>
           <div>
@@ -584,14 +584,14 @@ export function SesSetupView() {
             <CheckRow
               ok
               name={regions.length > 1 ? "AWS_REGIONS" : "AWS_REGION"}
-              detail={<span className="ms-mono">{regions.join(", ")}</span>}
+              detail={<span className="po-mono">{regions.join(", ")}</span>}
             />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={!credentialsOk || testing}
               onClick={testAll}
             >
@@ -600,7 +600,7 @@ export function SesSetupView() {
             </button>
             <Tooltip text={t.rich("test.note", codeRichTags)} />
             {credentialsOk ? null : (
-              <span style={{ fontSize: 12.5, color: "var(--ms-muted)" }}>
+              <span style={{ fontSize: 12.5, color: "var(--po-muted)" }}>
                 {t("test.disabledHint")}
               </span>
             )}
@@ -613,7 +613,7 @@ export function SesSetupView() {
             return (
               <div key={region}>
                 {regions.length > 1 ? (
-                  <div className="ms-microlabel" style={{ marginTop: 18 }}>
+                  <div className="po-microlabel" style={{ marginTop: 18 }}>
                     {regionFlag(region)} {region}
                   </div>
                 ) : null}
@@ -628,19 +628,19 @@ export function SesSetupView() {
                       }}
                     >
                       <span
-                        className={`ms-badge ${result.sendingEnabled ? "ms-badge-success" : "ms-badge-danger"}`}
+                        className={`po-badge ${result.sendingEnabled ? "po-badge-success" : "po-badge-danger"}`}
                       >
                         {result.sendingEnabled
                           ? t("test.sendingEnabled")
                           : t("test.sendingDisabled")}
                       </span>
                       <span
-                        className={`ms-badge ${result.productionAccess ? "ms-badge-success" : "ms-badge-warn"}`}
+                        className={`po-badge ${result.productionAccess ? "po-badge-success" : "po-badge-warn"}`}
                       >
                         {result.productionAccess ? t("test.production") : t("test.sandbox")}
                       </span>
                     </div>
-                    <div className="ms-kpi-row" style={{ display: "flex", gap: 48, marginTop: 18 }}>
+                    <div className="po-kpi-row" style={{ display: "flex", gap: 48, marginTop: 18 }}>
                       <QuotaFigure
                         label={t("test.quotaMax")}
                         value={fmt.format(result.quota.max24h)}
@@ -664,17 +664,17 @@ export function SesSetupView() {
                     {result.productionAccess ? null : (
                       <div
                         style={{
-                          border: "1px solid var(--ms-warn-border)",
-                          background: "var(--ms-warn-bg)",
-                          borderRadius: "var(--ms-r-input)",
+                          border: "1px solid var(--po-warn-border)",
+                          background: "var(--po-warn-bg)",
+                          borderRadius: "var(--po-r-input)",
                           padding: "11px 15px",
                           marginTop: 18,
                           fontSize: 13,
                           lineHeight: 1.55,
                         }}
                       >
-                        <span style={{ color: "var(--ms-warn)" }}>{t("test.sandboxTitle")}</span>{" "}
-                        <span style={{ color: "var(--ms-bone)" }}>{t("test.sandboxBody")}</span>{" "}
+                        <span style={{ color: "var(--po-warn)" }}>{t("test.sandboxTitle")}</span>{" "}
+                        <span style={{ color: "var(--po-bone)" }}>{t("test.sandboxBody")}</span>{" "}
                         <a href={PRODUCTION_ACCESS_DOCS_URL} target="_blank" rel="noreferrer">
                           {t("test.sandboxLink")} ↗
                         </a>
@@ -686,15 +686,15 @@ export function SesSetupView() {
                             collapsible
                           />
                         </div>
-                        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+                        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
                           {t.rich("test.requestTemplateNote", codeRichTags)}
                         </p>
                       </div>
                     )}
                     {sesEnv.data.maxSendRate !== result.quota.maxSendRate ? (
                       <p
-                        className="ms-mono"
-                        style={{ margin: "12px 0 0", fontSize: 12, color: "var(--ms-muted)" }}
+                        className="po-mono"
+                        style={{ margin: "12px 0 0", fontSize: 12, color: "var(--po-muted)" }}
                       >
                         {t("test.rateHint", {
                           envRate: sesEnv.data.maxSendRate,
@@ -705,12 +705,12 @@ export function SesSetupView() {
                   </>
                 ) : (
                   <>
-                    <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--ms-danger)" }}>
+                    <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--po-danger)" }}>
                       {t.rich(`test.errors.${result.kind}`, codeRichTags)}
                     </p>
                     <p
-                      className="ms-mono"
-                      style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}
+                      className="po-mono"
+                      style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}
                     >
                       {result.message}
                     </p>
@@ -737,7 +737,7 @@ export function SesSetupView() {
         ) : null}
         {!eventsOk || eventsDetailsOpen ? (
           <section
-            className="ms-card"
+            className="po-card"
             style={{ ...stepCardStyle, padding: 24, marginTop: eventsOk ? 14 : 0 }}
           >
             <CheckRow
@@ -775,12 +775,12 @@ export function SesSetupView() {
 
       {credentialsOk || anyOk ? (
         <Step marker="04" last title={t("next.title")}>
-          <section className="ms-card" style={{ padding: 24 }}>
-            <div className="ms-wrap-row" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <Link href="/domains/new" className="ms-btn ms-btn-secondary">
+          <section className="po-card" style={{ padding: 24 }}>
+            <div className="po-wrap-row" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <Link href="/domains/new" className="po-btn po-btn-secondary">
                 {t("next.addDomain")} →
               </Link>
-              <span style={{ fontSize: 13, color: "var(--ms-muted)" }}>
+              <span style={{ fontSize: 13, color: "var(--po-muted)" }}>
                 {t.rich("next.selfHosting", codeRichTags)}
               </span>
             </div>

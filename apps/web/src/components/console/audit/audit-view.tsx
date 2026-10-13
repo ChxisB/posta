@@ -103,13 +103,13 @@ export function AuditView({
 
   if (query.isError) {
     return (
-      <div className="ms-card ms-state">
-        <span className="ms-state-glyph" aria-hidden="true">
+      <div className="po-card po-state">
+        <span className="po-state-glyph" aria-hidden="true">
           !
         </span>
-        <p className="ms-state-headline">{common("loadError")}</p>
-        <div className="ms-state-actions">
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={() => query.refetch()}>
+        <p className="po-state-headline">{common("loadError")}</p>
+        <div className="po-state-actions">
+          <button type="button" className="po-btn po-btn-secondary" onClick={() => query.refetch()}>
             {common("retry")}
           </button>
         </div>
@@ -118,7 +118,7 @@ export function AuditView({
   }
 
   return (
-    <div className="ms-card" style={{ padding: 0 }}>
+    <div className="po-card" style={{ padding: 0 }}>
       {query.isPending ? (
         <AuditSkeleton />
       ) : items.length === 0 ? (
@@ -126,8 +126,8 @@ export function AuditView({
           style={{
             margin: 0,
             padding: 20,
-            color: "var(--ms-muted)",
-            fontSize: "var(--ms-fs-label)",
+            color: "var(--po-muted)",
+            fontSize: "var(--po-fs-label)",
           }}
         >
           {t("empty")}
@@ -140,7 +140,7 @@ export function AuditView({
               const detail = auditDetail(row.data, bool);
               return (
                 <tr key={row.id}>
-                  <td style={{ color: "var(--ms-muted)", whiteSpace: "nowrap" }}>
+                  <td style={{ color: "var(--po-muted)", whiteSpace: "nowrap" }}>
                     <RelativeTime date={row.createdAt} />
                   </td>
                   <td>
@@ -150,33 +150,33 @@ export function AuditView({
                           {row.actor.name ?? row.actor.email}
                         </Tooltip>
                       ) : (
-                        <span style={{ color: "var(--ms-muted)" }}>{t("actors.deletedUser")}</span>
+                        <span style={{ color: "var(--po-muted)" }}>{t("actors.deletedUser")}</span>
                       )
                     ) : (
-                      <span className="ms-chip">{t(`actors.${row.actor.kind}`)}</span>
+                      <span className="po-chip">{t(`actors.${row.actor.kind}`)}</span>
                     )}
                   </td>
                   <td>
                     <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
                       {actionLabel(row.action)}
-                      <span className="ms-chip">{row.action}</span>
+                      <span className="po-chip">{row.action}</span>
                     </span>
                   </td>
                   <td>
                     {row.teamName ? (
                       row.teamName
                     ) : row.teamId === null ? (
-                      <span style={{ color: "var(--ms-muted)" }}>{t("instance")}</span>
+                      <span style={{ color: "var(--po-muted)" }}>{t("instance")}</span>
                     ) : (
-                      <span className="ms-mono" style={{ fontSize: 13 }}>
+                      <span className="po-mono" style={{ fontSize: 13 }}>
                         {row.target ?? common("none")}
                       </span>
                     )}
                   </td>
-                  <td style={{ color: "var(--ms-muted)", fontSize: 13 }}>
+                  <td style={{ color: "var(--po-muted)", fontSize: 13 }}>
                     {detail || common("none")}
                   </td>
-                  <td className="ms-mono" style={{ fontSize: 13, whiteSpace: "nowrap" }}>
+                  <td className="po-mono" style={{ fontSize: 13, whiteSpace: "nowrap" }}>
                     {row.ip ?? common("none")}
                   </td>
                 </tr>

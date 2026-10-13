@@ -38,13 +38,13 @@ import { WaitingList } from "./waiting-list";
 const TILE: React.CSSProperties = { padding: "16px 20px" };
 // The monitoring rows are sentences, not figures: sans, left, the body size.
 const KV_VALUE: React.CSSProperties = {
-  fontFamily: "var(--ms-font-sans)",
+  fontFamily: "var(--po-font-sans)",
   fontSize: 13,
 };
 const SEVERITY_DOT: Record<string, string> = {
-  critical: "var(--ms-danger)",
-  major: "var(--ms-danger)",
-  minor: "var(--ms-warn)",
+  critical: "var(--po-danger)",
+  major: "var(--po-danger)",
+  minor: "var(--po-warn)",
 };
 
 export function ReviewView({ teamId }: { teamId: string }) {
@@ -207,12 +207,12 @@ export function ReviewView({ teamId }: { teamId: string }) {
         subtitle={subtitle}
         badges={
           <>
-            <span className={`ms-badge ms-badge-${standingBadge[0]}`}>{standingBadge[1]}</span>
+            <span className={`po-badge po-badge-${standingBadge[0]}`}>{standingBadge[1]}</span>
             {team.broadcastsPausedByOperatorAt ? (
-              <span className="ms-badge ms-badge-warn">{t("badges.operatorPaused")}</span>
+              <span className="po-badge po-badge-warn">{t("badges.operatorPaused")}</span>
             ) : null}
             {flag ? (
-              <span className={`ms-badge ms-badge-${flagOpen ? "warn" : "neutral"}`}>
+              <span className={`po-badge po-badge-${flagOpen ? "warn" : "neutral"}`}>
                 {t(flagOpen ? "badges.flagOpen" : "badges.flagCleared")}
               </span>
             ) : null}
@@ -229,7 +229,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
             />
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               onClick={() =>
                 team.broadcastsPausedByOperatorAt
                   ? actions.resumeBroadcasts(target)
@@ -254,7 +254,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
               >
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={clear.isPending || reopen.isPending}
                   onClick={() => {
                     const done = (key: "cleared" | "reopened") => () => {
@@ -304,7 +304,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
         }
       />
 
-      <div className="ms-grid ms-grid-tiles" style={{ marginBottom: 16 }}>
+      <div className="po-grid po-grid-tiles" style={{ marginBottom: 16 }}>
         <Tile
           label={
             <Tooltip inline text={t("tiles.riskTip")}>
@@ -342,7 +342,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
       </div>
       <LinkedTeams teamId={team.id} framed />
 
-      <div className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+      <div className="po-card" style={{ padding: 20, marginBottom: 16 }}>
         <div
           style={{
             display: "flex",
@@ -360,7 +360,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
               {monitor.broadcastsPausedAt ? (
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={monitorBusy}
                   onClick={() =>
                     resumeMonitor.mutate({ teamId: team.id }, { onSuccess: monitorDone("resumed") })
@@ -373,7 +373,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
               {monitor.override ? (
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={monitorBusy}
                   onClick={() =>
                     clearOverride.mutate(
@@ -388,7 +388,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
               ) : monitor.judge.on ? (
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={monitorBusy}
                   onClick={() =>
                     setOverride.mutate({ teamId: team.id }, { onSuccess: monitorDone("override") })
@@ -402,12 +402,12 @@ export function ReviewView({ teamId }: { teamId: string }) {
           ) : null}
         </div>
         {!monitor.judge.on && monitor.samples.length === 0 && !monitor.broadcastsPausedAt ? (
-          <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{monitorT("off")}</p>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{monitorT("off")}</p>
         ) : exempt ? (
-          <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{monitorT("exempt")}</p>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{monitorT("exempt")}</p>
         ) : (
           <>
-            <dl className="ms-kv ms-kv-cols" style={{ marginBottom: 16 }}>
+            <dl className="po-kv po-kv-cols" style={{ marginBottom: 16 }}>
               <KvRow label={monitorT("tier")} valueStyle={KV_VALUE}>
                 {[
                   monitorT("tierValue", {
@@ -429,7 +429,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
                   ? monitorT.rich("verdictsReasons", {
                       clean: monitor.judged7d - monitor.flagged7d,
                       flagged: monitor.flagged7d,
-                      part: (chunks) => <span className="ms-part">{chunks}</span>,
+                      part: (chunks) => <span className="po-part">{chunks}</span>,
                       reasons: () => <ReasonCodes codes={monitor.topReasons} />,
                     })
                   : monitorT("verdictsValue", {
@@ -481,14 +481,14 @@ export function ReviewView({ teamId }: { teamId: string }) {
               <tbody>
                 {monitor.samples.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ color: "var(--ms-muted)" }}>
+                    <td colSpan={4} style={{ color: "var(--po-muted)" }}>
                       {monitorT("samplesNone")}
                     </td>
                   </tr>
                 ) : (
                   monitor.samples.map((sample) => (
                     <tr key={sample.id}>
-                      <td style={{ color: "var(--ms-muted)" }}>
+                      <td style={{ color: "var(--po-muted)" }}>
                         <RelativeTime date={sample.createdAt} />
                       </td>
                       <td>{monitorT(`kinds.${sample.kind}`)}</td>
@@ -498,7 +498,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
                           color:
                             sample.status === "judged" && sample.score !== null
                               ? riskColor(sample.score / 100, monitor.flagScore / 100, 0.9)
-                              : "var(--ms-muted)",
+                              : "var(--po-muted)",
                         }}
                       >
                         {sample.status === "judged"
@@ -507,7 +507,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
                             ? monitorT("pending")
                             : monitorT("unjudged", { error: sample.errorClass ?? "" })}
                       </td>
-                      <td className="ms-mono" style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+                      <td className="po-mono" style={{ fontSize: 12, color: "var(--po-muted)" }}>
                         {sample.reasons?.length ? (
                           <ReasonCodes codes={sample.reasons} />
                         ) : (
@@ -523,28 +523,28 @@ export function ReviewView({ teamId }: { teamId: string }) {
         )}
       </div>
 
-      <div className="ms-grid ms-grid-12" style={{ marginBottom: 16 }}>
-        <div className="ms-card" style={{ padding: 20 }}>
+      <div className="po-grid po-grid-12" style={{ marginBottom: 16 }}>
+        <div className="po-card" style={{ padding: 20 }}>
           <CardHead title={t("flagTitle")} />
           {flag ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
               <div>
                 <ReasonLabel reason={flag.reason} detail={flag.detail} />
               </div>
-              <div style={{ color: "var(--ms-muted)" }}>
+              <div style={{ color: "var(--po-muted)" }}>
                 {t(flag.openedBy ? "flagOpenedBy" : "flagOpenedAuto")} ·{" "}
                 <RelativeTime date={flag.openedAt} />
               </div>
               {flag.note ? <div>{t("flagNote", { note: flag.note })}</div> : null}
             </div>
           ) : (
-            <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{common("none")}</p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{common("none")}</p>
           )}
         </div>
-        <div className="ms-card" style={{ padding: 20 }}>
+        <div className="po-card" style={{ padding: 20 }}>
           <CardHead title={t("checks.title")} subtitle={t("checks.subtitle")} />
           {checks.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{t("checks.none")}</p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{t("checks.none")}</p>
           ) : (
             checks.map((check, index) => (
               <div
@@ -555,20 +555,20 @@ export function ReviewView({ teamId }: { teamId: string }) {
                   gap: 10,
                   fontSize: 13,
                   padding: "7px 0",
-                  borderTop: index === 0 ? undefined : "1px solid var(--ms-line)",
+                  borderTop: index === 0 ? undefined : "1px solid var(--po-line)",
                 }}
               >
                 <span
-                  className="ms-dot"
-                  style={{ background: SEVERITY_DOT[check.severity] ?? "var(--ms-muted)" }}
+                  className="po-dot"
+                  style={{ background: SEVERITY_DOT[check.severity] ?? "var(--po-muted)" }}
                 />
                 <span>{emails(`insights.check.${check.id}.title`)}</span>
                 <span
-                  className="ms-mono"
+                  className="po-mono"
                   style={{
                     marginLeft: "auto",
                     fontSize: 12,
-                    color: "var(--ms-muted)",
+                    color: "var(--po-muted)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -582,7 +582,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
 
       <WaitingList teamId={team.id} onChanged={refetch} />
 
-      <div className="ms-card" style={{ padding: 0, marginBottom: 16 }}>
+      <div className="po-card" style={{ padding: 0, marginBottom: 16 }}>
         <CardHead
           inset
           title={t("emails.title", { count: flaggedEmails.length })}
@@ -602,18 +602,18 @@ export function ReviewView({ teamId }: { teamId: string }) {
           <tbody>
             {flaggedEmails.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ color: "var(--ms-muted)" }}>
+                <td colSpan={6} style={{ color: "var(--po-muted)" }}>
                   {t("emails.none")}
                 </td>
               </tr>
             ) : (
               flaggedEmails.map((email) => (
                 <tr key={email.id}>
-                  <td style={{ color: "var(--ms-muted)" }}>
+                  <td style={{ color: "var(--po-muted)" }}>
                     {email.sentAt ? <RelativeTime date={email.sentAt} /> : common("none")}
                   </td>
-                  <td className="ms-mono">{email.from}</td>
-                  <td className="right ms-digits">{nf.format(email.recipients)}</td>
+                  <td className="po-mono">{email.from}</td>
+                  <td className="right po-digits">{nf.format(email.recipients)}</td>
                   <td>
                     {email.check ? (
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
@@ -622,13 +622,13 @@ export function ReviewView({ teamId }: { teamId: string }) {
                           text={emails(`insights.check.${email.check.id}.description`)}
                         >
                           <span
-                            className={`ms-badge ms-badge-${email.check.severity === "critical" ? "danger" : "warn"}`}
+                            className={`po-badge po-badge-${email.check.severity === "critical" ? "danger" : "warn"}`}
                           >
                             {emails(`insights.check.${email.check.id}.title`)}
                           </span>
                         </Tooltip>
                         {email.failingCount > 1 ? (
-                          <span style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+                          <span style={{ fontSize: 12, color: "var(--po-muted)" }}>
                             {t("emails.more", { count: email.failingCount - 1 })}
                           </span>
                         ) : null}
@@ -640,7 +640,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
                   <td
                     style={{
                       fontSize: 12,
-                      color: "var(--ms-muted)",
+                      color: "var(--po-muted)",
                       whiteSpace: "normal",
                       minWidth: 260,
                     }}
@@ -681,7 +681,7 @@ export function ReviewView({ teamId }: { teamId: string }) {
         onChanged={refetch}
       />
 
-      <div className="ms-card" style={{ padding: 0 }}>
+      <div className="po-card" style={{ padding: 0 }}>
         <CardHead inset title={t("audit.title")} subtitle={t("audit.subtitle")} />
         <Table>
           <thead>
@@ -695,20 +695,20 @@ export function ReviewView({ teamId }: { teamId: string }) {
           <tbody>
             {audit.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ color: "var(--ms-muted)" }}>
+                <td colSpan={4} style={{ color: "var(--po-muted)" }}>
                   {t("audit.none")}
                 </td>
               </tr>
             ) : (
               audit.map((row) => (
                 <tr key={row.id}>
-                  <td style={{ color: "var(--ms-muted)" }}>
+                  <td style={{ color: "var(--po-muted)" }}>
                     <RelativeTime date={row.createdAt} />
                   </td>
                   <td>
                     {row.actor.kind === "user"
                       ? (row.actorName ?? (
-                          <span className="ms-mono">{row.actor.id.slice(0, 8)}</span>
+                          <span className="po-mono">{row.actor.id.slice(0, 8)}</span>
                         ))
                       : auditT(`actors.${row.actor.kind}`)}
                   </td>
@@ -716,10 +716,10 @@ export function ReviewView({ teamId }: { teamId: string }) {
                     {(AUDIT_ACTIONS as readonly string[]).includes(row.action) ? (
                       settings(`audit.actions.${row.action.replace(".", "_")}`)
                     ) : (
-                      <span className="ms-chip">{row.action}</span>
+                      <span className="po-chip">{row.action}</span>
                     )}
                   </td>
-                  <td className="ms-mono" style={{ color: "var(--ms-muted)" }}>
+                  <td className="po-mono" style={{ color: "var(--po-muted)" }}>
                     {row.target ?? common("none")}
                   </td>
                 </tr>
@@ -735,14 +735,14 @@ export function ReviewView({ teamId }: { teamId: string }) {
         onConfirm={submitFlag}
         title={t("openFlagTitle", { team: team.name })}
       >
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
           {t("openFlagLead")}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="safety-flag-note">{common("note")}</label>
           <textarea
             id="safety-flag-note"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%", minHeight: 80, resize: "vertical" }}
             maxLength={1000}
             placeholder={common("noteHint")}
@@ -751,13 +751,13 @@ export function ReviewView({ teamId }: { teamId: string }) {
           />
         </div>
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeFlagDialog}>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeFlagDialog}>
             {common("cancel")}
-            <span className="ms-keycap">Esc</span>
+            <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!note.trim() || open.isPending}
             onClick={submitFlag}
           >
@@ -818,7 +818,7 @@ function WarmupCard({
     );
   const teamTrusted = warmup.trustedAt !== null;
   return (
-    <div className="ms-card" style={{ padding: 0, marginBottom: 16 }}>
+    <div className="po-card" style={{ padding: 0, marginBottom: 16 }}>
       <div
         style={{
           display: "flex",
@@ -842,7 +842,7 @@ function WarmupCard({
         </div>
         <button
           type="button"
-          className="ms-btn ms-btn-secondary"
+          className="po-btn po-btn-secondary"
           disabled={trust.isPending}
           onClick={() => set(!teamTrusted)}
         >
@@ -851,7 +851,7 @@ function WarmupCard({
         </button>
       </div>
       {warmup.pool ? (
-        <div style={{ padding: "8px 20px 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <div style={{ padding: "8px 20px 0", fontSize: 13, color: "var(--po-muted)" }}>
           {t("pool", { used: nf.format(warmup.pool.used), cap: nf.format(warmup.pool.cap) })}
         </div>
       ) : null}
@@ -867,15 +867,15 @@ function WarmupCard({
         <tbody>
           {warmup.domains.length === 0 ? (
             <tr>
-              <td colSpan={4} style={{ color: "var(--ms-muted)" }}>
+              <td colSpan={4} style={{ color: "var(--po-muted)" }}>
                 {common("none")}
               </td>
             </tr>
           ) : (
             warmup.domains.map((domain) => (
               <tr key={domain.id}>
-                <td className="ms-mono">{domain.name}</td>
-                <td style={{ color: "var(--ms-muted)" }}>
+                <td className="po-mono">{domain.name}</td>
+                <td style={{ color: "var(--po-muted)" }}>
                   {domain.registeredAt
                     ? t("registered", {
                         date: formatDay(domain.registeredAt, locale),
@@ -897,7 +897,7 @@ function WarmupCard({
                 <td className="right">
                   <button
                     type="button"
-                    className="ms-link"
+                    className="po-link"
                     style={{
                       font: "inherit",
                       padding: 0,
@@ -930,7 +930,7 @@ function ReasonCodes({ codes }: { codes: string[] }) {
       {i > 0 ? " " : null}
       <span style={{ whiteSpace: "nowrap" }}>
         {monitorT.has(`reasonCodes.${code}`) ? (
-          <Tooltip inline text={monitorT(`reasonCodes.${code}`)} triggerClassName="ms-reason-code">
+          <Tooltip inline text={monitorT(`reasonCodes.${code}`)} triggerClassName="po-reason-code">
             {code}
           </Tooltip>
         ) : (
@@ -957,7 +957,7 @@ function RequestAccessButton({
   onClick: () => void;
 }) {
   const button = (
-    <button type="button" className="ms-btn ms-btn-primary" disabled={disabled} onClick={onClick}>
+    <button type="button" className="po-btn po-btn-primary" disabled={disabled} onClick={onClick}>
       {label}
     </button>
   );
@@ -982,9 +982,9 @@ function Tile({
   return (
     // A label that wraps pushes only its own value down: values share the
     // row's bottom line.
-    <div className="ms-card" style={{ ...TILE, display: "flex", flexDirection: "column" }}>
-      <div className="ms-microlabel">{label}</div>
-      <div className="ms-digits" style={{ fontSize: 26, marginTop: "auto", paddingTop: 2, color }}>
+    <div className="po-card" style={{ ...TILE, display: "flex", flexDirection: "column" }}>
+      <div className="po-microlabel">{label}</div>
+      <div className="po-digits" style={{ fontSize: 26, marginTop: "auto", paddingTop: 2, color }}>
         {children}
       </div>
     </div>
@@ -1006,21 +1006,21 @@ function ReviewSkeleton() {
           <Skeleton width={380} />
         </div>
       </div>
-      <div className="ms-grid ms-grid-tiles" style={{ marginBottom: 16 }}>
+      <div className="po-grid po-grid-tiles" style={{ marginBottom: 16 }}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="ms-card" style={TILE}>
-            <div className="ms-microlabel" style={{ display: "flex" }}>
+          <div key={i} className="po-card" style={TILE}>
+            <div className="po-microlabel" style={{ display: "flex" }}>
               <Skeleton width={80} height="1lh" />
             </div>
-            <div className="ms-digits" style={{ fontSize: 26, marginTop: 2, display: "flex" }}>
+            <div className="po-digits" style={{ fontSize: 26, marginTop: 2, display: "flex" }}>
               <Skeleton width={70} height="1lh" />
             </div>
           </div>
         ))}
       </div>
-      <div className="ms-grid ms-grid-12" style={{ marginBottom: 16 }}>
+      <div className="po-grid po-grid-12" style={{ marginBottom: 16 }}>
         {[0, 1].map((i) => (
-          <div key={i} className="ms-card" style={{ padding: 20 }}>
+          <div key={i} className="po-card" style={{ padding: 20 }}>
             <div style={{ display: "flex", marginBottom: 16 }}>
               <Skeleton width={120} height={22} />
             </div>
@@ -1033,7 +1033,7 @@ function ReviewSkeleton() {
         ))}
       </div>
       {[0, 1].map((i) => (
-        <div key={i} className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+        <div key={i} className="po-card" style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: "flex", marginBottom: 16 }}>
             <Skeleton width={160} height={22} />
           </div>

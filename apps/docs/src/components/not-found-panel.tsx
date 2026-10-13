@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /**
- * The 404 in the same rhythm as the dashboard's .ms-status and the LP's
+ * The 404 in the same rhythm as the dashboard's .po-status and the LP's
  * .lp-status: the counting-number treatment as hero, one serif sentence, one
  * muted line, the two buttons. English only — 404s have no locale segment.
  * Rendered inside DocsLayout by [lang]/not-found and standalone by

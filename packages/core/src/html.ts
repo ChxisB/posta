@@ -140,18 +140,18 @@ export function fillTemplate(template: string, values: Record<string, string>): 
 }
 
 const MUTED =
-  'class="ms-muted" style="font-size:13px;line-height:1.5;color:#52525b;margin:24px 0 0"';
+  'class="po-muted" style="font-size:13px;line-height:1.5;color:#52525b;margin:24px 0 0"';
 
 /** The dark theme, in the dashboard's tokens: void, panel, bone, muted; the button flips to bone on ink. */
 const DARK_RULES = [
-  ".ms-page{background:#0a0a0a !important}",
-  ".ms-card{background:#0c0c0d !important}",
-  ".ms-text{color:#f4f1ea !important}",
-  ".ms-muted{color:#918f89 !important}",
-  ".ms-link{color:#f4f1ea !important}",
-  ".ms-btn{background:#f4f1ea !important;color:#0c0c0d !important}",
-  ".ms-ink{display:none !important}",
-  ".ms-bone{display:block !important}",
+  ".po-page{background:#0a0a0a !important}",
+  ".po-card{background:#0c0c0d !important}",
+  ".po-text{color:#f4f1ea !important}",
+  ".po-muted{color:#918f89 !important}",
+  ".po-link{color:#f4f1ea !important}",
+  ".po-btn{background:#f4f1ea !important;color:#0c0c0d !important}",
+  ".po-ink{display:none !important}",
+  ".po-bone{display:block !important}",
 ];
 
 /**
@@ -174,15 +174,15 @@ const STYLE = [
   ":root{color-scheme:light dark;supported-color-schemes:light dark}",
   `@media (prefers-color-scheme:dark){${DARK_RULES.join("")}}`,
   ...DARK_RULES.flatMap((rule) => [`[data-ogsc] ${rule}`, `[data-ogsb] ${rule}`]),
-  "u + .body .ms-ink{display:none !important}",
-  "u + .body .ms-bone{display:block !important}",
-  "u + .body .ms-btn{display:none !important}",
-  "u + .body .ms-gmail{display:inline-block !important}",
+  "u + .body .po-ink{display:none !important}",
+  "u + .body .po-bone{display:block !important}",
+  "u + .body .po-btn{display:none !important}",
+  "u + .body .po-gmail{display:inline-block !important}",
 ].join("\n");
 
 const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;line-height:0">
-      <img class="ms-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="Posta" style="display:block;height:24px;width:auto;border:0">
-      <!--[if !mso]><!--><img class="ms-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="Posta" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
+      <img class="po-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="Posta" style="display:block;height:24px;width:auto;border:0">
+      <!--[if !mso]><!--><img class="po-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="Posta" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
     </a>`;
 
 /**
@@ -192,8 +192,8 @@ const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;lin
  */
 function buttons(url: string, label: string): string {
   const text = "font-size:14px;font-weight:600";
-  return `<a class="ms-btn" href="${url}" style="display:inline-block;background:#18181b;color:#ffffff;${text};text-decoration:none;border-radius:8px;padding:12px 20px;margin-top:12px">${label}</a>
-    <!--[if !mso]><!--><a class="ms-gmail" href="${url}" style="display:none;${text};background:#ffffff url(${EMAIL_WHITE_TILE_URL});mix-blend-mode:difference;border-radius:8px;padding:12px 20px;margin-top:12px;text-decoration:none"><span style="mix-blend-mode:difference"><span style="background:#000000;mix-blend-mode:screen"><span style="background:#000000;mix-blend-mode:difference"><span style="color:#ffffff">${label}</span></span></span></span></a><!--<![endif]-->`;
+  return `<a class="po-btn" href="${url}" style="display:inline-block;background:#18181b;color:#ffffff;${text};text-decoration:none;border-radius:8px;padding:12px 20px;margin-top:12px">${label}</a>
+    <!--[if !mso]><!--><a class="po-gmail" href="${url}" style="display:none;${text};background:#ffffff url(${EMAIL_WHITE_TILE_URL});mix-blend-mode:difference;border-radius:8px;padding:12px 20px;margin-top:12px;text-decoration:none"><span style="mix-blend-mode:difference"><span style="background:#000000;mix-blend-mode:screen"><span style="background:#000000;mix-blend-mode:difference"><span style="color:#ffffff">${label}</span></span></span></span></a><!--<![endif]-->`;
 }
 
 /**
@@ -217,19 +217,19 @@ export function accountMailCard(input: {
 }): { html: string; text: string } {
   const url = input.url === undefined ? undefined : escapeHtml(input.url);
   const heading = input.heading
-    ? `<p class="ms-text" style="font-size:22px;line-height:1.3;font-weight:700;color:#18181b;margin:0 0 12px;font-variant-numeric:tabular-nums">${escapeHtml(input.heading)}</p>\n    `
+    ? `<p class="po-text" style="font-size:22px;line-height:1.3;font-weight:700;color:#18181b;margin:0 0 12px;font-variant-numeric:tabular-nums">${escapeHtml(input.heading)}</p>\n    `
     : "";
   const paragraphs = input.paragraphs
     .map(
       (p) =>
-        `<p class="ms-text" style="font-size:14px;line-height:1.5;color:#18181b;margin:0 0 12px">${escapeHtml(p)}</p>`,
+        `<p class="po-text" style="font-size:14px;line-height:1.5;color:#18181b;margin:0 0 12px">${escapeHtml(p)}</p>`,
     )
     .join("\n    ");
   const button =
     url !== undefined && input.button ? `\n    ${buttons(url, escapeHtml(input.button))}` : "";
   const fallback =
     url !== undefined && input.linkFallback
-      ? `\n    <p ${MUTED}>${escapeHtml(input.linkFallback)}<br><a class="ms-link" href="${url}" style="color:#18181b;word-break:break-all">${url}</a></p>`
+      ? `\n    <p ${MUTED}>${escapeHtml(input.linkFallback)}<br><a class="po-link" href="${url}" style="color:#18181b;word-break:break-all">${url}</a></p>`
       : "";
   const muted = input.muted.map((m) => `<p ${MUTED}>${escapeHtml(m)}</p>`).join("\n    ");
   const html = `<!DOCTYPE html>
@@ -244,8 +244,8 @@ ${STYLE}
 </style>
 </head>
 <body class="body" style="margin:0;padding:0">
-<div class="ms-page" style="background:#f4f4f5;padding:32px 16px;font-family:-apple-system,'Segoe UI',Roboto,sans-serif">
-  <div class="ms-card" style="max-width:440px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px">
+<div class="po-page" style="background:#f4f4f5;padding:32px 16px;font-family:-apple-system,'Segoe UI',Roboto,sans-serif">
+  <div class="po-card" style="max-width:440px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px">
     ${WORDMARK}
     ${heading}${paragraphs}${button}${fallback}
     ${muted}

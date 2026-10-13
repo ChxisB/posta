@@ -57,7 +57,7 @@ export function SettingsTabsNav({
   // render; keying on it reveals the active tab again when it arrives.
   const tabsRef = useActiveTabInView(`${pathname} ${visible.audit}`);
   return (
-    <div ref={tabsRef} className="ms-tabs bleed" style={{ marginBottom: 24 }}>
+    <div ref={tabsRef} className="po-tabs bleed" style={{ marginBottom: 24 }}>
       {TABS.filter((tab) => visible[tab.key] ?? true).map(({ key, href }) => (
         <button
           key={key}

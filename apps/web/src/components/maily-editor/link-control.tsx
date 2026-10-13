@@ -64,7 +64,7 @@ export function LinkControl({ editor }: { editor: TiptapEditor | null }) {
       <button
         ref={triggerRef}
         type="button"
-        className="ms-maily-tool"
+        className="po-maily-tool"
         data-active={active || undefined}
         disabled={!canLink}
         aria-label={t("panel.link")}
@@ -76,11 +76,11 @@ export function LinkControl({ editor }: { editor: TiptapEditor | null }) {
         <LinkIcon />
       </button>
       {open ? (
-        <div className="ms-maily-linkbox" role="dialog" aria-label={t("panel.link")}>
+        <div className="po-maily-linkbox" role="dialog" aria-label={t("panel.link")}>
           <input
             ref={inputRef}
             type="url"
-            className="ms-mono"
+            className="po-mono"
             placeholder={t("panel.linkPrompt")}
             value={href}
             onChange={(e) => setHref(e.target.value)}
@@ -91,7 +91,7 @@ export function LinkControl({ editor }: { editor: TiptapEditor | null }) {
               }
             }}
           />
-          <button type="button" className="ms-maily-tool ms-maily-tool-labeled" onClick={apply}>
+          <button type="button" className="po-maily-tool po-maily-tool-labeled" onClick={apply}>
             {href.trim() ? t("panel.apply") : t("panel.removeLink")}
           </button>
         </div>

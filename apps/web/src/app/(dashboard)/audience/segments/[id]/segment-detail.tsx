@@ -116,21 +116,21 @@ export function SegmentDetail({ id }: { id: string }) {
             <Skeleton width={140} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", margin: 0, display: "flex" }}
           >
             <Skeleton width={280} height="1lh" />
           </h1>
         </div>
         <div
-          className="ms-meta-grid"
+          className="po-meta-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 28,
             padding: "20px 0",
-            borderTop: "1px solid var(--ms-line)",
-            borderBottom: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
+            borderBottom: "1px solid var(--po-line)",
             maxWidth: 1000,
           }}
         >
@@ -167,7 +167,7 @@ export function SegmentDetail({ id }: { id: string }) {
           </>
         }
         actions={
-          <Link href={`/audience?segment=${data.id}`} className="ms-btn ms-btn-secondary">
+          <Link href={`/audience?segment=${data.id}`} className="po-btn po-btn-secondary">
             {t("detail.viewContacts")}
           </Link>
         }
@@ -198,14 +198,14 @@ export function SegmentDetail({ id }: { id: string }) {
       />
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 28,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
           maxWidth: 1000,
         }}
       >
@@ -213,10 +213,10 @@ export function SegmentDetail({ id }: { id: string }) {
           <CopyChip value={data.id} />
         </MetaItem>
         <MetaItem label={t("count")}>
-          <span className="ms-mono">{nf.format(data.count)}</span>
+          <span className="po-mono">{nf.format(data.count)}</span>
         </MetaItem>
         <MetaItem label={t("unsubscribed")}>
-          <span className="ms-mono">{nf.format(data.unsubscribedCount)}</span>
+          <span className="po-mono">{nf.format(data.unsubscribedCount)}</span>
         </MetaItem>
         <MetaItem label={t("detail.type")}>
           {data.filter === null ? t("detail.typeManual") : t("detail.typeFilter")}
@@ -227,11 +227,11 @@ export function SegmentDetail({ id }: { id: string }) {
       </div>
 
       <section style={{ marginTop: 26, maxWidth: 720 }}>
-        <h2 className="ms-display" style={{ fontSize: 22, margin: 0, color: "var(--ms-bone)" }}>
+        <h2 className="po-display" style={{ fontSize: 22, margin: 0, color: "var(--po-bone)" }}>
           {data.filter === null ? t("detail.manualTitle") : t("detail.filterTitle")}
         </h2>
         {data.filter === null ? (
-          <p style={{ margin: "12px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "12px 0 0", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("detail.manualBody")}
           </p>
         ) : (
@@ -244,12 +244,12 @@ export function SegmentDetail({ id }: { id: string }) {
             />
             <FilterCountPreview filter={currentFilter} />
             {updateMutation.isError ? (
-              <p className="ms-field-error">{t("builder.saveError")}</p>
+              <p className="po-field-error">{t("builder.saveError")}</p>
             ) : null}
             <div style={{ marginTop: 16 }}>
               <button
                 type="button"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={!dirty || updateMutation.isPending}
                 onClick={submitFilter}
               >
@@ -273,11 +273,11 @@ export function SegmentDetail({ id }: { id: string }) {
             submitRename();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="seg-rename">{t("builder.nameLabel")}</label>
             <input
               id="seg-rename"
-              className={`ms-input${renameMutation.isError ? " error" : ""}`}
+              className={`po-input${renameMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               disabled={renameMutation.isPending}
               value={renameTo ?? ""}
@@ -285,15 +285,15 @@ export function SegmentDetail({ id }: { id: string }) {
             />
           </div>
           {renameMutation.isError ? (
-            <p className="ms-field-error">{t("detail.renameError")}</p>
+            <p className="po-field-error">{t("detail.renameError")}</p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeRename}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeRename}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={renameMutation.isPending || (renameTo ?? "").trim() === ""}
             >
               <BtnSpinner on={renameMutation.isPending} />
@@ -315,21 +315,21 @@ export function SegmentDetail({ id }: { id: string }) {
             submitDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("deleteBody", { name: data.name })}
           </p>
           {deleteMutation.isError ? (
-            <p className="ms-field-error">
+            <p className="po-field-error">
               {deleteMutation.error.data?.code === "CONFLICT" ? t("deleteInUse") : t("deleteError")}
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

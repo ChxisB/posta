@@ -23,7 +23,7 @@ import { type BroadcastStatus, FinishCell, PacingSteps, SendingStatus } from "..
 
 function Microlabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+    <div className="po-microlabel" style={{ fontSize: 10.5 }}>
       {children}
     </div>
   );
@@ -99,13 +99,13 @@ export default function BroadcastDetailPage() {
           title={title ?? ""}
           actions={
             status === "draft" ? (
-              <Link className="ms-btn ms-btn-secondary" href={`/broadcasts/${id}/edit`}>
+              <Link className="po-btn po-btn-secondary" href={`/broadcasts/${id}/edit`}>
                 {t("detail.editDraft")}
               </Link>
             ) : status === "scheduled" || status === "sending" ? (
               <button
                 type="button"
-                className="ms-btn ms-btn-destructive"
+                className="po-btn po-btn-destructive"
                 onClick={() => setCancelOpen(true)}
               >
                 {t(status === "sending" ? "detail.stopRest" : "detail.cancelSend")}
@@ -129,8 +129,8 @@ export default function BroadcastDetailPage() {
               <Skeleton width={150} height="1lh" />
             </div>
             <h1
-              className="ms-display"
-              style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+              className="po-display"
+              style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
             >
               <Skeleton width={220} height="1lh" />
             </h1>
@@ -139,7 +139,7 @@ export default function BroadcastDetailPage() {
       )}
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           // Targeting and From get the room; a long From wraps at its address's
@@ -147,7 +147,7 @@ export default function BroadcastDetailPage() {
           gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr)",
           gap: "22px 28px",
           padding: "22px 0",
-          borderTop: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
         }}
       >
         <div>
@@ -178,7 +178,7 @@ export default function BroadcastDetailPage() {
             )}
           </div>
           {broadcast?.topicName ? (
-            <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 4 }}>
+            <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 4 }}>
               {t("detail.topic")}: {broadcast.topicName}
             </div>
           ) : null}
@@ -201,7 +201,7 @@ export default function BroadcastDetailPage() {
                   return at ? (
                     <span title={formatUtcTimestamp(at)}>{formatDayTime(at, locale)}</span>
                   ) : (
-                    <span style={{ color: "var(--ms-faint)" }}>—</span>
+                    <span style={{ color: "var(--po-faint)" }}>—</span>
                   );
                 })()
               ) : (
@@ -212,7 +212,7 @@ export default function BroadcastDetailPage() {
             </div>
           )}
         </div>
-        <div className="ms-meta-wide">
+        <div className="po-meta-wide">
           <Microlabel>{t("detail.from")}</Microlabel>
           <div style={{ marginTop: 5 }}>
             {broadcast ? (
@@ -229,7 +229,7 @@ export default function BroadcastDetailPage() {
       ) : null}
 
       <div
-        className="ms-meta-grid ms-stat-strip"
+        className="po-meta-grid po-stat-strip"
         style={{
           display: "grid",
           // Seven stats wrap by content rather than crush at laptop widths; the
@@ -237,8 +237,8 @@ export default function BroadcastDetailPage() {
           gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: 22,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
           marginBottom: 26,
         }}
       >
@@ -285,7 +285,7 @@ export default function BroadcastDetailPage() {
         />
       </div>
 
-      <div className="ms-microlabel">{t("detail.content")}</div>
+      <div className="po-microlabel">{t("detail.content")}</div>
       <div style={{ marginTop: 12 }}>
         {broadcast ? (
           <EmailContentPanel
@@ -301,8 +301,8 @@ export default function BroadcastDetailPage() {
         ) : (
           <div
             style={{
-              background: "var(--ms-panel)",
-              border: "1px solid var(--ms-line)",
+              background: "var(--po-panel)",
+              border: "1px solid var(--po-line)",
               borderRadius: 14,
               padding: 28,
               display: "flex",
@@ -328,7 +328,7 @@ export default function BroadcastDetailPage() {
             confirmCancel();
           }}
         >
-          <p style={{ margin: "0 0 22px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {progress
               ? t("detail.stopBody", {
                   waiting: nf.format(waiting),
@@ -337,13 +337,13 @@ export default function BroadcastDetailPage() {
               : t("detail.cancelBody", { name: title ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCancel}>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>
               {t(progress ? "detail.keepSending" : "detail.keep")}{" "}
-              <span className="ms-keycap">Esc</span>
+              <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={cancelMutation.isPending}
             >
               <BtnSpinner on={cancelMutation.isPending} />
@@ -369,8 +369,8 @@ function PacingBand({
   const t = useTranslations("broadcasts");
   if (sendingDays(sent, releases, new Date()).length < 2) return null;
   return (
-    <div className="ms-pacing">
-      <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+    <div className="po-pacing">
+      <div className="po-microlabel" style={{ fontSize: 10.5 }}>
         {t("detail.pacing")}
       </div>
       <PacingSteps sent={sent} releases={releases} locale={locale} />
@@ -397,7 +397,7 @@ function BroadcastEmails({ broadcastId }: { broadcastId: string }) {
   if (!query.isSuccess || items.length === 0) return null;
   return (
     <div style={{ marginTop: 26 }}>
-      <div className="ms-microlabel" style={{ marginBottom: 12 }}>
+      <div className="po-microlabel" style={{ marginBottom: 12 }}>
         {t("detail.emails")}
       </div>
       <EmailsTable rows={items} broadcastChip={false} />

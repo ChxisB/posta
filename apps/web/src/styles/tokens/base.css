@@ -7,52 +7,52 @@
 html {
   -webkit-text-size-adjust: 100%;
 }
-.ms-root,
-body.ms {
+.po-root,
+body.po {
   /* margin reset lives here because the canvas sets it at page level —
      without it the browser's default 8px floats the whole shell off the
      viewport edges. */
   margin: 0;
-  background: var(--ms-void);
-  color: var(--ms-bone);
-  font-family: var(--ms-font-sans);
-  font-size: var(--ms-fs-body);
+  background: var(--po-void);
+  color: var(--po-bone);
+  font-family: var(--po-font-sans);
+  font-size: var(--po-fs-body);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 /* Display type: the app sans at heading weight, headings ≥20px only */
-.ms-display {
-  font-family: var(--ms-font-sans);
+.po-display {
+  font-family: var(--po-font-sans);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.15;
 }
 /* Every number that counts: tabular grotesque, weight 800. */
-.ms-digits {
-  font-family: var(--ms-font-sans);
+.po-digits {
+  font-family: var(--po-font-sans);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 /* Data is data: monospace */
-.ms-mono {
-  font-family: var(--ms-font-mono);
+.po-mono {
+  font-family: var(--po-font-mono);
   font-size: 0.93em;
 }
 /* Uppercase metadata micro-label */
-.ms-microlabel {
-  font-size: var(--ms-fs-micro);
+.po-microlabel {
+  font-size: var(--po-fs-micro);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
 /* Links — bone with dotted faint underline (table link treatment generalized) */
 a {
-  color: var(--ms-bone);
-  text-decoration: underline dotted var(--ms-faint);
+  color: var(--po-bone);
+  text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
 a:hover {
-  text-decoration-color: var(--ms-muted);
+  text-decoration-color: var(--po-muted);
 }

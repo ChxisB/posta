@@ -35,14 +35,14 @@ export function AuthBadge({
   const name = check.toUpperCase();
   if (!compact) {
     return (
-      <span className={`ms-badge ms-badge-${tone}`}>
-        {name} <span className="ms-mono">{result}</span>
+      <span className={`po-badge po-badge-${tone}`}>
+        {name} <span className="po-mono">{result}</span>
       </span>
     );
   }
   return (
     <Tooltip inline text={`${name} ${result}`}>
-      <span role="img" aria-label={`${name} ${result}`} className={`ms-badge ms-badge-${tone}`}>
+      <span role="img" aria-label={`${name} ${result}`} className={`po-badge po-badge-${tone}`}>
         {name} {GLYPH[tone]}
       </span>
     </Tooltip>
@@ -125,21 +125,21 @@ export function ReceivedEmailsTable({ rows }: { rows: ReceivedRow[] }) {
           const href = `/inboxes/received/${row.id}`;
           return (
             <tr key={row.id} className="hoverable" onClick={() => router.push(href)}>
-              <td className="ms-mono ms-cell-wrap">
+              <td className="po-mono po-cell-wrap">
                 <Link href={href} onClick={(event) => event.stopPropagation()}>
                   {/* The null sender <> leaves no From address to show. */}
                   <Breakable text={row.from || "<>"} />
                 </Link>
               </td>
-              <td className="ms-mono ms-cell-wrap">
+              <td className="po-mono po-cell-wrap">
                 <Breakable text={row.receivedFor[0] ?? ""} />
                 {row.receivedFor.length > 1 ? (
-                  <span style={{ color: "var(--ms-muted)", marginLeft: 8 }}>
+                  <span style={{ color: "var(--po-muted)", marginLeft: 8 }}>
                     +{row.receivedFor.length - 1}
                   </span>
                 ) : null}
               </td>
-              <td className="ms-cell-fill">
+              <td className="po-cell-fill">
                 <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <span
                     style={{
@@ -148,13 +148,13 @@ export function ReceivedEmailsTable({ rows }: { rows: ReceivedRow[] }) {
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
-                      color: row.subject ? undefined : "var(--ms-muted)",
+                      color: row.subject ? undefined : "var(--po-muted)",
                     }}
                   >
                     {row.subject || t("noSubject")}
                   </span>
                   {row.attachmentCount > 0 ? (
-                    <span className="ms-mono" style={{ color: "var(--ms-muted)", fontSize: 12 }}>
+                    <span className="po-mono" style={{ color: "var(--po-muted)", fontSize: 12 }}>
                       {nf.format(row.attachmentCount)}
                     </span>
                   ) : null}
@@ -162,20 +162,20 @@ export function ReceivedEmailsTable({ rows }: { rows: ReceivedRow[] }) {
                   {row.extractedKinds.map((kind) => (
                     <span
                       key={kind}
-                      className="ms-chip"
+                      className="po-chip"
                       style={{ fontSize: 10.5, padding: "1px 7px" }}
                     >
                       {t(`chip.${kind}`)}
                     </span>
                   ))}
                   {row.virusVerdict === "fail" ? (
-                    <span className="ms-badge ms-badge-danger">{t("received.badge.virus")}</span>
+                    <span className="po-badge po-badge-danger">{t("received.badge.virus")}</span>
                   ) : row.held ? (
-                    <span className="ms-badge ms-badge-danger">
+                    <span className="po-badge po-badge-danger">
                       {t("received.badge.quarantined")}
                     </span>
                   ) : row.spamVerdict === "fail" ? (
-                    <span className="ms-badge ms-badge-warn">{t("received.badge.spam")}</span>
+                    <span className="po-badge po-badge-warn">{t("received.badge.spam")}</span>
                   ) : null}
                 </span>
               </td>
@@ -225,7 +225,7 @@ export function ReceivedEmailsList() {
 
   const filters = (
     <div
-      className="ms-filter-row"
+      className="po-filter-row"
       style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
     >
       <SearchBox value={search} onChange={setSearch} placeholder={t("received.search")} />
@@ -288,7 +288,7 @@ export function ReceivedEmailsList() {
         headline={t("received.empty")}
         body={t.rich("received.emptyHint", {
           link: (chunks) => (
-            <Link href="/domains" className="ms-link">
+            <Link href="/domains" className="po-link">
               {chunks}
             </Link>
           ),

@@ -6,7 +6,7 @@ const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 /* Vertical-only blur levels (stdDeviation "0 N"), one per digit of travel:
    isotropic blur bleeds past the column's clip box and leaves hard side edges. */
 const BLUR_LEVELS = [1, 2, 3.5, 5, 7];
-/* Keep in step with --ms-dur-digit (tokens/motion.css). */
+/* Keep in step with --po-dur-digit (tokens/motion.css). */
 const DIGIT_MS = 400;
 const STAGGER_MS = 45;
 /* Allowance for the two paint frames the roll waits for before it starts. */
@@ -23,7 +23,7 @@ const positionEm = (el: HTMLElement) => {
 };
 
 /**
- * CSS odometer over .ms-odometer (components.css): each digit is a 1em
+ * CSS odometer over .po-odometer (components.css): each digit is a 1em
  * column whose 0–9 strip slides to the target digit after mount, rolling
  * the number up from zero on load and wearing a motion blur scaled to how
  * far it travels — the hero's mechanic. prefers-reduced-motion zeroes
@@ -72,7 +72,7 @@ export function Odometer({ formatted, lit = true }: { formatted: string; lit?: b
   let digitPosition = 0;
 
   return (
-    <span className="ms-odometer" role="img" aria-label={formatted}>
+    <span className="po-odometer" role="img" aria-label={formatted}>
       {cells.map((cell) => {
         if (!/\d/.test(cell.ch)) {
           return (
@@ -147,10 +147,10 @@ function Digit({
   };
 
   return (
-    <span className="ms-odo-col" aria-hidden style={lit ? { color: "var(--ms-steel)" } : undefined}>
+    <span className="po-odo-col" aria-hidden style={lit ? { color: "var(--po-steel)" } : undefined}>
       <span
         ref={strip}
-        className="ms-odo-strip"
+        className="po-odo-strip"
         onTransitionStart={(e) => onTransform(e, true)}
         onTransitionEnd={(e) => onTransform(e, false)}
         onTransitionCancel={(e) => onTransform(e, false)}

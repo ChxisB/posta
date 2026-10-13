@@ -37,7 +37,7 @@ const STATUS_CLASS_TONE: Record<StatusClass, BadgeTone> = {
   "4xx": "warn",
   "5xx": "danger",
 };
-const toneColor = (tone: string) => `var(--ms-${tone})`;
+const toneColor = (tone: string) => `var(--po-${tone})`;
 
 const COL = { method: "12%", source: "20%", status: "10%", when: "14%" } as const;
 
@@ -174,7 +174,7 @@ export default function LogsPage() {
       <PageHeader title={t("list.title")} />
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox value={search} onChange={setSearch} placeholder={t("list.searchPlaceholder")} />
@@ -267,12 +267,12 @@ export default function LogsPage() {
                   onClick={() => router.push(`/logs/${row.id}`)}
                 >
                   <td>
-                    <span className={`ms-badge ms-badge-${httpMethodTone(row.method)} ms-mono`}>
+                    <span className={`po-badge po-badge-${httpMethodTone(row.method)} po-mono`}>
                       {row.method}
                     </span>
                   </td>
                   <td
-                    className="ms-mono"
+                    className="po-mono"
                     style={{
                       maxWidth: 420,
                       overflow: "hidden",
@@ -287,7 +287,7 @@ export default function LogsPage() {
                   <td>
                     {(() => {
                       const pill = (
-                        <span className="ms-badge ms-badge-neutral">
+                        <span className="po-badge po-badge-neutral">
                           {t(`list.sources.${row.apiKeyId ? "api_key" : "mcp"}`)}
                         </span>
                       );
@@ -301,7 +301,7 @@ export default function LogsPage() {
                       );
                     })()}
                   </td>
-                  <td className="ms-mono">
+                  <td className="po-mono">
                     <span style={{ color: statusCodeColor(row.statusCode) }}>{row.statusCode}</span>
                   </td>
                   <td className="right">

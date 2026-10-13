@@ -52,22 +52,22 @@ type EventType =
  * suppression are dangers, complaints warn.
  */
 const EVENT_COLOR: Record<EventType, string> = {
-  queued: "var(--ms-muted)",
-  queued_quota: "var(--ms-muted)",
-  sent: "var(--ms-muted)",
-  delivery_delayed: "var(--ms-neutral)",
-  delivered: "var(--ms-success)",
-  opened: "var(--ms-info)",
-  clicked: "var(--ms-info)",
-  bounced: "var(--ms-danger)",
-  complained: "var(--ms-warn)",
-  suppressed: "var(--ms-danger)",
-  rendering_failure: "var(--ms-danger)",
-  failed: "var(--ms-danger)",
+  queued: "var(--po-muted)",
+  queued_quota: "var(--po-muted)",
+  sent: "var(--po-muted)",
+  delivery_delayed: "var(--po-neutral)",
+  delivered: "var(--po-success)",
+  opened: "var(--po-info)",
+  clicked: "var(--po-info)",
+  bounced: "var(--po-danger)",
+  complained: "var(--po-warn)",
+  suppressed: "var(--po-danger)",
+  rendering_failure: "var(--po-danger)",
+  failed: "var(--po-danger)",
   // A machine's fetch, not an outcome: the same muted tone as sent.
-  prefetched: "var(--ms-muted)",
+  prefetched: "var(--po-muted)",
   // An opt-out through this email's link: a warning-tone outcome, like a complaint.
-  unsubscribed: "var(--ms-warn)",
+  unsubscribed: "var(--po-warn)",
 };
 
 function isPrefetchReason(value: unknown): value is PrefetchReason {
@@ -140,7 +140,7 @@ function Microlabel({
   style?: React.CSSProperties;
 }) {
   return (
-    <div className="ms-microlabel" style={{ fontSize: 10.5, ...style }}>
+    <div className="po-microlabel" style={{ fontSize: 10.5, ...style }}>
       {children}
     </div>
   );
@@ -159,7 +159,7 @@ function Meta({
     <div>
       <Microlabel>{label}</Microlabel>
       <div
-        className={mono ? "ms-mono" : undefined}
+        className={mono ? "po-mono" : undefined}
         style={{ fontSize: mono ? 13 : 14, marginTop: 5, overflowWrap: "anywhere" }}
       >
         {typeof children === "string" ? <Breakable text={children} /> : children}
@@ -176,16 +176,16 @@ function StepRow({ index, text, last }: { index: number; text: string; last?: bo
         display: "flex",
         gap: 12,
         padding: "9px 0",
-        borderBottom: last ? undefined : "1px solid var(--ms-line)",
+        borderBottom: last ? undefined : "1px solid var(--po-line)",
       }}
     >
       <span
-        className="ms-mono"
-        style={{ fontSize: 11, color: "var(--ms-faint)", width: 16, flex: "none" }}
+        className="po-mono"
+        style={{ fontSize: 11, color: "var(--po-faint)", width: 16, flex: "none" }}
       >
         {index}
       </span>
-      <span style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>{text}</span>
+      <span style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>{text}</span>
     </div>
   );
 }
@@ -201,12 +201,12 @@ function ApplePrivateRelaySteps({ from }: { from: string }) {
   const domain = mailDomain(address);
   return (
     <div style={{ marginTop: 20 }}>
-      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ms-bone)" }}>{t("title")}</div>
-      <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--po-bone)" }}>{t("title")}</div>
+      <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>
         {t.rich("intro", {
           link: (chunks) => (
             <a
-              className="ms-link"
+              className="po-link"
               href="https://developer.apple.com/account/resources/services/list"
               target="_blank"
               rel="noreferrer"
@@ -216,7 +216,7 @@ function ApplePrivateRelaySteps({ from }: { from: string }) {
           ),
         })}
       </p>
-      <ol style={{ margin: "8px 0 0", paddingLeft: 20, fontSize: 13, color: "var(--ms-muted)" }}>
+      <ol style={{ margin: "8px 0 0", paddingLeft: 20, fontSize: 13, color: "var(--po-muted)" }}>
         {(["one", "two", "three", "four"] as const).map((step) => (
           <li key={step} style={{ lineHeight: 1.7 }}>
             {t(`steps.${step}`)}
@@ -225,21 +225,21 @@ function ApplePrivateRelaySteps({ from }: { from: string }) {
       </ol>
       {domain ? (
         <>
-          <div className="ms-microlabel" style={{ margin: "16px 0 6px" }}>
+          <div className="po-microlabel" style={{ margin: "16px 0 6px" }}>
             {t("domains")}
           </div>
           <CopyChip value={domain} />
         </>
       ) : null}
-      <div className="ms-microlabel" style={{ margin: "16px 0 6px" }}>
+      <div className="po-microlabel" style={{ margin: "16px 0 6px" }}>
         {t("addresses")}
       </div>
       <CopyChip value={address} />
-      <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ms-faint)", lineHeight: 1.5 }}>
+      <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--po-faint)", lineHeight: 1.5 }}>
         {t("hint")}
       </p>
       <a
-        className="ms-link"
+        className="po-link"
         href="https://developer.apple.com/help/account/configure-app-capabilities/configure-private-email-relay-service"
         target="_blank"
         rel="noreferrer"
@@ -270,27 +270,27 @@ function EmailDetailSkeleton() {
             <Skeleton width={150} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
           >
             <Skeleton width={260} height="1lh" />
           </h1>
-          <div className="ms-mono" style={{ fontSize: 12, marginTop: 8, display: "flex" }}>
+          <div className="po-mono" style={{ fontSize: 12, marginTop: 8, display: "flex" }}>
             <Skeleton width={220} height="1lh" />
           </div>
         </div>
-        <Skeleton width={30} height={30} radius="var(--ms-r-input)" />
+        <Skeleton width={30} height={30} radius="var(--po-r-input)" />
       </div>
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: "22px 28px",
           padding: "22px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <Meta label={t("detail.from")} mono>
@@ -312,19 +312,19 @@ function EmailDetailSkeleton() {
       </div>
 
       <div style={{ marginTop: 26 }}>
-        <div className="ms-microlabel">{t("detail.events")}</div>
-        <div className="ms-events">
+        <div className="po-microlabel">{t("detail.events")}</div>
+        <div className="po-events">
           {[0, 1, 2].map((index) => (
             <div key={index} style={{ display: "contents" }}>
               {index > 0 ? (
-                <div className="ms-events-gap">
-                  <span className="ms-mono" style={{ fontSize: 10.5, display: "flex" }}>
+                <div className="po-events-gap">
+                  <span className="po-mono" style={{ fontSize: 10.5, display: "flex" }}>
                     <Skeleton width={32} height="1lh" />
                   </span>
-                  <span className="ms-events-line" />
+                  <span className="po-events-line" />
                 </div>
               ) : null}
-              <div className="ms-events-node">
+              <div className="po-events-node">
                 <Skeleton width={34} height={34} radius={10} />
                 <span style={{ marginTop: 10, display: "flex" }}>
                   <SkeletonBadge width={74} />
@@ -341,8 +341,8 @@ function EmailDetailSkeleton() {
       <div
         style={{
           marginTop: 26,
-          background: "var(--ms-panel)",
-          border: "1px solid var(--ms-line)",
+          background: "var(--po-panel)",
+          border: "1px solid var(--po-line)",
           borderRadius: 14,
           overflow: "hidden",
         }}
@@ -353,7 +353,7 @@ function EmailDetailSkeleton() {
             alignItems: "center",
             gap: 6,
             padding: "10px 12px",
-            borderBottom: "1px solid var(--ms-line)",
+            borderBottom: "1px solid var(--po-line)",
           }}
         >
           {[52, 64, 44, 58].map((width) => (
@@ -364,7 +364,7 @@ function EmailDetailSkeleton() {
         </div>
         <div
           style={{
-            background: "var(--ms-inset)",
+            background: "var(--po-inset)",
             padding: 28,
             display: "flex",
             justifyContent: "center",
@@ -434,7 +434,7 @@ function PendingEvents({
       body: (
         <>
           {t("detail.pending.planBody", { date: stamp(pending.resumesAt) })}{" "}
-          <Link href="/settings/billing" className="ms-link">
+          <Link href="/settings/billing" className="po-link">
             {t("detail.pending.raiseLimit")}
           </Link>
         </>
@@ -482,28 +482,28 @@ function PendingEvents({
   }
   return (
     <>
-      <div className="ms-events">
+      <div className="po-events">
         {nodes.map((node, i) => (
           <div key={node.label} style={{ display: "contents" }}>
             {i > 0 ? (
               <span
                 aria-hidden="true"
-                className={node.estimate ? "ms-events-link dashed" : "ms-events-link"}
+                className={node.estimate ? "po-events-link dashed" : "po-events-link"}
               />
             ) : null}
-            <div className="ms-events-node">
+            <div className="po-events-node">
               <EventIconTile type={node.type} dashed={node.estimate ?? false} />
-              <span className="ms-badge ms-badge-neutral" style={{ marginTop: 10 }}>
+              <span className="po-badge po-badge-neutral" style={{ marginTop: 10 }}>
                 {node.label}
               </span>
               {node.estimate ? (
                 <span
-                  className="ms-mono"
+                  className="po-mono"
                   style={{
                     marginTop: 6,
                     fontSize: 10.5,
-                    color: "var(--ms-muted)",
-                    border: "1px dashed var(--ms-line-strong)",
+                    color: "var(--po-muted)",
+                    border: "1px dashed var(--po-line-strong)",
                     borderRadius: 4,
                     padding: "0 5px",
                   }}
@@ -512,13 +512,13 @@ function PendingEvents({
                 </span>
               ) : null}
               {node.when ? (
-                <span style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 7 }}>
+                <span style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 7 }}>
                   {node.when}
                 </span>
               ) : null}
               {node.body ? (
                 <span
-                  style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 5, lineHeight: 1.45 }}
+                  style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 5, lineHeight: 1.45 }}
                 >
                   {node.body}
                 </span>
@@ -527,7 +527,7 @@ function PendingEvents({
           </div>
         ))}
       </div>
-      <p style={{ margin: "10px 0 0", color: "var(--ms-muted)", fontSize: 12.5 }}>
+      <p style={{ margin: "10px 0 0", color: "var(--po-muted)", fontSize: 12.5 }}>
         {t("detail.pending.notSentYet")}
       </p>
     </>
@@ -576,10 +576,10 @@ export default function EmailDetailPage() {
   if (query.isError || !email) {
     return (
       <>
-        <p style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("detail.notFound")}
         </p>
-        <Link href="/emails" style={{ fontSize: "var(--ms-fs-ui)" }}>
+        <Link href="/emails" style={{ fontSize: "var(--po-fs-ui)" }}>
           ← {t("list.title")}
         </Link>
       </>
@@ -754,26 +754,26 @@ export default function EmailDetailPage() {
 
       {hardBounced ? (
         <div
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 12,
-            backgroundColor: "var(--ms-ground)",
+            backgroundColor: "var(--po-ground)",
             backgroundImage: statusGlow("danger"),
-            border: "1px solid var(--ms-danger-border)",
+            border: "1px solid var(--po-danger-border)",
             borderRadius: 12,
             padding: "12px 16px",
             marginBottom: 24,
           }}
         >
-          <span style={{ fontSize: 13.5, color: "var(--ms-danger)" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-danger)" }}>
             {t("detail.bounceBanner.hard")}
           </span>
-          <span style={{ fontSize: 13.5, color: "var(--ms-bone)", flex: "1 1 320px" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-bone)", flex: "1 1 320px" }}>
             {t.rich("detail.bounceBanner.suppressed", {
               link: (chunks) => (
-                <Link href="/emails/suppressions" className="ms-link">
+                <Link href="/emails/suppressions" className="po-link">
                   {chunks}
                 </Link>
               ),
@@ -783,14 +783,14 @@ export default function EmailDetailPage() {
       ) : null}
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: "22px 28px",
           padding: "22px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <Meta label={t("detail.from")} mono>
@@ -799,7 +799,7 @@ export default function EmailDetailPage() {
         <Meta label={t("detail.subject")}>{email.subject}</Meta>
         {email.broadcast ? (
           <Meta label={t("detail.broadcast")}>
-            <Link href={`/broadcasts/${email.broadcast.id}`} className="ms-link">
+            <Link href={`/broadcasts/${email.broadcast.id}`} className="po-link">
               {email.broadcast.name}
             </Link>
           </Meta>
@@ -820,7 +820,7 @@ export default function EmailDetailPage() {
             <Microlabel>{t("detail.tags")}</Microlabel>
             <div style={{ marginTop: 4, display: "flex", gap: 6, flexWrap: "wrap" }}>
               {Object.entries(email.tags).map(([key, value]) => (
-                <span key={key} className="ms-chip" style={{ fontSize: 11.5, padding: "3px 8px" }}>
+                <span key={key} className="po-chip" style={{ fontSize: 11.5, padding: "3px 8px" }}>
                   {key}:{value}
                 </span>
               ))}
@@ -850,7 +850,7 @@ export default function EmailDetailPage() {
       </div>
 
       <div style={{ marginTop: 26 }}>
-        <div className="ms-microlabel">{t("detail.events")}</div>
+        <div className="po-microlabel">{t("detail.events")}</div>
         {events.length === 0 && email.pending ? (
           <PendingEvents
             pending={email.pending}
@@ -859,11 +859,11 @@ export default function EmailDetailPage() {
             locale={locale}
           />
         ) : events.length === 0 ? (
-          <p style={{ margin: "12px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "12px 0 0", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("detail.noEvents")}
           </p>
         ) : (
-          <div className="ms-events">
+          <div className="po-events">
             {groups.map((group, index) => {
               const { type, first } = group;
               const count = group.occurrences.length;
@@ -914,7 +914,7 @@ export default function EmailDetailPage() {
                           height: 7,
                           borderRadius: "50%",
                           background: EVENT_COLOR[type],
-                          animation: "ms-pulse 2s infinite",
+                          animation: "po-pulse 2s infinite",
                         }}
                       />
                     ) : null}
@@ -927,10 +927,10 @@ export default function EmailDetailPage() {
                       alignItems: "center",
                       gap: 5,
                       padding: "3px 9px",
-                      borderRadius: "var(--ms-r-chip)",
+                      borderRadius: "var(--po-r-chip)",
                       // Dashed: it happened, and it does not count.
-                      border: `1px ${type === "prefetched" ? "dashed" : "solid"} color-mix(in srgb, ${EVENT_COLOR[type]} 35%, var(--ms-line))`,
-                      background: `color-mix(in srgb, ${EVENT_COLOR[type]} ${type === "prefetched" ? 4 : 10}%, var(--ms-panel))`,
+                      border: `1px ${type === "prefetched" ? "dashed" : "solid"} color-mix(in srgb, ${EVENT_COLOR[type]} 35%, var(--po-line))`,
+                      background: `color-mix(in srgb, ${EVENT_COLOR[type]} ${type === "prefetched" ? 4 : 10}%, var(--po-panel))`,
                       fontSize: 12,
                       fontWeight: 600,
                       color: EVENT_COLOR[type],
@@ -939,7 +939,7 @@ export default function EmailDetailPage() {
                   >
                     {eventLabel(type)}
                     {count > 1 ? (
-                      <span className="ms-mono" style={{ fontSize: 10, fontWeight: 500 }}>
+                      <span className="po-mono" style={{ fontSize: 10, fontWeight: 500 }}>
                         ×{count}
                       </span>
                     ) : null}
@@ -947,16 +947,16 @@ export default function EmailDetailPage() {
                   </span>
                   <span
                     title={formatUtcTimestampMs(stamped.occurredAt)}
-                    style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 7 }}
+                    style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 7 }}
                   >
                     {formatDayTime(stamped.occurredAt, locale)}
                   </span>
                   {detail ? (
                     <span
-                      className="ms-mono"
+                      className="po-mono"
                       style={{
                         fontSize: 11,
-                        color: "var(--ms-muted)",
+                        color: "var(--po-muted)",
                         marginTop: 3,
                         maxWidth: 220,
                         // Wraps instead of clipping: its last part is when SES stops retrying.
@@ -973,20 +973,20 @@ export default function EmailDetailPage() {
               return (
                 <div key={first.id} style={{ display: "contents" }}>
                   {delta != null ? (
-                    <div className="ms-events-gap">
+                    <div className="po-events-gap">
                       <span
-                        className="ms-mono"
-                        style={{ fontSize: 10.5, color: "var(--ms-muted)" }}
+                        className="po-mono"
+                        style={{ fontSize: 10.5, color: "var(--po-muted)" }}
                       >
                         +{formatDurationShort(delta)}
                       </span>
-                      <span className="ms-events-line" />
+                      <span className="po-events-line" />
                     </div>
                   ) : null}
                   {opens ? (
                     <button
                       type="button"
-                      className="ms-events-node"
+                      className="po-events-node"
                       style={{ color: "inherit", font: "inherit", cursor: "pointer" }}
                       onClick={() =>
                         opens === "group" ? setGroupDrawer(first.id) : setDrawer(opens)
@@ -995,20 +995,20 @@ export default function EmailDetailPage() {
                       {card}
                     </button>
                   ) : (
-                    <div className="ms-events-node">{card}</div>
+                    <div className="po-events-node">{card}</div>
                   )}
                 </div>
               );
             })}
             {eventsStalled ? (
               <>
-                <div className="ms-events-gap">
-                  <span className="ms-mono" style={{ fontSize: 10.5 }}>
+                <div className="po-events-gap">
+                  <span className="po-mono" style={{ fontSize: 10.5 }}>
                     &nbsp;
                   </span>
-                  <span className="ms-events-line dashed" />
+                  <span className="po-events-line dashed" />
                 </div>
-                <div className="ms-events-node">
+                <div className="po-events-node">
                   <Tooltip text={t("detail.eventsStalled")}>
                     <span
                       aria-hidden="true"
@@ -1019,7 +1019,7 @@ export default function EmailDetailPage() {
                         alignItems: "center",
                         justifyContent: "center",
                         borderRadius: 10,
-                        border: "1px dashed var(--ms-line-strong)",
+                        border: "1px dashed var(--po-line-strong)",
                         fontSize: 15,
                         fontWeight: 600,
                       }}
@@ -1053,7 +1053,7 @@ export default function EmailDetailPage() {
         onClose={() => setDrawer(null)}
         title={t("bouncedDrawer.title")}
       >
-        <div className="ms-wrap-row" style={{ display: "flex", gap: 36, marginTop: 18 }}>
+        <div className="po-wrap-row" style={{ display: "flex", gap: 36, marginTop: 18 }}>
           <div>
             <Microlabel>{t("bouncedDrawer.type")}</Microlabel>
             <div style={{ fontSize: 14, marginTop: 4 }}>{bounce?.bounceType ?? "—"}</div>
@@ -1064,25 +1064,25 @@ export default function EmailDetailPage() {
           </div>
           <div>
             <Microlabel>{t("bouncedDrawer.code")}</Microlabel>
-            <div className="ms-mono" style={{ fontSize: 13, marginTop: 5 }}>
+            <div className="po-mono" style={{ fontSize: 13, marginTop: 5 }}>
               {bounceCode ?? "—"}
             </div>
           </div>
         </div>
         {bounceDiag ? (
           <>
-            <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+            <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
               {t("bouncedDrawer.smtpResponse")}
             </div>
             <CopyBlock value={bounceDiag} />
           </>
         ) : null}
-        <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+        <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
           {t("bouncedDrawer.whatToDo")}
         </div>
         {acceptedThenBounced ? (
           <div
-            style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55, marginBottom: 10 }}
+            style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55, marginBottom: 10 }}
           >
             {t("bouncedDrawer.acceptedThenBounced")}
           </div>
@@ -1093,7 +1093,7 @@ export default function EmailDetailPage() {
         ) : null}
         {recipient ? (
           <>
-            <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+            <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
               {t("bouncedDrawer.copyReady")}
             </div>
             <CopyChip value={recipient} />
@@ -1106,7 +1106,7 @@ export default function EmailDetailPage() {
         onClose={() => setDrawer(null)}
         title={t("unsubscribedDrawer.title")}
       >
-        <div className="ms-wrap-row" style={{ display: "flex", gap: 32, marginTop: 16 }}>
+        <div className="po-wrap-row" style={{ display: "flex", gap: 32, marginTop: 16 }}>
           <div>
             <Microlabel>{t("unsubscribedDrawer.scope")}</Microlabel>
             <div style={{ fontSize: 14, marginTop: 4 }}>
@@ -1136,12 +1136,12 @@ export default function EmailDetailPage() {
         {recipient ? (
           <div style={{ marginTop: 12 }}>
             <Microlabel>{t("unsubscribedDrawer.recipient")}</Microlabel>
-            <div className="ms-mono" style={{ fontSize: 13, marginTop: 5 }}>
+            <div className="po-mono" style={{ fontSize: 13, marginTop: 5 }}>
               {recipient}
             </div>
           </div>
         ) : null}
-        <div style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.6, marginTop: 14 }}>
+        <div style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.6, marginTop: 14 }}>
           {t("unsubscribedDrawer.note")}
         </div>
       </Drawer>
@@ -1151,7 +1151,7 @@ export default function EmailDetailPage() {
         onClose={() => setDrawer(null)}
         title={t("suppressedDrawer.title")}
       >
-        <div className="ms-wrap-row" style={{ display: "flex", gap: 32, marginTop: 16 }}>
+        <div className="po-wrap-row" style={{ display: "flex", gap: 32, marginTop: 16 }}>
           <div>
             <Microlabel>{t("suppressedDrawer.origin")}</Microlabel>
             <div style={{ fontSize: 14, marginTop: 4 }}>
@@ -1175,21 +1175,21 @@ export default function EmailDetailPage() {
         {recipient ? (
           <div style={{ marginTop: 12 }}>
             <Microlabel>{t("suppressedDrawer.recipient")}</Microlabel>
-            <div className="ms-mono" style={{ fontSize: 13, marginTop: 5 }}>
+            <div className="po-mono" style={{ fontSize: 13, marginTop: 5 }}>
               {recipient}
             </div>
           </div>
         ) : null}
-        <div style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.6, marginTop: 14 }}>
+        <div style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.6, marginTop: 14 }}>
           {t.rich("suppressedDrawer.blocked", {
             code: (chunks) => (
-              <span className="ms-mono" style={{ fontSize: 12, color: "var(--ms-bone)" }}>
+              <span className="po-mono" style={{ fontSize: 12, color: "var(--po-bone)" }}>
                 {chunks}
               </span>
             ),
           })}
         </div>
-        <div className="ms-microlabel" style={{ margin: "16px 0 6px" }}>
+        <div className="po-microlabel" style={{ margin: "16px 0 6px" }}>
           {t("suppressedDrawer.suggestedActions")}
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1198,7 +1198,7 @@ export default function EmailDetailPage() {
         </div>
         <button
           type="button"
-          className="ms-btn ms-btn-destructive"
+          className="po-btn po-btn-destructive"
           style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
           disabled={!suppressionRow || removeMutation.isPending}
           onClick={() => {
@@ -1222,7 +1222,7 @@ export default function EmailDetailPage() {
             : ""
         }
       >
-        <div className="ms-microlabel" style={{ margin: "18px 0 4px" }}>
+        <div className="po-microlabel" style={{ margin: "18px 0 4px" }}>
           {t("occurrencesDrawer.subtitle")}
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1251,7 +1251,7 @@ export default function EmailDetailPage() {
                 style={{
                   padding: "10px 0",
                   borderBottom:
-                    index === groupOccurrences.length - 1 ? undefined : "1px solid var(--ms-line)",
+                    index === groupOccurrences.length - 1 ? undefined : "1px solid var(--po-line)",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
@@ -1260,8 +1260,8 @@ export default function EmailDetailPage() {
                   </span>
                   {sinceSend >= 0 ? (
                     <span
-                      className="ms-mono"
-                      style={{ fontSize: 11, color: "var(--ms-muted)", marginLeft: "auto" }}
+                      className="po-mono"
+                      style={{ fontSize: 11, color: "var(--po-muted)", marginLeft: "auto" }}
                     >
                       +{formatDurationShort(sinceSend)}
                     </span>
@@ -1269,10 +1269,10 @@ export default function EmailDetailPage() {
                 </div>
                 {line ? (
                   <div
-                    className="ms-mono"
+                    className="po-mono"
                     style={{
                       fontSize: 11,
-                      color: "var(--ms-muted)",
+                      color: "var(--po-muted)",
                       marginTop: 3,
                       overflowWrap: "anywhere",
                     }}

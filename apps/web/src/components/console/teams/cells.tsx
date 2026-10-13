@@ -14,7 +14,7 @@ export function usePlanName(): (plan: string) => string {
 export function PlanBadge({ plan, planQuota }: { plan: string; planQuota: number | null }) {
   const name = usePlanName();
   return (
-    <span className={`ms-badge ms-badge-${planTone(plan)}`}>
+    <span className={`po-badge po-badge-${planTone(plan)}`}>
       {planLabel(name(plan), planQuota)}
     </span>
   );
@@ -24,7 +24,7 @@ export function PlanBadge({ plan, planQuota }: { plan: string; planQuota: number
 export function RegionLabel({ region }: { region: string | null }) {
   const domains = useTranslations("domains");
   const common = useTranslations("console.common");
-  if (!region) return <span style={{ color: "var(--ms-muted)" }}>{common("unknownRegion")}</span>;
+  if (!region) return <span style={{ color: "var(--po-muted)" }}>{common("unknownRegion")}</span>;
   const city = domains.has(`regions.${region}`) ? domains(`regions.${region}`) : region;
   return (
     <Tooltip inline text={region}>
@@ -34,9 +34,9 @@ export function RegionLabel({ region }: { region: string | null }) {
 }
 
 const GUARDRAIL_COLOR: Record<string, string> = {
-  ok: "var(--ms-success)",
-  warning: "var(--ms-warn)",
-  paused: "var(--ms-danger)",
+  ok: "var(--po-success)",
+  warning: "var(--po-warn)",
+  paused: "var(--po-danger)",
 };
 
 /**
@@ -53,11 +53,11 @@ export function GuardrailLabel({
   broadcastsPausedByOperatorAt: Date | null;
 }) {
   const t = useTranslations("console.teams.guardrail");
-  if (suspendedAt) return <span className="ms-badge ms-badge-danger">{t("suspended")}</span>;
+  if (suspendedAt) return <span className="po-badge po-badge-danger">{t("suspended")}</span>;
   const status = broadcastsPausedByOperatorAt ? "paused" : (guardrail ?? "ok");
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      <span className="ms-dot" style={{ background: GUARDRAIL_COLOR[status] }} aria-hidden="true" />
+      <span className="po-dot" style={{ background: GUARDRAIL_COLOR[status] }} aria-hidden="true" />
       {broadcastsPausedByOperatorAt ? t("operatorPaused") : t(status)}
     </span>
   );

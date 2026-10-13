@@ -179,7 +179,7 @@ export default function EmailsPage() {
                 href={exportQuery ? `/export/emails?${exportQuery}` : "/export/emails"}
               />
             ) : null}
-            <Link className="ms-btn ms-btn-secondary" href="/emails/suppressions">
+            <Link className="po-btn po-btn-secondary" href="/emails/suppressions">
               {t("list.suppressionList")}
             </Link>
           </>
@@ -189,26 +189,26 @@ export default function EmailsPage() {
 
       {capReached && cap ? (
         <div
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 14,
-            backgroundColor: "var(--ms-ground)",
+            backgroundColor: "var(--po-ground)",
             backgroundImage: statusGlow("warn"),
-            border: "1px solid var(--ms-warn-border)",
+            border: "1px solid var(--po-warn-border)",
             borderRadius: 12,
             padding: "12px 16px",
             marginBottom: 20,
           }}
         >
-          <span style={{ fontSize: 13.5, color: "var(--ms-warn)" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-warn)" }}>
             {t(cap.monthly ? "list.capBanner.reachedMonth" : "list.capBanner.reached", {
               limit: nf.format(cap.limit),
             })}
           </span>
           {stats.data && stats.data.queuedQuota > 0 ? (
-            <span style={{ fontSize: 13.5, color: "var(--ms-bone)", flex: "1 1 320px" }}>
+            <span style={{ fontSize: 13.5, color: "var(--po-bone)", flex: "1 1 320px" }}>
               {cap.monthly && usage.data?.period
                 ? t("list.capBanner.queuedMonth", {
                     count: nf.format(stats.data.queuedQuota),
@@ -226,8 +226,8 @@ export default function EmailsPage() {
             style={{
               marginLeft: "auto",
               fontSize: 13.5,
-              color: "var(--ms-bone)",
-              textDecoration: "underline dotted var(--ms-muted)",
+              color: "var(--po-bone)",
+              textDecoration: "underline dotted var(--po-muted)",
               textUnderlineOffset: 3,
             }}
           >
@@ -238,7 +238,7 @@ export default function EmailsPage() {
 
       {showSources ? (
         <div
-          className="ms-tabs bleed"
+          className="po-tabs bleed"
           role="tablist"
           aria-label={t("list.source.label")}
           style={{ marginBottom: 14 }}
@@ -255,8 +255,8 @@ export default function EmailsPage() {
               {t(`list.source.${key}`)}
               {sourceTotals && (key === "transactional" || key === "broadcast") ? (
                 <span
-                  className="ms-digits"
-                  style={{ marginLeft: 7, fontWeight: 500, color: "var(--ms-faint)" }}
+                  className="po-digits"
+                  style={{ marginLeft: 7, fontWeight: 500, color: "var(--po-faint)" }}
                 >
                   {nf.format(sourceTotals[key])}
                 </span>
@@ -272,7 +272,7 @@ export default function EmailsPage() {
     <>
       {top}
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox value={search} onChange={setSearch} placeholder={t("list.searchPlaceholder")} />
@@ -355,15 +355,15 @@ export default function EmailsPage() {
 
       {hiddenBroadcasts > 0 && items.length > 0 ? (
         <div
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{
             display: "flex",
             justifyContent: "space-between",
             gap: 12,
             fontSize: 13,
-            color: "var(--ms-muted)",
-            background: "var(--ms-panel)",
-            border: "1px solid var(--ms-line)",
+            color: "var(--po-muted)",
+            background: "var(--po-panel)",
+            border: "1px solid var(--po-line)",
             borderRadius: 10,
             padding: "10px 14px",
             marginBottom: 14,
@@ -372,14 +372,14 @@ export default function EmailsPage() {
           <span>{t("list.hiddenBroadcasts", { count: nf.format(hiddenBroadcasts) })}</span>
           <button
             type="button"
-            className="ms-link"
+            className="po-link"
             onClick={() => setSource("broadcast")}
             style={{
               background: "none",
               border: 0,
               padding: 0,
               font: "inherit",
-              color: "var(--ms-bone)",
+              color: "var(--po-bone)",
               cursor: "pointer",
             }}
           >

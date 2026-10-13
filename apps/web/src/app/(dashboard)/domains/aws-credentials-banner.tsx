@@ -20,14 +20,14 @@ export function AwsCredentialsBanner() {
     <div
       role="status"
       style={{
-        border: "1px solid var(--ms-warn-border)",
-        background: "var(--ms-warn-bg)",
-        borderRadius: "var(--ms-r-input)",
+        border: "1px solid var(--po-warn-border)",
+        background: "var(--po-warn-bg)",
+        borderRadius: "var(--po-r-input)",
         padding: "9px 14px",
         marginBottom: 18,
         fontSize: 13,
         lineHeight: 1.5,
-        color: "var(--ms-warn)",
+        color: "var(--po-warn)",
         maxWidth: 1000,
         display: "flex",
         alignItems: "center",
@@ -35,7 +35,7 @@ export function AwsCredentialsBanner() {
       }}
     >
       <span style={{ flex: 1 }}>{t.rich("awsCredentialsWarning", codeRichTags)}</span>
-      <Link href="/settings/ses" className="ms-btn ms-btn-secondary" style={{ flex: "none" }}>
+      <Link href="/settings/ses" className="po-btn po-btn-secondary" style={{ flex: "none" }}>
         {t("awsCredentialsCta")}
       </Link>
     </div>

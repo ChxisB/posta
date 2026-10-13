@@ -13,7 +13,7 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="ms-card" style={{ padding: 24 }}>
+    <section className="po-card" style={{ padding: 24 }}>
       <div
         style={{
           display: "flex",
@@ -25,8 +25,8 @@ export function SectionCard({
         }}
       >
         <h2
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h2)", color: "var(--ms-bone)", margin: 0 }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h2)", color: "var(--po-bone)", margin: 0 }}
         >
           {title}
         </h2>

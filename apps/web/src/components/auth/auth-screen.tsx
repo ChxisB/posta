@@ -10,19 +10,19 @@ export function AuthScreen({ title, children }: { title: string; children: React
   return (
     <main className={styles.screen}>
       {/* biome-ignore lint/performance/noImgElement: decorative full-bleed backdrop, no optimization needed */}
-      <img src="/auth/waves-dark.webp" alt="" className={`ms-dark-only ${styles.backdrop}`} />
+      <img src="/auth/waves-dark.webp" alt="" className={`po-dark-only ${styles.backdrop}`} />
       {/* biome-ignore lint/performance/noImgElement: decorative full-bleed backdrop, no optimization needed */}
-      <img src="/auth/waves-light.webp" alt="" className={`ms-light-only ${styles.backdrop}`} />
+      <img src="/auth/waves-light.webp" alt="" className={`po-light-only ${styles.backdrop}`} />
       <SilkCanvas />
       <div className={styles.column}>
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
           src="/logo/millionsend-wordmark.svg"
-          className="ms-wordmark"
+          className="po-wordmark"
           alt={tCommon("appName")}
           height={22}
         />
-        <h1 className={`ms-display ${styles.headline}`}>{title}</h1>
+        <h1 className={`po-display ${styles.headline}`}>{title}</h1>
         {children}
       </div>
     </main>

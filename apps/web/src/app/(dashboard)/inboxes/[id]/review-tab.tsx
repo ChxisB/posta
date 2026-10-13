@@ -47,14 +47,14 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
   const pending = (drafts.data?.items ?? []).filter((d) => d.status === "pending_approval");
   const quarantined = held.data?.items ?? [];
   if (pending.length === 0 && quarantined.length === 0) {
-    return <p style={{ fontSize: 13, color: "var(--ms-muted)" }}>{t("review.empty")}</p>;
+    return <p style={{ fontSize: 13, color: "var(--po-muted)" }}>{t("review.empty")}</p>;
   }
 
   return (
     <div style={{ display: "grid", gap: 26 }}>
       {pending.length > 0 ? (
         <section>
-          <h2 className="ms-microlabel" style={heading}>
+          <h2 className="po-microlabel" style={heading}>
             {t("review.drafts")}
           </h2>
           <Table>
@@ -69,13 +69,13 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
             <tbody>
               {pending.map((draft) => (
                 <tr key={draft.id}>
-                  <td className="ms-mono ms-cell-wrap">
+                  <td className="po-mono po-cell-wrap">
                     <Breakable text={(draft.to ?? []).join(", ")} />
                   </td>
                   <td>
                     {draft.thread_id ? (
                       <Link
-                        className="ms-link"
+                        className="po-link"
                         href={`/inboxes/${inbox.id}?thread=${draft.thread_id}`}
                       >
                         {draft.subject ?? t("noSubject")}
@@ -84,7 +84,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                       (draft.subject ?? t("noSubject"))
                     )}
                     {draft.snippet ? (
-                      <div style={{ fontSize: 12, color: "var(--ms-muted)" }}>{draft.snippet}</div>
+                      <div style={{ fontSize: 12, color: "var(--po-muted)" }}>{draft.snippet}</div>
                     ) : null}
                   </td>
                   <td style={{ fontSize: 12.5 }}>
@@ -94,7 +94,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                     <span style={{ display: "inline-flex", gap: 6 }}>
                       <button
                         type="button"
-                        className="ms-btn ms-btn-destructive"
+                        className="po-btn po-btn-destructive"
                         disabled={busy}
                         onClick={() => reject.mutate({ inboxId: inbox.id, draftId: draft.id })}
                       >
@@ -102,7 +102,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                       </button>
                       <button
                         type="button"
-                        className="ms-btn ms-btn-primary"
+                        className="po-btn po-btn-primary"
                         disabled={busy}
                         onClick={() => approve.mutate({ inboxId: inbox.id, draftId: draft.id })}
                       >
@@ -119,7 +119,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
 
       {quarantined.length > 0 ? (
         <section>
-          <h2 className="ms-microlabel" style={heading}>
+          <h2 className="po-microlabel" style={heading}>
             {t("review.quarantine")}
           </h2>
           <Table>
@@ -136,27 +136,27 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
             <tbody>
               {quarantined.map((item) => (
                 <tr key={item.id}>
-                  <td className="ms-mono ms-cell-wrap">
+                  <td className="po-mono po-cell-wrap">
                     <Breakable text={item.from} />
                     <div style={{ marginTop: 4 }}>
                       <TrustBadge trust={item.sender_trust} />
                     </div>
                   </td>
                   <td>
-                    <Link className="ms-link" href={`/inboxes/received/${item.id}`}>
+                    <Link className="po-link" href={`/inboxes/received/${item.id}`}>
                       {item.subject ?? t("noSubject")}
                     </Link>
                   </td>
                   <td style={{ fontSize: 12.5 }}>
                     {t(`qr.${item.quarantine_reason}`)}
                     {item.virus_signature ? (
-                      <div className="ms-mono" style={{ color: "var(--ms-muted)" }}>
+                      <div className="po-mono" style={{ color: "var(--po-muted)" }}>
                         {item.virus_signature}
                       </div>
                     ) : null}
                   </td>
                   {inbox.kind === "agent" ? (
-                    <td className="right ms-mono" style={{ whiteSpace: "nowrap" }}>
+                    <td className="right po-mono" style={{ whiteSpace: "nowrap" }}>
                       {t("detail.scores", {
                         injection: item.injection_score ?? "–",
                         phishing: item.phishing_score ?? "–",
@@ -170,7 +170,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                     <span style={{ display: "inline-flex", gap: 6 }}>
                       <button
                         type="button"
-                        className="ms-btn ms-btn-secondary"
+                        className="po-btn po-btn-secondary"
                         disabled={busy || inbox.expired}
                         onClick={() =>
                           release.mutate({ inboxId: inbox.id, emailId: item.id, trustSender: true })
@@ -180,7 +180,7 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                       </button>
                       <button
                         type="button"
-                        className="ms-btn ms-btn-primary"
+                        className="po-btn po-btn-primary"
                         disabled={busy || inbox.expired}
                         onClick={() =>
                           release.mutate({

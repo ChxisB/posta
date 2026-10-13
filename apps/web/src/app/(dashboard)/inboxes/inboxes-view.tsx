@@ -23,8 +23,8 @@ import { kindWord } from "./parts";
 
 const TABS = ["all", "agent", "human"] as const;
 
-const muted: React.CSSProperties = { color: "var(--ms-muted)", fontSize: 12.5 };
-const none = <span style={{ color: "var(--ms-faint)" }}>—</span>;
+const muted: React.CSSProperties = { color: "var(--po-muted)", fontSize: 12.5 };
+const none = <span style={{ color: "var(--po-faint)" }}>—</span>;
 
 function InboxesHead() {
   const t = useTranslations("inboxes");
@@ -108,7 +108,7 @@ export function InboxesView() {
   const createButton = (
     <button
       type="button"
-      className="ms-btn ms-btn-primary"
+      className="po-btn po-btn-primary"
       disabled={atLimit || nowhere}
       onClick={() => setCreateOpen(true)}
     >
@@ -131,11 +131,11 @@ export function InboxesView() {
       <PageHeader title={t("title")} badges={<BetaPill />} actions={createButton} />
 
       {atLimit && plan?.limit != null ? (
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--ms-warn)" }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--po-warn)" }}>
           {t.rich("limit.reached", {
             limit: nf.format(plan.limit),
             link: (chunks) => (
-              <Link href="/settings/billing" className="ms-link">
+              <Link href="/settings/billing" className="po-link">
                 {chunks}
               </Link>
             ),
@@ -143,7 +143,7 @@ export function InboxesView() {
         </p>
       ) : null}
 
-      <div className="ms-tabs bleed" role="tablist" style={{ marginBottom: 14 }}>
+      <div className="po-tabs bleed" role="tablist" style={{ marginBottom: 14 }}>
         {TABS.map((key) => (
           <button
             key={key}
@@ -156,8 +156,8 @@ export function InboxesView() {
             {t(`tabs.${key}`)}
             {tabCount(key) !== null ? (
               <span
-                className="ms-digits"
-                style={{ marginLeft: 7, fontWeight: 500, color: "var(--ms-faint)" }}
+                className="po-digits"
+                style={{ marginLeft: 7, fontWeight: 500, color: "var(--po-faint)" }}
               >
                 {nf.format(tabCount(key) ?? 0)}
               </span>
@@ -197,7 +197,7 @@ export function InboxesView() {
                   </td>
                   <td>{none}</td>
                   <td>{none}</td>
-                  <td className="right ms-digits">{nf.format(overview.allReceived.received30d)}</td>
+                  <td className="right po-digits">{nf.format(overview.allReceived.received30d)}</td>
                   <td className="right" style={{ whiteSpace: "nowrap" }}>
                     {overview.allReceived.lastReceived ? (
                       <RelativeTime date={overview.allReceived.lastReceived} />
@@ -211,10 +211,10 @@ export function InboxesView() {
                 const href = "/inboxes/received?inbox=catch_all";
                 return (
                   <tr key={domain.domainId} className="hoverable" onClick={() => router.push(href)}>
-                    <td className="ms-cell-wrap">
+                    <td className="po-cell-wrap">
                       <Link
                         href={href}
-                        className="ms-mono"
+                        className="po-mono"
                         onClick={(event) => event.stopPropagation()}
                       >
                         <Breakable text={`*@${domain.name}`} />
@@ -223,7 +223,7 @@ export function InboxesView() {
                     </td>
                     <td>{t("type.catchAll")}</td>
                     <td>{none}</td>
-                    <td className="right ms-digits">{nf.format(domain.received30d)}</td>
+                    <td className="right po-digits">{nf.format(domain.received30d)}</td>
                     <td className="right" style={{ whiteSpace: "nowrap" }}>
                       {domain.lastReceived ? <RelativeTime date={domain.lastReceived} /> : none}
                     </td>
@@ -256,10 +256,10 @@ export function InboxesView() {
                 ];
                 return (
                   <tr key={inbox.id} className="hoverable" onClick={() => router.push(href)}>
-                    <td className="ms-cell-wrap">
+                    <td className="po-cell-wrap">
                       <Link
                         href={href}
-                        className="ms-mono"
+                        className="po-mono"
                         onClick={(event) => event.stopPropagation()}
                       >
                         <Breakable text={inbox.email_address} />
@@ -267,10 +267,10 @@ export function InboxesView() {
                       {detail.length > 0 ? <div style={muted}>{detail.join(" · ")}</div> : null}
                     </td>
                     <td>{kindWord(t, inbox.kind)}</td>
-                    <td style={{ color: attention.length > 0 ? "var(--ms-bone)" : undefined }}>
+                    <td style={{ color: attention.length > 0 ? "var(--po-bone)" : undefined }}>
                       {attention.length > 0 ? attention.join(" · ") : none}
                     </td>
-                    <td className="right ms-digits">{nf.format(inbox.received_30d)}</td>
+                    <td className="right po-digits">{nf.format(inbox.received_30d)}</td>
                     <td className="right" style={{ whiteSpace: "nowrap" }}>
                       {inbox.last_received ? <RelativeTime date={inbox.last_received} /> : none}
                     </td>

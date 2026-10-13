@@ -32,8 +32,8 @@ export interface HoldInput<R extends string> {
 function CancelButton({ onClose }: { onClose: () => void }) {
   const common = useTranslations("console.common");
   return (
-    <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-      {common("cancel")} <span className="ms-keycap">Esc</span>
+    <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+      {common("cancel")} <span className="po-keycap">Esc</span>
     </button>
   );
 }
@@ -59,7 +59,7 @@ function NotifyRow({
       <input
         id={id}
         type="checkbox"
-        className="ms-checkbox"
+        className="po-checkbox"
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
@@ -102,10 +102,10 @@ export function PauseDialog({
           submit();
         }}
       >
-        <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+        <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
           {t("lead")}
         </p>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-reason`}>{common("reason")}</label>
           <Select
             id={`${id}-reason`}
@@ -117,11 +117,11 @@ export function PauseDialog({
             options={PAUSE_REASONS.map((key) => ({ value: key, label: t(`reasons.${key}`) }))}
           />
         </div>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-note`}>{t("noteLabel")}</label>
           <textarea
             id={`${id}-note`}
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%", minHeight: 72, resize: "vertical" }}
             maxLength={1000}
             disabled={pending}
@@ -138,7 +138,7 @@ export function PauseDialog({
         />
         <ModalFooter>
           <CancelButton onClose={onClose} />
-          <button type="submit" className="ms-btn ms-btn-destructive" disabled={pending}>
+          <button type="submit" className="po-btn po-btn-destructive" disabled={pending}>
             <BtnSpinner on={pending} />
             {t("confirm")} <ConfirmKeycap />
           </button>
@@ -204,14 +204,14 @@ export function SuspendDialog({
           submit();
         }}
       >
-        <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+        <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
           {t("lead")}
         </p>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-${SUSPENSION_REASONS[0]}`}>{common("reason")}</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {SUSPENSION_REASONS.map((key) => (
-              <label key={key} className="ms-radio-card">
+              <label key={key} className="po-radio-card">
                 <input
                   id={`${id}-${key}`}
                   type="radio"
@@ -230,11 +230,11 @@ export function SuspendDialog({
             ))}
           </div>
         </div>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-note`}>{common("note")}</label>
           <textarea
             id={`${id}-note`}
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%", minHeight: 72, resize: "vertical" }}
             maxLength={1000}
             placeholder={t("notePlaceholder")}
@@ -265,7 +265,7 @@ export function SuspendDialog({
         </div>
         <ModalFooter>
           <CancelButton onClose={onClose} />
-          <button type="submit" className="ms-btn ms-btn-destructive" disabled={busy}>
+          <button type="submit" className="po-btn po-btn-destructive" disabled={busy}>
             <BtnSpinner on={busy} />
             {t("confirm")} <ConfirmKeycap />
           </button>
@@ -292,12 +292,12 @@ export function ReinstateDialog({
   }
   return (
     <Modal open onClose={onClose} onConfirm={submit} title={t("title", { team: name })}>
-      <p style={{ margin: "6px 0 0", color: "var(--ms-muted)", fontSize: 13.5, lineHeight: 1.6 }}>
+      <p style={{ margin: "6px 0 0", color: "var(--po-muted)", fontSize: 13.5, lineHeight: 1.6 }}>
         {t("lead")}
       </p>
       <ModalFooter>
         <CancelButton onClose={onClose} />
-        <button type="button" className="ms-btn ms-btn-primary" disabled={pending} onClick={submit}>
+        <button type="button" className="po-btn po-btn-primary" disabled={pending} onClick={submit}>
           <BtnSpinner on={pending} />
           {t("confirm")} <ConfirmKeycap />
         </button>

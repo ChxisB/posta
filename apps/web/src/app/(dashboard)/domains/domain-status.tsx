@@ -36,13 +36,13 @@ export function DomainStatusBadge({ status }: { status: DisplayDomainStatus }) {
   const t = useTranslations("domains");
   const common = useTranslations("common");
   if (status === "temporary_failure") {
-    return <span className="ms-badge ms-badge-warn">{t("status.temporary_failure")}</span>;
+    return <span className="po-badge po-badge-warn">{t("status.temporary_failure")}</span>;
   }
   if (status === "partial") {
-    return <span className="ms-badge ms-badge-info">{common("status.partial")}</span>;
+    return <span className="po-badge po-badge-info">{common("status.partial")}</span>;
   }
   if (status === "pending") {
-    return <span className="ms-badge ms-badge-warn">{common("status.pending")}</span>;
+    return <span className="po-badge po-badge-warn">{common("status.pending")}</span>;
   }
   return <StatusBadge status={status} />;
 }

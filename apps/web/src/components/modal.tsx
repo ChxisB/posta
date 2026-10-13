@@ -12,7 +12,7 @@ function CloseGlyph({ onClose }: { onClose: () => void }) {
   return (
     <button
       type="button"
-      className="ms-modal-close"
+      className="po-modal-close"
       onClick={onClose}
       aria-label={t("close")}
       style={{
@@ -20,7 +20,7 @@ function CloseGlyph({ onClose }: { onClose: () => void }) {
         border: 0,
         padding: 0,
         cursor: "pointer",
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
         fontSize: 15,
         lineHeight: 1,
       }}
@@ -106,7 +106,7 @@ export function Modal({
   return createPortal(
     // biome-ignore lint/a11y/noStaticElementInteractions: overlay click-to-dismiss; Esc handles keyboard
     <div
-      className="ms-modal-overlay"
+      className="po-modal-overlay"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -114,10 +114,10 @@ export function Modal({
       <div
         className={
           size === "full"
-            ? "ms-modal ms-modal-full"
+            ? "po-modal po-modal-full"
             : size === "wide"
-              ? "ms-modal ms-modal-wide"
-              : "ms-modal"
+              ? "po-modal po-modal-wide"
+              : "po-modal"
         }
         role="dialog"
         aria-modal="true"

@@ -78,14 +78,14 @@ export function makeVariableSuggestionsPopover(strings: VariableSuggestionsStrin
     }));
 
     return (
-      <div className="ms-varsuggest">
-        <div className="ms-varsuggest-header">
+      <div className="po-varsuggest">
+        <div className="po-varsuggest-header">
           <span>{strings.header}</span>
           <BracesGlyph />
         </div>
-        <div ref={listRef} className="ms-varsuggest-list">
+        <div ref={listRef} className="po-varsuggest-list">
           {items.length === 0 ? (
-            <p className="ms-varsuggest-empty">{strings.empty}</p>
+            <p className="po-varsuggest-empty">{strings.empty}</p>
           ) : (
             items.map((item, index) => (
               <button
@@ -93,18 +93,18 @@ export function makeVariableSuggestionsPopover(strings: VariableSuggestionsStrin
                 type="button"
                 data-suggest-item
                 data-active={index === selected || undefined}
-                className="ms-varsuggest-item ms-mono"
+                className="po-varsuggest-item po-mono"
                 onClick={() => onSelectItem(item)}
                 onMouseEnter={() => setSelected(index)}
               >
-                <BracesGlyph className="ms-varsuggest-braces" />
+                <BracesGlyph className="po-varsuggest-braces" />
                 {item.label || item.name}
               </button>
             ))
           )}
         </div>
-        <div className="ms-varsuggest-footer">
-          <span className="ms-varsuggest-keys">
+        <div className="po-varsuggest-footer">
+          <span className="po-varsuggest-keys">
             <kbd>↓</kbd>
             <kbd>↑</kbd> {strings.navigate}
           </span>

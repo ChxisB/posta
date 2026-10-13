@@ -46,7 +46,7 @@ export interface PopoverMenuItem {
 const GAP = 8;
 
 /**
- * "…" overflow menu — an EllipsisGlyph trigger opening a .ms-menu panel, per the
+ * "…" overflow menu — an EllipsisGlyph trigger opening a .po-menu panel, per the
  * canvas dropdown grammar. Items are actions only; use <Select> for value
  * pickers. Pass `null` items to render a separator.
  *
@@ -188,7 +188,7 @@ export function PopoverMenu({
       <button
         ref={triggerRef}
         type="button"
-        className={boxed ? "ms-btn ms-btn-icon" : "ms-menu-trigger-bare"}
+        className={boxed ? "po-btn po-btn-icon" : "po-menu-trigger-bare"}
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -203,20 +203,20 @@ export function PopoverMenu({
             <div
               ref={panelRef}
               role="menu"
-              className="ms-menu"
+              className="po-menu"
               style={position}
               onKeyDown={onPanelKeyDown}
             >
               {items.map((item, index) =>
                 item === null ? (
                   // biome-ignore lint/suspicious/noArrayIndexKey: separators are positional and static
-                  <hr key={`sep-${index}`} className="ms-menu-sep" />
+                  <hr key={`sep-${index}`} className="po-menu-sep" />
                 ) : (
                   <button
                     key={item.label}
                     type="button"
                     role="menuitem"
-                    className={item.danger ? "ms-menu-item danger" : "ms-menu-item"}
+                    className={item.danger ? "po-menu-item danger" : "po-menu-item"}
                     disabled={item.disabled}
                     title={item.title}
                     aria-busy={item.busy}
@@ -229,7 +229,7 @@ export function PopoverMenu({
                     {item.label}
                     {item.busy ? <Spinner size={11} /> : null}
                     {item.trailing ? (
-                      <span style={{ color: "var(--ms-muted)" }} aria-hidden="true">
+                      <span style={{ color: "var(--po-muted)" }} aria-hidden="true">
                         {item.trailing}
                       </span>
                     ) : null}

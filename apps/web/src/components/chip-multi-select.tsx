@@ -11,7 +11,7 @@ const LIST_MAX_HEIGHT = 220;
 /**
  * Token input: selected options render as removable chips inside one
  * input-styled frame, and typing filters the remaining options into an
- * .ms-menu suggestion list. Enter/click adds, Backspace on an empty input
+ * .po-menu suggestion list. Enter/click adds, Backspace on an empty input
  * removes the last chip. Controlled: `value` is the selected option values.
  *
  * The list is portaled to <body> and fixed under the frame: inside a dialog
@@ -35,7 +35,7 @@ export function ChipMultiSelect({
   /** aria-label for a chip's remove button, given the chip's label. */
   removeLabel: (label: string) => string;
   disabled?: boolean;
-  /** Forwarded to the text input so an ms-field <label htmlFor> can target it. */
+  /** Forwarded to the text input so an po-field <label htmlFor> can target it. */
   id?: string;
 }) {
   const [query, setQuery] = useState("");
@@ -116,7 +116,7 @@ export function ChipMultiSelect({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: click just forwards focus to the input inside */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard users focus the inner input directly; the click only forwards focus */}
       <div
-        className="ms-input"
+        className="po-input"
         onClick={() => inputRef.current?.focus()}
         style={{
           height: "auto",
@@ -131,7 +131,7 @@ export function ChipMultiSelect({
         }}
       >
         {chips.map((chip) => (
-          <span key={chip.value} className="ms-chip">
+          <span key={chip.value} className="po-chip">
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {chip.label}
             </span>
@@ -170,8 +170,8 @@ export function ChipMultiSelect({
             border: 0,
             outline: "none",
             background: "none",
-            color: "var(--ms-bone)",
-            font: "400 var(--ms-fs-ui) var(--ms-font-sans)",
+            color: "var(--po-bone)",
+            font: "400 var(--po-fs-ui) var(--po-font-sans)",
             padding: "2px 0",
           }}
         />
@@ -183,8 +183,8 @@ export function ChipMultiSelect({
               id={listboxId}
               role="listbox"
               aria-label={ariaLabel}
-              className="ms-menu"
-              style={{ ...panelStyle, overflowY: "auto", zIndex: "var(--ms-z-menu)" }}
+              className="po-menu"
+              style={{ ...panelStyle, overflowY: "auto", zIndex: "var(--po-z-menu)" }}
             >
               {suggestions.map((option, index) => (
                 <button
@@ -194,7 +194,7 @@ export function ChipMultiSelect({
                   role="option"
                   aria-selected={false}
                   tabIndex={-1}
-                  className={index === activeIndex ? "ms-menu-item active" : "ms-menu-item"}
+                  className={index === activeIndex ? "po-menu-item active" : "po-menu-item"}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => add(option.value)}
                 >

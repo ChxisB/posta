@@ -19,7 +19,7 @@ export const KPI_DECIMALS: Record<Exclude<KpiKind, "sent">, number> = {
 };
 
 export function kpiColor(kind: KpiKind): string {
-  return kind === "sent" || kind === "delivered" ? "var(--ms-steel)" : "var(--ms-muted)";
+  return kind === "sent" || kind === "delivered" ? "var(--po-steel)" : "var(--po-muted)";
 }
 
 interface Counters {
@@ -61,11 +61,11 @@ export function periodLabel(period: Period, common: (key: string) => string): st
 const CHART_HEIGHT = 228;
 
 function ChartSkeleton() {
-  return <Skeleton width="100%" height={CHART_HEIGHT} radius="var(--ms-r-input)" />;
+  return <Skeleton width="100%" height={CHART_HEIGHT} radius="var(--po-r-input)" />;
 }
 
 function ChartNote({ children }: { children: React.ReactNode }) {
-  return <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>{children}</p>;
+  return <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--po-muted)" }}>{children}</p>;
 }
 
 function Empty() {
@@ -77,7 +77,7 @@ function Empty() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
         fontSize: 13,
       }}
     >
@@ -176,7 +176,7 @@ export function ProbeChart({
           {
             key: probe,
             label,
-            color: "var(--ms-steel)",
+            color: "var(--po-steel)",
             values: data.points.map((p) => (p.value ?? 0) * scale),
             area: true,
           },
@@ -215,7 +215,7 @@ export function TeamsChart({ period, label }: { period: Period; label: string })
     <LineChart
       days={days}
       height={CHART_HEIGHT}
-      series={[{ key: "teams", label, color: "var(--ms-steel)", values, area: true }]}
+      series={[{ key: "teams", label, color: "var(--po-steel)", values, area: true }]}
       formatDay={(day) => formatDayUtc(day, locale)}
       formatValue={(v) => fmt.format(v)}
     />

@@ -29,7 +29,7 @@ export function SortableTh({
   const active = sort === column;
   return (
     <th
-      className={right ? "right ms-th-sortable" : "ms-th-sortable"}
+      className={right ? "right po-th-sortable" : "po-th-sortable"}
       aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}
       style={style}
     >
@@ -38,7 +38,7 @@ export function SortableTh({
         onClick={() => onSort(column, active ? (dir === "asc" ? "desc" : "asc") : defaultDir)}
       >
         {label}
-        <span className="ms-th-caret" aria-hidden="true">
+        <span className="po-th-caret" aria-hidden="true">
           {active ? (dir === "asc" ? "↑" : "↓") : "↕"}
         </span>
       </button>

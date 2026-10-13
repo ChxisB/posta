@@ -15,14 +15,14 @@ type RegionList = inferRouterOutputs<AppRouter>["console"]["regions"]["list"];
 
 const cardTitle: React.CSSProperties = {
   margin: "0 0 4px",
-  fontSize: "var(--ms-fs-section)",
+  fontSize: "var(--po-fs-section)",
   fontWeight: 600,
 };
-const cardSub: React.CSSProperties = { margin: 0, fontSize: 13, color: "var(--ms-muted)" };
+const cardSub: React.CSSProperties = { margin: 0, fontSize: 13, color: "var(--po-muted)" };
 const hintStyle: React.CSSProperties = {
   margin: "10px 0 0",
   fontSize: 12.5,
-  color: "var(--ms-muted)",
+  color: "var(--po-muted)",
 };
 
 /**
@@ -63,7 +63,7 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
   };
 
   return (
-    <div className="ms-card" style={{ padding: 20 }}>
+    <div className="po-card" style={{ padding: 20 }}>
       <div style={{ marginBottom: 16 }}>
         <h3 style={cardTitle}>{t("title")}</h3>
         <p style={cardSub}>{t("help")}</p>
@@ -74,7 +74,7 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
           submit();
         }}
       >
-        <div className="ms-field" style={{ maxWidth: 260 }}>
+        <div className="po-field" style={{ maxWidth: 260 }}>
           <label htmlFor="reserve-percent">{t("label")}</label>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <input
@@ -83,13 +83,13 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
               min={reserve.min}
               max={reserve.max}
               step={1}
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: 90 }}
               value={value}
               disabled={save.isPending}
               onChange={(event) => setDraft(event.target.value)}
             />
-            <span style={{ fontSize: 13, color: "var(--ms-muted)", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 13, color: "var(--po-muted)", whiteSpace: "nowrap" }}>
               {t("unit", { min: reserve.min, max: reserve.max })}
             </span>
           </div>
@@ -99,7 +99,7 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
             ? t("hint", { ...hintValues, share: f.pct0(hint.txPeak7d / hint.usableReserveNow) })
             : t("hintNoQuota", hintValues)}
         </p>
-        <dl className="ms-kv" style={{ marginTop: 14 }}>
+        <dl className="po-kv" style={{ marginTop: 14 }}>
           {list.served.map((r) => (
             <KvRow key={r.region} label={r.region}>
               {r.share !== null && r.usableReserve !== null
@@ -121,7 +121,7 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
         >
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={!dirty || save.isPending}
             onClick={() => setDraft(null)}
           >
@@ -129,7 +129,7 @@ export function ReserveCard({ list, onChanged }: { list: RegionList; onChanged: 
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!dirty || !valid || save.isPending}
           >
             <BtnSpinner on={save.isPending} />

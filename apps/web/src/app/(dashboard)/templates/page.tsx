@@ -69,7 +69,7 @@ function TemplatesSkeleton() {
 function NewTemplateButton() {
   const t = useTranslations("templates");
   return (
-    <Link className="ms-btn ms-btn-primary" href="/templates/new">
+    <Link className="po-btn po-btn-primary" href="/templates/new">
       <PlusGlyph size={14} />
       {t("list.new")}
     </Link>
@@ -150,7 +150,7 @@ export default function TemplatesPage() {
                         <NavTile name="templates" color={TONE_COLOR.neutral} />
                         <Link
                           href={href}
-                          style={{ color: "var(--ms-bone)", minWidth: 0 }}
+                          style={{ color: "var(--po-bone)", minWidth: 0 }}
                           onClick={(event) => event.stopPropagation()}
                         >
                           <Truncated text={row.name} />
@@ -158,7 +158,7 @@ export default function TemplatesPage() {
                         {row.htmlAuthored ? (
                           <Tooltip inline text={t("list.htmlChipHint")}>
                             <span
-                              className="ms-chip"
+                              className="po-chip"
                               style={{ fontSize: 10.5, padding: "1px 7px" }}
                             >
                               HTML
@@ -167,7 +167,7 @@ export default function TemplatesPage() {
                         ) : null}
                       </span>
                     </td>
-                    <td className="right" style={{ color: "var(--ms-muted)" }}>
+                    <td className="right" style={{ color: "var(--po-muted)" }}>
                       <RelativeTime date={row.updatedAt} />
                     </td>
                     {/* biome-ignore lint/a11y/useKeyWithClickEvents: mouse-only guard so a menu click does not also trigger the row navigation; keyboard users reach the menu button directly */}
@@ -222,16 +222,16 @@ export default function TemplatesPage() {
             submitDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("list.deleteBody", { name: deleteTarget?.name ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

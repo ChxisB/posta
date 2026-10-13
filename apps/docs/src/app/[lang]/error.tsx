@@ -4,7 +4,7 @@ import Link from "next/link";
 
 // Segment error boundary: rendered inside DocsLayout, so navigation survives
 // a page that throws. English only, like the 404. Same rhythm as the
-// dashboard's .ms-status and the LP's .lp-status.
+// dashboard's .po-status and the LP's .lp-status.
 export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">

@@ -1,7 +1,7 @@
 import { DotParts } from "./dot-parts";
 
 /**
- * One label/value pair of a `.ms-kv` list (components.css): the value stays
+ * One label/value pair of a `.po-kv` list (components.css): the value stays
  * on its label's line when it fits and moves under the label when it does
  * not. A string value breaks only between its " · "-joined parts.
  */
@@ -15,7 +15,7 @@ export function KvRow({
   valueStyle?: React.CSSProperties;
 }) {
   return (
-    <div className="ms-kv-row">
+    <div className="po-kv-row">
       <dt>{label}</dt>
       <dd style={valueStyle}>
         {typeof children === "string" ? <DotParts text={children} /> : children}

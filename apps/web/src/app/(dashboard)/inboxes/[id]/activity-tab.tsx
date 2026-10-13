@@ -33,7 +33,7 @@ export function ActivityTab({ inboxId }: { inboxId: string }) {
   }
   const rows = query.data.pages.flatMap((page) => page.items);
   if (rows.length === 0) {
-    return <p style={{ fontSize: 13, color: "var(--ms-muted)" }}>{t("activity.empty")}</p>;
+    return <p style={{ fontSize: 13, color: "var(--po-muted)" }}>{t("activity.empty")}</p>;
   }
   return (
     <>
@@ -58,7 +58,7 @@ export function ActivityTab({ inboxId }: { inboxId: string }) {
                   ? t(`activity.actions.${row.action}`)
                   : row.action}
               </td>
-              <td style={{ fontSize: 12.5, color: "var(--ms-muted)" }}>
+              <td style={{ fontSize: 12.5, color: "var(--po-muted)" }}>
                 {row.decision ? approvalReasonWords(t, row.decision.reasons) : ""}
               </td>
             </tr>

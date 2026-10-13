@@ -71,11 +71,11 @@ function PlanForm({
           submit();
         }}
       >
-        <div className="ms-field" style={{ marginTop: 6 }}>
+        <div className="po-field" style={{ marginTop: 6 }}>
           <label htmlFor={`${id}-${detail.rungs[0]?.key}`}>{t("planDialog.rung")}</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {detail.rungs.map((rung) => (
-              <label key={rung.key} className="ms-radio-card">
+              <label key={rung.key} className="po-radio-card">
                 <input
                   id={`${id}-${rung.key}`}
                   type="radio"
@@ -93,22 +93,22 @@ function PlanForm({
           </div>
         </div>
         <p
-          style={{ margin: "14px 0 0", color: "var(--ms-muted)", fontSize: 12.5, lineHeight: 1.5 }}
+          style={{ margin: "14px 0 0", color: "var(--po-muted)", fontSize: 12.5, lineHeight: 1.5 }}
         >
           {t("planDialog.note")}
         </p>
         {managed ? (
           <p
-            style={{ margin: "10px 0 0", color: "var(--ms-warn)", fontSize: 12.5, lineHeight: 1.5 }}
+            style={{ margin: "10px 0 0", color: "var(--po-warn)", fontSize: 12.5, lineHeight: 1.5 }}
           >
             {t("planDialog.managed")}
           </p>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={!canConfirm}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={!canConfirm}>
             <BtnSpinner on={pending} />
             {t("planDialog.confirm")} <ConfirmKeycap />
           </button>
@@ -140,7 +140,7 @@ export function PlanDialog({
     <Modal open onClose={onClose} title={t("planDialog.title", { team: name })}>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
         {[0, 1, 2, 3, 4].map((row) => (
-          <Skeleton key={row} width="100%" height={46} radius="var(--ms-r-input)" />
+          <Skeleton key={row} width="100%" height={46} radius="var(--po-r-input)" />
         ))}
       </div>
     </Modal>

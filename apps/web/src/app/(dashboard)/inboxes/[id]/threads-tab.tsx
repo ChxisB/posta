@@ -28,12 +28,12 @@ const MOVE_TO = ["inbox", "archive", "spam", "trash"] as const;
 const NEW_LABEL = "new";
 
 const card: React.CSSProperties = {
-  border: "1px solid var(--ms-line)",
+  border: "1px solid var(--po-line)",
   borderRadius: 12,
-  background: "var(--ms-panel)",
+  background: "var(--po-panel)",
   padding: "14px 16px",
 };
-const muted: React.CSSProperties = { fontSize: 12, color: "var(--ms-muted)" };
+const muted: React.CSSProperties = { fontSize: 12, color: "var(--po-muted)" };
 
 export function ThreadsTab({ inbox }: { inbox: InboxDetail }) {
   const t = useTranslations("inboxes");
@@ -62,7 +62,7 @@ export function ThreadsTab({ inbox }: { inbox: InboxDetail }) {
   return (
     <>
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}
       >
         <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
@@ -70,12 +70,12 @@ export function ThreadsTab({ inbox }: { inbox: InboxDetail }) {
             <button
               key={key}
               type="button"
-              className="ms-chip"
+              className="po-chip"
               aria-pressed={folder === key}
               style={{
                 cursor: "pointer",
-                color: folder === key ? "var(--ms-bone)" : undefined,
-                borderColor: folder === key ? "var(--ms-bone)" : undefined,
+                color: folder === key ? "var(--po-bone)" : undefined,
+                borderColor: folder === key ? "var(--po-bone)" : undefined,
               }}
               onClick={() => setFolder(key)}
             >
@@ -85,7 +85,7 @@ export function ThreadsTab({ inbox }: { inbox: InboxDetail }) {
         </span>
         <SearchBox value={search} onChange={setSearch} placeholder={t("search")} />
       </div>
-      <div className={threadId ? "ms-grid ms-grid-12" : undefined}>
+      <div className={threadId ? "po-grid po-grid-12" : undefined}>
         <div>
           {active.isPending ? (
             <div style={{ display: "grid", gap: 8 }}>
@@ -121,7 +121,7 @@ export function ThreadsTab({ inbox }: { inbox: InboxDetail }) {
               {active.hasNextPage ? (
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   style={{ justifySelf: "end" }}
                   disabled={active.isFetchingNextPage}
                   onClick={() => active.fetchNextPage()}
@@ -162,15 +162,15 @@ function ThreadListRow({
         font: "inherit",
         color: "inherit",
         cursor: "pointer",
-        borderColor: selected ? "var(--ms-line-strong)" : undefined,
-        background: selected ? "var(--ms-panel-raised)" : card.background,
+        borderColor: selected ? "var(--po-line-strong)" : undefined,
+        background: selected ? "var(--po-panel-raised)" : card.background,
       }}
     >
       <span style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
         <span
           style={{
             fontWeight: row.read ? 500 : 700,
-            color: "var(--ms-bone)",
+            color: "var(--po-bone)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -196,20 +196,20 @@ function ThreadListRow({
       </span>
       <span style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
         {row.pending_approval ? (
-          <span className="ms-badge ms-badge-warn">{t("badge.draft")}</span>
+          <span className="po-badge po-badge-warn">{t("badge.draft")}</span>
         ) : null}
         {row.replied ? (
-          <span className="ms-badge ms-badge-neutral">{t("badge.replied")}</span>
+          <span className="po-badge po-badge-neutral">{t("badge.replied")}</span>
         ) : null}
         {row.quarantined > 0 ? <QuarantinedBadge reason={row.quarantine_reason} /> : null}
         {agent && row.injection_score !== null ? (
-          <span className="ms-badge ms-badge-neutral">
+          <span className="po-badge po-badge-neutral">
             {t("badge.injection", { score: row.injection_score })}
           </span>
         ) : null}
         {row.labels.map((label) => (
-          <span key={label.id} className="ms-badge ms-badge-neutral">
-            <span className="ms-dot" style={{ background: label.color }} aria-hidden="true" />{" "}
+          <span key={label.id} className="po-badge po-badge-neutral">
+            <span className="po-dot" style={{ background: label.color }} aria-hidden="true" />{" "}
             {label.name}
           </span>
         ))}
@@ -294,11 +294,11 @@ function ThreadPane({
     <section style={{ display: "grid", gap: 10, alignContent: "start" }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <h2
-          className="ms-display"
+          className="po-display"
           style={{
-            fontSize: "var(--ms-fs-h2)",
+            fontSize: "var(--po-fs-h2)",
             margin: 0,
-            color: "var(--ms-bone)",
+            color: "var(--po-bone)",
             flex: "1 1 14rem",
           }}
         >
@@ -341,7 +341,7 @@ function ThreadPane({
                 { value: NEW_LABEL, label: t("newLabel") },
               ]}
             />
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
+            <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
               {t("close")}
             </button>
           </>
@@ -356,7 +356,7 @@ function ThreadPane({
           }}
         >
           <input
-            className="ms-input"
+            className="po-input"
             style={{ flex: "1 1 auto", minWidth: 0 }}
             value={naming}
             maxLength={64}
@@ -367,7 +367,7 @@ function ThreadPane({
           />
           <button
             type="submit"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={!naming.trim() || createLabel.isPending}
           >
             {t("addLabelSubmit")}
@@ -377,8 +377,8 @@ function ThreadPane({
       {summary && summary.labels.length > 0 ? (
         <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {summary.labels.map((label) => (
-            <span key={label.id} className="ms-chip">
-              <span className="ms-dot" style={{ background: label.color }} aria-hidden="true" />
+            <span key={label.id} className="po-chip">
+              <span className="po-dot" style={{ background: label.color }} aria-hidden="true" />
               {label.name}
               <button
                 type="button"
@@ -405,7 +405,7 @@ function ThreadPane({
       {messages.hasNextPage ? (
         <button
           type="button"
-          className="ms-btn ms-btn-secondary"
+          className="po-btn po-btn-secondary"
           disabled={messages.isFetchingNextPage}
           onClick={() => messages.fetchNextPage()}
         >
@@ -457,10 +457,10 @@ function MessageCard({
   const held = verdict === "quarantined";
   const href = inbound ? `/inboxes/received/${message.id}` : `/emails/${message.id}`;
   return (
-    <article style={{ ...card, borderColor: held ? "var(--ms-danger-border)" : undefined }}>
+    <article style={{ ...card, borderColor: held ? "var(--po-danger-border)" : undefined }}>
       <header style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <span style={{ fontWeight: 600, color: "var(--ms-bone)" }}>{senderName(message.from)}</span>
-        <span className="ms-mono" style={muted}>
+        <span style={{ fontWeight: 600, color: "var(--po-bone)" }}>{senderName(message.from)}</span>
+        <span className="po-mono" style={muted}>
           {addrSpec(message.from)}
         </span>
         {inbound ? (
@@ -468,16 +468,16 @@ function MessageCard({
             <TrustBadge trust={message.screening.sender_trust} />
             {held ? <QuarantinedBadge reason={message.screening.quarantine_reason} /> : null}
             {inbox.kind === "agent" && message.screening.injection_score !== null ? (
-              <span className="ms-badge ms-badge-neutral">
+              <span className="po-badge po-badge-neutral">
                 {t("badge.injection", { score: message.screening.injection_score })}
               </span>
             ) : null}
             {message.screening.hidden_text_removed ? (
-              <span className="ms-badge ms-badge-warn">{t("message.hiddenText")}</span>
+              <span className="po-badge po-badge-warn">{t("message.hiddenText")}</span>
             ) : null}
           </>
         ) : (
-          <span className="ms-badge ms-badge-neutral">{message.status}</span>
+          <span className="po-badge po-badge-neutral">{message.status}</span>
         )}
         <span style={{ ...muted, marginLeft: "auto" }}>
           <RelativeTime date={message.received_at} />
@@ -485,13 +485,13 @@ function MessageCard({
       </header>
       {held ? (
         <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--ms-danger)" }}>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--po-danger)" }}>
             {t("message.quarantined")}
           </p>
           <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={release.isPending || inbox.expired}
               onClick={() =>
                 release.mutate({ inboxId: inbox.id, emailId: message.id, trustSender: false })
@@ -502,7 +502,7 @@ function MessageCard({
             </button>
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled={release.isPending || inbox.expired}
               onClick={() =>
                 release.mutate({ inboxId: inbox.id, emailId: message.id, trustSender: true })
@@ -513,7 +513,7 @@ function MessageCard({
           </span>
         </div>
       ) : verdict === "pending" ? (
-        <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           {t("message.screening")}
         </p>
       ) : null}
@@ -533,7 +533,7 @@ function MessageCard({
       {message.attachments.length > 0 ? (
         <ul style={{ margin: "10px 0 0", padding: 0, listStyle: "none", ...muted }}>
           {message.attachments.map((attachment) => (
-            <li key={attachment.id} className="ms-mono">
+            <li key={attachment.id} className="po-mono">
               {attachment.filename ?? t("detail.unnamed")}
               {attachment.size !== null ? ` · ${formatBytes(attachment.size)}` : ""}
             </li>
@@ -542,7 +542,7 @@ function MessageCard({
       ) : null}
       <Link
         href={href}
-        className="ms-link"
+        className="po-link"
         style={{ display: "inline-block", marginTop: 10, fontSize: 12.5 }}
       >
         {t("openEmail")}
@@ -592,9 +592,9 @@ function DraftCard({
   const busy = approve.isPending || reject.isPending || save.isPending;
   const body = draft.data?.text ?? "";
   return (
-    <article style={{ ...card, borderColor: "var(--ms-warn-border)" }}>
+    <article style={{ ...card, borderColor: "var(--po-warn-border)" }}>
       <header style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "baseline" }}>
-        <span style={{ fontWeight: 600, color: "var(--ms-warn)" }}>{t("draft.title")}</span>
+        <span style={{ fontWeight: 600, color: "var(--po-warn)" }}>{t("draft.title")}</span>
         <span style={muted}>{approvalReasonWords(t, reasons)}</span>
         {draft.data ? (
           <span style={{ ...muted, marginLeft: "auto" }}>
@@ -604,7 +604,7 @@ function DraftCard({
       </header>
       {editing !== null ? (
         <textarea
-          className="ms-input"
+          className="po-input"
           rows={6}
           style={{ width: "100%", marginTop: 10, resize: "vertical" }}
           value={editing}
@@ -619,7 +619,7 @@ function DraftCard({
       <span style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         <button
           type="button"
-          className="ms-btn ms-btn-destructive"
+          className="po-btn po-btn-destructive"
           disabled={busy}
           onClick={() => reject.mutate({ inboxId, draftId })}
         >
@@ -628,7 +628,7 @@ function DraftCard({
         {editing === null ? (
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={busy || draft.isPending}
             onClick={() => setEditing(body)}
           >
@@ -637,7 +637,7 @@ function DraftCard({
         ) : (
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={busy || editing.trim() === ""}
             onClick={() => save.mutate({ inboxId, draftId, patch: { text: editing } })}
           >
@@ -646,7 +646,7 @@ function DraftCard({
         )}
         <button
           type="button"
-          className="ms-btn ms-btn-primary"
+          className="po-btn po-btn-primary"
           disabled={busy || editing !== null}
           onClick={() => approve.mutate({ inboxId, draftId })}
         >
@@ -696,7 +696,7 @@ function ReplyComposer({
       }}
     >
       <textarea
-        className="ms-input"
+        className="po-input"
         rows={4}
         style={{ width: "100%", resize: "vertical" }}
         placeholder={t("compose.replyPlaceholder")}
@@ -722,7 +722,7 @@ function ReplyComposer({
         </label>
         <button
           type="submit"
-          className="ms-btn ms-btn-primary"
+          className="po-btn po-btn-primary"
           disabled={!text.trim() || reply.isPending}
         >
           <BtnSpinner on={reply.isPending} />

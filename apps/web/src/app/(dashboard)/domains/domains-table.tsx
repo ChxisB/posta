@@ -152,7 +152,7 @@ export function DomainsView() {
         actions={
           <>
             {canManage ? <ExportCsvLink href="/export/domains" /> : null}
-            <Link href="/domains/new" className="ms-btn ms-btn-primary">
+            <Link href="/domains/new" className="po-btn po-btn-primary">
               <PlusGlyph size={14} />
               {t("list.addDomain")}
             </Link>
@@ -165,15 +165,15 @@ export function DomainsView() {
 
       {domains.isError ? (
         <div
-          className="ms-card"
+          className="po-card"
           style={{ padding: "24px", display: "flex", gap: 14, alignItems: "center" }}
         >
-          <p style={{ margin: 0, color: "var(--ms-bone)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-bone)", fontSize: "var(--po-fs-ui)" }}>
             {t("list.error")}
           </p>
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             onClick={() => domains.refetch()}
           >
             {t("list.retry")}
@@ -185,7 +185,7 @@ export function DomainsView() {
           headline={t("list.empty")}
           body={t("list.emptyBody")}
           cta={
-            <Link href="/domains/new" className="ms-btn ms-btn-primary">
+            <Link href="/domains/new" className="po-btn po-btn-primary">
               <PlusGlyph />
               {t("list.addDomain")}
             </Link>
@@ -194,7 +194,7 @@ export function DomainsView() {
       ) : (
         <>
           <div
-            className="ms-filter-row"
+            className="po-filter-row"
             style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
           >
             {/* Search stretches to fill the filter row; the selects keep fixed widths. */}
@@ -202,7 +202,7 @@ export function DomainsView() {
               <input
                 ref={searchRef}
                 type="text"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 placeholder={t("list.searchPlaceholder")}
                 value={search}
@@ -263,7 +263,7 @@ export function DomainsView() {
                   <tbody>
                     {filtered.map((domain) => (
                       <tr key={domain.id}>
-                        <td className="ms-mono">
+                        <td className="po-mono">
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                             <NavTile
                               name="domains"
@@ -277,10 +277,10 @@ export function DomainsView() {
                         <td>
                           <DomainStatusBadge status={shown(domain)} />
                         </td>
-                        <td style={{ color: "var(--ms-muted)" }}>
+                        <td style={{ color: "var(--po-muted)" }}>
                           <RegionLabel region={domain.region} />
                         </td>
-                        <td className="right" style={{ color: "var(--ms-muted)" }}>
+                        <td className="right" style={{ color: "var(--po-muted)" }}>
                           <RelativeTime date={domain.createdAt} />
                         </td>
                         <td className="right" style={{ width: 40 }}>
@@ -347,7 +347,7 @@ export function DomainsView() {
           <p
             style={{
               margin: "10px 0 14px",
-              color: "var(--ms-muted)",
+              color: "var(--po-muted)",
               fontSize: 13.5,
               lineHeight: 1.6,
             }}
@@ -355,12 +355,12 @@ export function DomainsView() {
             {t("detail.deleteBody")}
           </p>
           {deleteTarget ? <CopyChip value={deleteTarget.name} /> : null}
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="domain-delete-confirm">{t("detail.deleteConfirmLabel")}</label>
             <input
               id="domain-delete-confirm"
               type="text"
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: "100%" }}
               placeholder={deleteTarget?.name}
               autoComplete="off"
@@ -374,20 +374,20 @@ export function DomainsView() {
             <p
               style={{
                 margin: "8px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {guardMessage(deleteMutation.error, t("detail.deleteError"))}
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={confirmText !== deleteTarget?.name || deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

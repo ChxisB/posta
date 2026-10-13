@@ -79,12 +79,12 @@ export function ForgotPasswordForm({
             {t("subline")} <Link href="/login">{t("sublineLink")}</Link>
           </p>
           <form onSubmit={onSubmit} className={styles.form}>
-            <div className={`ms-field ${styles.field}`}>
+            <div className={`po-field ${styles.field}`}>
               <label htmlFor="email">{t("email")}</label>
               <input
                 id="email"
                 type="email"
-                className={`ms-input ${styles.control}`}
+                className={`po-input ${styles.control}`}
                 autoComplete="email"
                 placeholder={t("emailPlaceholder")}
                 required
@@ -96,7 +96,7 @@ export function ForgotPasswordForm({
             {turnstile.slot}
             <button
               type="submit"
-              className={`ms-btn ms-btn-primary ${styles.button}`}
+              className={`po-btn po-btn-primary ${styles.button}`}
               disabled={pending}
             >
               {t("submit")}
@@ -168,12 +168,12 @@ export function ResetPasswordForm({ token: initialToken }: { token: string | nul
         </p>
       ) : (
         <form onSubmit={onSubmit} className={styles.form}>
-          <div className={`ms-field ${styles.field}`}>
+          <div className={`po-field ${styles.field}`}>
             <label htmlFor="password">{t("password")}</label>
             <input
               id="password"
               type="password"
-              className={`ms-input ${styles.control}`}
+              className={`po-input ${styles.control}`}
               autoComplete="new-password"
               placeholder={t("passwordPlaceholder")}
               required
@@ -183,12 +183,12 @@ export function ResetPasswordForm({ token: initialToken }: { token: string | nul
             />
             <StrengthMeter password={password} />
           </div>
-          <div className={`ms-field ${styles.field}`}>
+          <div className={`po-field ${styles.field}`}>
             <label htmlFor="confirm">{t("confirm")}</label>
             <input
               id="confirm"
               type="password"
-              className={`ms-input ${styles.control}`}
+              className={`po-input ${styles.control}`}
               autoComplete="new-password"
               placeholder={t("confirmPlaceholder")}
               required
@@ -200,7 +200,7 @@ export function ResetPasswordForm({ token: initialToken }: { token: string | nul
           {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
           <button
             type="submit"
-            className={`ms-btn ms-btn-primary ${styles.button}`}
+            className={`po-btn po-btn-primary ${styles.button}`}
             disabled={pending}
           >
             {t("submit")}

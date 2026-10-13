@@ -409,12 +409,12 @@ describe("the media panel and its row action", () => {
     const media = (html: string) => html.match(/>Media</g)?.length ?? 0;
     const on = renderToStaticMarkup(createElement(WaitingList, { teamId }));
     expect(media(on)).toBe(1);
-    expect(on).toMatch(/<button type="button" class="ms-link"[^>]*>Media<\/button> · /);
+    expect(on).toMatch(/<button type="button" class="po-link"[^>]*>Media<\/button> · /);
 
     h.queries = { "console.safety.waiting": { ...waiting, contentReveal: false } };
     const off = renderToStaticMarkup(createElement(WaitingList, { teamId }));
     expect(off).toContain(
-      '<span data-tip="Content access is off on this instance: set CONTENT_REVEAL=on in its environment."><span style="color:var(--ms-muted)">Media</span></span>',
+      '<span data-tip="Content access is off on this instance: set CONTENT_REVEAL=on in its environment."><span style="color:var(--po-muted)">Media</span></span>',
     );
   });
 
@@ -436,9 +436,9 @@ describe("the media panel and its row action", () => {
     );
     expect(html).toContain('data-title="Images and attachments · acme"');
     expect(html).toContain(
-      'Images or files<span style="color:var(--ms-muted)">· a QR code could not be decoded</span>',
+      'Images or files<span style="color:var(--po-muted)">· a QR code could not be decoded</span>',
     );
-    expect(html).toContain('<span class="ms-redact">••••••</span>');
+    expect(html).toContain('<span class="po-redact">••••••</span>');
     expect(html).not.toContain("448122");
     // Words left, figures right.
     expect(html).toContain('<th class="right">Size</th><th class="right">Pages</th>');

@@ -24,13 +24,13 @@ function HtmlSource({ html, formatted }: { html: string; formatted: boolean }) {
   );
   return (
     <pre
-      className="ms-mono ms-hl"
+      className="po-mono po-hl"
       style={{
         margin: 0,
         padding: "16px 18px",
         fontSize: 12,
         lineHeight: 1.7,
-        color: "var(--ms-bone)",
+        color: "var(--po-bone)",
         overflowX: "auto",
       }}
     >
@@ -125,10 +125,10 @@ function InsightsSection({
           width: "100%",
           background: "none",
           border: 0,
-          borderBottom: "1px solid var(--ms-line)",
+          borderBottom: "1px solid var(--po-line)",
           padding: "9px 2px",
           font: "inherit",
-          color: greyed ? "var(--ms-faint)" : "var(--ms-bone)",
+          color: greyed ? "var(--po-faint)" : "var(--po-bone)",
           cursor: "pointer",
           textAlign: "left",
         }}
@@ -138,11 +138,11 @@ function InsightsSection({
         </span>
         <span style={{ fontSize: 13.5 }}>{t(`insights.check.${check.id}.title`)}</span>
         {check.status === "passed_by_design" ? (
-          <span className="ms-chip" style={{ fontSize: 10.5, padding: "1px 7px" }}>
+          <span className="po-chip" style={{ fontSize: 10.5, padding: "1px 7px" }}>
             {t("insights.byDesign")}
           </span>
         ) : null}
-        <span aria-hidden="true" style={{ marginLeft: "auto", color: "var(--ms-faint)" }}>
+        <span aria-hidden="true" style={{ marginLeft: "auto", color: "var(--po-faint)" }}>
           ›
         </span>
       </button>
@@ -152,26 +152,26 @@ function InsightsSection({
   return (
     <div style={{ padding: "20px 18px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span className="ms-digits" style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1 }}>
+        <span className="po-digits" style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1 }}>
           {formatScoreTenths(insights.scoreTenths, locale)}
         </span>
-        <span className="ms-digits" style={{ fontSize: 15, color: "var(--ms-muted)" }}>
+        <span className="po-digits" style={{ fontSize: 15, color: "var(--po-muted)" }}>
           {t("insights.outOfTen")}
         </span>
-        <span className={`ms-badge ms-badge-${BAND_TONE[insights.band]}`}>
+        <span className={`po-badge po-badge-${BAND_TONE[insights.band]}`}>
           {common(`band.${insights.band}`)}
         </span>
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 6 }}>
+      <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 6 }}>
         {t("insights.reportFrom", { date: formatDayTime(insights.computedAt, locale) })}
       </div>
 
       {groups.map((group) =>
         group.rows.length === 0 ? null : (
           <div key={group.key} style={{ marginTop: 20 }}>
-            <div className="ms-microlabel">{t(`insights.groups.${group.key}`)}</div>
+            <div className="po-microlabel">{t(`insights.groups.${group.key}`)}</div>
             {group.key === "notChecked" ? (
-              <div style={{ fontSize: 12.5, color: "var(--ms-faint)", marginTop: 3 }}>
+              <div style={{ fontSize: 12.5, color: "var(--po-faint)", marginTop: 3 }}>
                 {t("insights.notCheckedWhy")}
               </div>
             ) : null}
@@ -184,7 +184,7 @@ function InsightsSection({
         <div style={{ marginTop: 20 }}>
           <button
             type="button"
-            className="ms-microlabel"
+            className="po-microlabel"
             onClick={() => setNaOpen((v) => !v)}
             style={{
               background: "none",
@@ -214,33 +214,33 @@ function InsightsSection({
       >
         {openCheck ? (
           <>
-            <p style={{ fontSize: 13.5, color: "var(--ms-muted)", lineHeight: 1.6, marginTop: 16 }}>
+            <p style={{ fontSize: 13.5, color: "var(--po-muted)", lineHeight: 1.6, marginTop: 16 }}>
               {t(`insights.check.${openCheck.id}.description`)}
             </p>
             {openCheck.status === "passed_by_design" ? (
-              <p style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.6 }}>
                 {t("insights.byDesignNote")}
               </p>
             ) : null}
             {openCheck.status === "unknown" ? (
-              <p style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.6 }}>
                 {t("insights.notCheckedWhy")}
               </p>
             ) : null}
-            <div className="ms-microlabel" style={{ margin: "18px 0 6px" }}>
+            <div className="po-microlabel" style={{ margin: "18px 0 6px" }}>
               {t("insights.adviceLabel")}
             </div>
-            <p style={{ margin: 0, fontSize: 13.5, color: "var(--ms-bone)", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: 13.5, color: "var(--po-bone)", lineHeight: 1.6 }}>
               {t(`insights.check.${openCheck.id}.advice`)}
             </p>
             {detailLine(openCheck) ? (
               <>
-                <div className="ms-microlabel" style={{ margin: "18px 0 6px" }}>
+                <div className="po-microlabel" style={{ margin: "18px 0 6px" }}>
                   {t("insights.detailLabel")}
                 </div>
                 <div
-                  className="ms-mono"
-                  style={{ fontSize: 12.5, color: "var(--ms-bone)", overflowWrap: "anywhere" }}
+                  className="po-mono"
+                  style={{ fontSize: 12.5, color: "var(--po-bone)", overflowWrap: "anywhere" }}
                 >
                   {detailLine(openCheck)}
                 </div>
@@ -248,14 +248,14 @@ function InsightsSection({
             ) : null}
             {openCheck.status === "fail" ? (
               <>
-                <div className="ms-microlabel" style={{ margin: "18px 0 6px" }}>
+                <div className="po-microlabel" style={{ margin: "18px 0 6px" }}>
                   {t("insights.handoffLabel")}
                 </div>
                 <p
                   style={{
                     margin: "0 0 10px",
                     fontSize: 13,
-                    color: "var(--ms-muted)",
+                    color: "var(--po-muted)",
                     lineHeight: 1.6,
                   }}
                 >
@@ -335,8 +335,8 @@ export function EmailContentPanel({
   return (
     <div
       style={{
-        background: "var(--ms-panel)",
-        border: "1px solid var(--ms-line)",
+        background: "var(--po-panel)",
+        border: "1px solid var(--po-line)",
         borderRadius: 14,
         overflow: "hidden",
       }}
@@ -353,11 +353,11 @@ export function EmailContentPanel({
           alignItems: "center",
           gap: 6,
           padding: "10px 12px",
-          borderBottom: "1px solid var(--ms-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div
-          className="ms-scroll-x"
+          className="po-scroll-x"
           style={{ display: "flex", gap: 6, overflowX: "auto", flex: "0 1 auto", minWidth: 0 }}
         >
           {(received ? RECEIVED_TAB_KEYS : TAB_KEYS).map((key) => (
@@ -372,8 +372,8 @@ export function EmailContentPanel({
                 borderRadius: 8,
                 border: 0,
                 cursor: "pointer",
-                background: tab === key ? "var(--ms-panel-raised)" : "none",
-                color: tab === key ? "var(--ms-bone)" : "var(--ms-muted)",
+                background: tab === key ? "var(--po-panel-raised)" : "none",
+                color: tab === key ? "var(--po-bone)" : "var(--po-muted)",
                 font: "inherit",
               }}
               onClick={() => setTab(key)}
@@ -403,7 +403,7 @@ export function EmailContentPanel({
                   alignItems: "center",
                   gap: 8,
                   fontSize: 12,
-                  color: "var(--ms-muted)",
+                  color: "var(--po-muted)",
                 }}
               >
                 {t("detail.formatted")}
@@ -428,10 +428,10 @@ export function EmailContentPanel({
           />
         ) : (
           <div style={{ padding: "16px 18px" }}>
-            <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+            <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
               {t("insights.empty")}
             </p>
-            <p style={{ margin: "6px 0 0", color: "var(--ms-faint)", fontSize: 13 }}>
+            <p style={{ margin: "6px 0 0", color: "var(--po-faint)", fontSize: 13 }}>
               {t("insights.emptyHint")}
             </p>
           </div>
@@ -441,8 +441,8 @@ export function EmailContentPanel({
           style={{
             margin: 0,
             padding: "16px 18px",
-            color: "var(--ms-muted)",
-            fontSize: "var(--ms-fs-ui)",
+            color: "var(--po-muted)",
+            fontSize: "var(--po-fs-ui)",
           }}
         >
           {t(email.hiddenBySupportView ? "detail.hiddenBySupportView" : "detail.bodyPurged")}
@@ -475,8 +475,8 @@ export function EmailContentPanel({
                 style={{
                   margin: 0,
                   padding: "16px 18px",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-ui)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-ui)",
                 }}
               >
                 {t("detail.noHtml")}
@@ -489,8 +489,8 @@ export function EmailContentPanel({
                   whiteSpace: "pre-wrap",
                   margin: 0,
                   padding: "16px 18px",
-                  fontFamily: "var(--ms-font-sans)",
-                  fontSize: "var(--ms-fs-ui)",
+                  fontFamily: "var(--po-font-sans)",
+                  fontSize: "var(--po-fs-ui)",
                   lineHeight: 1.7,
                 }}
               >
@@ -501,8 +501,8 @@ export function EmailContentPanel({
                 style={{
                   margin: 0,
                   padding: "16px 18px",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-ui)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-ui)",
                 }}
               >
                 {t("detail.noText")}
@@ -516,8 +516,8 @@ export function EmailContentPanel({
                 style={{
                   margin: 0,
                   padding: "16px 18px",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-ui)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-ui)",
                 }}
               >
                 {t("detail.noHtml")}
@@ -526,7 +526,7 @@ export function EmailContentPanel({
           {tab === "headers" &&
             (headersText ? (
               <pre
-                className="ms-mono"
+                className="po-mono"
                 style={{
                   whiteSpace: "pre-wrap",
                   overflowWrap: "anywhere",
@@ -534,7 +534,7 @@ export function EmailContentPanel({
                   padding: "16px 18px",
                   fontSize: 12,
                   lineHeight: 1.7,
-                  color: "var(--ms-bone)",
+                  color: "var(--po-bone)",
                 }}
               >
                 {headersText}
@@ -544,8 +544,8 @@ export function EmailContentPanel({
                 style={{
                   margin: 0,
                   padding: "16px 18px",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-ui)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-ui)",
                 }}
               >
                 {t("detail.noHeaders")}

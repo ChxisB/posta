@@ -64,11 +64,11 @@ function BillingSkeleton({ title }: { title: string }) {
   );
 }
 
-/** The green check in front of every feature line (color comes from .ms-checklist-mark). */
+/** The green check in front of every feature line (color comes from .po-checklist-mark). */
 function Check() {
   return (
     <svg
-      className="ms-checklist-mark"
+      className="po-checklist-mark"
       width={14}
       height={14}
       viewBox="0 0 24 24"
@@ -164,16 +164,16 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
         gap: 10,
         padding: "11px 16px",
         borderRadius: 12,
-        border: "1px solid var(--ms-success-border)",
-        backgroundColor: "var(--ms-ground)",
+        border: "1px solid var(--po-success-border)",
+        backgroundColor: "var(--po-ground)",
         backgroundImage: statusGlow("success", 15),
-        fontSize: "var(--ms-fs-ui)",
+        fontSize: "var(--po-fs-ui)",
       }}
     >
       <span
-        className="ms-mono"
+        className="po-mono"
         aria-hidden="true"
-        style={{ fontSize: 11, color: "var(--ms-success)" }}
+        style={{ fontSize: 11, color: "var(--po-success)" }}
       >
         ✓
       </span>
@@ -184,8 +184,8 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
     checkout === "success" ? (
       success(t("checkoutSuccess"))
     ) : checkout === "cancel" ? (
-      <div role="status" className="ms-toast ms-toast-neutral">
-        <span className="ms-toast-icon" aria-hidden="true">
+      <div role="status" className="po-toast po-toast-neutral">
+        <span className="po-toast-icon" aria-hidden="true">
           i
         </span>
         {t("checkoutCancel")}
@@ -221,12 +221,12 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
     return (
       <SectionCard title={t("plan")}>
         <span
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h1)", color: "var(--ms-bone)", lineHeight: 1 }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h1)", color: "var(--po-bone)", lineHeight: 1 }}
         >
           {planLabel(plan, planQuota)}
         </span>
-        <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           {t("systemNotice")}
         </p>
       </SectionCard>
@@ -250,7 +250,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
   const portalButton = (label: string, className: string) => (
     <button
       type="button"
-      className={`ms-btn ${className}`}
+      className={`po-btn ${className}`}
       disabled={busy}
       onClick={() => openPortal.mutate()}
     >
@@ -288,14 +288,14 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
 
       <SectionCard
         title={t("plan")}
-        action={canManage && hasCustomer ? portalButton(t("manage"), "ms-btn-secondary") : null}
+        action={canManage && hasCustomer ? portalButton(t("manage"), "po-btn-secondary") : null}
       >
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 12px" }}>
           <span
-            className="ms-display"
+            className="po-display"
             style={{
-              fontSize: "var(--ms-fs-h1)",
-              color: "var(--ms-bone)",
+              fontSize: "var(--po-fs-h1)",
+              color: "var(--po-bone)",
               lineHeight: 1,
               whiteSpace: "nowrap",
             }}
@@ -305,19 +305,19 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
           {/* Optical: the display face sits a hair low in its line box, so the
               pill follows its cap height rather than the box center. */}
           <span
-            className={`ms-badge ms-badge-${STATUS_TONE[planStatus]}`}
+            className={`po-badge po-badge-${STATUS_TONE[planStatus]}`}
             style={{ position: "relative", top: 1 }}
           >
             {t(`status.${planStatus}`)}
           </span>
         </div>
 
-        <div className="ms-kpi-row" style={{ display: "flex", gap: 48, marginTop: 22 }}>
+        <div className="po-kpi-row" style={{ display: "flex", gap: 48, marginTop: 22 }}>
           <div>
-            <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+            <div className="po-microlabel" style={{ fontSize: 10.5 }}>
               {t("cap")}
             </div>
-            <div style={{ marginTop: 6, color: "var(--ms-bone)", fontSize: "var(--ms-fs-ui)" }}>
+            <div style={{ marginTop: 6, color: "var(--po-bone)", fontSize: "var(--po-fs-ui)" }}>
               {quota.kind === "day"
                 ? t("capPerDay", { n: fmt.format(quota.limit) })
                 : quota.kind === "month"
@@ -327,10 +327,10 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
           </div>
           {currentPeriodEnd && plan !== "free" ? (
             <div>
-              <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+              <div className="po-microlabel" style={{ fontSize: 10.5 }}>
                 {t("renewsOn")}
               </div>
-              <div style={{ marginTop: 6, color: "var(--ms-bone)", fontSize: "var(--ms-fs-ui)" }}>
+              <div style={{ marginTop: 6, color: "var(--po-bone)", fontSize: "var(--po-fs-ui)" }}>
                 {formatDayTime(currentPeriodEnd, locale)}
               </div>
             </div>
@@ -339,14 +339,14 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
 
         {pending && currentPeriodEnd ? (
           <div
-            className="ms-wrap-row"
+            className="po-wrap-row"
             style={{
               display: "flex",
               alignItems: "center",
               gap: 12,
               marginTop: 16,
               fontSize: 13,
-              color: "var(--ms-muted)",
+              color: "var(--po-muted)",
             }}
           >
             <span>
@@ -358,7 +358,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
             {canManage ? (
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 disabled={busy}
                 onClick={() => changePlan.mutate({ rung: current.key })}
               >
@@ -372,7 +372,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
         ) : null}
 
         {planStatus === "past_due" ? (
-          <WarnCard action={canManage ? portalButton(t("updateCard"), "ms-btn-secondary") : null}>
+          <WarnCard action={canManage ? portalButton(t("updateCard"), "po-btn-secondary") : null}>
             {t("pastDue")}
           </WarnCard>
         ) : null}
@@ -383,7 +383,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
           style={{
             margin: "14px 0 0",
             fontSize: 13,
-            color: failed ? "var(--ms-danger)" : "var(--ms-muted)",
+            color: failed ? "var(--po-danger)" : "var(--po-muted)",
           }}
         >
           {failed ? t("error") : canManage ? t("manageHint") : t("readOnly")}
@@ -406,7 +406,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                 gap: 14,
                 marginTop: 18,
                 paddingTop: 18,
-                borderTop: "1px solid var(--ms-line)",
+                borderTop: "1px solid var(--po-line)",
               }}
             >
               <Switch
@@ -416,12 +416,12 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                 ariaLabel={t("overage")}
               />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: "var(--ms-bone)" }}>{t("overage")}</div>
-                <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: "var(--po-bone)" }}>{t("overage")}</div>
+                <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 2 }}>
                   {t("overageCopy", { price: usd(quota.overageCentsPer1k) })}
                 </div>
                 {over > 0 ? (
-                  <div style={{ fontSize: 12.5, color: "var(--ms-bone)", marginTop: 6 }}>
+                  <div style={{ fontSize: 12.5, color: "var(--po-bone)", marginTop: 6 }}>
                     {t("overSoFar", {
                       n: over,
                       amount: usd(Math.round((over * quota.overageCentsPer1k) / 1000)),
@@ -446,25 +446,25 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
         action={
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             onClick={() => setPlansOpen(true)}
           >
             {t("comparePlans")}
           </button>
         }
       >
-        <div className="ms-plan-strip">
+        <div className="po-plan-strip">
           {PLANS.map((p) => {
             const rungs = PLAN_RUNGS.filter((x) => x.plan === p);
             const price = usd(rungs[0]?.priceCents ?? 0);
             return (
               <div
                 key={p}
-                className="ms-plan-strip-item"
+                className="po-plan-strip-item"
                 data-current={p === current.plan || undefined}
               >
-                <span className="ms-plan-strip-name">{planName(p)}</span>
-                <span className="ms-plan-strip-price">
+                <span className="po-plan-strip-name">{planName(p)}</span>
+                <span className="po-plan-strip-price">
                   {rungs.length > 1 ? t("fromPrice", { price }) : price} {t("perMonth")}
                 </span>
               </div>
@@ -480,14 +480,14 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
         title={t("plansTitle")}
         size="full"
       >
-        <div className="ms-plan-dialog">
-          <div className="ms-volume">
-            <label htmlFor="ms-volume" className="ms-microlabel">
+        <div className="po-plan-dialog">
+          <div className="po-volume">
+            <label htmlFor="po-volume" className="po-microlabel">
               {t("volume")}
             </label>
             <input
-              id="ms-volume"
-              className="ms-slider"
+              id="po-volume"
+              className="po-slider"
               type="range"
               min={0}
               max={LAST_STEP}
@@ -495,15 +495,15 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
               value={at}
               onChange={(e) => setStep(Number(e.target.value))}
               aria-valuetext={`${fmt.format(stepVolume(selected))} ${t("emailsAMonth")}`}
-              style={{ "--ms-slider-p": `${(at / LAST_STEP) * 100}%` } as CSSProperties}
+              style={{ "--po-slider-p": `${(at / LAST_STEP) * 100}%` } as CSSProperties}
             />
-            <div className="ms-slider-marks">
+            <div className="po-slider-marks">
               {PLAN_RUNGS.map((r, i) => (
                 <button
                   key={r.key}
                   type="button"
                   tabIndex={-1}
-                  className="ms-digits"
+                  className="po-digits"
                   data-on={i === at || undefined}
                   onClick={() => setStep(i)}
                 >
@@ -511,9 +511,9 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                 </button>
               ))}
             </div>
-            <p className="ms-slider-hint">{t("sliderHint")}</p>
+            <p className="po-slider-hint">{t("sliderHint")}</p>
           </div>
-          <div className="ms-plans">
+          <div className="po-plans">
             {PLANS.map((p) => {
               const active = selected.plan === p;
               // A plan shows the rung the slider landed on when it is one of
@@ -526,32 +526,32 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                 !isCurrent &&
                 !(held && r.priceCents > current.priceCents);
               return (
-                <div key={p} className="ms-plan" data-open={active || undefined}>
-                  <div className="ms-plan-name">{planName(p)}</div>
-                  <div className="ms-plan-price">
-                    <span className="ms-digits">
+                <div key={p} className="po-plan" data-open={active || undefined}>
+                  <div className="po-plan-name">{planName(p)}</div>
+                  <div className="po-plan-price">
+                    <span className="po-digits">
                       <Odometer formatted={usd(r.priceCents)} lit={false} />
                     </span>
-                    <span className="ms-plan-per">{t("perMonth")}</span>
+                    <span className="po-plan-per">{t("perMonth")}</span>
                   </div>
-                  <div className="ms-plan-cap">
-                    <span className="ms-digits">{fmt.format(r.included)}</span>
-                    <span className="ms-plan-per">
+                  <div className="po-plan-cap">
+                    <span className="po-digits">{fmt.format(r.included)}</span>
+                    <span className="po-plan-per">
                       {t(r.period === "day" ? "emailsADay" : "emailsAMonth")}
                     </span>
                   </div>
                   {/* Daily plans have no overage line; a blank one keeps the four cards' rows aligned. */}
                   <span
-                    className="ms-plan-over"
+                    className="po-plan-over"
                     data-empty={r.overageCentsPer1k === null || undefined}
                   >
                     {r.overageCentsPer1k === null
                       ? "\u00a0"
                       : t("overagePer1k", { price: usd(r.overageCentsPer1k) })}
                   </span>
-                  <div className="ms-plan-more">
+                  <div className="po-plan-more">
                     <div>
-                      <ul className="ms-checklist">
+                      <ul className="po-checklist">
                         {features(p).map((f) => (
                           <li key={f}>
                             <Check />
@@ -560,13 +560,13 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                         ))}
                       </ul>
                       {isCurrent ? (
-                        <button type="button" className="ms-btn ms-btn-secondary" disabled>
+                        <button type="button" className="po-btn po-btn-secondary" disabled>
                           {t("current")}
                         </button>
                       ) : forSale ? (
                         <button
                           type="button"
-                          className={`ms-btn ${active ? "ms-btn-primary" : "ms-btn-secondary"}`}
+                          className={`po-btn ${active ? "po-btn-primary" : "po-btn-secondary"}`}
                           disabled={busy}
                           onClick={() =>
                             hasLiveSubscription
@@ -588,7 +588,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
                             : t("choose")}
                         </button>
                       ) : p === "free" && canManage && hasLiveSubscription ? (
-                        <p style={{ margin: 0, fontSize: 12, color: "var(--ms-muted)" }}>
+                        <p style={{ margin: 0, fontSize: 12, color: "var(--po-muted)" }}>
                           {t("freeHint")}
                         </p>
                       ) : null}
@@ -605,7 +605,7 @@ export function BillingView({ checkout }: { checkout: "success" | "cancel" | nul
               style={{
                 margin: "14px 0 0",
                 fontSize: 12.5,
-                color: "var(--ms-muted)",
+                color: "var(--po-muted)",
                 textAlign: "center",
               }}
             >

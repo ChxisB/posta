@@ -18,7 +18,7 @@ export function PreviewSchemePills({
         <button
           key={option}
           type="button"
-          className={scheme === option ? "ms-code-tab active" : "ms-code-tab"}
+          className={scheme === option ? "po-code-tab active" : "po-code-tab"}
           aria-pressed={scheme === option}
           onClick={() => onChange(option)}
         >

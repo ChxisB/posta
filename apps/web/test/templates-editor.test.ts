@@ -86,7 +86,7 @@ describe("template editor mode", () => {
 
   it("lays name and subject out as one row", () => {
     const out = renderToStaticMarkup(createElement(TemplateEditor, { initial: HTML_ROW }));
-    expect(out).toMatch(/class="ms-tpl-meta"[^>]*>.*id="tpl-name".*id="tpl-subject"/);
+    expect(out).toMatch(/class="po-tpl-meta"[^>]*>.*id="tpl-name".*id="tpl-subject"/);
   });
 
   it("derives code mode for html without a Maily document, unless converting or empty", () => {
@@ -109,13 +109,13 @@ describe("code mode panes", () => {
       hasText: false,
     }),
   );
-  const source = out.indexOf('class="ms-tpl-code-source"');
-  const preview = out.indexOf('class="ms-tpl-code-preview"');
+  const source = out.indexOf('class="po-tpl-code-source"');
+  const preview = out.indexOf('class="po-tpl-code-preview"');
 
   it("gives both panes the same toolbar row, then a body", () => {
-    expect(out.match(/class="ms-tpl-code-head"/g)).toHaveLength(2);
-    expect(out).toMatch(/ms-tpl-code-head".*?ms-code-editor"/);
-    expect(out).toMatch(/ms-tpl-code-head".*?ms-tpl-code-frame"/);
+    expect(out.match(/class="po-tpl-code-head"/g)).toHaveLength(2);
+    expect(out).toMatch(/po-tpl-code-head".*?po-code-editor"/);
+    expect(out).toMatch(/po-tpl-code-head".*?po-tpl-code-frame"/);
   });
 
   it("puts Find and Variables in the code pane's toolbar, nothing above the panes", () => {
@@ -127,7 +127,7 @@ describe("code mode panes", () => {
     expect(find).toBeLessThan(variables);
     expect(out.slice(0, source)).not.toContain("toolbar.variables");
     // The pane switch for narrow widths is all that sits above the panes.
-    expect(out.slice(0, source)).toContain("ms-tpl-code-tabs");
+    expect(out.slice(0, source)).toContain("po-tpl-code-tabs");
   });
 
   it("previews in a same-origin, script-less frame so the scroll survives updates, with links let out", () => {
@@ -176,11 +176,11 @@ describe("convert-to-blocks dialog", () => {
     );
     expect(out).toContain("templates.html.convertTitle");
     expect(out).toContain("templates.html.convertBody");
-    expect(out).toMatch(/ms-btn-destructive"[^>]*>templates\.html\.convertInPlace</);
-    expect(out).toMatch(/ms-btn-primary"[^>]*>(<[^>]*>)*templates\.html\.convertCopy /);
+    expect(out).toMatch(/po-btn-destructive"[^>]*>templates\.html\.convertInPlace</);
+    expect(out).toMatch(/po-btn-primary"[^>]*>(<[^>]*>)*templates\.html\.convertCopy /);
     // Flow order: Cancel, then the in-place (destructive) choice, then the primary.
-    expect(out.indexOf("common.cancel")).toBeLessThan(out.indexOf("ms-btn-destructive"));
-    expect(out.indexOf("ms-btn-destructive")).toBeLessThan(out.indexOf("ms-btn-primary"));
+    expect(out.indexOf("common.cancel")).toBeLessThan(out.indexOf("po-btn-destructive"));
+    expect(out.indexOf("po-btn-destructive")).toBeLessThan(out.indexOf("po-btn-primary"));
   });
 
   it("without a duplicate path, converting in place is the only, confirmable action", () => {
@@ -192,9 +192,9 @@ describe("convert-to-blocks dialog", () => {
         inPlaceLabel: "broadcasts.composer.convertInPlace",
       }),
     );
-    expect(out).not.toContain("ms-btn-primary");
+    expect(out).not.toContain("po-btn-primary");
     expect(out).not.toContain("templates.html.convertCopy");
-    expect(out).toMatch(/ms-btn-destructive"[^>]*>broadcasts\.composer\.convertInPlace /);
+    expect(out).toMatch(/po-btn-destructive"[^>]*>broadcasts\.composer\.convertInPlace /);
   });
 
   it("renders nothing while closed", () => {
@@ -226,12 +226,12 @@ describe("templates list", () => {
       ],
     };
     const out = renderToStaticMarkup(createElement(TemplatesPage));
-    expect(out.match(/class="ms-chip"[^>]*>HTML</g)).toHaveLength(1);
+    expect(out.match(/class="po-chip"[^>]*>HTML</g)).toHaveLength(1);
     // The hint rides a hover tooltip (its panel only exists while open), so
     // the chip sits inside a tooltip trigger, beside the row's name link.
     // The name stays on one line inside its link, so the chip never wraps under it.
     expect(out).toMatch(
-      /<span class="ms-truncate">Legacy<\/span><\/a><span class="ms-tooltip-trigger inline"[^>]*><span class="ms-chip"/,
+      /<span class="po-truncate">Legacy<\/span><\/a><span class="po-tooltip-trigger inline"[^>]*><span class="po-chip"/,
     );
   });
 });

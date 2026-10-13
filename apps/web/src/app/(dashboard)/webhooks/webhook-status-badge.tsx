@@ -25,7 +25,7 @@ export function QueueLine({
   const oldest = new Date(oldestQueuedAt);
   const due = oldest.getTime() <= Date.now();
   return (
-    <div style={{ marginTop: 4, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+    <div style={{ marginTop: 4, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
       {t("queue.queued", { count: queuedLabel(queued) })} · {t(due ? "queue.oldest" : "queue.next")}{" "}
       <RelativeTime date={oldest} />
     </div>
@@ -44,7 +44,7 @@ export const ENDPOINT_VARIANTS: Record<EndpointStatus, keyof typeof TONE_COLOR> 
 export function WebhookStatusBadge({ status }: { status: EndpointStatus }) {
   const t = useTranslations("webhooks");
   return (
-    <span className={`ms-badge ms-badge-${ENDPOINT_VARIANTS[status]}`}>
+    <span className={`po-badge po-badge-${ENDPOINT_VARIANTS[status]}`}>
       {t(`status.${status}`)}
     </span>
   );
@@ -62,7 +62,7 @@ const DELIVERY_VARIANTS: Record<DeliveryStatus, string> = {
 export function DeliveryStatusBadge({ status }: { status: DeliveryStatus }) {
   const t = useTranslations("webhooks");
   return (
-    <span className={`ms-badge ms-badge-${DELIVERY_VARIANTS[status]}`}>
+    <span className={`po-badge po-badge-${DELIVERY_VARIANTS[status]}`}>
       {t(`deliveryStatus.${status}`)}
     </span>
   );

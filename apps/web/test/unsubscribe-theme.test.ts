@@ -45,9 +45,9 @@ describe("unsubscribeThemeStyle", () => {
       accentColor: null,
     }) as Record<string, string>;
     expect(style.background).toBe("#101010");
-    expect(style["--ms-bone"]).toBe("#f0f0f0");
-    expect(style["--ms-panel"]).toContain("#101010");
-    expect(style["--ms-muted"]).toContain("#f0f0f0");
+    expect(style["--po-bone"]).toBe("#f0f0f0");
+    expect(style["--po-panel"]).toContain("#101010");
+    expect(style["--po-muted"]).toContain("#f0f0f0");
   });
 
   it("drops anything that is not a strict hex — the last boundary before inline styles", () => {
@@ -67,7 +67,7 @@ describe("unsubscribeThemeStyle", () => {
       accentColor: null,
     }) as Record<string, string>;
     expect(style.background).toBeUndefined();
-    expect(style["--ms-bone"]).toBe("#222222");
+    expect(style["--po-bone"]).toBe("#222222");
   });
 });
 

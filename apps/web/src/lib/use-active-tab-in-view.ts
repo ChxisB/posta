@@ -13,7 +13,7 @@ export function revealInRow(row: Element, el: Element): void {
 }
 
 /**
- * Ref for a `.ms-tabs` row whose buttons navigate. Such a row remounts with
+ * Ref for a `.po-tabs` row whose buttons navigate. Such a row remounts with
  * its page, so scrollLeft restarts at 0 and the tab just clicked can land off
  * screen; whenever `activeKey` changes (mount included) the `.active` button
  * is brought back into view. Layout-phase so the row never paints scrolled

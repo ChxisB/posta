@@ -93,7 +93,7 @@ export function VariablePicker({
       <button
         ref={triggerRef}
         type="button"
-        className="ms-maily-tool ms-maily-tool-labeled"
+        className="po-maily-tool po-maily-tool-labeled"
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -104,8 +104,8 @@ export function VariablePicker({
       </button>
 
       {open ? (
-        <div className="ms-maily-picker" role="dialog" aria-label={t("toolbar.variables")}>
-          <div className="ms-maily-picker-search">
+        <div className="po-maily-picker" role="dialog" aria-label={t("toolbar.variables")}>
+          <div className="po-maily-picker-search">
             <SearchIcon size={14} />
             <input
               ref={searchRef}
@@ -118,27 +118,27 @@ export function VariablePicker({
               }}
             />
           </div>
-          <div className="ms-maily-picker-list">
+          <div className="po-maily-picker-list">
             {shown.length === 0 ? (
-              <p className="ms-maily-picker-empty">{t("picker.empty")}</p>
+              <p className="po-maily-picker-empty">{t("picker.empty")}</p>
             ) : (
               shown.map((field) => (
-                <div key={field.name} className="ms-maily-picker-row">
+                <div key={field.name} className="po-maily-picker-row">
                   <button
                     type="button"
-                    className="ms-maily-picker-pick"
+                    className="po-maily-picker-pick"
                     onClick={() => insert(field)}
                   >
-                    <span className="ms-maily-picker-label">{field.label}</span>
-                    <span className="ms-mono ms-maily-picker-token">
+                    <span className="po-maily-picker-label">{field.label}</span>
+                    <span className="po-mono po-maily-picker-token">
                       {makeMergeToken(field.name)}
                     </span>
-                    <span className="ms-maily-picker-desc">{field.description}</span>
+                    <span className="po-maily-picker-desc">{field.description}</span>
                   </button>
                   {field.allowsFallback ? (
                     <input
                       type="text"
-                      className="ms-maily-picker-fallback ms-mono"
+                      className="po-maily-picker-fallback po-mono"
                       placeholder={t("picker.fallback")}
                       value={fallbacks[field.name] ?? ""}
                       onChange={(e) =>

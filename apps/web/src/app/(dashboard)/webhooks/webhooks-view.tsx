@@ -182,7 +182,7 @@ export function WebhooksView() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             onClick={() => setCreateOpen(true)}
           >
             <PlusGlyph size={14} />
@@ -202,7 +202,7 @@ export function WebhooksView() {
           cta={
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               onClick={() => setCreateOpen(true)}
             >
               <PlusGlyph />
@@ -236,9 +236,9 @@ export function WebhooksView() {
                       />
                       <Link
                         href={`/webhooks/${webhook.id}`}
-                        className="ms-mono"
+                        className="po-mono"
                         style={{
-                          color: "var(--ms-bone)",
+                          color: "var(--po-bone)",
                           textDecoration: "underline",
                           textUnderlineOffset: 3,
                         }}
@@ -250,7 +250,7 @@ export function WebhooksView() {
                   </td>
                   <td>
                     {webhook.eventTypes === null || webhook.eventTypes.length === 0 ? (
-                      <span className="ms-chip">{t("allEvents")}</span>
+                      <span className="po-chip">{t("allEvents")}</span>
                     ) : (
                       <Tooltip
                         inline
@@ -262,7 +262,7 @@ export function WebhooksView() {
                                 style={{ display: "flex", alignItems: "center", gap: 6 }}
                               >
                                 <span
-                                  className="ms-dot"
+                                  className="po-dot"
                                   style={{
                                     background: WEBHOOK_EVENT_META[type as WebhookEventType]?.dot,
                                   }}
@@ -274,7 +274,7 @@ export function WebhooksView() {
                           </span>
                         }
                       >
-                        <span className="ms-chip">
+                        <span className="po-chip">
                           {t("eventsCount", { count: webhook.eventTypes.length })}
                         </span>
                       </Tooltip>
@@ -284,7 +284,7 @@ export function WebhooksView() {
                     <WebhookStatusBadge status={webhook.status} />
                   </td>
                   <td>
-                    <span className="ms-mono">
+                    <span className="po-mono">
                       {webhook.successRate === null ? "—" : `${webhook.successRate}%`}
                     </span>
                   </td>
@@ -364,16 +364,16 @@ export function WebhooksView() {
             }}
           >
             <div>
-              <div className="ms-microlabel" style={{ marginBottom: 6 }}>
+              <div className="po-microlabel" style={{ marginBottom: 6 }}>
                 {t("reveal.secretLabel")}
               </div>
               <CopyChip value={revealedSecret} />
             </div>
-            <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+            <p style={{ margin: 0, color: "var(--po-warn)", fontSize: "var(--po-fs-label)" }}>
               {t("reveal.warning")}
             </p>
             <ModalFooter>
-              <button type="submit" className="ms-btn ms-btn-primary">
+              <button type="submit" className="po-btn po-btn-primary">
                 {t("reveal.done")} <ConfirmKeycap />
               </button>
             </ModalFooter>
@@ -386,11 +386,11 @@ export function WebhooksView() {
               submitCreate();
             }}
           >
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="webhook-url">{t("create.url")}</label>
               <input
                 id="webhook-url"
-                className="ms-input mono"
+                className="po-input mono"
                 style={{ width: "100%" }}
                 value={url}
                 disabled={createMutation.isPending}
@@ -400,11 +400,11 @@ export function WebhooksView() {
                 onChange={(event) => setUrl(event.target.value)}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="webhook-description">{t("create.description")}</label>
               <input
                 id="webhook-description"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 value={description}
                 disabled={createMutation.isPending}
@@ -413,7 +413,7 @@ export function WebhooksView() {
                 onChange={(event) => setDescription(event.target.value)}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="webhook-events">{t("create.events")}</label>
               <EventTypesPicker
                 id="webhook-events"
@@ -431,12 +431,12 @@ export function WebhooksView() {
               disabled={createMutation.isPending}
             />
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={!submittable || createMutation.isPending}
               >
                 <BtnSpinner on={createMutation.isPending} />
@@ -461,16 +461,16 @@ export function WebhooksView() {
               submitDelete();
             }}
           >
-            <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+            <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
               {t.rich("deleteConfirm.body", { ...codeRichTags, url: deleteTarget.url })}
             </p>
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-destructive"
+                className="po-btn po-btn-destructive"
                 disabled={deleteMutation.isPending}
               >
                 <BtnSpinner on={deleteMutation.isPending} />

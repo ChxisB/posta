@@ -81,7 +81,7 @@ function PoweredBy({ template }: { template: string }) {
         alignItems: "center",
         gap: 6,
         fontSize: 13,
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
         textDecoration: "none",
       }}
     >
@@ -92,7 +92,7 @@ function PoweredBy({ template }: { template: string }) {
               display: "inline-flex",
               alignItems: "center",
               gap: 5,
-              color: "var(--ms-bone)",
+              color: "var(--po-bone)",
               fontWeight: 500,
             }}
           >
@@ -106,10 +106,10 @@ function PoweredBy({ template }: { template: string }) {
   );
 }
 
-/** Circled check above the success headings; palette and pop match ms-badge-success / ms-copy-mark. */
+/** Circled check above the success headings; palette and pop match po-badge-success / po-copy-mark. */
 function SuccessCheck() {
   return (
-    <div className="ms-success-check">
+    <div className="po-success-check">
       <svg
         width={22}
         height={22}
@@ -130,8 +130,8 @@ function SuccessCheck() {
 function BrandHeading({ name }: { name: string }) {
   return (
     <span
-      className="ms-display"
-      style={{ fontSize: 22, fontWeight: 600, color: "var(--ms-bone)", textAlign: "center" }}
+      className="po-display"
+      style={{ fontSize: 22, fontWeight: 600, color: "var(--po-bone)", textAlign: "center" }}
     >
       {name}
     </span>
@@ -142,10 +142,10 @@ function Wordmark() {
   return (
     <>
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
-      <img className="ms-dark-only" src="/logo/millionsend-wordmark.svg" alt="Posta" height={20} />
+      <img className="po-dark-only" src="/logo/millionsend-wordmark.svg" alt="Posta" height={20} />
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
       <img
-        className="ms-light-only"
+        className="po-light-only"
         src="/logo/millionsend-wordmark-light.svg"
         alt="Posta"
         height={20}
@@ -222,7 +222,7 @@ export function UnsubscribePageView({
         <Wordmark />
       )}
       <div
-        className="ms-card"
+        className="po-card"
         style={{
           padding: "28px 32px",
           width: "100%",
@@ -232,30 +232,30 @@ export function UnsubscribePageView({
         }}
       >
         {customization.message ? (
-          <p style={{ margin: "0 0 16px", fontSize: 15, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "0 0 16px", fontSize: 15, color: "var(--po-muted)" }}>
             {customization.message}
           </p>
         ) : null}
         {state === "invalid" ? (
-          <p style={{ margin: 0, fontSize: 17, color: "var(--ms-bone)" }}>{m.invalid}</p>
+          <p style={{ margin: 0, fontSize: 17, color: "var(--po-bone)" }}>{m.invalid}</p>
         ) : state === "saved" ? (
           <>
             <SuccessCheck />
-            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--ms-bone)" }}>
+            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--po-bone)" }}>
               {successHeading ?? m.saved}
             </p>
           </>
         ) : state === "done" ? (
           <>
             <SuccessCheck />
-            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--ms-bone)" }}>
+            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--po-bone)" }}>
               {successHeading ?? m.done}
             </p>
-            <p style={{ margin: "10px 0 0", fontSize: 15, color: "var(--ms-muted)" }}>{doneText}</p>
+            <p style={{ margin: "10px 0 0", fontSize: 15, color: "var(--po-muted)" }}>{doneText}</p>
           </>
         ) : (
           <>
-            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--ms-bone)" }}>
+            <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "var(--po-bone)" }}>
               {confirmText}
             </p>
             {topics.length > 0 ? (
@@ -267,11 +267,11 @@ export function UnsubscribePageView({
                 <form
                   method="post"
                   action={formAction}
-                  id="ms-unsub-prefs"
+                  id="po-unsub-prefs"
                   style={{ marginTop: 22, textAlign: "left" }}
                 >
                   <input type="hidden" name="prefs" value="1" />
-                  <p style={{ margin: "0 0 10px", fontSize: 15, color: "var(--ms-muted)" }}>
+                  <p style={{ margin: "0 0 10px", fontSize: 15, color: "var(--po-muted)" }}>
                     {m.preferences}
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -286,18 +286,18 @@ export function UnsubscribePageView({
                           alignItems: "center",
                           gap: 10,
                           fontSize: 15.5,
-                          color: "var(--ms-bone)",
+                          color: "var(--po-bone)",
                           cursor: "pointer",
                         }}
                       >
                         <input
                           type="checkbox"
-                          className="ms-switch-input"
+                          className="po-switch-input"
                           name="topic"
                           value={topic.id}
                           defaultChecked={topic.subscribed}
                         />
-                        <span className="ms-switch" aria-hidden="true">
+                        <span className="po-switch" aria-hidden="true">
                           <span />
                         </span>
                         {topic.name}
@@ -305,15 +305,15 @@ export function UnsubscribePageView({
                     ))}
                   </div>
                 </form>
-                <form method="post" action={formAction} id="ms-unsub-all" />
-                <div className="ms-actions" style={{ justifyContent: "center", marginTop: 20 }}>
-                  <button type="submit" form="ms-unsub-all" className="ms-btn ms-btn-secondary">
+                <form method="post" action={formAction} id="po-unsub-all" />
+                <div className="po-actions" style={{ justifyContent: "center", marginTop: 20 }}>
+                  <button type="submit" form="po-unsub-all" className="po-btn po-btn-secondary">
                     {m.button}
                   </button>
                   <button
                     type="submit"
-                    form="ms-unsub-prefs"
-                    className="ms-btn ms-btn-primary"
+                    form="po-unsub-prefs"
+                    className="po-btn po-btn-primary"
                     style={accent}
                   >
                     {m.save}
@@ -325,7 +325,7 @@ export function UnsubscribePageView({
               <form method="post" action={formAction}>
                 <button
                   type="submit"
-                  className="ms-btn ms-btn-primary"
+                  className="po-btn po-btn-primary"
                   style={{ marginTop: 20, ...accent }}
                 >
                   {m.button}

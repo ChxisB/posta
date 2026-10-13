@@ -71,17 +71,17 @@ function LimitsForm({
           submit();
         }}
       >
-        <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+        <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
           {t("limitsDialog.lead")}
         </p>
-        <div className="ms-field" style={{ marginBottom: 16 }}>
+        <div className="po-field" style={{ marginBottom: 16 }}>
           <label htmlFor={`${id}-ceiling`}>{t("limitsDialog.ceiling")}</label>
           <input
             id={`${id}-ceiling`}
             type="number"
             min={1}
             step={1}
-            className={valid ? "ms-input" : "ms-input error"}
+            className={valid ? "po-input" : "po-input error"}
             style={{ width: "100%" }}
             placeholder={ceilingPlaceholder(detail, t, nf)}
             value={ceiling}
@@ -89,10 +89,10 @@ function LimitsForm({
             onChange={(event) => setCeiling(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor={`${id}-allowed`}>{t("limitsDialog.broadcasts")}</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label className="ms-radio-card">
+            <label className="po-radio-card">
               <input
                 id={`${id}-allowed`}
                 type="radio"
@@ -106,7 +106,7 @@ function LimitsForm({
                 <div className="sub">{t("limitsDialog.allowedSub")}</div>
               </span>
             </label>
-            <label className="ms-radio-card">
+            <label className="po-radio-card">
               <input
                 type="radio"
                 name={`${id}-broadcasts`}
@@ -124,10 +124,10 @@ function LimitsForm({
           </div>
         </div>
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={pending || !valid}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={pending || !valid}>
             <BtnSpinner on={pending} />
             {common("save")} <ConfirmKeycap />
           </button>
@@ -157,13 +157,13 @@ export function LimitsDialog({
   }
   return (
     <Modal open onClose={onClose} title={t("limitsDialog.title", { team: name })}>
-      <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+      <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
         {t("limitsDialog.lead")}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <Skeleton width="100%" height={30} radius="var(--ms-r-input)" />
-        <Skeleton width="100%" height={46} radius="var(--ms-r-input)" />
-        <Skeleton width="100%" height={46} radius="var(--ms-r-input)" />
+        <Skeleton width="100%" height={30} radius="var(--po-r-input)" />
+        <Skeleton width="100%" height={46} radius="var(--po-r-input)" />
+        <Skeleton width="100%" height={46} radius="var(--po-r-input)" />
       </div>
     </Modal>
   );

@@ -11,7 +11,7 @@ import { DotParts } from "./dot-parts";
  * Page chrome: breadcrumb, display H1 with its status badges, mono meta line,
  * actions — and the tab title ("Contacts · Posta"). The actions sit
  * beside the title block while it keeps its natural width, and otherwise
- * take their own row under the meta line (components.css, .ms-page-row).
+ * take their own row under the meta line (components.css, .po-page-row).
  */
 export function PageHeader({
   title,
@@ -49,16 +49,16 @@ export function PageHeader({
     document.title = `${title} · ${appName}`;
   }, [title, appName]);
   return (
-    <header className="ms-page-header" style={{ marginBottom: 28 }}>
-      {breadcrumb ? <div className="ms-crumbs">{breadcrumb}</div> : null}
-      <div className="ms-page-row" style={{ alignItems: subtitle ? "flex-end" : "center" }}>
-        <div className="ms-page-title">
+    <header className="po-page-header" style={{ marginBottom: 28 }}>
+      {breadcrumb ? <div className="po-crumbs">{breadcrumb}</div> : null}
+      <div className="po-page-row" style={{ alignItems: subtitle ? "flex-end" : "center" }}>
+        <div className="po-page-title">
           {leading ? <span style={{ flex: "none", display: "inline-flex" }}>{leading}</span> : null}
           <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-            <div className="ms-page-heading">
+            <div className="po-page-heading">
               <h1
-                className={isAddressLike(title) ? "ms-display ms-data-title" : "ms-display"}
-                style={{ fontSize: "var(--ms-fs-h1)", color: "var(--ms-bone)", margin: 0 }}
+                className={isAddressLike(title) ? "po-display po-data-title" : "po-display"}
+                style={{ fontSize: "var(--po-fs-h1)", color: "var(--po-bone)", margin: 0 }}
               >
                 <Breakable text={title} />
                 {/* The no-break space keeps the adornment on the title's last word. */}
@@ -74,14 +74,14 @@ export function PageHeader({
               {badges ? (
                 <>
                   {" "}
-                  <span className="ms-title-badges">{badges}</span>
+                  <span className="po-title-badges">{badges}</span>
                 </>
               ) : null}
             </div>
             {subtitle ? (
               <div
-                className="ms-mono"
-                style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 8 }}
+                className="po-mono"
+                style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 8 }}
               >
                 {typeof subtitle === "string" ? <DotParts text={subtitle} /> : subtitle}
               </div>
@@ -89,9 +89,9 @@ export function PageHeader({
           </div>
         </div>
         {actions || menu ? (
-          <div className="ms-page-actions">
+          <div className="po-page-actions">
             {actions}
-            {menu ? <span className="ms-page-menu">{menu}</span> : null}
+            {menu ? <span className="po-page-menu">{menu}</span> : null}
           </div>
         ) : null}
       </div>
@@ -102,16 +102,16 @@ export function PageHeader({
 /** A non-terminal breadcrumb segment plus its "/" separator, kept on one line together. */
 export function Crumb({ href, label }: { href: string; label: string }) {
   return (
-    <span className="ms-crumb-seg">
-      <Link href={href} className="ms-crumb">
+    <span className="po-crumb-seg">
+      <Link href={href} className="po-crumb">
         {label}
       </Link>
-      <span style={{ color: "var(--ms-faint)" }}>/</span>
+      <span style={{ color: "var(--po-faint)" }}>/</span>
     </span>
   );
 }
 
 /** The terminal (current-page) breadcrumb segment. */
 export function CrumbEnd({ label }: { label: string }) {
-  return <span className="ms-crumb-end">{label}</span>;
+  return <span className="po-crumb-end">{label}</span>;
 }

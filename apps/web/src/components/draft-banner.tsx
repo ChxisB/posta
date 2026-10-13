@@ -9,8 +9,8 @@ const linkButtonStyle: React.CSSProperties = {
   border: 0,
   padding: 0,
   font: "inherit",
-  color: "var(--ms-bone)",
-  textDecoration: "underline dotted var(--ms-faint)",
+  color: "var(--po-bone)",
+  textDecoration: "underline dotted var(--po-faint)",
   textUnderlineOffset: 3,
   cursor: "pointer",
 };
@@ -33,8 +33,8 @@ export function DraftBanner({
       role="status"
       style={{
         margin: "8px 0 0",
-        fontSize: "var(--ms-fs-label)",
-        color: "var(--ms-muted)",
+        fontSize: "var(--po-fs-label)",
+        color: "var(--po-muted)",
       }}
     >
       {common("draftRecovered", { time: formatRelative(savedAt, locale) })}{" "}

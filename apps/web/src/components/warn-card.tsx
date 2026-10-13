@@ -15,12 +15,12 @@ export function WarnCard({ children, action }: { children: ReactNode; action?: R
         flexWrap: "wrap",
         padding: "11px 16px",
         borderRadius: 12,
-        border: "1px solid var(--ms-warn-border)",
-        backgroundColor: "var(--ms-ground)",
+        border: "1px solid var(--po-warn-border)",
+        backgroundColor: "var(--po-ground)",
         backgroundImage: statusGlow("warn", 14),
       }}
     >
-      <span style={{ fontSize: 13, color: "var(--ms-warn)", lineHeight: 1.55, flex: "1 1 320px" }}>
+      <span style={{ fontSize: 13, color: "var(--po-warn)", lineHeight: 1.55, flex: "1 1 320px" }}>
         {children}
       </span>
       {/* Under the text when it does not fit beside it, right-aligned like a notice strip's action. */}

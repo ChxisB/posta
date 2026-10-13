@@ -27,7 +27,7 @@ import { type BroadcastStatus, PacingSteps, PILL_VARIANT, StatusPill } from "./p
 // Fixed layout keeps the percentage column shares; the min width makes the
 // wrapper scroll on narrow screens instead of squeezing nowrap cells together.
 // 880px keeps the name about 180px once the date column takes its fixed
-// width (components.css, .ms-col-date) below 1200px.
+// width (components.css, .po-col-date) below 1200px.
 const TABLE_STYLE: React.CSSProperties = { tableLayout: "fixed", minWidth: 880 };
 
 function BroadcastsHead() {
@@ -35,7 +35,7 @@ function BroadcastsHead() {
   return (
     <thead>
       <tr>
-        <th className="ms-col-lead" style={{ width: "30%" }}>
+        <th className="po-col-lead" style={{ width: "30%" }}>
           {t("list.name")}
         </th>
         <th style={{ width: "13%" }}>{t("list.status")}</th>
@@ -43,7 +43,7 @@ function BroadcastsHead() {
         <th className="right" style={{ width: "13%" }}>
           {t("list.recipients")}
         </th>
-        <th className="right ms-col-date">{t("list.created")}</th>
+        <th className="right po-col-date">{t("list.created")}</th>
         <th className="right" style={{ width: 44 }} />
       </tr>
     </thead>
@@ -88,7 +88,7 @@ function BroadcastsSkeleton() {
 function NewBroadcastButton() {
   const t = useTranslations("broadcasts");
   return (
-    <Link className="ms-btn ms-btn-primary" href="/broadcasts/new">
+    <Link className="po-btn po-btn-primary" href="/broadcasts/new">
       <PlusGlyph size={14} />
       {t("list.new")}
     </Link>
@@ -197,7 +197,7 @@ export default function BroadcastsPage() {
                         <NavTile name="broadcasts" color={TONE_COLOR[PILL_VARIANT[status]]} />
                         <Link
                           href={href}
-                          style={{ color: "var(--ms-bone)", minWidth: 0 }}
+                          style={{ color: "var(--po-bone)", minWidth: 0 }}
                           onClick={(event) => event.stopPropagation()}
                         >
                           <Truncated text={label} />
@@ -205,7 +205,7 @@ export default function BroadcastsPage() {
                         {row.htmlAuthored ? (
                           <Tooltip inline text={tTemplates("list.htmlChipHint")}>
                             <span
-                              className="ms-chip"
+                              className="po-chip"
                               style={{ fontSize: 10.5, padding: "1px 7px" }}
                             >
                               HTML
@@ -253,12 +253,12 @@ export default function BroadcastsPage() {
                         <StatusPill status={status} />
                       )}
                     </td>
-                    <td className="ms-cell-clip">{row.segmentName ?? t("composer.segmentNone")}</td>
-                    <td className="right ms-digits">
+                    <td className="po-cell-clip">{row.segmentName ?? t("composer.segmentNone")}</td>
+                    <td className="right po-digits">
                       {status === "sending" && row.sentCount !== null ? (
                         <>
                           {nf.format(row.sentCount)}
-                          <span style={{ color: "var(--ms-faint)" }}>
+                          <span style={{ color: "var(--po-faint)" }}>
                             {" / "}
                             {nf.format(row.recipients)}
                           </span>
@@ -266,10 +266,10 @@ export default function BroadcastsPage() {
                       ) : row.recipients > 0 ? (
                         nf.format(row.recipients)
                       ) : (
-                        <span style={{ color: "var(--ms-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>—</span>
                       )}
                     </td>
-                    <td className="right" style={{ color: "var(--ms-muted)" }}>
+                    <td className="right" style={{ color: "var(--po-muted)" }}>
                       <RelativeTime date={row.createdAt} />
                     </td>
                     {/* biome-ignore lint/a11y/useKeyWithClickEvents: mouse-only guard so a menu click does not also trigger the row navigation; keyboard users reach the menu button directly */}
@@ -357,16 +357,16 @@ export default function BroadcastsPage() {
             confirmDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("list.deleteBody", { name: deleteTarget?.name ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />
@@ -388,7 +388,7 @@ export default function BroadcastsPage() {
             confirmCancel();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {cancelTarget?.stop
               ? t("detail.stopBody", {
                   waiting: nf.format(cancelTarget.stop.waiting),
@@ -397,13 +397,13 @@ export default function BroadcastsPage() {
               : t("detail.cancelBody", { name: cancelTarget?.name ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCancel}>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>
               {t(cancelTarget?.stop ? "detail.keepSending" : "detail.keep")}{" "}
-              <span className="ms-keycap">Esc</span>
+              <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={cancelMutation.isPending}
             >
               <BtnSpinner on={cancelMutation.isPending} />

@@ -14,7 +14,7 @@ export function Sparkline({
   values,
   labels,
   formatValue,
-  color = "var(--ms-steel)",
+  color = "var(--po-steel)",
   height = 56,
   min,
   max,
@@ -88,19 +88,19 @@ export function Sparkline({
             x2={x(hover.index)}
             y1={0}
             y2={height}
-            stroke="var(--ms-line-strong)"
+            stroke="var(--po-line-strong)"
             vectorEffect="non-scaling-stroke"
           />
         ) : null}
       </svg>
       {hover && hovered !== undefined ? (
         <ChartTip plot={plotRef} pointer={hover.pointer}>
-          <span className="ms-mono" style={{ fontSize: 11, color: "var(--ms-muted)" }}>
+          <span className="po-mono" style={{ fontSize: 11, color: "var(--po-muted)" }}>
             {labels[hover.index]}
           </span>
           <span
-            className="ms-mono"
-            style={{ marginLeft: 10, fontSize: 12, color: "var(--ms-bone)" }}
+            className="po-mono"
+            style={{ marginLeft: 10, fontSize: 12, color: "var(--po-bone)" }}
           >
             {formatValue(hovered)}
           </span>

@@ -10,5 +10,5 @@
 /* Text selection: a light bone wash only — text keeps its own color, so body
    copy and highlighted code tokens stay legible in both themes. */
 ::selection {
-  background: color-mix(in srgb, var(--ms-bone) 30%, transparent);
+  background: color-mix(in srgb, var(--po-bone) 30%, transparent);
 }

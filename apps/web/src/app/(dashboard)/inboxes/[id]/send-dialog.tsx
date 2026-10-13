@@ -63,14 +63,14 @@ export function SendDialog({
           submit();
         }}
       >
-        <p className="ms-mono" style={{ margin: 0, fontSize: 12.5, color: "var(--ms-muted)" }}>
+        <p className="po-mono" style={{ margin: 0, fontSize: 12.5, color: "var(--po-muted)" }}>
           {t("compose.from", { address: from })}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="send-to">{t("compose.to")}</label>
           <input
             id="send-to"
-            className="ms-input mono"
+            className="po-input mono"
             style={{ width: "100%" }}
             value={to}
             disabled={send.isPending}
@@ -79,11 +79,11 @@ export function SendDialog({
             onChange={(event) => setTo(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="send-subject">{t("compose.subject")}</label>
           <input
             id="send-subject"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             value={subject}
             maxLength={2000}
@@ -91,11 +91,11 @@ export function SendDialog({
             onChange={(event) => setSubject(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="send-text">{t("compose.message")}</label>
           <textarea
             id="send-text"
-            className="ms-input"
+            className="po-input"
             rows={8}
             style={{ width: "100%", resize: "vertical" }}
             value={text}
@@ -104,17 +104,17 @@ export function SendDialog({
           />
         </div>
         {send.error ? (
-          <div className="ms-field-error" style={{ margin: 0 }}>
+          <div className="po-field-error" style={{ margin: 0 }}>
             {send.error.message}
           </div>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!ready || send.isPending}
           >
             <BtnSpinner on={send.isPending} />

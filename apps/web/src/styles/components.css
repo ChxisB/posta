@@ -6,29 +6,29 @@
    z-index. Popovers rendered inside a modal still win: their z resolves
    within the modal's own stacking context. */
 :root {
-  --ms-z-popover: 500;
-  --ms-z-modal: 1000;
+  --po-z-popover: 500;
+  --po-z-modal: 1000;
   /* Portaled listboxes (Select) mount on body, outside the modal that may
      have opened them, so they need to clear it outright. */
-  --ms-z-menu: 1100;
+  --po-z-menu: 1100;
 }
 
 /* One shared control height: every input, select trigger and button sits on an
    identical 30px border-box, so paired rows (input + Save) align pixel-exact. */
-.ms-btn,
-.ms-input {
+.po-btn,
+.po-input {
   height: 30px;
   box-sizing: border-box;
 }
 
 /* Buttons — one primary (bone) per view; keycaps ride inside modal buttons */
-.ms-btn {
-  font: 600 var(--ms-fs-ui) var(--ms-font-sans);
-  border-radius: var(--ms-r-input);
+.po-btn {
+  font: 600 var(--po-fs-ui) var(--po-font-sans);
+  border-radius: var(--po-r-input);
   padding: 6px 10px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: opacity var(--ms-dur-fast) var(--ms-ease);
+  transition: opacity var(--po-dur-fast) var(--po-ease);
   display: inline-flex;
   gap: 8px;
   align-items: center;
@@ -37,61 +37,61 @@
   /* Buttons rendered as <Link> would otherwise inherit the global dotted link underline. */
   text-decoration: none;
 }
-.ms-btn:hover {
+.po-btn:hover {
   opacity: 0.88;
 }
-.ms-btn:active {
+.po-btn:active {
   opacity: 0.76;
 }
-.ms-btn:focus-visible {
+.po-btn:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-btn:disabled {
+.po-btn:disabled {
   opacity: 0.4;
   cursor: default;
 }
-.ms-btn-primary {
-  background: var(--ms-bone);
-  color: var(--ms-ground);
+.po-btn-primary {
+  background: var(--po-bone);
+  color: var(--po-ground);
 }
-.ms-btn-secondary {
-  background: var(--ms-panel-raised);
-  color: var(--ms-bone);
-  border-color: var(--ms-line-strong);
+.po-btn-secondary {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+  border-color: var(--po-line-strong);
 }
-.ms-btn-destructive {
-  background: var(--ms-danger-bg);
-  color: var(--ms-danger);
-  border-color: var(--ms-danger-border);
+.po-btn-destructive {
+  background: var(--po-danger-bg);
+  color: var(--po-danger);
+  border-color: var(--po-danger-border);
 }
 /* Row-height button for dense tables: the badge's box on the button's skin. */
-.ms-btn-sm {
+.po-btn-sm {
   padding: 3px 8px;
-  font-size: var(--ms-fs-badge);
+  font-size: var(--po-fs-badge);
 }
-.ms-btn-icon {
-  background: var(--ms-panel-raised);
-  color: var(--ms-muted);
-  border-color: var(--ms-line-strong);
+.po-btn-icon {
+  background: var(--po-panel-raised);
+  color: var(--po-muted);
+  border-color: var(--po-line-strong);
   width: 30px;
   padding: 0;
   justify-content: center;
   font-size: 12px;
-  font-family: var(--ms-font-mono);
+  font-family: var(--po-font-mono);
 }
-.ms-btn-ghost {
+.po-btn-ghost {
   background: none;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
-.ms-btn-ghost:hover {
+.po-btn-ghost:hover {
   opacity: 1;
-  color: var(--ms-bone);
+  color: var(--po-bone);
 }
 /* Bare "…" trigger for table row menus: just the glyph on a 28px hit area,
-   no box — quieter than ms-btn-icon, which is kept for detail-header menus
+   no box — quieter than po-btn-icon, which is kept for detail-header menus
    where it sits alongside other buttons. */
-.ms-menu-trigger-bare {
+.po-menu-trigger-bare {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -100,43 +100,43 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--ms-faint);
+  color: var(--po-faint);
   border-radius: 8px;
   cursor: pointer;
   transition:
-    color var(--ms-dur-fast) var(--ms-ease),
-    background var(--ms-dur-fast) var(--ms-ease);
+    color var(--po-dur-fast) var(--po-ease),
+    background var(--po-dur-fast) var(--po-ease);
 }
-.ms-menu-trigger-bare:hover,
-.ms-menu-trigger-bare[aria-expanded="true"] {
-  color: var(--ms-bone);
-  background: var(--ms-panel-raised);
+.po-menu-trigger-bare:hover,
+.po-menu-trigger-bare[aria-expanded="true"] {
+  color: var(--po-bone);
+  background: var(--po-panel-raised);
 }
-.ms-menu-trigger-bare:focus-visible {
+.po-menu-trigger-bare:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 /* The KPI cards' period pill is its own trigger: the 28px square would clip it. */
-.ms-kpi-period .ms-menu-trigger-bare {
+.po-kpi-period .po-menu-trigger-bare {
   width: auto;
   height: auto;
 }
-.ms-keycap {
-  font: 500 var(--ms-fs-micro) var(--ms-font-sans);
-  border-radius: var(--ms-r-chip);
+.po-keycap {
+  font: 500 var(--po-fs-micro) var(--po-font-sans);
+  border-radius: var(--po-r-chip);
   padding: 1px 5px;
-  background: color-mix(in srgb, var(--ms-bone) 10%, transparent);
-  color: var(--ms-muted);
+  background: color-mix(in srgb, var(--po-bone) 10%, transparent);
+  color: var(--po-muted);
 }
-.ms-btn-primary .ms-keycap {
-  background: color-mix(in srgb, var(--ms-ground) 14%, transparent);
-  color: var(--ms-ground);
+.po-btn-primary .po-keycap {
+  background: color-mix(in srgb, var(--po-ground) 14%, transparent);
+  color: var(--po-ground);
 }
 
 /* Status badges — semantic, dim, always labelled */
-.ms-badge {
-  font: 500 var(--ms-fs-badge) var(--ms-font-sans);
-  border-radius: var(--ms-r-chip);
+.po-badge {
+  font: 500 var(--po-fs-badge) var(--po-font-sans);
+  border-radius: var(--po-r-chip);
   padding: 3px 8px;
   border: 1px solid;
   display: inline-block;
@@ -145,68 +145,68 @@
      must push it whole, never wrap it. */
   white-space: nowrap;
 }
-.ms-badge-success {
-  color: var(--ms-success);
-  background: var(--ms-success-bg);
-  border-color: var(--ms-success-border);
+.po-badge-success {
+  color: var(--po-success);
+  background: var(--po-success-bg);
+  border-color: var(--po-success-border);
 }
-.ms-badge-info {
-  color: var(--ms-info);
-  background: var(--ms-info-bg);
-  border-color: var(--ms-info-border);
+.po-badge-info {
+  color: var(--po-info);
+  background: var(--po-info-bg);
+  border-color: var(--po-info-border);
 }
-.ms-badge-warn {
-  color: var(--ms-warn);
-  background: var(--ms-warn-bg);
-  border-color: var(--ms-warn-border);
+.po-badge-warn {
+  color: var(--po-warn);
+  background: var(--po-warn-bg);
+  border-color: var(--po-warn-border);
 }
-.ms-badge-danger {
-  color: var(--ms-danger);
-  background: var(--ms-danger-bg);
-  border-color: var(--ms-danger-border);
+.po-badge-danger {
+  color: var(--po-danger);
+  background: var(--po-danger-bg);
+  border-color: var(--po-danger-border);
 }
-.ms-badge-neutral {
-  color: var(--ms-neutral);
-  background: var(--ms-neutral-bg);
-  border-color: var(--ms-neutral-border);
+.po-badge-neutral {
+  color: var(--po-neutral);
+  background: var(--po-neutral-bg);
+  border-color: var(--po-neutral-border);
 }
-.ms-badge-violet {
-  color: var(--ms-violet);
-  background: var(--ms-violet-bg);
-  border-color: var(--ms-violet-border);
+.po-badge-violet {
+  color: var(--po-violet);
+  background: var(--po-violet-bg);
+  border-color: var(--po-violet-border);
 }
-.ms-badge-pink {
-  color: var(--ms-pink);
-  background: var(--ms-pink-bg);
-  border-color: var(--ms-pink-border);
+.po-badge-pink {
+  color: var(--po-pink);
+  background: var(--po-pink-bg);
+  border-color: var(--po-pink-border);
 }
 /* Count pill riding after a label ("Subscribed 4", "General +2"): tinted
    from currentColor so it follows whatever text it sits in. */
-.ms-count {
+.po-count {
   display: inline-block;
   margin-left: 6px;
   padding: 0 5px;
-  border-radius: var(--ms-r-chip);
-  font-size: var(--ms-fs-micro);
+  border-radius: var(--po-r-chip);
+  font-size: var(--po-fs-micro);
   line-height: 1.5;
   background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 /* Sidebar nav */
-.ms-nav {
+.po-nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.ms-nav a,
-.ms-nav button.ms-nav-item {
+.po-nav a,
+.po-nav button.po-nav-item {
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
-  border-radius: var(--ms-r-input);
-  color: var(--ms-muted);
-  font: 400 var(--ms-fs-ui) var(--ms-font-sans);
+  border-radius: var(--po-r-input);
+  color: var(--po-muted);
+  font: 400 var(--po-fs-ui) var(--po-font-sans);
   text-decoration: none;
   background: none;
   border: 0;
@@ -214,37 +214,37 @@
   text-align: left;
   width: 100%;
   box-sizing: border-box;
-  transition: color var(--ms-dur-fast) var(--ms-ease);
+  transition: color var(--po-dur-fast) var(--po-ease);
 }
-.ms-nav a:hover,
-.ms-nav button.ms-nav-item:hover {
-  color: var(--ms-bone);
+.po-nav a:hover,
+.po-nav button.po-nav-item:hover {
+  color: var(--po-bone);
 }
-.ms-nav a.active,
-.ms-nav button.ms-nav-item.active {
-  background: var(--ms-panel-raised);
-  color: var(--ms-bone);
+.po-nav a.active,
+.po-nav button.po-nav-item.active {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
 }
 
 /* Cards — edge-lit lift off the void ground; the border sits a touch above
-   --ms-line so the lifted edge reads clean without going full --ms-line-strong. */
-.ms-card {
+   --po-line so the lifted edge reads clean without going full --po-line-strong. */
+.po-card {
   position: relative;
-  background: var(--ms-panel);
-  border: 1px solid color-mix(in srgb, var(--ms-line-strong) 55%, var(--ms-line));
-  border-radius: var(--ms-r-card);
-  box-shadow: var(--ms-shadow-card);
+  background: var(--po-panel);
+  border: 1px solid color-mix(in srgb, var(--po-line-strong) 55%, var(--po-line));
+  border-radius: var(--po-r-card);
+  box-shadow: var(--po-shadow-card);
 }
 /* Edge light: a bone glare on the top edge fading down the sides, drawn as a
    1px ring over the border so any card background keeps working. A card that
    clips its overflow loses the ring (it sits on the border box). */
-.ms-card::before {
+.po-card::before {
   content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: radial-gradient(80% 60% at 50% 0, var(--ms-glow-edge), transparent 70%);
+  background: radial-gradient(80% 60% at 50% 0, var(--po-glow-edge), transparent 70%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -257,48 +257,48 @@
 }
 /* Danger zone: the card keeps its shape, only the border and its edge light
    turn to the danger tone. Collapsed <details>; the chevron flips when open. */
-.ms-card-danger {
-  border-color: var(--ms-danger-border);
+.po-card-danger {
+  border-color: var(--po-danger-border);
 }
-.ms-card-danger::before {
-  background: radial-gradient(80% 60% at 50% 0, var(--ms-danger-border), transparent 70%);
+.po-card-danger::before {
+  background: radial-gradient(80% 60% at 50% 0, var(--po-danger-border), transparent 70%);
 }
-.ms-card-danger > summary::-webkit-details-marker {
+.po-card-danger > summary::-webkit-details-marker {
   display: none;
 }
-.ms-card-danger[open] .ms-danger-chevron {
+.po-card-danger[open] .po-danger-chevron {
   transform: rotate(180deg);
 }
 /* A meta-grid cell whose content runs tall (a chip list) spans two rows so
    the cells beside it keep their second row instead of dropping below it. */
-.ms-meta-tall {
+.po-meta-tall {
   grid-row: span 2;
   min-width: 0;
 }
 /* Generic flex rows that may not fit their column (a phone, a narrow
    desktop): they wrap at every width rather than squeeze or overflow. */
-.ms-wrap-row {
+.po-wrap-row {
   flex-wrap: wrap;
 }
 /* Steppers (add domain): the preview column wraps under the form card
    instead of being crushed beside it, on a narrow desktop too. */
-.ms-stepper {
+.po-stepper {
   flex-wrap: wrap;
 }
 /* A row of buttons under a form or a section: they wrap, and on a phone the
    wrapped ones share each line's width (see the 639px block). */
-.ms-actions {
+.po-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 /* List filter rows wrap at every width: a select that does not fit beside
    the search drops to the next line rather than pushing the page sideways. */
-.ms-filter-row {
+.po-filter-row {
   flex-wrap: wrap;
 }
 /* Pill tabs on code panels (SDK sheets, the onboarding snippet). */
-.ms-code-tab {
+.po-code-tab {
   border: 0;
   border-radius: 8px;
   padding: 5px 10px;
@@ -306,228 +306,228 @@
   font-size: 12.5px;
   cursor: pointer;
   background: none;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   flex: none;
   white-space: nowrap;
 }
-.ms-code-tab.active {
-  background: var(--ms-panel-raised);
-  color: var(--ms-bone);
+.po-code-tab.active {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
 }
 /* Glowing card edge: a bright top border fading to the normal line down the
-   sides, over the outer card shadow. Set --ms-card-bg to match a non-default
+   sides, over the outer card shadow. Set --po-card-bg to match a non-default
    surface. Uses a two-layer background so the gradient rides the border box. */
-.ms-card-glow {
-  --ms-card-bg: var(--ms-panel);
+.po-card-glow {
+  --po-card-bg: var(--po-panel);
   border: 1px solid transparent;
-  border-radius: var(--ms-r-card);
+  border-radius: var(--po-r-card);
   background:
-    linear-gradient(var(--ms-card-bg), var(--ms-card-bg)) padding-box,
+    linear-gradient(var(--po-card-bg), var(--po-card-bg)) padding-box,
     linear-gradient(
       to bottom,
-      var(--ms-glow-edge),
-      color-mix(in srgb, var(--ms-line-strong) 55%, var(--ms-line)) 45%
+      var(--po-glow-edge),
+      color-mix(in srgb, var(--po-line-strong) 55%, var(--po-line)) 45%
     )
     border-box;
-  box-shadow: var(--ms-shadow-card);
+  box-shadow: var(--po-shadow-card);
 }
 /* Configuration-tab section: a top rule divides it from the one before. Its
    spacing lives here rather than inline so the first-section override below
    can win — an inline border-top would beat any stylesheet rule. */
-.ms-config-section {
+.po-config-section {
   padding-top: 22px;
   margin-top: 22px;
-  border-top: 1px solid var(--ms-line);
+  border-top: 1px solid var(--po-line);
 }
 /* A Configuration-tab section with nothing above it has nothing to divide, so
    it drops the rule and spacing. first-child, not first-of-type: a warn card
    rendered above the first section still gets a rule beneath it. */
-.ms-config-panel > section:first-child {
+.po-config-panel > section:first-child {
   border-top: 0;
   margin-top: 0;
   padding-top: 0;
 }
-.ms-kpi-card {
-  background: var(--ms-panel);
-  border: 1px solid color-mix(in srgb, var(--ms-line-strong) 55%, var(--ms-line));
-  border-radius: var(--ms-r-card);
-  box-shadow: var(--ms-shadow-card);
+.po-kpi-card {
+  background: var(--po-panel);
+  border: 1px solid color-mix(in srgb, var(--po-line-strong) 55%, var(--po-line));
+  border-radius: var(--po-r-card);
+  box-shadow: var(--po-shadow-card);
   padding: 24px;
 }
-.ms-kpi-value {
-  font-size: var(--ms-fs-kpi);
-  color: var(--ms-bone);
+.po-kpi-value {
+  font-size: var(--po-fs-kpi);
+  color: var(--po-bone);
   margin-top: 6px;
 }
 
 /* Quota row (usage and billing cards): ring, label, figure pushed right. */
-.ms-quota-row {
+.po-quota-row {
   display: flex;
   align-items: center;
   gap: 16px;
 }
-.ms-quota-figure {
+.po-quota-figure {
   margin-left: auto;
   text-align: right;
 }
 
 /* Table */
-table.ms-table {
+table.po-table {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
   /* Lists run at label size with tight rows (~40px with a row menu): a page
      of contacts or emails should fit a laptop viewport without scrolling. */
-  font-size: var(--ms-fs-label);
+  font-size: var(--po-fs-label);
   /* What the list sits on, for a cell that must paint it (the menu column). */
-  --ms-table-ground: var(--ms-void);
+  --po-table-ground: var(--po-void);
 }
-.ms-card .ms-table {
-  --ms-table-ground: var(--ms-panel);
+.po-card .po-table {
+  --po-table-ground: var(--po-panel);
 }
-.ms-table thead th {
-  background: var(--ms-panel-raised);
-  color: var(--ms-muted);
+.po-table thead th {
+  background: var(--po-panel-raised);
+  color: var(--po-muted);
   font-weight: 500;
-  font-size: var(--ms-fs-label);
+  font-size: var(--po-fs-label);
   text-align: left;
   padding: 5px 12px;
 }
-.ms-table thead th:first-child {
-  border-radius: var(--ms-r-input) 0 0 var(--ms-r-input);
+.po-table thead th:first-child {
+  border-radius: var(--po-r-input) 0 0 var(--po-r-input);
 }
-.ms-table thead th:last-child {
-  border-radius: 0 var(--ms-r-input) var(--ms-r-input) 0;
+.po-table thead th:last-child {
+  border-radius: 0 var(--po-r-input) var(--po-r-input) 0;
 }
-.ms-table thead th.right,
-.ms-table td.right {
+.po-table thead th.right,
+.po-table td.right {
   text-align: right;
 }
-.ms-table td {
+.po-table td {
   padding: 6px 12px;
   line-height: 1.4;
-  border-bottom: 1px solid var(--ms-line);
-  color: var(--ms-bone);
+  border-bottom: 1px solid var(--po-line);
+  color: var(--po-bone);
 }
-.ms-table td:last-child {
-  color: var(--ms-muted);
+.po-table td:last-child {
+  color: var(--po-muted);
 }
 /* Dense variant — DNS record tables: mono chips on ~4px rows. */
-.ms-table.dense td {
+.po-table.dense td {
   padding: 4px 12px;
 }
 /* A list whose cells mix badges, mono figures, bars and words keeps them on
    one line of text: every cell's first line sits on the row's baseline. The
    row menu centres instead, having no text. */
-.ms-table.baseline td {
+.po-table.baseline td {
   vertical-align: baseline;
 }
-.ms-table.baseline td.ms-cell-menu {
+.po-table.baseline td.po-cell-menu {
   vertical-align: middle;
 }
 /* Row hover: no background wash — the row's link underlines instead (quieter,
    and the affordance sits on the thing you'd click). */
-.ms-table tbody tr.hoverable:hover td {
+.po-table tbody tr.hoverable:hover td {
   cursor: pointer;
 }
-.ms-table a {
-  color: var(--ms-bone);
+.po-table a {
+  color: var(--po-bone);
   text-decoration: none;
 }
-.ms-table tbody tr:hover a {
-  text-decoration: underline dotted var(--ms-faint);
+.po-table tbody tr:hover a {
+  text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
 /* A list that scrolls sideways keeps its row menus ("…") in reach: the menu
    column sticks to the scroller's right edge and paints the list's ground
    over the cells scrolled under it. */
-.ms-table:has(td:last-child .ms-menu-trigger-bare) :is(th, td):last-child {
+.po-table:has(td:last-child .po-menu-trigger-bare) :is(th, td):last-child {
   position: sticky;
   right: 0;
 }
-.ms-table:has(td:last-child .ms-menu-trigger-bare) td:last-child {
-  background: var(--ms-table-ground);
+.po-table:has(td:last-child .po-menu-trigger-bare) td:last-child {
+  background: var(--po-table-ground);
 }
-.ms-table:has(td:last-child .ms-menu-trigger-bare) tr.row-selected td:last-child {
-  background: color-mix(in srgb, var(--ms-panel-raised) 60%, var(--ms-table-ground));
+.po-table:has(td:last-child .po-menu-trigger-bare) tr.row-selected td:last-child {
+  background: color-mix(in srgb, var(--po-panel-raised) 60%, var(--po-table-ground));
 }
 
 /* Inputs */
-.ms-field label {
+.po-field label {
   display: block;
-  font-size: var(--ms-fs-label);
-  color: var(--ms-muted);
+  font-size: var(--po-fs-label);
+  color: var(--po-muted);
   margin-bottom: 6px;
 }
-.ms-input {
-  background: var(--ms-inset);
-  border: 1px solid var(--ms-line-strong);
-  border-radius: var(--ms-r-input);
-  color: var(--ms-bone);
-  font: 400 var(--ms-fs-ui) var(--ms-font-sans);
+.po-input {
+  background: var(--po-inset);
+  border: 1px solid var(--po-line-strong);
+  border-radius: var(--po-r-input);
+  color: var(--po-bone);
+  font: 400 var(--po-fs-ui) var(--po-font-sans);
   padding: 6px 10px;
   line-height: 1.4;
   outline: none;
   box-sizing: border-box;
-  transition: box-shadow var(--ms-dur-fast) var(--ms-ease);
+  transition: box-shadow var(--po-dur-fast) var(--po-ease);
 }
-.ms-input:focus {
-  border-color: var(--ms-focus-border);
-  box-shadow: var(--ms-focus-ring);
+.po-input:focus {
+  border-color: var(--po-focus-border);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-input.error {
-  background: var(--ms-danger-bg);
-  border-color: var(--ms-danger-border);
-  color: var(--ms-danger);
+.po-input.error {
+  background: var(--po-danger-bg);
+  border-color: var(--po-danger-border);
+  color: var(--po-danger);
 }
-.ms-input::placeholder {
-  color: var(--ms-faint);
+.po-input::placeholder {
+  color: var(--po-faint);
 }
-.ms-input.mono {
-  font-family: var(--ms-font-mono);
-  font-size: var(--ms-fs-ui);
+.po-input.mono {
+  font-family: var(--po-font-mono);
+  font-size: var(--po-fs-ui);
 }
 
 /* Mono chip — everything an engineer would paste gets a copy affordance.
    Surface mixes toward bone so the chip separates from panel/inset grounds
    in both themes (plain inset was near-invisible on cards). */
-.ms-chip {
+.po-chip {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  background: color-mix(in srgb, var(--ms-bone) 5%, var(--ms-inset));
-  border: 1px solid var(--ms-line-strong);
-  border-radius: var(--ms-r-chip);
-  /* Same box as .ms-badge (padding/border/line-height/font-size/radius), so a
+  background: color-mix(in srgb, var(--po-bone) 5%, var(--po-inset));
+  border: 1px solid var(--po-line-strong);
+  border-radius: var(--po-r-chip);
+  /* Same box as .po-badge (padding/border/line-height/font-size/radius), so a
      chip and a pill sitting on one row read as one token family. */
   padding: 3px 8px;
-  font-family: var(--ms-font-mono);
-  font-size: var(--ms-fs-badge);
+  font-family: var(--po-font-mono);
+  font-size: var(--po-fs-badge);
   line-height: 1.4;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   max-width: 100%;
   box-sizing: border-box;
 }
 /* Segment condition pill: the chip box, holding the button that opens the
    condition's editor and the ✕ that removes it. */
-.ms-pill {
+.po-pill {
   display: inline-flex;
   align-items: stretch;
   height: 28px;
-  background: color-mix(in srgb, var(--ms-bone) 5%, var(--ms-inset));
-  border: 1px solid var(--ms-line-strong);
-  border-radius: var(--ms-r-chip);
-  font-family: var(--ms-font-mono);
-  font-size: var(--ms-fs-badge);
-  color: var(--ms-bone);
+  background: color-mix(in srgb, var(--po-bone) 5%, var(--po-inset));
+  border: 1px solid var(--po-line-strong);
+  border-radius: var(--po-r-chip);
+  font-family: var(--po-font-mono);
+  font-size: var(--po-fs-badge);
+  color: var(--po-bone);
   box-sizing: border-box;
   max-width: 100%;
-  transition: border-color var(--ms-dur-fast) var(--ms-ease);
+  transition: border-color var(--po-dur-fast) var(--po-ease);
 }
-.ms-pill > button {
+.po-pill > button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -540,58 +540,58 @@ table.ms-table {
   font: inherit;
   cursor: pointer;
   /* Rounds the global focus ring to the chip. */
-  border-radius: var(--ms-r-chip);
+  border-radius: var(--po-r-chip);
 }
-.ms-pill .txt {
+.po-pill .txt {
   /* A long value ends in an ellipsis instead of widening the row. */
   max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ms-pill .sans,
-.ms-pill .op {
-  font-family: var(--ms-font-sans);
+.po-pill .sans,
+.po-pill .op {
+  font-family: var(--po-font-sans);
   font-size: 12.5px;
 }
-.ms-pill .op {
-  color: var(--ms-muted);
+.po-pill .op {
+  color: var(--po-muted);
 }
-.ms-pill:hover,
-.ms-pill.open {
-  border-color: color-mix(in srgb, var(--ms-bone) 25%, var(--ms-line-strong));
+.po-pill:hover,
+.po-pill.open {
+  border-color: color-mix(in srgb, var(--po-bone) 25%, var(--po-line-strong));
 }
-.ms-pill > .ms-pill-x {
+.po-pill > .po-pill-x {
   padding: 0 7px 0 2px;
-  color: var(--ms-faint);
-  font: 600 12px var(--ms-font-sans);
+  color: var(--po-faint);
+  font: 600 12px var(--po-font-sans);
 }
-.ms-pill > .ms-pill-x:hover {
-  color: var(--ms-bone);
+.po-pill > .po-pill-x:hover {
+  color: var(--po-bone);
 }
 
 /* Shared copy→check swap (components/copy-chip.tsx CopyMark). Mirrors the
    LP's .lp-copy pop; keep the two in step. */
-.ms-copy-mark {
+.po-copy-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.ms-copy-mark.done {
-  color: var(--ms-success);
+.po-copy-mark.done {
+  color: var(--po-success);
 }
-.ms-copy-mark.done svg {
-  animation: ms-copy-pop 240ms var(--ms-ease);
+.po-copy-mark.done svg {
+  animation: po-copy-pop 240ms var(--po-ease);
 }
-@keyframes ms-copy-pop {
+@keyframes po-copy-pop {
   from {
     transform: scale(0.55);
     opacity: 0;
   }
 }
-/* Circled check over success states (unsubscribe page); ms-badge-success
-   palette, ms-copy-pop entrance. */
-.ms-success-check {
+/* Circled check over success states (unsubscribe page); po-badge-success
+   palette, po-copy-pop entrance. */
+.po-success-check {
   width: 44px;
   height: 44px;
   margin: 0 auto 14px;
@@ -599,21 +599,21 @@ table.ms-table {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--ms-success-bg);
-  border: 1px solid var(--ms-success-border);
-  color: var(--ms-success);
-  animation: ms-copy-pop 240ms var(--ms-ease);
+  background: var(--po-success-bg);
+  border: 1px solid var(--po-success-border);
+  color: var(--po-success);
+  animation: po-copy-pop 240ms var(--po-ease);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-copy-mark.done svg,
-  .ms-success-check {
+  .po-copy-mark.done svg,
+  .po-success-check {
     animation: none;
   }
 }
-.ms-chip button {
+.po-chip button {
   background: none;
   border: 0;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   font: inherit;
   cursor: pointer;
   padding: 0;
@@ -622,26 +622,26 @@ table.ms-table {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: color var(--ms-dur-fast) var(--ms-ease);
+  transition: color var(--po-dur-fast) var(--po-ease);
 }
-.ms-chip button:hover {
-  color: var(--ms-bone);
+.po-chip button:hover {
+  color: var(--po-bone);
 }
 /* Inside dense tables the pill matches the table's 13px mono. */
-.ms-table.dense .ms-chip {
+.po-table.dense .po-chip {
   font-size: inherit;
 }
 
 /* Page header (page-header.tsx). The title block grows from its natural
    width; the actions share its row only while both fit at that width, and
    otherwise wrap whole onto the row under the meta line, at any viewport. */
-.ms-page-row {
+.po-page-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 14px 16px;
 }
-.ms-page-title {
+.po-page-title {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -651,61 +651,61 @@ table.ms-table {
 }
 /* Inline flow, so the badges follow the title's last word and wrap under it
    as a group; the space before them is set at the title's size. */
-.ms-page-heading {
-  font-size: var(--ms-fs-h1);
+.po-page-heading {
+  font-size: var(--po-fs-h1);
   line-height: 1.15;
 }
-.ms-page-heading > h1 {
+.po-page-heading > h1 {
   display: inline;
 }
 /* Status badges right after a title (page header, card title), on its line. */
-.ms-title-badges {
+.po-title-badges {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   vertical-align: middle;
 }
-.ms-page-actions {
+.po-page-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
 /* A wrapper kept for an absolutely placed note lines its button up with the rest. */
-.ms-page-actions > div {
+.po-page-actions > div {
   display: flex;
 }
 /* The trailing "…" or "</>" never starts a row alone: the action before it
    holds the icon's room (30px + the 10px gap) as a margin that the icon's
    negative margin takes back, so a row can only break before the pair. */
-.ms-page-menu {
+.po-page-menu {
   display: inline-flex;
   position: relative;
   flex: none;
 }
-.ms-page-actions > :has(+ .ms-page-menu) {
+.po-page-actions > :has(+ .po-page-menu) {
   margin-right: 40px;
 }
-.ms-page-menu:not(:first-child) {
+.po-page-menu:not(:first-child) {
   margin-left: -40px;
 }
 /* When the icon is the only action, the title block gives way instead (it
    wraps, the icon stays beside it). */
-.ms-page-row:has(> .ms-page-actions > .ms-page-menu:only-child) > .ms-page-title {
+.po-page-row:has(> .po-page-actions > .po-page-menu:only-child) > .po-page-title {
   flex-basis: 0;
 }
 
 /* A dot-joined value's part (dot-parts.tsx): lines break between parts, and
    inside one only when it is longer than a whole line. */
-.ms-part {
+.po-part {
   display: inline-block;
   max-width: 100%;
 }
 
 /* Breadcrumb row: segments wrap whole; the current page, which the H1
    repeats, is cut with an ellipsis rather than wrapped. */
-.ms-crumbs {
+.po-crumbs {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -714,94 +714,94 @@ table.ms-table {
   line-height: 1;
   margin-bottom: 10px;
 }
-.ms-crumb-seg {
+.po-crumb-seg {
   display: inline-flex;
   gap: 8px;
   white-space: nowrap;
 }
-.ms-crumb-end {
+.po-crumb-end {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   /* Room for descenders inside the clip, without growing the row. */
   padding: 2px 0;
   margin: -2px 0;
 }
 
 /* Breadcrumb link — quiet until hover, when the shared dotted underline appears. */
-.ms-crumb {
-  color: var(--ms-muted);
+.po-crumb {
+  color: var(--po-muted);
   text-decoration: none;
 }
-.ms-crumb:hover {
-  text-decoration: underline dotted var(--ms-faint);
+.po-crumb:hover {
+  text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
 /* Inline text link: the same dotted underline, always on so it reads as a link mid-sentence. */
-.ms-link {
+.po-link {
   color: inherit;
-  text-decoration: underline dotted var(--ms-faint);
+  text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
-.ms-link:hover {
-  text-decoration-color: var(--ms-bone);
+.po-link:hover {
+  text-decoration-color: var(--po-bone);
 }
 
 /* Field/form error line — always block-level with breathing room so it never
    glues to the control or a footnote above it. */
-.ms-field-error {
+.po-field-error {
   display: block;
   margin: 10px 0 0;
-  color: var(--ms-danger);
-  font-size: var(--ms-fs-label);
+  color: var(--po-danger);
+  font-size: var(--po-fs-label);
 }
 
 /* Switch — pill track + sliding thumb (components/switch.tsx). */
-.ms-switch {
+.po-switch {
   flex-shrink: 0;
   width: 40px;
   height: 22px;
   border: 0;
-  border-radius: var(--ms-r-pill);
+  border-radius: var(--po-r-pill);
   padding: 2px;
   cursor: pointer;
-  background: var(--ms-faint);
-  transition: background var(--ms-dur-fast) var(--ms-ease);
+  background: var(--po-faint);
+  transition: background var(--po-dur-fast) var(--po-ease);
 }
-.ms-switch[aria-checked="true"] {
-  background: var(--ms-success);
+.po-switch[aria-checked="true"] {
+  background: var(--po-success);
 }
-.ms-switch:disabled {
+.po-switch:disabled {
   cursor: default;
   opacity: 0.55;
 }
-.ms-switch:focus-visible {
+.po-switch:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-switch span {
+.po-switch span {
   display: block;
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--ms-bone);
-  transition: transform var(--ms-dur-fast) var(--ms-ease);
+  background: var(--po-bone);
+  transition: transform var(--po-dur-fast) var(--po-ease);
 }
-.ms-switch[aria-checked="true"] span {
+.po-switch[aria-checked="true"] span {
   transform: translateX(18px);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-switch,
-  .ms-switch span {
+  .po-switch,
+  .po-switch span {
     transition: none;
   }
 }
 /* The same switch drawn over a real checkbox, for a page that ships no JS
    (the hosted unsubscribe page): the input stays in the form and in the tab
-   order, visually replaced by the .ms-switch span that follows it. */
-.ms-switch-input {
+   order, visually replaced by the .po-switch span that follows it. */
+.po-switch-input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -809,61 +809,61 @@ table.ms-table {
   opacity: 0;
   pointer-events: none;
 }
-.ms-switch-input + .ms-switch {
+.po-switch-input + .po-switch {
   display: block;
   box-sizing: border-box;
 }
-.ms-switch-input:checked + .ms-switch {
-  background: var(--ms-success);
+.po-switch-input:checked + .po-switch {
+  background: var(--po-success);
 }
-.ms-switch-input:checked + .ms-switch span {
+.po-switch-input:checked + .po-switch span {
   transform: translateX(18px);
 }
-.ms-switch-input:focus-visible + .ms-switch {
-  box-shadow: var(--ms-focus-ring);
+.po-switch-input:focus-visible + .po-switch {
+  box-shadow: var(--po-focus-ring);
 }
 
 /* Checkbox — bulk row selection. Checked/indeterminate fill with bone and draw
    the glyph in ground (the primary-button pairing); the glyph is an inline SVG
    so the light theme re-declares it with the flipped ground color. */
-.ms-checkbox {
+.po-checkbox {
   appearance: none;
   flex-shrink: 0;
   display: block;
   width: 15px;
   height: 15px;
   margin: 0;
-  border: 1px solid var(--ms-line-strong);
+  border: 1px solid var(--po-line-strong);
   border-radius: 4px;
-  background: var(--ms-inset) center / 11px no-repeat;
+  background: var(--po-inset) center / 11px no-repeat;
   cursor: pointer;
   transition:
-    opacity var(--ms-dur-fast) var(--ms-ease),
-    background-color var(--ms-dur-fast) var(--ms-ease);
+    opacity var(--po-dur-fast) var(--po-ease),
+    background-color var(--po-dur-fast) var(--po-ease);
 }
-.ms-checkbox:checked,
-.ms-checkbox:indeterminate {
-  background-color: var(--ms-bone);
-  border-color: var(--ms-bone);
+.po-checkbox:checked,
+.po-checkbox:indeterminate {
+  background-color: var(--po-bone);
+  border-color: var(--po-bone);
 }
-.ms-checkbox:checked {
+.po-checkbox:checked {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5' fill='none' stroke='%23050505' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-.ms-checkbox:indeterminate {
+.po-checkbox:indeterminate {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' fill='none' stroke='%23050505' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
 }
-[data-theme="light"] .ms-checkbox:checked {
+[data-theme="light"] .po-checkbox:checked {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5' fill='none' stroke='%23f4f1ea' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-[data-theme="light"] .ms-checkbox:indeterminate {
+[data-theme="light"] .po-checkbox:indeterminate {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' fill='none' stroke='%23f4f1ea' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
 }
-.ms-checkbox:focus-visible {
+.po-checkbox:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-checkbox {
+  .po-checkbox {
     transition: none;
   }
 }
@@ -872,133 +872,133 @@ table.ms-table {
    or keyboard focus lands on it — so an unselected table stays quiet. */
 /* The cell takes no width: the box hangs in the Table gutter outside the
    first column, so selection never shifts row content. */
-.ms-table .ms-check-cell {
+.po-table .po-check-cell {
   width: 0;
   padding: 0;
   position: relative;
 }
-.ms-table .ms-check-cell .ms-checkbox {
+.po-table .po-check-cell .po-checkbox {
   position: absolute;
   left: -22px;
   top: 50%;
   transform: translateY(-50%);
   opacity: 0;
 }
-.ms-table thead th.ms-check-cell {
+.po-table thead th.po-check-cell {
   background: none;
 }
-.ms-table thead th.ms-check-cell + th {
-  border-radius: var(--ms-r-input) 0 0 var(--ms-r-input);
+.po-table thead th.po-check-cell + th {
+  border-radius: var(--po-r-input) 0 0 var(--po-r-input);
 }
-.ms-table tr:hover .ms-check-cell .ms-checkbox,
-.ms-table tr.row-selected .ms-check-cell .ms-checkbox,
-.ms-table .ms-check-cell .ms-checkbox:checked,
-.ms-table .ms-check-cell .ms-checkbox:indeterminate,
-.ms-table .ms-check-cell .ms-checkbox:focus-visible {
+.po-table tr:hover .po-check-cell .po-checkbox,
+.po-table tr.row-selected .po-check-cell .po-checkbox,
+.po-table .po-check-cell .po-checkbox:checked,
+.po-table .po-check-cell .po-checkbox:indeterminate,
+.po-table .po-check-cell .po-checkbox:focus-visible {
   opacity: 1;
 }
 /* Selected rows carry a faint raised wash — state, not the hover treatment. */
-.ms-table tbody tr.row-selected td {
-  background: color-mix(in srgb, var(--ms-panel-raised) 60%, transparent);
+.po-table tbody tr.row-selected td {
+  background: color-mix(in srgb, var(--po-panel-raised) 60%, transparent);
 }
 
 /* Bulk-selection action bar — bottom-center floater while rows are selected.
    Panel treatment; sits below modals so a confirm dialog covers it. */
-.ms-bulk-bar {
+.po-bulk-bar {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: var(--ms-z-popover);
+  z-index: var(--po-z-popover);
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: var(--ms-panel);
-  border: 1px solid var(--ms-line-strong);
+  background: var(--po-panel);
+  border: 1px solid var(--po-line-strong);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  animation: ms-fade var(--ms-dur-fast) var(--ms-ease);
+  animation: po-fade var(--po-dur-fast) var(--po-ease);
 }
-.ms-bulk-bar .ms-bulk-count {
-  font-size: var(--ms-fs-ui);
-  color: var(--ms-bone);
+.po-bulk-bar .po-bulk-count {
+  font-size: var(--po-fs-ui);
+  color: var(--po-bone);
   white-space: nowrap;
 }
-.ms-bulk-bar .ms-bulk-sep {
+.po-bulk-bar .po-bulk-sep {
   width: 1px;
   align-self: stretch;
-  background: var(--ms-line);
+  background: var(--po-line);
 }
 
 /* Tabs — one line that scrolls sideways when the row outgrows its container
    (settings has nine tabs). The 2px padding/negative margin keeps the focus
    ring inside the scroll clip. */
-.ms-tabs {
+.po-tabs {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--ms-line-strong) transparent;
+  scrollbar-color: var(--po-line-strong) transparent;
   padding: 2px;
   margin: -2px;
 }
 /* Every tab carries the panel ground and a hairline so it reads as a
    control before it is clicked; the active one lifts a shade. */
-.ms-tabs button {
+.po-tabs button {
   flex: none;
   white-space: nowrap;
-  font: 500 var(--ms-fs-ui) var(--ms-font-sans);
-  color: var(--ms-muted);
-  background: var(--ms-panel);
-  border: 1px solid var(--ms-line);
+  font: 500 var(--po-fs-ui) var(--po-font-sans);
+  color: var(--po-muted);
+  background: var(--po-panel);
+  border: 1px solid var(--po-line);
   padding: 6px 12px;
-  border-radius: var(--ms-r-input);
+  border-radius: var(--po-r-input);
   cursor: pointer;
   transition:
-    color var(--ms-dur-fast) var(--ms-ease),
-    border-color var(--ms-dur-fast) var(--ms-ease);
+    color var(--po-dur-fast) var(--po-ease),
+    border-color var(--po-dur-fast) var(--po-ease);
 }
-.ms-tabs button:hover {
-  color: var(--ms-bone);
-  border-color: var(--ms-line-strong);
+.po-tabs button:hover {
+  color: var(--po-bone);
+  border-color: var(--po-line-strong);
 }
-.ms-tabs button.active {
-  background: var(--ms-panel-raised);
-  border-color: var(--ms-line-strong);
-  color: var(--ms-bone);
+.po-tabs button.active {
+  background: var(--po-panel-raised);
+  border-color: var(--po-line-strong);
+  color: var(--po-bone);
 }
 
 /* Toast host (toast.tsx): a row across the viewport bottom, the toast centred
    in it at its own width up to the full row. A box hung at left: 50% would
    shrink to half the viewport and wrap a short message into three lines. */
-.ms-toast-host {
+.po-toast-host {
   position: fixed;
   left: 16px;
   right: 16px;
   bottom: 24px;
   display: flex;
   justify-content: center;
-  z-index: var(--ms-z-menu);
+  z-index: var(--po-z-menu);
   pointer-events: none;
 }
-.ms-toast-host > :where(*) {
+.po-toast-host > :where(*) {
   pointer-events: auto;
 }
 /* Toast — near-black ground with a faint status-tinted glow (the system's one gradient) */
-.ms-toast {
+.po-toast {
   display: inline-flex;
   gap: 12px;
   align-items: center;
   border: 1px solid;
-  border-radius: var(--ms-r-tile);
-  color: var(--ms-bone);
-  font-size: var(--ms-fs-ui);
+  border-radius: var(--po-r-tile);
+  color: var(--po-bone);
+  font-size: var(--po-fs-ui);
   padding: 13px 18px;
-  background-color: var(--ms-ground);
+  background-color: var(--po-ground);
   background-repeat: no-repeat;
 }
-.ms-toast-icon {
+.po-toast-icon {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
@@ -1012,74 +1012,74 @@ table.ms-table {
   line-height: 1;
   box-sizing: border-box;
 }
-.ms-toast-success {
-  border-color: var(--ms-success-border);
+.po-toast-success {
+  border-color: var(--po-success-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-success) 17%, transparent),
+    color-mix(in srgb, var(--po-success) 17%, transparent),
     transparent 62%
   );
 }
-.ms-toast-success .ms-toast-icon {
-  color: var(--ms-success);
+.po-toast-success .po-toast-icon {
+  color: var(--po-success);
 }
-.ms-toast-info {
-  border-color: var(--ms-info-border);
+.po-toast-info {
+  border-color: var(--po-info-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-info) 17%, transparent),
+    color-mix(in srgb, var(--po-info) 17%, transparent),
     transparent 62%
   );
 }
-.ms-toast-info .ms-toast-icon {
-  color: var(--ms-info);
+.po-toast-info .po-toast-icon {
+  color: var(--po-info);
 }
-.ms-toast-warn {
-  border-color: var(--ms-warn-border);
+.po-toast-warn {
+  border-color: var(--po-warn-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-warn) 17%, transparent),
+    color-mix(in srgb, var(--po-warn) 17%, transparent),
     transparent 62%
   );
 }
-.ms-toast-warn .ms-toast-icon {
-  color: var(--ms-warn);
+.po-toast-warn .po-toast-icon {
+  color: var(--po-warn);
 }
-.ms-toast-danger {
-  border-color: var(--ms-danger-border);
+.po-toast-danger {
+  border-color: var(--po-danger-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-danger) 17%, transparent),
+    color-mix(in srgb, var(--po-danger) 17%, transparent),
     transparent 62%
   );
 }
-.ms-toast-danger .ms-toast-icon {
-  color: var(--ms-danger);
+.po-toast-danger .po-toast-icon {
+  color: var(--po-danger);
 }
-.ms-toast-neutral {
-  border-color: var(--ms-neutral-border);
+.po-toast-neutral {
+  border-color: var(--po-neutral-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-neutral) 14%, transparent),
+    color-mix(in srgb, var(--po-neutral) 14%, transparent),
     transparent 62%
   );
 }
-.ms-toast-neutral .ms-toast-icon {
-  color: var(--ms-neutral);
+.po-toast-neutral .po-toast-icon {
+  color: var(--po-neutral);
 }
 
 /* Notice strip — the toasts' tone border and bottom-left glow, stretched to a
    full-width one-liner (global deliverability notices, the templates HTML banner). */
-.ms-notice-strip {
+.po-notice-strip {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
   padding: 9px 14px;
   margin-bottom: 18px;
-  border-radius: var(--ms-r-input);
+  border-radius: var(--po-r-input);
   border: 1px solid;
-  background-color: var(--ms-ground);
+  background-color: var(--po-ground);
   background-repeat: no-repeat;
   font-size: 13px;
   line-height: 1.4;
@@ -1087,16 +1087,16 @@ table.ms-table {
 }
 /* The text keeps at least this much width beside the action; below it the
    action wraps whole onto the line under the text. */
-.ms-notice-strip-text {
+.po-notice-strip-text {
   flex: 1 1 288px;
   min-width: 0;
 }
-.ms-notice-strip-action {
+.po-notice-strip-action {
   margin-left: auto;
   opacity: 0.8;
   white-space: nowrap;
 }
-button.ms-notice-strip-action {
+button.po-notice-strip-action {
   background: none;
   border: 0;
   padding: 0;
@@ -1105,36 +1105,36 @@ button.ms-notice-strip-action {
   cursor: pointer;
 }
 /* A strip's button pair (the support view's). */
-.ms-notice-strip-actions {
+.po-notice-strip-actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-left: auto;
 }
-.ms-notice-strip-info {
-  color: var(--ms-info);
-  border-color: var(--ms-info-border);
+.po-notice-strip-info {
+  color: var(--po-info);
+  border-color: var(--po-info-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-info) 17%, transparent),
+    color-mix(in srgb, var(--po-info) 17%, transparent),
     transparent 62%
   );
 }
-.ms-notice-strip-warn {
-  color: var(--ms-warn);
-  border-color: var(--ms-warn-border);
+.po-notice-strip-warn {
+  color: var(--po-warn);
+  border-color: var(--po-warn-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-warn) 17%, transparent),
+    color-mix(in srgb, var(--po-warn) 17%, transparent),
     transparent 62%
   );
 }
-.ms-notice-strip-danger {
-  color: var(--ms-danger);
-  border-color: var(--ms-danger-border);
+.po-notice-strip-danger {
+  color: var(--po-danger);
+  border-color: var(--po-danger-border);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-danger) 17%, transparent),
+    color-mix(in srgb, var(--po-danger) 17%, transparent),
     transparent 62%
   );
 }
@@ -1146,17 +1146,17 @@ button.ms-notice-strip-action {
    ponytail: a pointer-level block only — a keyboard can still activate a
    dimmed button, and the server's refusal is what answers it. Thread a
    read-only context and set `disabled` if that asymmetry starts to matter. */
-[data-support-view] button.ms-btn-primary,
-[data-support-view] button.ms-btn-destructive {
+[data-support-view] button.po-btn-primary,
+[data-support-view] button.po-btn-destructive {
   opacity: 0.45;
   pointer-events: none;
 }
 
 /* The strip stays on screen: it carries the only countdown, and a dashboard
    that scrolled it away is indistinguishable from the operator's own. It
-   measures itself into --ms-support-strip-h, which the sidebar drops by so
-   the page keeps to one viewport. Above .ms-mobile-topbar's z-index. */
-.ms-support-strip {
+   measures itself into --po-support-strip-h, which the sidebar drops by so
+   the page keeps to one viewport. Above .po-mobile-topbar's z-index. */
+.po-support-strip {
   position: sticky;
   top: 0;
   z-index: 30;
@@ -1164,11 +1164,11 @@ button.ms-notice-strip-action {
 }
 
 /* Odometer — the product's only flourish; reduced-motion degrades to a plain swap */
-.ms-odometer {
+.po-odometer {
   display: inline-flex;
   line-height: 1;
 }
-.ms-odometer .ms-odo-col {
+.po-odometer .po-odo-col {
   height: 1em;
   overflow: hidden;
   /* The roll's motion blur bleeds past the glyph's 1em line box, and a bare
@@ -1197,32 +1197,32 @@ button.ms-notice-strip-action {
     transparent calc(100% - 0.11em)
   );
 }
-.ms-odometer .ms-odo-strip {
+.po-odometer .po-odo-strip {
   display: block;
   transition:
-    transform var(--ms-dur-digit) var(--ms-ease) var(--odo-d, 0ms),
-    color var(--ms-dur-base);
+    transform var(--po-dur-digit) var(--po-ease) var(--odo-d, 0ms),
+    color var(--po-dur-base);
 }
-.ms-odometer .ms-odo-strip span {
+.po-odometer .po-odo-strip span {
   display: block;
   height: 1em;
 }
-.ms-newborn {
-  color: var(--ms-steel);
+.po-newborn {
+  color: var(--po-steel);
 }
-/* Wheel odometer (the LP hero's mechanics, mirrored in millionsend-lp
-   site.css): masked cells, tabular 800 grotesque, the units cell lit steel
+/* Wheel odometer (the LP hero's mechanics, mirrored in the marketing site,
+   posta-site): masked cells, tabular 800 grotesque, the units cell lit steel
    once the count is live. */
 .od {
   display: inline-flex;
   align-items: center;
-  font-family: var(--ms-font-sans);
+  font-family: var(--po-font-sans);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   font-size: clamp(44px, 6vw, 88px);
   letter-spacing: -0.01em;
-  color: var(--ms-bone);
+  color: var(--po-bone);
 }
 .od-cell {
   position: relative;
@@ -1268,33 +1268,33 @@ button.ms-notice-strip-action {
   transform: translateY(0.08em);
 }
 .od-cell.lit .od-strip span {
-  color: var(--ms-steel);
-  text-shadow: 0 0 0.16em color-mix(in srgb, var(--ms-steel) 40%, transparent);
+  color: var(--po-steel);
+  text-shadow: 0 0 0.16em color-mix(in srgb, var(--po-steel) 40%, transparent);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-odometer .ms-odo-strip {
+  .po-odometer .po-odo-strip {
     transition: none;
   }
 }
 
-/* Modal — tokens define --ms-r-modal + --ms-dur-drawer; ⌘↵-confirm modals per the brief.
+/* Modal — tokens define --po-r-modal + --po-dur-drawer; ⌘↵-confirm modals per the brief.
    Dialog is centered in the viewport on both axes. */
-.ms-modal-overlay {
+.po-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--ms-z-modal);
-  animation: ms-fade var(--ms-dur-base) var(--ms-ease);
+  z-index: var(--po-z-modal);
+  animation: po-fade var(--po-dur-base) var(--po-ease);
 }
-.ms-modal {
-  background: var(--ms-panel);
-  border: 1px solid var(--ms-line-strong);
-  border-radius: var(--ms-r-modal);
-  box-shadow: var(--ms-shadow-card);
-  /* The bottom edge is supplied by .ms-modal-footer, which every dialog ends with. */
+.po-modal {
+  background: var(--po-panel);
+  border: 1px solid var(--po-line-strong);
+  border-radius: var(--po-r-modal);
+  box-shadow: var(--po-shadow-card);
+  /* The bottom edge is supplied by .po-modal-footer, which every dialog ends with. */
   box-sizing: border-box;
   padding: 28px 28px 0;
   width: 538px;
@@ -1306,26 +1306,26 @@ button.ms-notice-strip-action {
      min-content width, which sizes the auto track of a dialog's grid form,
      so a long URL cannot widen the form past the dialog. */
   overflow-wrap: anywhere;
-  animation: ms-fade var(--ms-dur-drawer) var(--ms-ease);
+  animation: po-fade var(--po-dur-drawer) var(--po-ease);
 }
 /* The last thing in every dialog, scrolling with the content rather than
    pinned over it; its bottom padding is the panel's bottom edge. */
-.ms-modal-footer {
+.po-modal-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   padding: 22px 0 28px;
 }
-.ms-modal h2 {
-  font-family: var(--ms-font-sans);
+.po-modal h2 {
+  font-family: var(--po-font-sans);
   font-weight: 600;
-  font-size: var(--ms-fs-h2);
-  color: var(--ms-bone);
+  font-size: var(--po-fs-h2);
+  color: var(--po-bone);
   margin: 0 0 6px;
   line-height: 1.15;
 }
-@keyframes ms-fade {
+@keyframes po-fade {
   from {
     opacity: 0;
   }
@@ -1335,16 +1335,16 @@ button.ms-notice-strip-action {
 }
 
 /* The console's history dialog: wider than a form, narrower than the plan ladder. */
-.ms-modal-wide {
+.po-modal-wide {
   width: 818px;
 }
 
 /* Sortable table headers (the console lists): the header cell is a button
    with a caret that reads ↕ at rest and ↑/↓ when the column is active. */
-.ms-table thead th.ms-th-sortable {
+.po-table thead th.po-th-sortable {
   padding: 0;
 }
-.ms-th-sortable > button {
+.po-th-sortable > button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1358,63 +1358,63 @@ button.ms-notice-strip-action {
   text-align: inherit;
   white-space: nowrap;
 }
-.ms-th-sortable.right > button {
+.po-th-sortable.right > button {
   justify-content: flex-end;
 }
-.ms-th-sortable > button:hover,
-.ms-th-sortable[aria-sort] > button {
-  color: var(--ms-bone);
+.po-th-sortable > button:hover,
+.po-th-sortable[aria-sort] > button {
+  color: var(--po-bone);
 }
-.ms-th-caret {
+.po-th-caret {
   font-size: 10px;
-  color: var(--ms-faint);
+  color: var(--po-faint);
 }
-.ms-th-sortable[aria-sort] .ms-th-caret {
-  color: var(--ms-bone);
+.po-th-sortable[aria-sort] .po-th-caret {
+  color: var(--po-bone);
 }
-.ms-th-sortable > button:focus-visible {
+.po-th-sortable > button:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 
 /* Console grids: equal columns that collapse in the responsive section. */
-.ms-grid {
+.po-grid {
   display: grid;
   gap: 16px;
 }
 /* Stat tiles: three per row, two from tablet width down (see the 639px block). */
-.ms-grid-tiles {
+.po-grid-tiles {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.ms-grid-4 {
+.po-grid-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.ms-grid-3 {
+.po-grid-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.ms-grid-2 {
+.po-grid-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.ms-grid-21 {
+.po-grid-21 {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
-.ms-grid-12 {
+.po-grid-12 {
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
 }
 /* A short card beside a tall one keeps its own height. */
-.ms-grid-21,
-.ms-grid-12 {
+.po-grid-21,
+.po-grid-12 {
   align-items: start;
 }
 /* A card whose chart bleeds to its edges: the sparkline sits in the card's
    bottom band, under the card's own padding. */
-.ms-card-bleed {
+.po-card-bleed {
   overflow: hidden;
 }
-.ms-card-bleed::before {
+.po-card-bleed::before {
   display: none;
 }
-.ms-bleed {
+.po-bleed {
   position: absolute;
   left: 0;
   right: 0;
@@ -1423,29 +1423,29 @@ button.ms-notice-strip-action {
 /* Console lists keep every cell on one line (the wrapper scrolls sideways
    instead) on slightly tighter cells, and print their figures in mono at
    12.5px — a dense operator list, not a KPI. */
-.ms-table.nowrap th,
-.ms-table.nowrap td {
+.po-table.nowrap th,
+.po-table.nowrap td {
   white-space: nowrap;
   padding-left: 8px;
   padding-right: 8px;
 }
-.ms-table .num {
-  font-family: var(--ms-font-mono);
+.po-table .num {
+  font-family: var(--po-font-mono);
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }
 /* A card that is only a table: it clips the sticky "…" column to its
    rounded corner, and its last row draws no rule over the card's border. */
-.ms-card-table {
+.po-card-table {
   padding: 0;
   overflow: hidden;
 }
-.ms-card-table .ms-table tbody tr:last-child td {
+.po-card-table .po-table tbody tr:last-child td {
   border-bottom: 0;
 }
 /* The health card's rows: a dot, the probe, the reading pushed right, or
    onto the line under them whole when it does not fit beside them. */
-.ms-health-row {
+.po-health-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1454,29 +1454,29 @@ button.ms-notice-strip-action {
   padding: 9px 8px;
   margin: 0 -8px;
   border: 0;
-  border-bottom: 1px solid var(--ms-line);
+  border-bottom: 1px solid var(--po-line);
   border-radius: 6px;
   background: none;
   font: inherit;
-  font-size: var(--ms-fs-label);
-  color: var(--ms-bone);
+  font-size: var(--po-fs-label);
+  color: var(--po-bone);
   cursor: pointer;
   text-align: left;
   box-sizing: content-box;
 }
-.ms-health-row > span:nth-child(2) {
+.po-health-row > span:nth-child(2) {
   flex: none;
   white-space: nowrap;
 }
-.ms-health-row:hover {
-  background: color-mix(in srgb, var(--ms-panel-raised) 70%, transparent);
+.po-health-row:hover {
+  background: color-mix(in srgb, var(--po-panel-raised) 70%, transparent);
 }
-.ms-health-row:last-child {
+.po-health-row:last-child {
   border-bottom: 0;
 }
-.ms-health-row:focus-visible {
+.po-health-row:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 /* Key/value list (kv-row.tsx: region cards, the team dialog, settings). One
    row per pair: the value sits right-aligned on its label's line when the
@@ -1484,30 +1484,30 @@ button.ms-notice-strip-action {
    full width. A " · "-joined value breaks only between its parts, in
    balanced lines; a part breaks inside itself only when it alone is wider
    than the list. */
-.ms-kv {
+.po-kv {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: var(--ms-fs-label);
+  font-size: var(--po-fs-label);
   margin: 0;
 }
-.ms-kv-row {
+.po-kv-row {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 2px 12px;
 }
-.ms-kv dt {
+.po-kv dt {
   flex: 0 1 auto;
   min-width: 0;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   margin: 0;
 }
-.ms-kv dd {
+.po-kv dd {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-family: var(--ms-font-mono);
+  font-family: var(--po-font-mono);
   font-size: 12px;
   text-align: right;
   text-wrap: balance;
@@ -1516,53 +1516,53 @@ button.ms-notice-strip-action {
 /* Values read from a label column instead: left-aligned after at least
    8.5rem of label while they keep 14rem beside it, and stacked under their
    label below that (phones). */
-.ms-kv-cols dt {
+.po-kv-cols dt {
   flex: 0 0 auto;
   min-width: 8.5rem;
 }
-.ms-kv-cols dd {
+.po-kv-cols dd {
   flex: 1 1 14rem;
   text-align: left;
 }
 /* Radio-card rows in the console dialogs. */
-.ms-radio-card {
+.po-radio-card {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: var(--ms-fs-label);
+  font-size: var(--po-fs-label);
   padding: 8px 10px;
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-input);
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
   cursor: pointer;
 }
-/* Radio cards sit inside a .ms-field, whose "label" rule (a muted block)
-   outranks .ms-radio-card: this keeps the radio beside its text, at the
+/* Radio cards sit inside a .po-field, whose "label" rule (a muted block)
+   outranks .po-radio-card: this keeps the radio beside its text, at the
    body colour. */
-.ms-field .ms-radio-card {
+.po-field .po-radio-card {
   display: flex;
   margin: 0;
   color: inherit;
 }
-.ms-radio-card input {
+.po-radio-card input {
   margin-top: 3px;
-  accent-color: var(--ms-steel);
+  accent-color: var(--po-steel);
 }
-.ms-radio-card .sub {
-  color: var(--ms-muted);
+.po-radio-card .sub {
+  color: var(--po-muted);
   font-size: 12px;
 }
 
 /* The revealed body in the console's content-access view: a message written
    for a mail client, read here as evidence. Scrolls on its own so a long one
    never pushes the dialog's decisions off the screen. */
-.ms-revealed {
+.po-revealed {
   max-height: 46vh;
   overflow-y: auto;
   padding: 12px 14px;
-  background: var(--ms-inset);
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-input);
-  font-family: var(--ms-font-mono);
+  background: var(--po-inset);
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  font-family: var(--po-font-mono);
   font-size: 12.5px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -1571,19 +1571,19 @@ button.ms-notice-strip-action {
 /* What the server shortened or masked. The span already holds the replacement
    — the original never reached this page — so it stays legible: the box says
    "changed", not "hidden behind a bar you could select". */
-.ms-redact {
-  background: var(--ms-line-strong);
+.po-redact {
+  background: var(--po-line-strong);
   border-radius: 3px;
   padding: 0 2px;
 }
 
-/* Focus policy: the steel --ms-focus-ring belongs to interactive controls on
+/* Focus policy: the steel --po-focus-ring belongs to interactive controls on
    :focus-visible only. Programmatically focused containers (dialog panels,
    chart wrappers — anything reached via tabindex="-1") and svg roots must
    never show the browser's default blue outline. */
 [tabindex="-1"]:focus,
-.ms-modal:focus,
-.ms-menu:focus,
+.po-modal:focus,
+.po-menu:focus,
 svg:focus {
   outline: none;
 }
@@ -1602,13 +1602,13 @@ select:focus-visible,
 summary:focus-visible,
 [tabindex="0"]:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 
 /* Status dot — leading adornment in select options and status rows.
    The ring variant marks the unfiltered "all" row: an empty circle where a
    status would put its color. */
-.ms-dot {
+.po-dot {
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -1616,26 +1616,26 @@ summary:focus-visible,
   flex-shrink: 0;
   box-sizing: border-box;
 }
-.ms-dot.ring {
-  border: 1.5px solid var(--ms-faint);
+.po-dot.ring {
+  border: 1.5px solid var(--po-faint);
 }
 
 /* Menu / popover — panel on line-strong, 10px radius, 6px inner padding,
    ~28px rows with a quiet raised hover, hairline separators running the full
    panel width between groups. Grammar shared by row menus, the account menu
    and the team switcher. */
-.ms-menu {
-  background: var(--ms-panel);
-  border: 1px solid var(--ms-line-strong);
+.po-menu {
+  background: var(--po-panel);
+  border: 1px solid var(--po-line-strong);
   border-radius: 10px;
-  box-shadow: var(--ms-shadow-card);
+  box-shadow: var(--po-shadow-card);
   padding: 4px;
   min-width: 180px;
   box-sizing: border-box;
-  z-index: var(--ms-z-popover);
-  animation: ms-fade var(--ms-dur-fast) var(--ms-ease);
+  z-index: var(--po-z-popover);
+  animation: po-fade var(--po-dur-fast) var(--po-ease);
 }
-.ms-menu-item {
+.po-menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1644,8 +1644,8 @@ summary:focus-visible,
   min-height: 28px;
   box-sizing: border-box;
   padding: 4px 8px;
-  font: 400 13px var(--ms-font-sans);
-  color: var(--ms-bone);
+  font: 400 13px var(--po-font-sans);
+  color: var(--po-bone);
   background: none;
   border: 0;
   border-radius: 8px; /* canvas menu rows use 8px, between r-chip and r-input */
@@ -1653,82 +1653,82 @@ summary:focus-visible,
   text-align: left;
   white-space: nowrap;
   text-decoration: none; /* menu items rendered as <Link> drop the global dotted underline */
-  transition: background var(--ms-dur-fast) var(--ms-ease);
+  transition: background var(--po-dur-fast) var(--po-ease);
 }
 /* A group member under its "All …" lead: indented and quieter, read as a sub-filter. */
-.ms-menu-item-sub {
+.po-menu-item-sub {
   padding-left: 22px;
   font-size: 12.5px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
-.ms-menu-item-sub.active,
-.ms-menu-item-sub[aria-selected="true"] {
-  color: var(--ms-bone);
+.po-menu-item-sub.active,
+.po-menu-item-sub[aria-selected="true"] {
+  color: var(--po-bone);
 }
-.ms-menu-item:hover,
-.ms-menu-item.active {
-  background: var(--ms-panel-raised);
+.po-menu-item:hover,
+.po-menu-item.active {
+  background: var(--po-panel-raised);
 }
-.ms-menu-item.danger {
-  color: var(--ms-danger);
+.po-menu-item.danger {
+  color: var(--po-danger);
 }
-.ms-menu-item:disabled {
-  color: var(--ms-faint);
+.po-menu-item:disabled {
+  color: var(--po-faint);
   cursor: default;
 }
-.ms-menu-item:disabled:hover {
+.po-menu-item:disabled:hover {
   background: none;
 }
-.ms-menu-item:focus-visible {
+.po-menu-item:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-menu-sep {
+.po-menu-sep {
   height: 1px;
   border: 0; /* rendered as <hr> */
-  background: var(--ms-line);
+  background: var(--po-line);
   margin: 4px -4px; /* full-bleed across the panel, cancelling its 4px padding */
 }
 /* Uppercase group header inside a menu (e.g. the team switcher's "Teams"). */
-.ms-menu-label {
+.po-menu-label {
   padding: 6px 10px 4px;
-  font-size: var(--ms-fs-micro);
+  font-size: var(--po-fs-micro);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
 /* Search row inside a long select popover — a borderless row with a hairline
    below, never a boxed input. Negative margins span the menu's 6px padding so
    the hairline runs edge to edge. */
-.ms-menu-search {
+.po-menu-search {
   display: block;
   width: calc(100% + 8px);
   margin: -4px -4px 4px;
   box-sizing: border-box;
   background: none;
   border: 0;
-  border-bottom: 1px solid var(--ms-line);
-  color: var(--ms-bone);
-  font: 400 13px var(--ms-font-sans);
+  border-bottom: 1px solid var(--po-line);
+  color: var(--po-bone);
+  font: 400 13px var(--po-font-sans);
   padding: 8px 10px;
   outline: none;
 }
-.ms-menu-search::placeholder {
-  color: var(--ms-faint);
+.po-menu-search::placeholder {
+  color: var(--po-faint);
 }
 /* Non-interactive menu row (e.g. the Appearance row): keeps the item metrics,
    drops the hover affordance. */
-.ms-menu-item.static {
+.po-menu-item.static {
   cursor: default;
 }
-.ms-menu-item.static:hover {
+.po-menu-item.static:hover {
   background: none;
 }
 /* Appearance switcher — segmented sun/moon pair; the active side sits raised. */
 /* A cell value that stays on one line; the Truncated component adds the
    tooltip with the whole text once it is cut. */
-.ms-truncate {
+.po-truncate {
   display: block;
   min-width: 0;
   overflow: hidden;
@@ -1736,33 +1736,33 @@ summary:focus-visible,
   white-space: nowrap;
 }
 /* A term explained on hover, such as a monitor reason code. */
-.ms-tooltip-trigger.inline.ms-reason-code {
+.po-tooltip-trigger.inline.po-reason-code {
   cursor: help;
 }
 /* A quota bar beside its figure, the split one hover away: the bar has no
    text, so its bottom edge rides on the figure's baseline, level with the
    digits, and the pair sits on the row's baseline. */
-.ms-tooltip-trigger.inline.ms-quota-cell {
+.po-tooltip-trigger.inline.po-quota-cell {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
   gap: 10px;
 }
 
-.ms-tooltip-trigger.inline.ms-truncate-host {
+.po-tooltip-trigger.inline.po-truncate-host {
   display: block;
   min-width: 0;
 }
 
-.ms-theme-toggle {
+.po-theme-toggle {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: var(--ms-inset);
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-pill);
+  background: var(--po-inset);
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-pill);
 }
-.ms-theme-toggle button {
+.po-theme-toggle button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1770,39 +1770,39 @@ summary:focus-visible,
   height: 18px;
   padding: 0;
   border: 0;
-  border-radius: var(--ms-r-pill);
+  border-radius: var(--po-r-pill);
   background: none;
-  color: var(--ms-faint);
+  color: var(--po-faint);
   cursor: pointer;
   transition:
-    color var(--ms-dur-fast) var(--ms-ease),
-    background var(--ms-dur-fast) var(--ms-ease);
+    color var(--po-dur-fast) var(--po-ease),
+    background var(--po-dur-fast) var(--po-ease);
 }
-.ms-theme-toggle button.wide {
+.po-theme-toggle button.wide {
   width: auto;
   padding: 0 7px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
 }
-.ms-theme-toggle button:hover {
-  color: var(--ms-muted);
+.po-theme-toggle button:hover {
+  color: var(--po-muted);
 }
-.ms-theme-toggle button.active {
-  background: var(--ms-panel-raised);
-  color: var(--ms-bone);
-  box-shadow: inset 0 0 0 1px var(--ms-line-strong);
+.po-theme-toggle button.active {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+  box-shadow: inset 0 0 0 1px var(--po-line-strong);
 }
-.ms-theme-toggle button:focus-visible {
+.po-theme-toggle button:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
 
 /* Scrollbars — thin and dark in every in-app scroll container (popovers,
    drawers, tables); the native two-tone scrollbar never appears. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ms-line-strong) transparent;
+  scrollbar-color: var(--po-line-strong) transparent;
 }
 ::-webkit-scrollbar {
   width: 8px;
@@ -1812,37 +1812,37 @@ summary:focus-visible,
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--ms-line-strong);
-  border-radius: var(--ms-r-pill);
+  background: var(--po-line-strong);
+  border-radius: var(--po-r-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ms-faint);
+  background: var(--po-faint);
 }
 
 /* The product's only rotation: the DNS-check spinner ring (1s linear per the brief) */
-.ms-spinner {
+.po-spinner {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  border: 1.5px solid var(--ms-warn-border);
-  border-top-color: var(--ms-warn);
-  animation: ms-spin 1s linear infinite;
+  border: 1.5px solid var(--po-warn-border);
+  border-top-color: var(--po-warn);
+  animation: po-spin 1s linear infinite;
   flex-shrink: 0;
   box-sizing: border-box;
 }
-@keyframes ms-spin {
+@keyframes po-spin {
   to {
     transform: rotate(360deg);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-spinner {
+  .po-spinner {
     animation: none;
   }
 }
 
 /* Live-dot pulse (values verbatim from the design canvas) */
-@keyframes ms-pulse {
+@keyframes po-pulse {
   0%,
   100% {
     opacity: 1;
@@ -1855,15 +1855,15 @@ summary:focus-visible,
 /* Empty states — centered 3D app-icon tile render (see empty-state.tsx).
    The tile image carries its own face, bevel and depth; CSS adds only the
    glow, the float/tilt loop and the drop shadow. Each area ships a dark and
-   a light render, swapped per theme by ms-dark-only/ms-light-only below. */
-.ms-empty {
+   a light render, swapped per theme by po-dark-only/po-light-only below. */
+.po-empty {
   padding: 88px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
-.ms-empty-scene {
+.po-empty-scene {
   position: relative;
   margin-bottom: 28px;
   perspective: 700px;
@@ -1872,19 +1872,19 @@ summary:focus-visible,
   isolation: isolate;
 }
 /* Soft radial glow behind the tile */
-.ms-empty-scene::before {
+.po-empty-scene::before {
   content: "";
   position: absolute;
   inset: -70px;
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    color-mix(in srgb, var(--ms-steel) 13%, transparent),
+    color-mix(in srgb, var(--po-steel) 13%, transparent),
     transparent 72%
   );
   pointer-events: none;
 }
-.ms-empty-tile {
+.po-empty-tile {
   position: relative;
   display: block;
   width: 96px;
@@ -1893,70 +1893,70 @@ summary:focus-visible,
   border-radius: 19%;
   /* Ink-based, not void-based: the shadow must survive the light theme (void is paper there). */
   box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.55);
-  animation: ms-empty-float 7s var(--ms-ease) infinite;
+  animation: po-empty-float 7s var(--po-ease) infinite;
 }
-.ms-empty-headline {
+.po-empty-headline {
   margin: 0;
-  color: var(--ms-bone);
-  font: 600 var(--ms-fs-h2) var(--ms-font-sans);
+  color: var(--po-bone);
+  font: 600 var(--po-fs-h2) var(--po-font-sans);
 }
-.ms-empty-body {
+.po-empty-body {
   margin: 8px 0 0;
   max-width: 420px;
-  color: var(--ms-muted);
-  font-size: var(--ms-fs-ui);
+  color: var(--po-muted);
+  font-size: var(--po-fs-ui);
   line-height: 1.5;
 }
-.ms-empty-cta {
+.po-empty-cta {
   margin-top: 24px;
 }
 /* State card — a failed load or a filtered-empty list: the empty state's
    centered column without the tile. The glyph is a danger ring for our own
    errors and a neutral one for a record that is simply gone. */
-.ms-state {
+.po-state {
   padding: 36px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
-.ms-state-glyph {
+.po-state-glyph {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   margin-bottom: 14px;
-  font: 600 15px var(--ms-font-mono);
-  color: var(--ms-danger);
-  background: var(--ms-danger-bg);
-  border: 1px solid var(--ms-danger-border);
+  font: 600 15px var(--po-font-mono);
+  color: var(--po-danger);
+  background: var(--po-danger-bg);
+  border: 1px solid var(--po-danger-border);
 }
-.ms-state-glyph.neutral {
-  color: var(--ms-muted);
-  background: var(--ms-inset);
-  border-color: var(--ms-line-strong);
+.po-state-glyph.neutral {
+  color: var(--po-muted);
+  background: var(--po-inset);
+  border-color: var(--po-line-strong);
 }
-.ms-state-headline {
+.po-state-headline {
   margin: 0;
-  color: var(--ms-bone);
-  font: 600 15px var(--ms-font-sans);
+  color: var(--po-bone);
+  font: 600 15px var(--po-font-sans);
 }
-.ms-state-body {
+.po-state-body {
   margin: 6px 0 0;
   max-width: 420px;
-  color: var(--ms-muted);
-  font-size: var(--ms-fs-label);
+  color: var(--po-muted);
+  font-size: var(--po-fs-label);
   line-height: 1.5;
 }
-.ms-state-actions {
+.po-state-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 18px;
 }
-@keyframes ms-empty-float {
+@keyframes po-empty-float {
   0%,
   100% {
     transform: translateY(-3px) rotateX(4deg) rotateY(-5deg);
@@ -1966,7 +1966,7 @@ summary:focus-visible,
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-empty-tile {
+  .po-empty-tile {
     animation: none;
   }
 }
@@ -1974,7 +1974,7 @@ summary:focus-visible,
 /* ⓘ tooltip (tooltip.tsx) — glyph trigger inline with field labels; the panel
    follows the menu grammar (panel bg, line-strong border) at 12px type.
    pointer-events: none keeps hover-out and outside-tap dismissal simple. */
-.ms-tooltip-trigger {
+.po-tooltip-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1982,33 +1982,33 @@ summary:focus-visible,
   background: none;
   border: 0;
   border-radius: 50%;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   cursor: pointer;
-  transition: color var(--ms-dur-fast) var(--ms-ease);
+  transition: color var(--po-dur-fast) var(--po-ease);
 }
-.ms-tooltip-trigger.inline {
+.po-tooltip-trigger.inline {
   border-radius: 4px;
   color: inherit;
   cursor: inherit;
   white-space: nowrap;
 }
-.ms-tooltip-trigger:hover {
-  color: var(--ms-bone);
+.po-tooltip-trigger:hover {
+  color: var(--po-bone);
 }
-.ms-tooltip-trigger:focus-visible {
+.po-tooltip-trigger:focus-visible {
   outline: none;
-  box-shadow: var(--ms-focus-ring);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-tooltip {
+.po-tooltip {
   position: fixed;
   /* Modal-level so a tooltip inside a modal wins; ties with the overlay
      resolve by DOM order — the tooltip portal mounts after the modal's. */
-  z-index: var(--ms-z-modal);
+  z-index: var(--po-z-modal);
   /* The max-width below is the whole panel, padding and border included,
      which is what tooltip.tsx clamps into the viewport. */
   box-sizing: border-box;
-  background: var(--ms-panel);
-  border: 1px solid var(--ms-line-strong);
+  background: var(--po-panel);
+  border: 1px solid var(--po-line-strong);
   border-radius: 8px;
   padding: 8px 10px;
   /* max-content: shrink-to-fit against the viewport edge would collapse the
@@ -2018,45 +2018,45 @@ summary:focus-visible,
   max-width: min(420px, calc(100vw - 24px));
   font-size: 12px;
   line-height: 1.45;
-  color: var(--ms-bone);
-  box-shadow: var(--ms-shadow-card);
+  color: var(--po-bone);
+  box-shadow: var(--po-shadow-card);
   /* Messages may carry \n paragraph breaks (e.g. the API-key permission
      explainer); render them instead of collapsing. */
   white-space: pre-line;
   pointer-events: none;
-  animation: ms-fade var(--ms-dur-fast) var(--ms-ease);
+  animation: po-fade var(--po-dur-fast) var(--po-ease);
 }
 /* ⓘ inside a status pill (dns-records-table's inherited-record note): takes
    the pill's tone instead of the field-label grey, sized down to the pill. */
-.ms-badge .ms-tooltip-trigger {
+.po-badge .po-tooltip-trigger {
   color: inherit;
   opacity: 0.7;
 }
-.ms-badge .ms-tooltip-trigger:hover {
+.po-badge .po-tooltip-trigger:hover {
   color: inherit;
   opacity: 1;
 }
-.ms-badge .ms-tooltip-trigger svg {
+.po-badge .po-tooltip-trigger svg {
   width: 12px;
   height: 12px;
 }
 
 /* Busy spinner (spinner.tsx) — currentColor stroke ring, composed inside
-   buttons left of the label. Distinct from .ms-spinner (the warn-tinted
+   buttons left of the label. Distinct from .po-spinner (the warn-tinted
    DNS-check ring). Reduced motion: a static muted ring, no rotation. */
-.ms-spin-ring {
+.po-spin-ring {
   display: inline-block;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, currentColor 30%, transparent);
   border-top-color: currentColor;
-  animation: ms-spin 0.8s linear infinite;
+  animation: po-spin 0.8s linear infinite;
   flex-shrink: 0;
   box-sizing: border-box;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-spin-ring {
+  .po-spin-ring {
     animation: none;
     border-top-color: color-mix(in srgb, currentColor 30%, transparent);
   }
@@ -2064,24 +2064,24 @@ summary:focus-visible,
 
 /* Recipient-preview mail card (add-domain) — reads as an email client in both
    themes: true white on paper, a raised panel on the dark ground. */
-.ms-mail-preview {
-  --ms-mp-bg: var(--ms-panel-raised);
+.po-mail-preview {
+  --po-mp-bg: var(--po-panel-raised);
   border: 1px solid transparent;
   border-radius: 12px;
   background:
-    linear-gradient(var(--ms-mp-bg), var(--ms-mp-bg)) padding-box,
-    linear-gradient(to bottom, var(--ms-glow-edge), var(--ms-line) 45%) border-box;
-  box-shadow: var(--ms-shadow-card);
+    linear-gradient(var(--po-mp-bg), var(--po-mp-bg)) padding-box,
+    linear-gradient(to bottom, var(--po-glow-edge), var(--po-line) 45%) border-box;
+  box-shadow: var(--po-shadow-card);
   padding: 18px 20px;
   max-width: 460px;
 }
-[data-theme="light"] .ms-mail-preview {
-  --ms-mp-bg: #ffffff;
+[data-theme="light"] .po-mail-preview {
+  --po-mp-bg: #ffffff;
 }
 
 /* Wordmark — the SVG's fills are bone-on-transparent, invisible on paper;
    light theme swaps in the ink variant of the same lockup. */
-[data-theme="light"] .ms-wordmark {
+[data-theme="light"] .po-wordmark {
   content: url("/logo/millionsend-wordmark-light.svg");
 }
 
@@ -2089,48 +2089,48 @@ summary:focus-visible,
    empty-state tiles). Both stay in the DOM; display alone flips so a theme
    toggle swaps them with no fetch or reflow of siblings. The nearest scheme
    wins: a dark preview frame inside the light app shows its dark render. */
-.ms-light-only,
-[data-theme="light"] .ms-dark-only {
+.po-light-only,
+[data-theme="light"] .po-dark-only {
   display: none;
 }
-[data-theme="light"] .ms-light-only {
+[data-theme="light"] .po-light-only {
   display: block;
 }
-[data-theme="light"] [data-theme="dark"] .ms-light-only {
+[data-theme="light"] [data-theme="dark"] .po-light-only {
   display: none;
 }
-[data-theme="light"] [data-theme="dark"] .ms-dark-only {
+[data-theme="light"] [data-theme="dark"] .po-dark-only {
   display: block;
 }
 
 /* Inline code pill — method/env names inside running copy (t.rich code tag) */
-.ms-code {
-  font-family: var(--ms-font-mono);
+.po-code {
+  font-family: var(--po-font-mono);
   font-size: 0.9em;
-  background: var(--ms-inset);
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-chip);
+  background: var(--po-inset);
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-chip);
   padding: 1px 5px;
 }
 
 /* Unsubscribe page settings (settings/unsubscribe): the form (capped at 480px)
    and the preview side by side while both keep their basis, the preview
    wrapping under the form below that (RESPONSIVE). */
-.ms-unsub-layout {
+.po-unsub-layout {
   container-type: inline-size;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 24px;
 }
-.ms-unsub-form {
+.po-unsub-form {
   flex: 1 1 360px;
   max-width: 480px;
 }
 
 /* A logged JSON body (logs/[id]): long strings wrap inside the block; a phone
    scrolls it instead (RESPONSIVE). */
-.ms-json {
+.po-json {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -2138,12 +2138,12 @@ summary:focus-visible,
 /* Email events strip (emails/[id]/page.tsx): event nodes left to right, joined
    by connectors; it scrolls sideways when they outrun the column. Phones read
    it top to bottom (rules below). */
-.ms-events {
+.po-events {
   margin-top: 12px;
-  border: 1px solid var(--ms-line);
+  border: 1px solid var(--po-line);
   border-radius: 14px;
   padding: 30px 26px;
-  background-image: radial-gradient(var(--ms-line) 1px, transparent 1px);
+  background-image: radial-gradient(var(--po-line) 1px, transparent 1px);
   background-size: 18px 18px;
   background-position: center;
   display: flex;
@@ -2153,7 +2153,7 @@ summary:focus-visible,
 }
 /* A node: its tile, then pill, time and detail centred under it. A button
    node (one with a drawer) sheds the button chrome. */
-.ms-events-node {
+.po-events-node {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2165,7 +2165,7 @@ summary:focus-visible,
   text-align: center;
 }
 /* Between two events: the time it took, over a line. */
-.ms-events-gap {
+.po-events-gap {
   flex: none;
   min-width: 56px;
   display: flex;
@@ -2174,26 +2174,26 @@ summary:focus-visible,
   gap: 4px;
   padding: 0 6px;
 }
-.ms-events-line {
+.po-events-line {
   align-self: stretch;
-  border-top: 1px solid var(--ms-line-strong);
+  border-top: 1px solid var(--po-line-strong);
 }
 /* A pending email's connector: a line at the tiles' middle that takes the
    free width; dashed toward an estimate. */
-.ms-events-link {
+.po-events-link {
   flex: 1 0 40px;
   margin-top: 17px;
-  border-top: 1px solid var(--ms-line-strong);
+  border-top: 1px solid var(--po-line-strong);
 }
-.ms-events-line.dashed,
-.ms-events-link.dashed {
+.po-events-line.dashed,
+.po-events-link.dashed {
   border-top-style: dashed;
 }
 
 /* Add-domain horizontal step bar: the vertical StepRail is a desktop affordance;
    this labelled horizontal sequence takes over on narrow screens (rules below).
    Hidden by default so desktop keeps the rail. */
-.ms-stepbar {
+.po-stepbar {
   display: none;
 }
 
@@ -2205,7 +2205,7 @@ summary:focus-visible,
 
 /* Side sheets: a fixed panel on wide screens; the phone rule below widens it
    to the viewport, and must come after this one to win. */
-.ms-sheet {
+.po-sheet {
   width: 440px;
   max-width: calc(100vw - 24px);
 }
@@ -2214,11 +2214,11 @@ summary:focus-visible,
    where a console KPI card would get under 210px and the 1fr side of a 2/1
    split under 290px. The 4-up rows go 2-up and the splits stack. */
 @media (max-width: 1199px) {
-  .ms-grid-4 {
+  .po-grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .ms-grid-21,
-  .ms-grid-12 {
+  .po-grid-21,
+  .po-grid-12 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -2228,16 +2228,16 @@ summary:focus-visible,
    value widens its column past its share: a long chip ellipsizes instead of
    pushing the page sideways. */
 @media (min-width: 900px) and (max-width: 1199px) {
-  .ms-meta-grid:not(.ms-stat-strip) {
+  .po-meta-grid:not(.po-stat-strip) {
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)) !important;
   }
   /* A value that would fold in one track (a broadcast's From) takes the row. */
-  .ms-meta-grid > .ms-meta-wide {
+  .po-meta-grid > .po-meta-wide {
     grid-column: 1 / -1;
   }
 }
 @media (max-width: 1199px) {
-  .ms-meta-grid > :where(*) {
+  .po-meta-grid > :where(*) {
     min-width: 0;
   }
 }
@@ -2249,17 +2249,17 @@ summary:focus-visible,
    address column drops its share the same way, so an address wraps only as
    far as the narrow desktop needs. */
 @media (max-width: 1199px) {
-  .ms-table th.ms-col-lead {
+  .po-table th.po-col-lead {
     width: auto !important;
   }
-  .ms-table th.ms-col-date {
+  .po-table th.po-col-date {
     width: 104px;
   }
 }
 /* A badge holding a long value (an API key's domain) ellipsizes rather than
    push its list past a narrow desktop; the value rides in its title. */
 @media (min-width: 900px) and (max-width: 1199px) {
-  .ms-table .ms-badge-clip {
+  .po-table .po-badge-clip {
     max-width: 16rem;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2268,7 +2268,7 @@ summary:focus-visible,
 /* The account score's four figures go two by two where a row of four would
    fold each label onto two or three lines; !important beats the inline row. */
 @media (min-width: 640px) and (max-width: 1199px) {
-  .ms-score-row {
+  .po-score-row {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 32px !important;
@@ -2278,20 +2278,20 @@ summary:focus-visible,
    the preview's 380px) the preview wraps under the form, which then takes the
    whole line instead of leaving the rest of it empty beside its cap. */
 @container (max-width: 763px) {
-  .ms-unsub-form {
+  .po-unsub-form {
     max-width: none;
   }
 }
 
 @media (max-width: 899px) {
   /* App shell: topbar over content; sidebar becomes an off-canvas drawer. */
-  .ms-app-shell {
+  .po-app-shell {
     flex-direction: column;
   }
-  .ms-mobile-topbar {
+  .po-mobile-topbar {
     position: sticky;
     /* Under the support view strip, which sticks above it. */
-    top: var(--ms-support-strip-h, 0px);
+    top: var(--po-support-strip-h, 0px);
     z-index: 20;
     display: flex;
     align-items: center;
@@ -2300,17 +2300,17 @@ summary:focus-visible,
     padding: 0 12px;
     flex: none;
     box-sizing: border-box;
-    background: var(--ms-panel);
-    border-bottom: 1px solid var(--ms-line);
+    background: var(--po-panel);
+    border-bottom: 1px solid var(--po-line);
   }
-  .ms-drawer-scrim {
+  .po-drawer-scrim {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.72);
-    z-index: calc(var(--ms-z-modal) - 2);
-    animation: ms-fade var(--ms-dur-base) var(--ms-ease);
+    z-index: calc(var(--po-z-modal) - 2);
+    animation: po-fade var(--po-dur-base) var(--po-ease);
   }
-  .ms-sidebar {
+  .po-sidebar {
     position: fixed !important;
     height: 100dvh !important;
     left: 0;
@@ -2319,83 +2319,83 @@ summary:focus-visible,
     top: 0 !important;
     /* Above the scrim and every popover, below the modal token: a dialog
        opened from the drawer (create team) must paint over the drawer. */
-    z-index: calc(var(--ms-z-modal) - 1);
+    z-index: calc(var(--po-z-modal) - 1);
     transform: translateX(-104%);
     visibility: hidden;
     transition:
-      transform var(--ms-dur-drawer) var(--ms-ease),
-      visibility 0s var(--ms-dur-drawer);
+      transform var(--po-dur-drawer) var(--po-ease),
+      visibility 0s var(--po-dur-drawer);
   }
-  .ms-sidebar.open {
+  .po-sidebar.open {
     transform: none;
     visibility: visible;
-    transition: transform var(--ms-dur-drawer) var(--ms-ease);
+    transition: transform var(--po-dur-drawer) var(--po-ease);
   }
 
   /* Content column: canvas 32px 40px collapses to 16px. */
-  .ms-main {
+  .po-main {
     padding: 16px !important;
   }
   /* An in-page jump (the health pill, a DNS group) lands below the sticky
      topbar and the support strip instead of under them. */
-  .ms-main [id] {
-    scroll-margin-top: calc(var(--ms-support-strip-h, 0px) + 64px);
+  .po-main [id] {
+    scroll-margin-top: calc(var(--po-support-strip-h, 0px) + 64px);
   }
   /* A page-level tab strip runs edge to edge and scrolls under the gutter;
      the inner padding keeps its first tab on the title's line. */
-  .ms-tabs.bleed {
+  .po-tabs.bleed {
     margin-inline: -16px;
     padding-inline: 16px;
     scroll-padding-inline: 16px;
     scrollbar-width: none;
   }
-  .ms-tabs.bleed::-webkit-scrollbar {
+  .po-tabs.bleed::-webkit-scrollbar {
     display: none;
   }
 
   /* Page header: the title keeps the first line to itself; the actions take
      the next line at full width, and a button that does not fit beside its
      neighbours drops to a line of its own. */
-  .ms-page-actions {
+  .po-page-actions {
     flex: 1 1 100%;
   }
-  .ms-page-actions > *,
-  .ms-page-actions > .ms-tooltip-trigger > .ms-btn,
-  .ms-page-actions > div > .ms-btn:not(.ms-btn-icon) {
+  .po-page-actions > *,
+  .po-page-actions > .po-tooltip-trigger > .po-btn,
+  .po-page-actions > div > .po-btn:not(.po-btn-icon) {
     flex: 1 1 auto;
     justify-content: center;
   }
-  .ms-page-actions > .ms-page-menu {
+  .po-page-actions > .po-page-menu {
     flex: 0 0 auto;
   }
   /* A lone icon action ("</>" on a detail page) stays on the title's line
      instead of taking a row of its own. */
-  .ms-page-row {
+  .po-page-row {
     position: relative;
   }
-  .ms-page-actions:has(> .ms-page-menu:only-child) {
+  .po-page-actions:has(> .po-page-menu:only-child) {
     position: absolute;
     top: 0;
     right: 0;
   }
-  .ms-page-row:has(> .ms-page-actions > .ms-page-menu:only-child) > .ms-page-title {
+  .po-page-row:has(> .po-page-actions > .po-page-menu:only-child) > .po-page-title {
     padding-right: 40px;
   }
   /* An address, URL or domain title at the display size runs three to six
      lines here; it takes the card-title size instead, line box included.
      !important beats the inline page-title size. */
-  .ms-page-heading:has(> .ms-data-title),
-  .ms-data-title {
-    font-size: var(--ms-fs-h2) !important;
+  .po-page-heading:has(> .po-data-title),
+  .po-data-title {
+    font-size: var(--po-fs-h2) !important;
   }
   /* A note hung under a header action (the composer's "test sent to …")
      joins the flow on the line under its button: hung there it would cover
      the step bar below the header, and a long one would run off the
      viewport. !important beats the inline anchoring. */
-  .ms-page-actions > div:has(> .ms-action-note) {
+  .po-page-actions > div:has(> .po-action-note) {
     flex-wrap: wrap;
   }
-  .ms-action-note {
+  .po-action-note {
     position: static !important;
     flex-basis: 100%;
     margin-top: 6px;
@@ -2403,27 +2403,27 @@ summary:focus-visible,
   }
   /* A split (primary button + menu root) grows like any action; the button
      inside must take that width too, or it floats centered in empty space. */
-  .ms-page-actions > .ms-split > .ms-btn {
+  .po-page-actions > .po-split > .po-btn {
     flex: 1 1 auto;
     justify-content: center;
   }
 
   /* Lists scroll sideways rather than folding a cell onto four lines
      (white-space inherits into every cell). */
-  .ms-table {
+  .po-table {
     white-space: nowrap;
   }
   /* Chrome breaks at a <wbr> even under nowrap: an address's break points
      (breakable.tsx) would undo the one-line cells. */
-  .ms-table wbr {
+  .po-table wbr {
     display: none;
   }
   /* In a fixed-layout list a nowrap cell would run over its neighbours. */
-  .ms-table td.ms-cell-clip {
+  .po-table td.po-cell-clip {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .ms-table td > span {
+  .po-table td > span {
     flex-wrap: nowrap !important;
   }
 
@@ -2431,12 +2431,12 @@ summary:focus-visible,
      the page was opened for) would sit past the screen edge. A node's tile
      stands beside its pill, time and detail; a connector becomes a short line
      under the tiles' middle, its time beside it. */
-  .ms-events {
+  .po-events {
     flex-direction: column;
     gap: 0;
     padding: 20px;
   }
-  .ms-events-node {
+  .po-events-node {
     display: grid;
     grid-template-columns: 34px minmax(0, 1fr);
     column-gap: 12px;
@@ -2444,40 +2444,40 @@ summary:focus-visible,
     max-width: none;
     text-align: left;
   }
-  .ms-events-node > * {
+  .po-events-node > * {
     grid-column: 2;
   }
-  .ms-events-node > :first-child {
+  .po-events-node > :first-child {
     grid-column: 1;
     grid-row: 1 / span 4;
     align-self: start;
   }
-  .ms-events-gap {
+  .po-events-gap {
     flex-direction: row;
     gap: 14px;
     min-width: 0;
     padding: 6px 0 6px 16px;
   }
-  .ms-events-line,
-  .ms-events-link {
+  .po-events-line,
+  .po-events-link {
     flex: none;
     border-top: 0;
-    border-left: 1px solid var(--ms-line-strong);
+    border-left: 1px solid var(--po-line-strong);
   }
-  .ms-events-link {
+  .po-events-link {
     height: 20px;
     margin: 6px 0 6px 16px;
   }
-  .ms-events-line.dashed,
-  .ms-events-link.dashed {
+  .po-events-line.dashed,
+  .po-events-link.dashed {
     border-left-style: dashed;
   }
-  .ms-events-gap > .ms-events-line {
+  .po-events-gap > .po-events-line {
     order: -1;
   }
 
   /* The search field takes the full first line. */
-  .ms-filter-row > :first-child {
+  .po-filter-row > :first-child {
     flex: 1 1 100% !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -2485,40 +2485,40 @@ summary:focus-visible,
   /* The selects share the lines under it, at least 200px each (a fixed
      160px pill clips its label); the root carries an inline width, hence
      the override. Phones give each its own line (below). */
-  .ms-filter-row > div {
+  .po-filter-row > div {
     flex: 1 1 200px;
     width: auto !important;
   }
 
   /* Console grids: 3-up collapses to 2-up (4-up and the 2/1 splits collapse
      in the narrow-desktop block above). */
-  .ms-grid-3 {
+  .po-grid-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   /* Meta/stat grids: 4-up (or 3-up) collapses to 2-up, then 1-up below. */
-  .ms-meta-grid {
+  .po-meta-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .ms-meta-tall {
+  .po-meta-tall {
     grid-row: auto;
   }
 
   /* Steppers: the form card takes the line; step content can always shrink. */
-  .ms-stepper > form {
+  .po-stepper > form {
     width: 100% !important;
     max-width: 520px;
   }
-  .ms-step > * {
+  .po-step > * {
     min-width: 0;
   }
   /* The vertical rail would wrap to its own line above the card and read as if
      the card were step 02 — swap it for the labelled horizontal step bar.
      !important overrides the rail's inline display:flex. */
-  .ms-stepper > .ms-stepper-rail {
+  .po-stepper > .po-stepper-rail {
     display: none !important;
   }
-  .ms-stepbar {
+  .po-stepbar {
     display: flex;
     /* width (not flex-basis) claims the full line in the step-01 row-wrap
        stepper AND behaves in the step-02 column container. */
@@ -2531,71 +2531,71 @@ summary:focus-visible,
   }
   /* Second-screen hosts (domain step 02, broadcast step 02) render the bar in
      a plain column with no flex gap, so it carries its own spacing there. */
-  .ms-step-col > .ms-stepbar {
+  .po-step-col > .po-stepbar {
     margin-bottom: 20px;
   }
-  .ms-stepbar-step {
+  .po-stepbar-step {
     display: flex;
     align-items: center;
     gap: 8px;
     min-width: 0;
   }
   /* First step grows so its trailing hairline connector spans to the next. */
-  .ms-stepbar-step:not(:last-child) {
+  .po-stepbar-step:not(:last-child) {
     flex: 1;
   }
-  .ms-stepbar-step:not(:last-child)::after {
+  .po-stepbar-step:not(:last-child)::after {
     content: "";
     flex: 1;
     min-width: 16px;
     height: 1px;
-    background: var(--ms-line);
+    background: var(--po-line);
   }
-  .ms-stepbar-dot {
+  .po-stepbar-dot {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: none;
     width: 24px;
     height: 24px;
-    border: 1px solid var(--ms-line-strong);
+    border: 1px solid var(--po-line-strong);
     border-radius: 999px;
     font-size: 10.5px;
-    color: var(--ms-faint);
+    color: var(--po-faint);
   }
-  .ms-stepbar-text {
+  .po-stepbar-text {
     font-size: 12px;
-    color: var(--ms-faint);
+    color: var(--po-faint);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   /* Active step: same outlined circle as an upcoming step, lifted to white
      border + white number (never a filled disc, which hides the number). */
-  .ms-stepbar-step.current .ms-stepbar-dot {
-    color: var(--ms-bone);
-    border-color: var(--ms-bone);
+  .po-stepbar-step.current .po-stepbar-dot {
+    color: var(--po-bone);
+    border-color: var(--po-bone);
   }
-  .ms-stepbar-step.current .ms-stepbar-text {
-    color: var(--ms-bone);
+  .po-stepbar-step.current .po-stepbar-text {
+    color: var(--po-bone);
   }
-  .ms-stepbar-step.done .ms-stepbar-dot {
-    color: var(--ms-success);
-    border-color: var(--ms-success);
+  .po-stepbar-step.done .po-stepbar-dot {
+    color: var(--po-success);
+    border-color: var(--po-success);
   }
 
   /* Command palette sits near the top edge and keeps its list on screen. */
-  .ms-cmdk {
+  .po-cmdk {
     top: 16px !important;
   }
-  .ms-cmdk-list {
+  .po-cmdk-list {
     max-height: min(420px, calc(100dvh - 190px)) !important;
   }
 }
 
 @media (max-width: 767px) {
   /* Side-by-side KPI cards (metrics rate cards) stack. */
-  .ms-card-row {
+  .po-card-row {
     flex-direction: column;
   }
 }
@@ -2603,63 +2603,63 @@ summary:focus-visible,
 @media (max-width: 639px) {
   /* Stacked stat blocks: the growth chart stretches to the row instead of its
      desktop 200px, so the trend is readable at phone width. */
-  .ms-meta-grid {
+  .po-meta-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
   /* Stat strips (big figures) stay two-up: one per line, the broadcast's
      seven figures would fill two screens. Their chart takes a full row. */
-  .ms-meta-grid.ms-stat-strip {
+  .po-meta-grid.po-stat-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .ms-stat-strip > .ms-kpi-metrics {
+  .po-stat-strip > .po-kpi-metrics {
     grid-column: 1 / -1;
   }
-  .ms-sparkline {
+  .po-sparkline {
     max-width: none !important;
   }
   /* KPI figure rows wrap instead of overflowing. */
-  .ms-kpi-row {
+  .po-kpi-row {
     flex-wrap: wrap;
     gap: 20px 32px !important;
   }
   /* Quota row: the figure drops under ring + label instead of sharing their line. */
-  .ms-quota-row {
+  .po-quota-row {
     flex-wrap: wrap;
   }
-  .ms-quota-figure {
+  .po-quota-figure {
     flex-basis: 100%;
     margin-left: 0;
     text-align: left;
   }
   /* Stepper rails: the add-domain rail is already swapped for the horizontal
      step bar at ≤899px; here the step-02 numbered marker rails shrink. */
-  .ms-stepper {
+  .po-stepper {
     gap: 24px !important;
   }
-  .ms-step {
+  .po-step {
     gap: 10px !important;
   }
-  .ms-step > .ms-stepper-rail {
+  .po-step > .po-stepper-rail {
     width: 18px !important;
   }
-  .ms-actions > * {
+  .po-actions > * {
     flex: 1 1 auto;
     justify-content: center;
   }
   /* A strip's button pair takes the line under the text and shares it. */
-  .ms-notice-strip-actions {
+  .po-notice-strip-actions {
     flex: 1 1 100%;
   }
-  .ms-notice-strip-actions > * {
+  .po-notice-strip-actions > * {
     flex: 1 1 0;
     justify-content: center;
   }
   /* Popover panels never exceed the viewport (12px margins). */
-  .ms-menu {
+  .po-menu {
     max-width: min(320px, calc(100vw - 24px)) !important;
   }
   /* The bulk bar spans the screen (12px margins) and wraps its buttons. */
-  .ms-bulk-bar {
+  .po-bulk-bar {
     left: 12px;
     right: 12px;
     transform: none;
@@ -2669,43 +2669,43 @@ summary:focus-visible,
   /* Its edit menu hangs from the bar's right end rather than from the
      button, which sits too far right for the menu to fit; !important beats
      the inline anchoring. */
-  .ms-bulk-bar > div:has(> .ms-menu) {
+  .po-bulk-bar > div:has(> .po-menu) {
     position: static !important;
   }
-  .ms-bulk-bar .ms-menu {
+  .po-bulk-bar .po-menu {
     left: auto !important;
     right: 0;
   }
   /* Toasts drop from under the topbar: at the bottom they would sit on a
      dialog's footer buttons for their whole lifetime. */
-  .ms-toast-host {
-    top: calc(var(--ms-support-strip-h, 0px) + 60px);
+  .po-toast-host {
+    top: calc(var(--po-support-strip-h, 0px) + 60px);
     bottom: auto;
   }
   /* Keyboard hints are meaningless on touch. */
-  .ms-cmdk-hints,
-  .ms-modal-footer .ms-keycap {
+  .po-cmdk-hints,
+  .po-modal-footer .po-keycap {
     display: none;
   }
   /* Dialog buttons share the width instead of pushing past the panel edge. */
-  .ms-modal-footer > *,
-  .ms-modal-footer > .ms-tooltip-trigger > .ms-btn,
-  .ms-modal-footer > .ms-tpl-convert-actions > .ms-btn {
+  .po-modal-footer > *,
+  .po-modal-footer > .po-tooltip-trigger > .po-btn,
+  .po-modal-footer > .po-tpl-convert-actions > .po-btn {
     flex: 1 1 auto;
     justify-content: center;
   }
   /* Stat tiles stay two per row down to phone width. */
-  .ms-grid-tiles {
+  .po-grid-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   /* Side sheets run edge to edge; their code blocks scroll inside. */
-  .ms-sheet {
+  .po-sheet {
     width: 100%;
     max-width: none;
   }
   /* A logged JSON body keeps its lines and indentation and scrolls inside its
      block: wrapped at phone width, every long string breaks mid-token. */
-  .ms-json {
+  .po-json {
     white-space: pre;
     overflow-wrap: normal;
     overflow-x: auto;
@@ -2713,33 +2713,33 @@ summary:focus-visible,
 }
 
 @media (max-width: 479px) {
-  .ms-filter-row > div {
+  .po-filter-row > div {
     flex-basis: 100%;
   }
-  .ms-modal {
+  .po-modal {
     width: calc(100vw - 24px);
     max-width: calc(100vw - 24px);
     padding: 20px 20px 0;
   }
-  .ms-modal-footer {
+  .po-modal-footer {
     padding-bottom: 20px;
   }
-  .ms-empty {
+  .po-empty {
     padding: 56px 16px;
   }
-  .ms-empty-tile {
+  .po-empty-tile {
     width: 72px;
     height: 72px;
   }
-  .ms-empty-scene::before {
+  .po-empty-scene::before {
     inset: -50px;
   }
 }
 
 @media (max-width: 479px) {
-  .ms-grid-4,
-  .ms-grid-3,
-  .ms-grid-2 {
+  .po-grid-4,
+  .po-grid-3,
+  .po-grid-2 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -2749,15 +2749,15 @@ summary:focus-visible,
    it takes a first column of its own and always shows. The gutter's inline
    offset is undone with it. */
 @media (max-width: 899px), (hover: none) {
-  .ms-table-gutter {
+  .po-table-gutter {
     padding-left: 0 !important;
     margin-left: 0 !important;
   }
-  .ms-table .ms-check-cell {
+  .po-table .po-check-cell {
     width: 28px;
     padding: 0 0 0 6px;
   }
-  .ms-table .ms-check-cell .ms-checkbox {
+  .po-table .po-check-cell .po-checkbox {
     position: static;
     transform: none;
     opacity: 1;
@@ -2768,22 +2768,22 @@ summary:focus-visible,
 /* Touch: small glyph controls (a dialog's ✕, an ⓘ, a chip's copy button,
    breadcrumb links) get a finger-sized hit area around an unchanged glyph. */
 @media (pointer: coarse) {
-  .ms-modal-close,
-  .ms-tooltip-trigger:not(.inline),
-  .ms-chip button,
-  button.ms-notice-strip-action,
-  .ms-crumb {
+  .po-modal-close,
+  .po-tooltip-trigger:not(.inline),
+  .po-chip button,
+  button.po-notice-strip-action,
+  .po-crumb {
     position: relative;
   }
-  .ms-modal-close::after,
-  .ms-tooltip-trigger:not(.inline)::after,
-  .ms-chip button::after,
-  button.ms-notice-strip-action::after {
+  .po-modal-close::after,
+  .po-tooltip-trigger:not(.inline)::after,
+  .po-chip button::after,
+  button.po-notice-strip-action::after {
     content: "";
     position: absolute;
     inset: -9px;
   }
-  .ms-crumb::after {
+  .po-crumb::after {
     content: "";
     position: absolute;
     inset: -8px -3px;
@@ -2798,54 +2798,54 @@ summary:focus-visible,
    headings keep their own. Desktop keeps 14px. !important beats the inline
    sizes some fields carry. */
 @media (pointer: coarse) {
-  .ms-input,
+  .po-input,
   textarea,
   input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
-  .ms-code-editor-hl,
-  .ms-maily .ProseMirror {
-    font-size: var(--ms-fs-input-touch) !important;
+  .po-code-editor-hl,
+  .po-maily .ProseMirror {
+    font-size: var(--po-fs-input-touch) !important;
   }
 }
 
 /* Touch screens of any width (a tablet too): keyboard hints mean nothing
    without a keyboard. */
 @media (hover: none) and (pointer: coarse) {
-  .ms-btn .ms-keycap,
-  .ms-cmdk-hints {
+  .po-btn .po-keycap,
+  .po-cmdk-hints {
     display: none;
   }
 }
 
 @media (min-width: 900px) {
   /* Mobile-only chrome never renders on desktop. */
-  .ms-mobile-topbar,
-  .ms-drawer-scrim {
+  .po-mobile-topbar,
+  .po-drawer-scrim {
     display: none;
   }
   /* With a mouse a sideways-scrolling strip hides its last tabs (settings has
      eight), so a page-level strip wraps instead. */
-  .ms-tabs.bleed {
+  .po-tabs.bleed {
     flex-wrap: wrap;
   }
   /* A cell that takes what the other columns leave and ellipsizes inside it
      (the emails list's subject): with max-width 0 its text does not set the
      table's minimum width, so a long subject never pushes the time column off
      a desktop. Phones keep the full-width table that scrolls. */
-  .ms-table td.ms-cell-fill {
+  .po-table td.po-cell-fill {
     max-width: 0;
   }
   /* A long address or URL wraps inside its column, at its "@", dots and
      slashes first (breakable.tsx), instead of widening the list past the
      screen. Phones keep the one-line list that scrolls. */
-  .ms-table td.ms-cell-wrap {
+  .po-table td.po-cell-wrap {
     white-space: normal;
     overflow-wrap: anywhere;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ms-sidebar,
-  .ms-sidebar.open {
+  .po-sidebar,
+  .po-sidebar.open {
     transition: none;
   }
 }
@@ -2854,42 +2854,42 @@ summary:focus-visible,
    loading surface mirrors its real layout with these blocks; no spinners or
    blank panels before tables/cards. Token-based, so both themes hold: on
    paper the bone highlight reads as a faint darker sweep. */
-.ms-skeleton {
+.po-skeleton {
   display: inline-block;
   vertical-align: middle;
   flex-shrink: 0;
   max-width: 100%;
-  background-color: var(--ms-inset);
+  background-color: var(--po-inset);
   background-image: linear-gradient(
     100deg,
     transparent 38%,
-    color-mix(in srgb, var(--ms-bone) 6%, transparent) 50%,
+    color-mix(in srgb, var(--po-bone) 6%, transparent) 50%,
     transparent 62%
   );
   background-size: 200% 100%;
   background-repeat: no-repeat;
   background-position: 100% 0;
-  animation: ms-skeleton-sweep 1.8s var(--ms-ease) infinite;
+  animation: po-skeleton-sweep 1.8s var(--po-ease) infinite;
 }
-@keyframes ms-skeleton-sweep {
+@keyframes po-skeleton-sweep {
   to {
     background-position: -100% 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-skeleton {
+  .po-skeleton {
     animation: none;
     background-image: none;
   }
 }
 
 /* Number inputs: the native stepper arrows clash with the control grammar. */
-.ms-number {
+.po-number {
   -moz-appearance: textfield;
   appearance: textfield;
 }
-.ms-number::-webkit-outer-spin-button,
-.ms-number::-webkit-inner-spin-button {
+.po-number::-webkit-outer-spin-button,
+.po-number::-webkit-inner-spin-button {
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
@@ -2898,103 +2898,103 @@ summary:focus-visible,
 /* Side sheet panel (drawer.tsx). */
 
 /* Horizontal tab/chip strips: keep one line, scroll quietly. */
-.ms-scroll-x {
+.po-scroll-x {
   scrollbar-width: thin;
-  scrollbar-color: var(--ms-line-strong) transparent;
+  scrollbar-color: var(--po-line-strong) transparent;
 }
 
 /* Syntax palette for highlighted snippets (hljs class names via lowlight),
-   scoped under .ms-hl so the tokens never bleed into plain code blocks.
+   scoped under .po-hl so the tokens never bleed into plain code blocks.
    Hues ride the design tokens so every theme stays coherent. */
-.ms-hl .hljs-keyword,
-.ms-hl .hljs-literal,
-.ms-hl .hljs-built_in,
-.ms-hl .hljs-type {
-  color: var(--ms-info);
+.po-hl .hljs-keyword,
+.po-hl .hljs-literal,
+.po-hl .hljs-built_in,
+.po-hl .hljs-type {
+  color: var(--po-info);
 }
-.ms-hl .hljs-string,
-.ms-hl .hljs-regexp,
-.ms-hl .hljs-addition {
-  color: var(--ms-success);
+.po-hl .hljs-string,
+.po-hl .hljs-regexp,
+.po-hl .hljs-addition {
+  color: var(--po-success);
 }
-.ms-hl .hljs-number,
-.ms-hl .hljs-symbol,
-.ms-hl .hljs-meta {
-  color: var(--ms-warn);
+.po-hl .hljs-number,
+.po-hl .hljs-symbol,
+.po-hl .hljs-meta {
+  color: var(--po-warn);
 }
-.ms-hl .hljs-comment,
-.ms-hl .hljs-doctag {
-  color: var(--ms-faint);
+.po-hl .hljs-comment,
+.po-hl .hljs-doctag {
+  color: var(--po-faint);
   font-style: italic;
 }
-.ms-hl .hljs-title,
-.ms-hl .hljs-title.function_,
-.ms-hl .hljs-title.class_ {
-  color: var(--ms-bone);
+.po-hl .hljs-title,
+.po-hl .hljs-title.function_,
+.po-hl .hljs-title.class_ {
+  color: var(--po-bone);
   font-weight: 600;
 }
-.ms-hl .hljs-attr,
-.ms-hl .hljs-property,
-.ms-hl .hljs-variable {
-  color: color-mix(in srgb, var(--ms-info) 45%, var(--ms-bone));
+.po-hl .hljs-attr,
+.po-hl .hljs-property,
+.po-hl .hljs-variable {
+  color: color-mix(in srgb, var(--po-info) 45%, var(--po-bone));
 }
 /* Markup: the angle brackets recede, element names carry the hue. */
-.ms-hl .hljs-tag {
-  color: var(--ms-muted);
+.po-hl .hljs-tag {
+  color: var(--po-muted);
 }
-.ms-hl .hljs-tag .hljs-name {
-  color: var(--ms-info);
+.po-hl .hljs-tag .hljs-name {
+  color: var(--po-info);
 }
 /* Request inspector (components/json-view.tsx): ids that resolve to a
    dashboard resource become chips; redaction placeholders recede. The focus
    ring comes from the global a:focus-visible rule. */
-.ms-hl .ms-json-link {
+.po-hl .po-json-link {
   padding: 1px 5px;
-  border-radius: var(--ms-r-chip);
-  background: color-mix(in srgb, var(--ms-bone) 7%, var(--ms-inset));
+  border-radius: var(--po-r-chip);
+  background: color-mix(in srgb, var(--po-bone) 7%, var(--po-inset));
   font-variant-numeric: tabular-nums;
   color: inherit;
   text-decoration: none;
 }
-.ms-hl .ms-json-link:hover {
+.po-hl .po-json-link:hover {
   text-decoration: underline;
 }
-.ms-hl .ms-json-marker {
-  color: var(--ms-faint);
+.po-hl .po-json-marker {
+  color: var(--po-faint);
   font-style: italic;
 }
 
 /* One-shot attention pulse for a section the user was just navigated to. */
-.ms-attention {
-  animation: ms-attention 0.9s var(--ms-ease) 2;
+.po-attention {
+  animation: po-attention 0.9s var(--po-ease) 2;
 }
-@keyframes ms-attention {
+@keyframes po-attention {
   50% {
     transform: scale(1.015);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-attention {
+  .po-attention {
     animation: none;
   }
 }
 
 /* Label + info tooltip on one line: the label's own bottom gap moves to the
    row so the glyph centers on the text instead of floating below it. */
-.ms-label-row {
+.po-label-row {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
 }
-.ms-label-row label {
+.po-label-row label {
   margin-bottom: 0;
 }
 
 /* Status pages (404 / error boundary): the counting-number treatment as the
    hero, one serif sentence, one muted line, the app's own buttons. Erode is
    display type only, never UI text or digits. */
-.ms-status {
+.po-status {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -3004,27 +3004,27 @@ summary:focus-visible,
   padding: 24px;
   text-align: center;
 }
-.ms-status-code {
+.po-status-code {
   font-size: clamp(64px, 12vw, 96px);
   line-height: 1;
-  color: var(--ms-bone);
+  color: var(--po-bone);
 }
-.ms-status-title {
+.po-status-title {
   margin: 0;
   font-family: "Erode", Georgia, "Times New Roman", serif;
   font-size: 28px;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  color: var(--ms-bone);
+  color: var(--po-bone);
 }
-.ms-status-body {
+.po-status-body {
   margin: 0;
   max-width: 440px;
-  font-size: var(--ms-fs-body);
-  color: var(--ms-muted);
+  font-size: var(--po-fs-body);
+  color: var(--po-muted);
 }
-.ms-status-actions {
+.po-status-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -3036,56 +3036,56 @@ summary:focus-visible,
    TEMPLATES — html-authored rows (templates/html-mode.tsx, components/code-editor.tsx).
    The notice box follows notice-strip.tsx in the info tone; the source editor
    is a transparent textarea over a highlighted mirror sharing one font box. */
-.ms-tpl-html-banner {
+.po-tpl-html-banner {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px 14px;
   padding: 9px 14px;
   margin-bottom: 10px;
-  border-radius: var(--ms-r-input);
-  border: 1px solid var(--ms-info-border);
-  background-color: var(--ms-ground);
+  border-radius: var(--po-r-input);
+  border: 1px solid var(--po-info-border);
+  background-color: var(--po-ground);
   background-image: radial-gradient(
     130% 170% at 10% 130%,
-    color-mix(in srgb, var(--ms-info) 17%, transparent),
+    color-mix(in srgb, var(--po-info) 17%, transparent),
     transparent 62%
   );
   background-repeat: no-repeat;
-  color: var(--ms-info);
+  color: var(--po-info);
   font-size: 13px;
   line-height: 1.4;
 }
-.ms-tpl-html-banner > span:first-child {
+.po-tpl-html-banner > span:first-child {
   flex: 1 1 280px;
 }
-.ms-tpl-html-banner-actions {
+.po-tpl-html-banner-actions {
   display: flex;
   gap: 8px;
   margin-left: auto;
 }
 /* Name and subject share a row once the field is wide enough for two inputs. */
-.ms-tpl-meta {
+.po-tpl-meta {
   display: grid;
   gap: 18px;
 }
 @media (min-width: 900px) {
-  .ms-tpl-meta {
+  .po-tpl-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-.ms-tpl-code {
+.po-tpl-code {
   container-type: inline-size;
   /* One body height for both panes: the code box and the preview frame start
      and end on the same lines. */
-  --ms-tpl-pane-h: clamp(420px, 70vh, 900px);
+  --po-tpl-pane-h: clamp(420px, 70vh, 900px);
 }
-.ms-tpl-code-tabs {
+.po-tpl-code-tabs {
   display: none;
   gap: 2px;
   margin-bottom: 8px;
 }
-.ms-tpl-code-panes {
+.po-tpl-code-panes {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
@@ -3093,43 +3093,43 @@ summary:focus-visible,
 /* Each pane: a toolbar row over a body of the shared height, framed like the
    block editor (toolbar + surface). Not clipped — the Variables popover hangs
    out of the code pane's toolbar. */
-.ms-tpl-code-source,
-.ms-tpl-code-preview {
+.po-tpl-code-source,
+.po-tpl-code-preview {
   display: grid;
-  grid-template-rows: auto var(--ms-tpl-pane-h);
+  grid-template-rows: auto var(--po-tpl-pane-h);
   min-width: 0;
 }
-.ms-tpl-code-head {
+.po-tpl-code-head {
   display: flex;
   align-items: center;
   gap: 6px;
   height: 42px;
   padding: 0 6px;
   box-sizing: border-box;
-  border: 1px solid var(--ms-line);
+  border: 1px solid var(--po-line);
   border-bottom: 0;
-  border-radius: var(--ms-r-input) var(--ms-r-input) 0 0;
-  background: var(--ms-panel);
+  border-radius: var(--po-r-input) var(--po-r-input) 0 0;
+  background: var(--po-panel);
 }
-.ms-tpl-code-frame {
+.po-tpl-code-frame {
   min-height: 0;
-  border: 1px solid var(--ms-line);
-  border-radius: 0 0 var(--ms-r-input) var(--ms-r-input);
+  border: 1px solid var(--po-line);
+  border-radius: 0 0 var(--po-r-input) var(--po-r-input);
   overflow: hidden;
 }
-.ms-tpl-code-frame > iframe {
+.po-tpl-code-frame > iframe {
   display: block;
   width: 100%;
   height: 100%;
   border: 0;
 }
-.ms-tpl-code-hint {
+.po-tpl-code-hint {
   margin: 8px 0 0;
-  font-size: var(--ms-fs-label);
-  color: var(--ms-muted);
+  font-size: var(--po-fs-label);
+  color: var(--po-muted);
 }
 /* Find, in the code pane's toolbar: field, "n / total", previous, next, close. */
-.ms-code-find {
+.po-code-find {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -3139,17 +3139,17 @@ summary:focus-visible,
   height: 30px;
   padding: 0 4px 0 9px;
   box-sizing: border-box;
-  border: 1px solid var(--ms-line-strong);
+  border: 1px solid var(--po-line-strong);
   border-radius: 7px;
-  background: var(--ms-inset);
-  color: var(--ms-muted);
-  transition: box-shadow var(--ms-dur-fast) var(--ms-ease);
+  background: var(--po-inset);
+  color: var(--po-muted);
+  transition: box-shadow var(--po-dur-fast) var(--po-ease);
 }
-.ms-code-find:focus-within {
-  border-color: var(--ms-focus-border);
-  box-shadow: var(--ms-focus-ring);
+.po-code-find:focus-within {
+  border-color: var(--po-focus-border);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-code-find input {
+.po-code-find input {
   flex: 1 1 auto;
   min-width: 0;
   width: 0;
@@ -3161,24 +3161,24 @@ summary:focus-visible,
   padding: 0;
   background: none;
   outline: none;
-  color: var(--ms-bone);
-  font: 400 12.5px var(--ms-font-sans);
+  color: var(--po-bone);
+  font: 400 12.5px var(--po-font-sans);
 }
-.ms-code-find input::placeholder {
-  color: var(--ms-faint);
+.po-code-find input::placeholder {
+  color: var(--po-faint);
 }
 /* The frame shows the focus ring (:focus-within); the bare input must not add its own. */
-.ms-code-find input:focus-visible {
+.po-code-find input:focus-visible {
   box-shadow: none;
 }
-.ms-code-find-count {
+.po-code-find-count {
   flex: none;
   padding: 0 6px;
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.ms-code-find .ms-maily-tool {
+.po-code-find .po-maily-tool {
   height: 22px;
   min-width: 22px;
   padding: 0 3px;
@@ -3187,114 +3187,114 @@ summary:focus-visible,
 }
 /* Below two comfortable panes the field shows one at a time, picked by the tabs. */
 @container (max-width: 799px) {
-  .ms-tpl-code-tabs {
+  .po-tpl-code-tabs {
     display: flex;
   }
-  .ms-tpl-code-panes {
+  .po-tpl-code-panes {
     grid-template-columns: minmax(0, 1fr);
   }
-  .ms-tpl-code[data-pane="source"] .ms-tpl-code-preview,
-  .ms-tpl-code[data-pane="preview"] .ms-tpl-code-source,
-  .ms-tpl-code[data-pane="preview"] .ms-tpl-code-hint {
+  .po-tpl-code[data-pane="source"] .po-tpl-code-preview,
+  .po-tpl-code[data-pane="preview"] .po-tpl-code-source,
+  .po-tpl-code[data-pane="preview"] .po-tpl-code-hint {
     display: none;
   }
 }
 /* Three actions in one dialog footer: wrap on a phone instead of overflowing. */
-.ms-tpl-convert-actions {
+.po-tpl-convert-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
 }
-.ms-code-editor {
+.po-code-editor {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
-  border: 1px solid var(--ms-line-strong);
-  border-radius: var(--ms-r-input);
-  background: var(--ms-inset);
+  border: 1px solid var(--po-line-strong);
+  border-radius: var(--po-r-input);
+  background: var(--po-inset);
   overflow: hidden;
-  transition: box-shadow var(--ms-dur-fast) var(--ms-ease);
+  transition: box-shadow var(--po-dur-fast) var(--po-ease);
 }
 /* Under its toolbar row the frame joins the head: line-tone at rest, no top rounding. */
-.ms-tpl-code-source .ms-code-editor {
-  border-color: var(--ms-line);
-  border-radius: 0 0 var(--ms-r-input) var(--ms-r-input);
+.po-tpl-code-source .po-code-editor {
+  border-color: var(--po-line);
+  border-radius: 0 0 var(--po-r-input) var(--po-r-input);
 }
-.ms-code-editor:focus-within {
-  border-color: var(--ms-focus-border);
-  box-shadow: var(--ms-focus-ring);
+.po-code-editor:focus-within {
+  border-color: var(--po-focus-border);
+  box-shadow: var(--po-focus-ring);
 }
-.ms-tpl-code-source .ms-code-editor:focus-within {
+.po-tpl-code-source .po-code-editor:focus-within {
   /* The head above would sit outside a ring; the border colour alone marks focus. */
   box-shadow: none;
 }
 /* Mirror and textarea share every metric that moves a glyph. */
-.ms-code-editor-hl,
-.ms-code-editor-input {
+.po-code-editor-hl,
+.po-code-editor-input {
   position: absolute;
   inset: 0;
   margin: 0;
   padding: 14px 16px;
   box-sizing: border-box;
-  font: 12.5px / 1.7 var(--ms-font-mono);
+  font: 12.5px / 1.7 var(--po-font-mono);
   white-space: pre;
   tab-size: 2;
   overflow: auto;
 }
-.ms-code-editor-hl {
-  color: var(--ms-bone);
+.po-code-editor-hl {
+  color: var(--po-bone);
   pointer-events: none;
   /* Scroll position is copied from the textarea's scroll events. */
   overflow: hidden;
 }
-.ms-code-editor-input {
+.po-code-editor-input {
   border: 0;
   outline: none;
   resize: none;
   background: transparent;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  caret-color: var(--ms-bone);
+  caret-color: var(--po-bone);
 }
-.ms-code-editor-input:focus-visible {
+.po-code-editor-input:focus-visible {
   /* The ring sits on the frame (focus-within), where overflow: hidden cannot clip it. */
   box-shadow: none;
 }
-.ms-code-editor-input::selection {
-  background: color-mix(in srgb, var(--ms-info) 32%, transparent);
+.po-code-editor-input::selection {
+  background: color-mix(in srgb, var(--po-info) 32%, transparent);
 }
 /* Find matches: the same text made invisible, only the <mark> grounds show
    through under the highlighted glyphs. */
-.ms-code-editor-marks {
+.po-code-editor-marks {
   color: transparent;
 }
-.ms-code-editor-marks mark {
+.po-code-editor-marks mark {
   color: transparent;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--ms-warn) 24%, transparent);
+  background: color-mix(in srgb, var(--po-warn) 24%, transparent);
 }
-.ms-code-editor-marks mark[data-current] {
-  background: color-mix(in srgb, var(--ms-warn) 52%, transparent);
+.po-code-editor-marks mark[data-current] {
+  background: color-mix(in srgb, var(--po-warn) 52%, transparent);
 }
 
-/* Plan ladder — the landing page's pricing section (millionsend-lp site.css,
-   "Pricing") without its recommendation: a native range slider over the
-   volumes and four level cards; the card the volume lands on carries the
-   primary button and, on phones, is the one that unfolds. */
-.ms-volume {
+/* Plan ladder — the landing page's pricing section (posta-site, "Pricing")
+   without its recommendation: a native range slider over the volumes and
+   four level cards; the card the volume lands on carries the primary button
+   and, on phones, is the one that unfolds. */
+.po-volume {
   max-width: 640px;
   margin: 0 auto 28px;
   text-align: center;
 }
-.ms-volume .ms-microlabel {
+.po-volume .po-microlabel {
   display: block;
   margin-bottom: 14px;
 }
-/* The fill follows --ms-slider-p, set from the step; the marks under the
+/* The fill follows --po-slider-p, set from the step; the marks under the
    track are click shortcuts, laid out with a thumb-radius gutter so each sits
    under the thumb's centre at its step. */
-.ms-slider {
+.po-slider {
   appearance: none;
   display: block;
   width: 100%;
@@ -3304,47 +3304,47 @@ summary:focus-visible,
   background: transparent;
   cursor: pointer;
 }
-.ms-slider:focus-visible {
+.po-slider:focus-visible {
   outline: none;
 }
-.ms-slider::-webkit-slider-runnable-track {
+.po-slider::-webkit-slider-runnable-track {
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(to right, var(--ms-bone) var(--ms-slider-p), var(--ms-line) 0);
+  background: linear-gradient(to right, var(--po-bone) var(--po-slider-p), var(--po-line) 0);
 }
-.ms-slider::-moz-range-track {
+.po-slider::-moz-range-track {
   height: 2px;
   border-radius: 1px;
-  background: var(--ms-line);
+  background: var(--po-line);
 }
-.ms-slider::-moz-range-progress {
+.po-slider::-moz-range-progress {
   height: 2px;
   border-radius: 1px;
-  background: var(--ms-bone);
+  background: var(--po-bone);
 }
-.ms-slider::-webkit-slider-thumb {
+.po-slider::-webkit-slider-thumb {
   appearance: none;
   width: 20px;
   height: 20px;
   margin-top: -9px;
   border: 0;
   border-radius: 50%;
-  background: var(--ms-bone);
+  background: var(--po-bone);
 }
-.ms-slider::-moz-range-thumb {
+.po-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border: 0;
   border-radius: 50%;
-  background: var(--ms-bone);
+  background: var(--po-bone);
 }
-.ms-slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: var(--ms-focus-ring);
+.po-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--po-focus-ring);
 }
-.ms-slider:focus-visible::-moz-range-thumb {
-  box-shadow: var(--ms-focus-ring);
+.po-slider:focus-visible::-moz-range-thumb {
+  box-shadow: var(--po-focus-ring);
 }
-.ms-slider-marks {
+.po-slider-marks {
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
@@ -3352,7 +3352,7 @@ summary:focus-visible,
 }
 /* Zero-width in the flex math (width cancelled by the margins), so the marks
    land on the snap points, yet a 3.6em hit area. */
-.ms-slider-marks button {
+.po-slider-marks button {
   flex: none;
   width: 3.6em;
   margin: 0 -1.8em;
@@ -3360,233 +3360,233 @@ summary:focus-visible,
   border: 0;
   background: none;
   font-size: 12px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   cursor: pointer;
-  transition: color var(--ms-dur-fast) var(--ms-ease);
+  transition: color var(--po-dur-fast) var(--po-ease);
 }
-.ms-slider-marks button:hover,
-.ms-slider-marks button[data-on] {
-  color: var(--ms-bone);
+.po-slider-marks button:hover,
+.po-slider-marks button[data-on] {
+  color: var(--po-bone);
 }
-.ms-slider-hint {
+.po-slider-hint {
   display: none;
   margin: 10px 0 0;
-  font-family: var(--ms-font-mono);
+  font-family: var(--po-font-mono);
   font-size: 11.5px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
-.ms-plans {
+.po-plans {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
-.ms-plan {
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-card);
+.po-plan {
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-card);
   padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: var(--ms-panel);
+  background: var(--po-panel);
 }
-.ms-plan-name {
-  font: 600 var(--ms-fs-section) var(--ms-font-sans);
-  color: var(--ms-bone);
+.po-plan-name {
+  font: 600 var(--po-fs-section) var(--po-font-sans);
+  color: var(--po-bone);
 }
-.ms-plan-price .ms-digits {
-  font-size: var(--ms-fs-price);
+.po-plan-price .po-digits {
+  font-size: var(--po-fs-price);
   line-height: 1;
-  color: var(--ms-bone);
+  color: var(--po-bone);
 }
-.ms-plan-cap {
+.po-plan-cap {
   padding-top: 16px;
-  border-top: 1px solid var(--ms-line);
+  border-top: 1px solid var(--po-line);
 }
-.ms-plan-cap .ms-digits {
+.po-plan-cap .po-digits {
   font-size: 26px;
   line-height: 1.1;
-  color: var(--ms-bone);
+  color: var(--po-bone);
   display: block;
 }
-.ms-plan-per {
+.po-plan-per {
   display: block;
   margin-top: 6px;
   font-size: 13px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
-.ms-plan-price .ms-plan-per {
+.po-plan-price .po-plan-per {
   display: inline;
   margin-left: 8px;
 }
 /* Sits under the cap block; the card's own gap already opens 16px, so it pulls up. */
-.ms-plan-over {
+.po-plan-over {
   display: block;
   margin-top: -8px;
   font-size: 12.5px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
 /* The list and button share one body, which the phone layout folds on the
    other cards; the list takes the slack so the four buttons sit level. */
-.ms-plan-more {
+.po-plan-more {
   flex: 1;
   display: grid;
   grid-template-rows: 1fr;
   transition: grid-template-rows 320ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.ms-plan-more > div {
+.po-plan-more > div {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-height: 0;
 }
-.ms-checklist {
+.po-checklist {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: 8px;
   font-size: 13px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   flex: 1;
   align-content: start;
 }
-.ms-checklist li {
+.po-checklist li {
   display: flex;
   align-items: flex-start;
   gap: 9px;
 }
 /* 14px glyph against a 13px/1.55 first line: 3px seats it on the baseline. */
-.ms-checklist-mark {
+.po-checklist-mark {
   flex: none;
   margin-top: 3px;
-  color: var(--ms-success);
+  color: var(--po-success);
 }
 /* Four cards need about 980px of dialog: below that the ladder goes 2×2 so
    a card's nowrap button stays inside it. */
 @media (max-width: 1119px) {
-  .ms-plans {
+  .po-plans {
     grid-template-columns: 1fr 1fr;
   }
 }
 @media (max-width: 767px) {
   /* One header row per card (name and price, the cap under them); the
      selected card unfolds its list and button, the others stay a slim row. */
-  .ms-plans {
+  .po-plans {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-  .ms-plan {
+  .po-plan {
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: baseline;
     gap: 0 12px;
     padding: 14px 16px;
   }
-  .ms-plan-name {
+  .po-plan-name {
     font-size: 15px;
   }
-  .ms-plan-price .ms-digits {
+  .po-plan-price .po-digits {
     font-size: 18px;
   }
-  .ms-plan-price .ms-plan-per {
+  .po-plan-price .po-plan-per {
     margin-left: 4px;
     font-size: 12px;
   }
-  .ms-plan-cap {
+  .po-plan-cap {
     grid-column: 1 / -1;
     margin-top: 4px;
     padding: 0;
     border: 0;
   }
-  .ms-plan-cap .ms-digits {
+  .po-plan-cap .po-digits {
     display: inline;
     font-size: 14px;
   }
-  .ms-plan-cap .ms-plan-per {
+  .po-plan-cap .po-plan-per {
     display: inline;
     margin: 0 0 0 4px;
     font-size: 12px;
   }
-  .ms-plan-over {
+  .po-plan-over {
     display: none;
   }
-  .ms-plan[data-open] .ms-plan-over:not([data-empty]) {
+  .po-plan[data-open] .po-plan-over:not([data-empty]) {
     display: block;
     grid-column: 1 / -1;
     margin-top: 4px;
   }
-  .ms-plan-more {
+  .po-plan-more {
     grid-column: 1 / -1;
   }
   /* The 3px bleed keeps the button's focus ring out of the clip. */
-  .ms-plan-more > div {
+  .po-plan-more > div {
     overflow: hidden;
     padding: 0 3px 3px;
     margin: 0 -3px -3px;
   }
-  .ms-plan-more .ms-checklist {
+  .po-plan-more .po-checklist {
     margin-top: 12px;
   }
-  .ms-plan:not([data-open]) .ms-plan-more {
+  .po-plan:not([data-open]) .po-plan-more {
     grid-template-rows: 0fr;
   }
-  .ms-slider-hint {
+  .po-slider-hint {
     display: block;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ms-plan-more {
+  .po-plan-more {
     transition: none;
   }
 }
 /* The card's compact form (one tile per plan) and the dialog the ladder opens in. */
-.ms-plan-more .ms-btn {
+.po-plan-more .po-btn {
   justify-content: center;
 }
-.ms-plan-strip {
+.po-plan-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
-.ms-plan-strip-item {
+.po-plan-strip-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 12px 14px;
-  border: 1px solid var(--ms-line);
-  border-radius: var(--ms-r-card);
-  background: var(--ms-panel);
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-card);
+  background: var(--po-panel);
 }
-.ms-plan-strip-item[data-current] {
-  border-color: var(--ms-line-strong);
-  background: var(--ms-panel-raised);
+.po-plan-strip-item[data-current] {
+  border-color: var(--po-line-strong);
+  background: var(--po-panel-raised);
 }
-.ms-plan-strip-name {
-  font: 600 var(--ms-fs-ui) var(--ms-font-sans);
-  color: var(--ms-bone);
+.po-plan-strip-name {
+  font: 600 var(--po-fs-ui) var(--po-font-sans);
+  color: var(--po-bone);
 }
-.ms-plan-strip-price {
+.po-plan-strip-price {
   font-size: 13px;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   /* "from $20 /" over "month" reads as a broken price; balanced lines keep the amount whole. */
   text-wrap: balance;
 }
 /* Sized with its padding inside the box, leaving a rim of the page around it. */
-.ms-modal-full {
+.po-modal-full {
   width: calc(100vw - 72px);
   max-width: 1440px;
   height: calc(100dvh - 72px);
   max-height: calc(100dvh - 72px);
   padding-bottom: 28px;
 }
-.ms-plan-dialog {
+.po-plan-dialog {
   margin-top: 18px;
 }
 @media (max-width: 767px) {
-  .ms-plan-strip {
+  .po-plan-strip {
     grid-template-columns: 1fr 1fr;
   }
-  .ms-modal-full {
+  .po-modal-full {
     width: calc(100vw - 24px);
     max-width: calc(100vw - 24px);
     height: calc(100dvh - 24px);
@@ -3597,12 +3597,12 @@ summary:focus-visible,
 
 /* The send dialog's step timeline: one row per sending day on a 1px rail; the
    row that starts now carries the lit dot. */
-.ms-steps {
+.po-steps {
   list-style: none;
   margin: 0 0 4px;
   padding: 0;
 }
-.ms-steps li {
+.po-steps li {
   position: relative;
   display: grid;
   grid-template-columns: 132px 1fr;
@@ -3611,19 +3611,19 @@ summary:focus-visible,
   font-size: 13.5px;
   line-height: 1.45;
 }
-.ms-steps li::before {
+.po-steps li::before {
   content: "";
   position: absolute;
   left: 3px;
   top: 10px;
   bottom: -4px;
   width: 1px;
-  background: var(--ms-line-strong);
+  background: var(--po-line-strong);
 }
-.ms-steps li:last-child::before {
+.po-steps li:last-child::before {
   display: none;
 }
-.ms-steps li::after {
+.po-steps li::after {
   content: "";
   position: absolute;
   left: 0;
@@ -3631,104 +3631,104 @@ summary:focus-visible,
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  border: 1px solid var(--ms-muted);
-  background: var(--ms-panel);
+  border: 1px solid var(--po-muted);
+  background: var(--po-panel);
   box-sizing: border-box;
 }
-.ms-steps li.now::after {
-  background: var(--ms-steel);
-  border-color: var(--ms-steel);
+.po-steps li.now::after {
+  background: var(--po-steel);
+  border-color: var(--po-steel);
 }
-.ms-steps .when {
-  color: var(--ms-muted);
-  font-family: var(--ms-font-mono);
+.po-steps .when {
+  color: var(--po-muted);
+  font-family: var(--po-font-mono);
   font-size: 12px;
   padding-top: 2px;
   font-variant-numeric: tabular-nums;
 }
-.ms-steps .what {
-  color: var(--ms-bone);
+.po-steps .what {
+  color: var(--po-bone);
 }
-.ms-steps .what small {
+.po-steps .what small {
   display: block;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   font-size: 12.5px;
 }
 /* On phones the day sits above its line, so the text takes the full width. */
 @media (max-width: 899px) {
-  .ms-steps li {
+  .po-steps li {
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
   }
-  .ms-steps .when {
+  .po-steps .when {
     padding-top: 0;
   }
 }
 /* A live send's rail: a day already out keeps a filled dot and muted copy;
    today carries a meter of its own progress. */
-.ms-steps li.done::after {
-  background: var(--ms-muted);
-  border-color: var(--ms-muted);
+.po-steps li.done::after {
+  background: var(--po-muted);
+  border-color: var(--po-muted);
 }
-.ms-steps li.done .what {
-  color: var(--ms-muted);
+.po-steps li.done .what {
+  color: var(--po-muted);
 }
-.ms-steps .bar {
+.po-steps .bar {
   display: block;
   height: 3px;
   max-width: 320px;
   margin: 7px 0 2px;
   border-radius: 2px;
-  background: var(--ms-line-strong);
+  background: var(--po-line-strong);
   overflow: hidden;
 }
-.ms-steps .bar b {
+.po-steps .bar b {
   display: block;
   height: 100%;
-  background: var(--ms-steel);
+  background: var(--po-steel);
 }
 /* The list tooltip's cut: the day above its line, tighter rows. */
-.ms-steps.compact {
+.po-steps.compact {
   margin: 8px 0 4px;
 }
-.ms-steps.compact li {
+.po-steps.compact li {
   grid-template-columns: minmax(0, 1fr);
   gap: 1px;
   padding: 0 0 8px 18px;
   font-size: 12px;
 }
-.ms-steps.compact .when {
+.po-steps.compact .when {
   font-size: 11px;
   padding-top: 0;
 }
-.ms-steps.compact li::after {
+.po-steps.compact li::after {
   top: 5px;
 }
-.ms-steps.compact li::before {
+.po-steps.compact li::before {
   top: 9px;
 }
 /* The detail page's pacing band: the rail beside the reason line. */
-.ms-pacing {
+.po-pacing {
   display: grid;
   grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
   gap: 12px 48px;
   padding: 22px 0 18px;
-  border-top: 1px solid var(--ms-line);
+  border-top: 1px solid var(--po-line);
 }
-.ms-pacing > .ms-microlabel {
+.po-pacing > .po-microlabel {
   grid-column: 1 / -1;
 }
-.ms-pacing > p {
+.po-pacing > p {
   margin: 0;
   max-width: 46ch;
-  color: var(--ms-muted);
+  color: var(--po-muted);
   font-size: 13px;
   line-height: 1.55;
 }
 /* Beside the sidebar below 1200px the note's column would be under 100px
    wide, one word per line: it goes under the steps instead. */
 @media (max-width: 1199px) {
-  .ms-pacing {
+  .po-pacing {
     grid-template-columns: minmax(0, 1fr);
   }
 }

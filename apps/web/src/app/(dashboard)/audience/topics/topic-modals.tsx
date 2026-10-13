@@ -70,11 +70,11 @@ export function TopicEditModal({
           submit();
         }}
       >
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="topic-edit-name">{t("nameLabel")}</label>
           <input
             id="topic-edit-name"
-            className={`ms-input${updateMutation.isError ? " error" : ""}`}
+            className={`po-input${updateMutation.isError ? " error" : ""}`}
             style={{ width: "100%" }}
             placeholder={t("namePlaceholder")}
             disabled={updateMutation.isPending}
@@ -82,11 +82,11 @@ export function TopicEditModal({
             onChange={(event) => set({ name: event.target.value })}
           />
         </div>
-        <div className="ms-field" style={{ marginTop: 14 }}>
+        <div className="po-field" style={{ marginTop: 14 }}>
           <label htmlFor="topic-edit-description">{t("descriptionLabel")}</label>
           <input
             id="topic-edit-description"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             placeholder={t("descriptionPlaceholder")}
             disabled={updateMutation.isPending}
@@ -94,8 +94,8 @@ export function TopicEditModal({
             onChange={(event) => set({ description: event.target.value })}
           />
         </div>
-        <div className="ms-field" style={{ marginTop: 14 }}>
-          <div className="ms-label-row">
+        <div className="po-field" style={{ marginTop: 14 }}>
+          <div className="po-label-row">
             <label htmlFor="topic-edit-visibility">{t("visibilityLabel")}</label>
             <Tooltip text={t("visibilityTooltip")} />
           </div>
@@ -112,7 +112,7 @@ export function TopicEditModal({
             ]}
           />
         </div>
-        <div className="ms-field" style={{ marginTop: 14 }}>
+        <div className="po-field" style={{ marginTop: 14 }}>
           <label htmlFor="topic-edit-default">{t("defaultLabel")}</label>
           <Select
             id="topic-edit-default"
@@ -129,21 +129,21 @@ export function TopicEditModal({
           <p
             style={{
               margin: "6px 0 0",
-              color: "var(--ms-faint)",
-              fontSize: "var(--ms-fs-label)",
+              color: "var(--po-faint)",
+              fontSize: "var(--po-fs-label)",
             }}
           >
             {t("defaultImmutable")}
           </p>
         </div>
-        {updateMutation.isError ? <p className="ms-field-error">{t("editError")}</p> : null}
+        {updateMutation.isError ? <p className="po-field-error">{t("editError")}</p> : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={updateMutation.isPending || (form?.name.trim().length ?? 0) === 0}
           >
             <BtnSpinner on={updateMutation.isPending} />
@@ -193,16 +193,16 @@ export function TopicDeleteModal({
           submit();
         }}
       >
-        <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("deleteBody", { name: target?.name ?? "—" })}
         </p>
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={deleteMutation.isPending}
           >
             <BtnSpinner on={deleteMutation.isPending} />

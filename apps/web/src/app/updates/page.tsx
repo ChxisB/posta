@@ -36,13 +36,13 @@ export default async function UpdatesPage({
           <p className={styles.subline}>{m.intro}</p>
           <form method="post" action="/api/updates/subscribe" className={styles.form}>
             <input type="hidden" name="source" value={source} />
-            <div className={`ms-field ${styles.field}`}>
+            <div className={`po-field ${styles.field}`}>
               <label htmlFor="email">{m.email}</label>
               <input
                 id="email"
                 name="email"
                 type="email"
-                className={`ms-input ${styles.control}`}
+                className={`po-input ${styles.control}`}
                 autoComplete="email"
                 placeholder={m.emailPlaceholder}
                 required
@@ -52,7 +52,7 @@ export default async function UpdatesPage({
             {query.error ? (
               <p className={styles.error}>{query.error === "rate" ? m.tryLater : m.invalidEmail}</p>
             ) : null}
-            <button type="submit" className={`ms-btn ms-btn-primary ${styles.button}`}>
+            <button type="submit" className={`po-btn po-btn-primary ${styles.button}`}>
               {m.submit}
             </button>
           </form>

@@ -103,20 +103,20 @@ export function CreateInboxDialog({
           submit();
         }}
       >
-        <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("empty.body")}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="inbox-local">{t("create.address")}</label>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             {shared ? (
-              <span className="ms-mono" style={{ flex: "1 1 160px", color: "var(--ms-muted)" }}>
+              <span className="po-mono" style={{ flex: "1 1 160px", color: "var(--po-muted)" }}>
                 {t("create.random")}
               </span>
             ) : (
               <input
                 id="inbox-local"
-                className="ms-input mono"
+                className="po-input mono"
                 style={{ flex: "1 1 160px", minWidth: 0 }}
                 value={localPart}
                 disabled={create.isPending}
@@ -140,17 +140,17 @@ export function CreateInboxDialog({
               ]}
             />
           </div>
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
             {local && !localValid
               ? t("create.errors.localPart")
               : t("create.addressHint", { domain: sharedDomain ?? "" })}
           </p>
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="inbox-name">{t("create.name")}</label>
           <input
             id="inbox-name"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             value={name}
             maxLength={64}
@@ -159,11 +159,11 @@ export function CreateInboxDialog({
             onChange={(event) => setName(event.target.value)}
           />
         </div>
-        <fieldset className="ms-field" style={{ border: 0, padding: 0, margin: 0 }}>
+        <fieldset className="po-field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend style={{ marginBottom: 6 }}>{t("create.kind")}</legend>
           <div style={{ display: "grid", gap: 6 }}>
             {(["agent", "human"] as const).map((value) => (
-              <label key={value} className="ms-radio-card">
+              <label key={value} className="po-radio-card">
                 <input
                   type="radio"
                   name="inbox-kind"
@@ -184,7 +184,7 @@ export function CreateInboxDialog({
           </div>
         </fieldset>
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="inbox-accept">{t("acceptFrom.label")}</label>
             <Select
               id="inbox-accept"
@@ -199,7 +199,7 @@ export function CreateInboxDialog({
               }))}
             />
           </div>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="inbox-expires">{t("expires.label")}</label>
             <Select
               id="inbox-expires"
@@ -216,17 +216,17 @@ export function CreateInboxDialog({
           </div>
         </div>
         {error ? (
-          <div className="ms-field-error" style={{ margin: 0 }}>
+          <div className="po-field-error" style={{ margin: 0 }}>
             {error}
           </div>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!domain || !localValid || create.isPending}
           >
             <BtnSpinner on={create.isPending} />

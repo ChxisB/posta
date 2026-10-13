@@ -42,7 +42,7 @@ const MENU_GAP = 6;
 const UNPLACED_LIST_HEIGHT = 264;
 
 /**
- * Replacement for native <select>: compact .ms-input trigger + .ms-menu
+ * Replacement for native <select>: compact .po-input trigger + .po-menu
  * listbox popover, per the canvas dropdown grammar. Controlled only.
  * ARIA combobox pattern — focus stays on the trigger (or the search input
  * when present); aria-activedescendant tracks the highlighted option.
@@ -63,7 +63,7 @@ export function Select({
   ariaLabel: string;
   width?: number | string;
   disabled?: boolean;
-  /** Forwarded to the trigger so an ms-field <label htmlFor> can target it. */
+  /** Forwarded to the trigger so an po-field <label htmlFor> can target it. */
   id?: string;
   /** Trigger drawn as a secondary button instead of an input, for a chooser
    * that sits in a row of buttons (the list footer's page size). */
@@ -237,7 +237,7 @@ export function Select({
         ref={triggerRef}
         type="button"
         {...(id !== undefined ? { id } : {})}
-        className={button ? "ms-btn ms-btn-secondary" : "ms-input"}
+        className={button ? "po-btn po-btn-secondary" : "po-input"}
         role="combobox"
         aria-label={ariaLabel}
         aria-expanded={open}
@@ -273,14 +273,14 @@ export function Select({
           </span>
           {selected?.badge ? (
             <span
-              className={`ms-badge ms-badge-${selected.badge.tone}`}
+              className={`po-badge po-badge-${selected.badge.tone}`}
               style={{ flexShrink: 0, fontSize: 10.5, padding: "1px 7px" }}
             >
               {selected.badge.label}
             </span>
           ) : null}
         </span>
-        <span style={{ flexShrink: 0, display: "flex", color: "var(--ms-faint)" }}>
+        <span style={{ flexShrink: 0, display: "flex", color: "var(--po-faint)" }}>
           <ChevronGlyph />
         </span>
       </button>
@@ -288,7 +288,7 @@ export function Select({
         ? createPortal(
             <div
               ref={menuRef}
-              className="ms-menu"
+              className="po-menu"
               style={{
                 position: "fixed",
                 ...(placed
@@ -300,7 +300,7 @@ export function Select({
                 minWidth,
                 width: "max-content",
                 maxWidth: `min(${MENU_MAX_WIDTH}px, ${PANEL_MAX_WIDTH})`,
-                zIndex: "var(--ms-z-menu)",
+                zIndex: "var(--po-z-menu)",
                 // Rows must scroll to the panel edge and clip on the radius —
                 // panel padding would crop them mid-item at the scroll boundary.
                 padding: 0,
@@ -309,7 +309,7 @@ export function Select({
             >
               {searchable ? (
                 <input
-                  className="ms-menu-search"
+                  className="po-menu-search"
                   style={{ width: "100%", margin: 0 }}
                   // Search is the typing surface while the popover is open.
                   // biome-ignore lint/a11y/noAutofocus: focus moves into the popover by design, Esc restores the trigger
@@ -337,7 +337,7 @@ export function Select({
                 }}
               >
                 {filtered.length === 0 ? (
-                  <div style={{ padding: "7px 12px", fontSize: 13, color: "var(--ms-muted)" }}>
+                  <div style={{ padding: "7px 12px", fontSize: 13, color: "var(--po-muted)" }}>
                     {t("noResults")}
                   </div>
                 ) : (
@@ -384,7 +384,7 @@ export function SelectOptionList({
   return options.map((option, index) => (
     <Fragment key={option.value}>
       {option.group !== undefined && option.group !== options[index - 1]?.group ? (
-        <div className="ms-menu-label" role="presentation">
+        <div className="po-menu-label" role="presentation">
           {option.group}
         </div>
       ) : null}
@@ -395,8 +395,8 @@ export function SelectOptionList({
         aria-selected={option.value === value}
         tabIndex={-1}
         className={[
-          "ms-menu-item",
-          option.sub ? "ms-menu-item-sub" : "",
+          "po-menu-item",
+          option.sub ? "po-menu-item-sub" : "",
           index === activeIndex ? "active" : "",
         ]
           .filter(Boolean)
@@ -420,14 +420,14 @@ export function SelectOptionList({
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
             {option.label}
             {option.hint !== undefined ? (
-              <span style={{ color: "var(--ms-muted)", marginLeft: 8, fontSize: 12 }}>
+              <span style={{ color: "var(--po-muted)", marginLeft: 8, fontSize: 12 }}>
                 {option.hint}
               </span>
             ) : null}
           </span>
           {option.badge ? (
             <span
-              className={`ms-badge ms-badge-${option.badge.tone}`}
+              className={`po-badge po-badge-${option.badge.tone}`}
               style={{ flexShrink: 0, fontSize: 10.5, padding: "1px 7px" }}
             >
               {option.badge.label}

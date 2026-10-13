@@ -26,10 +26,10 @@ export default function ErrorPage({
       body={t("body")}
       actions={
         <>
-          <button type="button" className="ms-btn ms-btn-primary" onClick={reset}>
+          <button type="button" className="po-btn po-btn-primary" onClick={reset}>
             {t("retry")}
           </button>
-          <a className="ms-btn ms-btn-secondary" href="/emails">
+          <a className="po-btn po-btn-secondary" href="/emails">
             {t("cta")}
           </a>
         </>

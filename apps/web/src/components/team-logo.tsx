@@ -16,7 +16,7 @@ export function TeamLogo({
     width: size,
     height: size,
     borderRadius: Math.round(size * 0.3),
-    border: "1px solid var(--ms-line)",
+    border: "1px solid var(--po-line)",
     flex: "none",
     boxSizing: "border-box",
   };
@@ -36,7 +36,7 @@ export function TeamLogo({
       aria-hidden="true"
       style={{
         ...frame,
-        background: "var(--ms-panel-raised)",
+        background: "var(--po-panel-raised)",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",

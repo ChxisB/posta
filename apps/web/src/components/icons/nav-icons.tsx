@@ -10,7 +10,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-// --ms-ease; motion needs the raw bezier, not the CSS var.
+// --po-ease; motion needs the raw bezier, not the CSS var.
 const EASE: [number, number, number, number] = [0.25, 0, 0.15, 1];
 const TR = { duration: 0.4, ease: EASE };
 
@@ -295,7 +295,7 @@ export function ChevronGlyph({
         flex: "none",
         display: "block",
         transform: direction === "up" ? "rotate(180deg)" : "none",
-        transition: "transform var(--ms-dur-fast) var(--ms-ease)",
+        transition: "transform var(--po-dur-fast) var(--po-ease)",
       }}
     >
       <path

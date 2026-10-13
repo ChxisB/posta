@@ -22,7 +22,7 @@ import { ConvertBlocksDialog, HtmlAuthoredBanner, HtmlCodeMode } from "./html-mo
 // must not render on the server. The ghost holds the field's height meanwhile.
 const MailyEditor = dynamic(() => import("@/components/maily-editor").then((m) => m.default), {
   ssr: false,
-  loading: () => <Skeleton width="100%" height={340} radius="var(--ms-r-input)" />,
+  loading: () => <Skeleton width="100%" height={340} radius="var(--po-r-input)" />,
 });
 
 /** Everything a crash would lose — mirrored into the local draft. */
@@ -52,24 +52,24 @@ export function EditorSkeleton() {
           <Skeleton width={150} height="1lh" />
         </div>
         <h1
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
         >
           <Skeleton width={220} height="1lh" />
         </h1>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 720 }}>
-        <div className="ms-tpl-meta">
+        <div className="po-tpl-meta">
           {[0, 1].map((row) => (
             <div key={row}>
               <Skeleton width={90} height={11} />
               <div style={{ marginTop: 8, display: "flex" }}>
-                <Skeleton width="100%" height={38} radius="var(--ms-r-input)" />
+                <Skeleton width="100%" height={38} radius="var(--po-r-input)" />
               </div>
             </div>
           ))}
         </div>
-        <Skeleton width="100%" height={260} radius="var(--ms-r-input)" />
+        <Skeleton width="100%" height={260} radius="var(--po-r-input)" />
       </div>
     </>
   );
@@ -306,11 +306,11 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
               <span
                 role="status"
                 style={{
-                  color: "var(--ms-success)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--po-success)",
+                  fontSize: "var(--po-fs-label)",
                   // Fade-out is the shared fade-in played backwards, timed so
                   // it finishes just before the unmount timeout fires.
-                  animation: "ms-fade 240ms var(--ms-ease) 1800ms reverse both",
+                  animation: "po-fade 240ms var(--po-ease) 1800ms reverse both",
                 }}
               >
                 ✓ {t("editor.saved")}
@@ -318,20 +318,20 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
             ) : null}
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled={!complete || saving}
               onClick={() => void save(false)}
             >
               <BtnSpinner on={saving} />
-              {t("editor.save")} <span className="ms-keycap">⌘S</span>
+              {t("editor.save")} <span className="po-keycap">⌘S</span>
             </button>
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={!complete || saving}
               onClick={() => void save(true)}
             >
-              {t("editor.saveAndClose")} <span className="ms-keycap">⌘↵</span>
+              {t("editor.saveAndClose")} <span className="po-keycap">⌘↵</span>
             </button>
           </>
         }
@@ -339,28 +339,28 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         {/* Source beside preview needs the room; every other body stays at reading width. */}
-        <div className="ms-tpl-meta" style={{ maxWidth: wideBody ? 1200 : 720 }}>
-          <div className="ms-field">
+        <div className="po-tpl-meta" style={{ maxWidth: wideBody ? 1200 : 720 }}>
+          <div className="po-field">
             <label htmlFor="tpl-name">{t("editor.nameLabel")}</label>
             <input
               id="tpl-name"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               placeholder={t("editor.nameHint")}
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
           </div>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="tpl-subject">
               {t("editor.subjectLabel")}{" "}
-              <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+              <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
                 — {t("editor.optional")}
               </span>
             </label>
             <input
               id="tpl-subject"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
@@ -368,7 +368,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           </div>
         </div>
 
-        <div className="ms-field" style={{ maxWidth: wideBody ? 1200 : 720 }}>
+        <div className="po-field" style={{ maxWidth: wideBody ? 1200 : 720 }}>
           <div
             style={{
               display: "flex",
@@ -391,8 +391,8 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
                     borderRadius: 8,
                     border: 0,
                     cursor: "pointer",
-                    background: tab === key ? "var(--ms-panel-raised)" : "none",
-                    color: tab === key ? "var(--ms-bone)" : "var(--ms-muted)",
+                    background: tab === key ? "var(--po-panel-raised)" : "none",
+                    color: tab === key ? "var(--po-bone)" : "var(--po-muted)",
                     font: "inherit",
                   }}
                   onClick={() => setTab(key)}
@@ -437,8 +437,8 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
               ) : null}
               <div
                 style={{
-                  border: "1px solid var(--ms-line)",
-                  borderRadius: "var(--ms-r-input)",
+                  border: "1px solid var(--po-line)",
+                  borderRadius: "var(--po-r-input)",
                   overflow: "hidden",
                 }}
               >
@@ -453,8 +453,8 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
                     style={{
                       margin: 0,
                       padding: "16px 18px",
-                      color: "var(--ms-muted)",
-                      fontSize: "var(--ms-fs-ui)",
+                      color: "var(--po-muted)",
+                      fontSize: "var(--po-fs-ui)",
                     }}
                   >
                     {t("editor.noHtml")}
@@ -476,7 +476,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
         </div>
 
         {errorText ? (
-          <p className="ms-field-error" style={{ margin: 0 }}>
+          <p className="po-field-error" style={{ margin: 0 }}>
             {errorText}
           </p>
         ) : null}

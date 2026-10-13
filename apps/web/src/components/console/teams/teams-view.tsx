@@ -37,15 +37,15 @@ const SORT_KEYS = [
 const GUARDRAILS = ["ok", "warning", "paused"] as const;
 const TEAM_TYPES = ["free", "starter", "pro", "scale", "system"] as const;
 const GUARDRAIL_COLOR = {
-  ok: "var(--ms-success)",
-  warning: "var(--ms-warn)",
-  paused: "var(--ms-danger)",
+  ok: "var(--po-success)",
+  warning: "var(--po-warn)",
+  paused: "var(--po-danger)",
 } as const;
 const COLUMNS = 10;
 
 function scoreColor(tenths: number): string | undefined {
-  if (tenths < 50) return "var(--ms-danger)";
-  if (tenths < 70) return "var(--ms-warn)";
+  if (tenths < 50) return "var(--po-danger)";
+  if (tenths < 70) return "var(--po-warn)";
   return undefined;
 }
 
@@ -181,13 +181,13 @@ export function TeamsView() {
       <PageHeader title={t("title")} {...(proof ? { subtitle: proof } : {})} />
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
           <input
             type="text"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             placeholder={t("search")}
             aria-label={t("search")}
@@ -243,7 +243,7 @@ export function TeamsView() {
       {list.isError ? (
         <LoadErrorCard onRetry={() => void list.refetch()} />
       ) : (
-        <div className="ms-card" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="po-card" style={{ padding: 0, overflow: "hidden" }}>
           <Table className="nowrap">
             <thead>
               <tr>
@@ -267,7 +267,7 @@ export function TeamsView() {
                   <tr>
                     <td
                       colSpan={COLUMNS}
-                      style={{ color: "var(--ms-muted)", padding: "18px 12px" }}
+                      style={{ color: "var(--po-muted)", padding: "18px 12px" }}
                     >
                       {t("empty")}
                     </td>
@@ -286,7 +286,7 @@ export function TeamsView() {
                           </span>
                         </Tooltip>
                         {copied === row.id ? (
-                          <span style={{ marginLeft: 8, color: "var(--ms-muted)", fontSize: 12.5 }}>
+                          <span style={{ marginLeft: 8, color: "var(--po-muted)", fontSize: 12.5 }}>
                             ✓ {common("copied")}
                           </span>
                         ) : null}
@@ -298,7 +298,7 @@ export function TeamsView() {
                       <td className="right num">{nf.format(row.contacts)}</td>
                       <td
                         className="right num"
-                        style={row.sent30d === null ? { color: "var(--ms-muted)" } : undefined}
+                        style={row.sent30d === null ? { color: "var(--po-muted)" } : undefined}
                       >
                         {row.sent30d === null ? common("none") : nf.format(row.sent30d)}
                       </td>
@@ -307,7 +307,7 @@ export function TeamsView() {
                         style={{
                           color:
                             row.scoreTenths === null
-                              ? "var(--ms-muted)"
+                              ? "var(--po-muted)"
                               : scoreColor(row.scoreTenths),
                         }}
                       >
@@ -325,7 +325,7 @@ export function TeamsView() {
                       <td>
                         <RegionLabel region={row.region} />
                       </td>
-                      <td style={{ color: "var(--ms-muted)" }}>
+                      <td style={{ color: "var(--po-muted)" }}>
                         {formatDay(row.createdAt, locale)}
                       </td>
                       <td className="right" style={{ width: 40 }}>
@@ -345,7 +345,7 @@ export function TeamsView() {
             )}
           </Table>
           {list.isSuccess ? (
-            <div style={{ padding: "0 16px 14px", borderTop: "1px solid var(--ms-line)" }}>
+            <div style={{ padding: "0 16px 14px", borderTop: "1px solid var(--po-line)" }}>
               <ListFooter
                 left={common("ofTeams", { shown: nf.format(rows.length), total: nf.format(total) })}
                 size={limit}

@@ -24,25 +24,25 @@ const VARIANTS = {
 export type BadgeStatus = keyof typeof VARIANTS;
 export type BadgeTone = (typeof VARIANTS)[BadgeStatus];
 
-// Dot hues live in tokens/colors.css (--ms-dot-*); statuses without an email
+// Dot hues live in tokens/colors.css (--po-dot-*); statuses without an email
 // dot token borrow the family they read as: verified is a delivered-green,
 // pending an in-flight gray.
 const DOT_COLORS: Record<BadgeStatus, string> = {
-  delivered: "var(--ms-dot-delivered)",
-  verified: "var(--ms-dot-delivered)",
-  sent: "var(--ms-dot-sent)",
-  opened: "var(--ms-dot-opened)",
-  clicked: "var(--ms-dot-clicked)",
-  queued: "var(--ms-dot-queued)",
-  queued_quota: "var(--ms-dot-queued-quota)",
-  pending: "var(--ms-dot-queued)",
-  delivery_delayed: "var(--ms-dot-delivery-delayed)",
-  suppressed: "var(--ms-dot-suppressed)",
-  bounced: "var(--ms-dot-bounced)",
-  complained: "var(--ms-dot-complained)",
-  failed: "var(--ms-dot-failed)",
+  delivered: "var(--po-dot-delivered)",
+  verified: "var(--po-dot-delivered)",
+  sent: "var(--po-dot-sent)",
+  opened: "var(--po-dot-opened)",
+  clicked: "var(--po-dot-clicked)",
+  queued: "var(--po-dot-queued)",
+  queued_quota: "var(--po-dot-queued-quota)",
+  pending: "var(--po-dot-queued)",
+  delivery_delayed: "var(--po-dot-delivery-delayed)",
+  suppressed: "var(--po-dot-suppressed)",
+  bounced: "var(--po-dot-bounced)",
+  complained: "var(--po-dot-complained)",
+  failed: "var(--po-dot-failed)",
   // Terminal but benign: borrows the queued gray rather than a danger hue.
-  canceled: "var(--ms-dot-queued)",
+  canceled: "var(--po-dot-queued)",
 };
 
 /** 8px status dot — by email status or any CSS color; with neither it renders
@@ -50,9 +50,9 @@ const DOT_COLORS: Record<BadgeStatus, string> = {
 export function StatusDot({ status, color }: { status?: BadgeStatus; color?: string }) {
   const fill = status ? DOT_COLORS[status] : color;
   return fill ? (
-    <span className="ms-dot" style={{ background: fill }} aria-hidden="true" />
+    <span className="po-dot" style={{ background: fill }} aria-hidden="true" />
   ) : (
-    <span className="ms-dot ring" aria-hidden="true" />
+    <span className="po-dot ring" aria-hidden="true" />
   );
 }
 
@@ -66,7 +66,7 @@ export function StatusBadge({
 }) {
   const t = useTranslations("common");
   return (
-    <span className={`ms-badge ms-badge-${VARIANTS[status]}`}>
+    <span className={`po-badge po-badge-${VARIANTS[status]}`}>
       {label ?? t(`status.${status}`)}
     </span>
   );

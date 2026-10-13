@@ -49,10 +49,10 @@ export type DnsRecord = {
 // verified reads success; a record still pending at AWS or missing/wrong in our
 // lookup warns; a present-but-wrong record is the danger case.
 const RECORD_STATUS_TONE: Record<RecordStatus, string> = {
-  verified: "ms-badge-success",
-  pending: "ms-badge-warn",
-  missing: "ms-badge-warn",
-  mismatch: "ms-badge-danger",
+  verified: "po-badge-success",
+  pending: "po-badge-warn",
+  missing: "po-badge-warn",
+  mismatch: "po-badge-danger",
 };
 
 /**
@@ -63,7 +63,7 @@ function RecordStatusBadge({ status, note }: { status: RecordStatus; note?: Reac
   const t = useTranslations("domains");
   return (
     <span
-      className={`ms-badge ${RECORD_STATUS_TONE[status]}`}
+      className={`po-badge ${RECORD_STATUS_TONE[status]}`}
       style={note ? { display: "inline-flex", alignItems: "center", gap: 4 } : undefined}
     >
       {t(`detail.recordStatus.${status}`)}
@@ -90,7 +90,7 @@ function DnsOnlyNote() {
   const t = useTranslations("domains");
   return (
     <span
-      className="ms-badge ms-badge-neutral"
+      className="po-badge po-badge-neutral"
       style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 8 }}
     >
       <span aria-hidden="true">☁</span>
@@ -115,11 +115,11 @@ function RecordsTable({
        min width makes the wrapper scroll on phones instead of collapsing the
        Value column to nothing, and the Priority column gets its own room. */
     <Table
-      className="ms-mono dense"
+      className="po-mono dense"
       style={{ fontSize: 13, tableLayout: "fixed", minWidth: showPriority ? 820 : 720 }}
     >
       <thead>
-        <tr className="ms-mono">
+        <tr className="po-mono">
           <th style={{ width: 64 }}>{t("detail.columns.type")}</th>
           <th style={{ width: "30%" }}>{t("detail.columns.name")}</th>
           <th>{t("detail.columns.value")}</th>
@@ -176,7 +176,7 @@ export function DnsRecordsTable({
           <div
             key={group}
             id={`dns-group-${group}`}
-            className={highlightGroup === group ? "ms-attention" : undefined}
+            className={highlightGroup === group ? "po-attention" : undefined}
             style={{ maxWidth: 1000 }}
           >
             <div
@@ -188,13 +188,13 @@ export function DnsRecordsTable({
                 margin: "0 0 8px",
               }}
             >
-              <p className="ms-microlabel" style={{ margin: 0 }}>
+              <p className="po-microlabel" style={{ margin: 0 }}>
                 {t(`detail.groups.${group}`)}
               </p>
               {groupExtras[group] ?? null}
             </div>
             {rows.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>
                 {emptyNotes[group]}
               </p>
             ) : (
@@ -271,7 +271,7 @@ export function DnsRecordsTableSkeleton({ showStatus = false }: { showStatus?: b
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
       {GROUPS.filter((group) => GROUP_ROWS[group] > 0).map((group) => (
         <div key={group} style={{ maxWidth: 1000 }}>
-          <p className="ms-microlabel" style={{ margin: "0 0 8px" }}>
+          <p className="po-microlabel" style={{ margin: "0 0 8px" }}>
             {t(`detail.groups.${group}`)}
           </p>
           <RecordsTable showStatus={showStatus} showPriority={GROUP_HAS_PRIORITY[group]}>

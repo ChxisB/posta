@@ -1,4 +1,4 @@
-/** ms-table with the horizontal-scroll container wide data tables need. */
+/** po-table with the horizontal-scroll container wide data tables need. */
 export function Table({
   children,
   className,
@@ -14,10 +14,10 @@ export function Table({
 }) {
   return (
     <div
-      className={gutter ? "ms-table-gutter" : undefined}
+      className={gutter ? "po-table-gutter" : undefined}
       style={{ overflowX: "auto", paddingLeft: gutter, marginLeft: gutter ? -gutter : undefined }}
     >
-      <table className={className ? `ms-table ${className}` : "ms-table"} style={style}>
+      <table className={className ? `po-table ${className}` : "po-table"} style={style}>
         {children}
       </table>
     </div>

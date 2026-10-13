@@ -132,7 +132,7 @@ describe("the Overview's regions table", () => {
       "Cost this month",
       "",
     ]);
-    expect(html).toContain('class="ms-table nowrap baseline"');
+    expect(html).toContain('class="po-table nowrap baseline"');
     const [row] = cells(html);
     if (!row) throw new Error("no row");
     expect(row.map(text)).toEqual([
@@ -151,14 +151,14 @@ describe("the Overview's regions table", () => {
     expect(tipOf(row[2] ?? "")).toBe(
       "75,000 / 100,000\nBroadcasts 70,000 of 70,000\nTransactional 5,000 (usable reserve 28,000)\nMax rate 14/s",
     );
-    expect(row[2]).toContain('class="tip ms-quota-cell"');
+    expect(row[2]).toContain('class="tip po-quota-cell"');
     expect(tipOf(row[7] ?? "")).toBe(
       "The rate SES itself measures\nSES reviews from 0.1% and pauses at 0.5%\nOur regional pause: 0.4% · our 7-day estimate: 0.030%\nOur estimate of SES's rate leaves out mail to providers that never report complaints, such as Gmail",
     );
     // Under SES's review line the rate takes no tone.
     expect(row[7]).not.toContain("color:");
     expect(tipOf(row[8] ?? "")).toBe("300,000 sent × $0.105/1k · incl. tenants");
-    expect(html).toContain('<td class="right ms-cell-menu" style="width:40px">');
+    expect(html).toContain('<td class="right po-cell-menu" style="width:40px">');
   });
 
   it("names trouble in a word or two, with the reason one hover away (pt-BR)", () => {
@@ -207,19 +207,19 @@ describe("the Overview's regions table", () => {
       "Pausa automática: bounce de 5,20% em 24h, acima do limite de 4%.\nO transacional segue saindo.",
     );
     // The dot leads, outside the tooltip's trigger, so the dots form a column.
-    expect(paused[3]).toMatch(/^<span class="ms-dot" style="background:var\(--ms-danger\)/);
+    expect(paused[3]).toMatch(/^<span class="po-dot" style="background:var\(--po-danger\)/);
     expect(paused[4]).toMatch(
-      /^<span class="ms-dot" style="background:var\(--ms-warn\)[^>]*><\/span><span class="tip"/,
+      /^<span class="po-dot" style="background:var\(--po-warn\)[^>]*><\/span><span class="tip"/,
     );
     expect(tipOf(paused[4] ?? "")).toBe(
       "A AWS colocou a conta em análise (probation) nesta região.",
     );
     expect(tipOf(paused[5] ?? "")).toBe("3 transmissões · em espera durante a pausa");
     // Amber from SES's review line, red from our pause line.
-    expect(paused[7]).toContain("color:var(--ms-warn)");
-    expect(probation[7]).toContain("color:var(--ms-danger)");
+    expect(paused[7]).toContain("color:var(--po-warn)");
+    expect(probation[7]).toContain("color:var(--po-danger)");
     // Past the usable reserve, the transactional fill turns warn.
-    expect(paused[2]).toContain("background:var(--ms-warn)");
+    expect(paused[2]).toContain("background:var(--po-warn)");
   });
 
   it("shows sandbox and unreachable regions with dashes, the GetAccount error on the badge", () => {
@@ -278,7 +278,7 @@ describe("the Overview's regions table", () => {
     expect(tipOf(sandbox[8] ?? "")).toBe("12 enviados × $0,10/mil");
     expect(down.map(text).slice(1, 9)).toEqual(["Inacessível", "—", "—", "—", "—", "—", "—", "$0"]);
     expect(tipOf(down[1] ?? "")).toBe("GetAccount falhou: ThrottlingException");
-    expect(shutdown[4]).toContain("background:var(--ms-danger)");
+    expect(shutdown[4]).toContain("background:var(--po-danger)");
     expect(text(shutdown[4] ?? "")).toBe("suspensa");
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-/** A pill toggle switch — green when on, the knob slides. Styles: .ms-switch. */
+/** A pill toggle switch — green when on, the knob slides. Styles: .po-switch. */
 export function Switch({
   checked,
   disabled,
@@ -20,7 +20,7 @@ export function Switch({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="ms-switch"
+      className="po-switch"
     >
       <span />
     </button>

@@ -39,12 +39,12 @@ export function PeriodBar({
   );
   const [to, setTo] = useState(typeof value === "string" ? isoDay(new Date()) : value.to);
   const btn = (active: boolean): React.CSSProperties => ({
-    background: active ? "var(--ms-panel-raised)" : "none",
-    border: `1px solid ${active ? "var(--ms-line-strong)" : "transparent"}`,
+    background: active ? "var(--po-panel-raised)" : "none",
+    border: `1px solid ${active ? "var(--po-line-strong)" : "transparent"}`,
     borderRadius: 8,
     padding: "3px 9px",
     fontSize: 12,
-    color: active ? "var(--ms-bone)" : "var(--ms-muted)",
+    color: active ? "var(--po-bone)" : "var(--po-muted)",
     cursor: "pointer",
     font: "inherit",
   });
@@ -55,17 +55,17 @@ export function PeriodBar({
         <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
           <input
             type="date"
-            className="ms-input"
+            className="po-input"
             aria-label={t("from")}
             value={from}
             max={to}
             onChange={(e) => setFrom(e.target.value)}
             style={{ height: 26, fontSize: 12, padding: "2px 8px", width: "auto" }}
           />
-          <span style={{ fontSize: 12, color: "var(--ms-muted)" }}>{t("to")}</span>
+          <span style={{ fontSize: 12, color: "var(--po-muted)" }}>{t("to")}</span>
           <input
             type="date"
-            className="ms-input"
+            className="po-input"
             aria-label={t("to")}
             value={to}
             min={from}
@@ -143,14 +143,14 @@ export function ChartDialog({
   const [period, setPeriod] = useState<Period>(initialPeriod);
   return (
     <Modal open={open} onClose={onClose} title={title} size="wide">
-      <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--ms-muted)" }}>{t("hoverHint")}</p>
+      <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--po-muted)" }}>{t("hoverHint")}</p>
       <div style={{ marginBottom: 14 }}>
         <PeriodBar value={period} onChange={setPeriod} />
       </div>
       {children(period)}
       <ModalFooter>
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-          {t("close")} <span className="ms-keycap">Esc</span>
+        <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+          {t("close")} <span className="po-keycap">Esc</span>
         </button>
       </ModalFooter>
     </Modal>

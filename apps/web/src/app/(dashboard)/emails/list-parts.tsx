@@ -40,7 +40,7 @@ export function SearchBox({
     <span style={{ flex: "1 1 200px", minWidth: 0 }}>
       <input
         ref={ref}
-        className="ms-input"
+        className="po-input"
         style={{ width: "100%" }}
         placeholder={placeholder}
         value={value}
@@ -130,16 +130,16 @@ export function StateCard({
   tone?: "error";
 }) {
   return (
-    <div className="ms-card ms-state">
+    <div className="po-card po-state">
       {tone === "error" ? (
-        <span className="ms-state-glyph" aria-hidden="true">
+        <span className="po-state-glyph" aria-hidden="true">
           !
         </span>
       ) : null}
-      <p className="ms-state-headline">{headline}</p>
-      {detail ? <p className="ms-state-body">{detail}</p> : null}
-      <div className="ms-state-actions">
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onAction}>
+      <p className="po-state-headline">{headline}</p>
+      {detail ? <p className="po-state-body">{detail}</p> : null}
+      <div className="po-state-actions">
+        <button type="button" className="po-btn po-btn-secondary" onClick={onAction}>
           {actionLabel}
         </button>
       </div>

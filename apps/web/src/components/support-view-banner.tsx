@@ -71,7 +71,7 @@ export function SupportViewBanner({
     setReadOnly(true, readOnlyMessage);
     const measure = () => {
       const height = strip.current?.offsetHeight ?? 0;
-      root.style.setProperty("--ms-support-strip-h", `${height}px`);
+      root.style.setProperty("--po-support-strip-h", `${height}px`);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -80,7 +80,7 @@ export function SupportViewBanner({
       observer.disconnect();
       setReadOnly(false);
       delete root.dataset.supportView;
-      root.style.removeProperty("--ms-support-strip-h");
+      root.style.removeProperty("--po-support-strip-h");
     };
   }, [readOnlyMessage]);
 
@@ -100,23 +100,23 @@ export function SupportViewBanner({
     <div
       ref={strip}
       role="status"
-      className="ms-notice-strip ms-notice-strip-warn ms-support-strip"
+      className="po-notice-strip po-notice-strip-warn po-support-strip"
       style={{ margin: 0, borderRadius: 0, borderWidth: "0 0 1px" }}
     >
-      <span className="ms-notice-strip-text">
+      <span className="po-notice-strip-text">
         {t("banner", { team: teamName })} ·{" "}
         {/* The clock runs on the client: the server's second and the browser's differ. */}
         <span suppressHydrationWarning style={{ whiteSpace: "nowrap" }}>
           {t("endsIn", { left: formatMmSs(leftMs) })}
         </span>
       </span>
-      <span className="ms-notice-strip-actions">
-        <Link href={back} className="ms-btn ms-btn-secondary">
+      <span className="po-notice-strip-actions">
+        <Link href={back} className="po-btn po-btn-secondary">
           {t("back")}
         </Link>
         <button
           type="button"
-          className="ms-btn ms-btn-secondary"
+          className="po-btn po-btn-secondary"
           disabled={end.isPending}
           onClick={() => end.mutate()}
         >

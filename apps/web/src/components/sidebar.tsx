@@ -81,9 +81,9 @@ export function LanguageRow() {
   const locale = useLocale();
   const switchLocale = useSwitchLocale();
   return (
-    <div className="ms-menu-item static">
+    <div className="po-menu-item static">
       {tCommon("accountMenu.language")}
-      <span className="ms-theme-toggle">
+      <span className="po-theme-toggle">
         {LOCALES.map((value) => (
           <button
             key={value}
@@ -115,9 +115,9 @@ export function AppearanceRow() {
     setTheme(next);
   };
   return (
-    <div className="ms-menu-item static">
+    <div className="po-menu-item static">
       {tCommon("accountMenu.appearance")}
-      <span className="ms-theme-toggle">
+      <span className="po-theme-toggle">
         <button
           type="button"
           className={theme === "light" ? "active" : undefined}
@@ -174,7 +174,7 @@ export function Sidebar({
   teamName: string;
   teamLogoUrl?: string | null | undefined;
   userEmail: string;
-  /** Hook for the responsive drawer treatment (see components.css .ms-sidebar). */
+  /** Hook for the responsive drawer treatment (see components.css .po-sidebar). */
   className?: string;
   /** Fired when a nav link is chosen, so the mobile drawer can close. */
   onNavigate?: () => void;
@@ -202,12 +202,12 @@ export function Sidebar({
       style={{
         width: 240,
         flexShrink: 0,
-        background: "var(--ms-panel)",
-        borderRight: "1px solid var(--ms-line)",
+        background: "var(--po-panel)",
+        borderRight: "1px solid var(--po-line)",
         position: "sticky",
         // Set only while a support view's strip is on screen; unset is 0.
-        top: "var(--ms-support-strip-h, 0px)",
-        height: "calc(100vh - var(--ms-support-strip-h, 0px))",
+        top: "var(--po-support-strip-h, 0px)",
+        height: "calc(100vh - var(--po-support-strip-h, 0px))",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
@@ -218,7 +218,7 @@ export function Sidebar({
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
           src="/logo/millionsend-wordmark.svg"
-          className="ms-wordmark"
+          className="po-wordmark"
           alt={tCommon("appName")}
           style={{ height: 15, display: "block" }}
         />
@@ -230,7 +230,7 @@ export function Sidebar({
           items. */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: delegated close-drawer hook; links stay the interactive elements and keyboard activation bubbles the same click */}
       <nav
-        className="ms-nav"
+        className="po-nav"
         style={{ minHeight: 0, overflowY: "auto", padding: 3, margin: "7px -3px -3px" }}
         onClick={
           onNavigate
@@ -250,11 +250,11 @@ export function Sidebar({
         ))}
       </nav>
       <div style={{ flex: 1 }} />
-      <div ref={accountRef} style={{ position: "relative", borderTop: "1px solid var(--ms-line)" }}>
+      <div ref={accountRef} style={{ position: "relative", borderTop: "1px solid var(--po-line)" }}>
         {menuOpen ? (
           <div
             role="menu"
-            className="ms-menu"
+            className="po-menu"
             style={{
               position: "absolute",
               bottom: "calc(100% + 6px)",
@@ -267,7 +267,7 @@ export function Sidebar({
             <Link
               href="/settings"
               role="menuitem"
-              className="ms-menu-item"
+              className="po-menu-item"
               onClick={() => setMenuOpen(false)}
             >
               {t("settings")}
@@ -275,15 +275,15 @@ export function Sidebar({
             <Link
               href="/onboarding"
               role="menuitem"
-              className="ms-menu-item"
+              className="po-menu-item"
               onClick={() => setMenuOpen(false)}
             >
               {tCommon("accountMenu.onboarding")}
             </Link>
             <AppearanceRow />
             <LanguageRow />
-            <hr className="ms-menu-sep" />
-            <button type="button" role="menuitem" className="ms-menu-item" onClick={signOutToLogin}>
+            <hr className="po-menu-sep" />
+            <button type="button" role="menuitem" className="po-menu-item" onClick={signOutToLogin}>
               {tCommon("signOut")}
             </button>
           </div>
@@ -312,8 +312,8 @@ export function Sidebar({
               width: 24,
               height: 24,
               borderRadius: "50%",
-              background: "var(--ms-panel-raised)",
-              border: "1px solid var(--ms-line)",
+              background: "var(--po-panel-raised)",
+              border: "1px solid var(--po-line)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -326,7 +326,7 @@ export function Sidebar({
           <span
             style={{
               fontSize: 12.5,
-              color: "var(--ms-muted)",
+              color: "var(--po-muted)",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -334,7 +334,7 @@ export function Sidebar({
           >
             {userEmail}
           </span>
-          <span style={{ marginLeft: "auto", color: "var(--ms-faint)" }}>
+          <span style={{ marginLeft: "auto", color: "var(--po-faint)" }}>
             <EllipsisGlyph size={13} />
           </span>
         </button>

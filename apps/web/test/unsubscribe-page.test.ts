@@ -371,20 +371,20 @@ describe("UnsubscribePageView layout", () => {
   );
 
   it("sizes the card and the page by their borders, so a narrow screen never scrolls sideways", () => {
-    expect(out).toMatch(/class="ms-card" style="[^"]*box-sizing:border-box/);
+    expect(out).toMatch(/class="po-card" style="[^"]*box-sizing:border-box/);
     expect(out).toMatch(/min-height:100dvh[^"]*box-sizing:border-box/);
   });
 
   it("sets the topic's name in the heading's own type", () => {
     expect(out).toContain("Unsubscribe from <span");
-    expect(out).not.toContain("ms-mono");
+    expect(out).not.toContain("po-mono");
   });
 
   it("draws each topic as a switch over a real checkbox the form posts", () => {
     expect(out).toMatch(
-      /<input type="checkbox" class="ms-switch-input" name="topic" checked="" value="t1"\/><span class="ms-switch" aria-hidden="true"><span><\/span><\/span>Product news/,
+      /<input type="checkbox" class="po-switch-input" name="topic" checked="" value="t1"\/><span class="po-switch" aria-hidden="true"><span><\/span><\/span>Product news/,
     );
-    expect(out).not.toContain("ms-checkbox");
+    expect(out).not.toContain("po-checkbox");
   });
 
   it("credits Posta under the card unless the team turned it off", () => {

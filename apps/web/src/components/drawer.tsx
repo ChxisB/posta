@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useScrollLock } from "@/lib/use-scroll-lock";
 
 /**
- * Right-side remediation drawer: dim overlay, 440px panel on --ms-panel with
+ * Right-side remediation drawer: dim overlay, 440px panel on --po-panel with
  * a strong left rule — construction per the design canvas. Esc and overlay
  * click close it.
  */
@@ -38,8 +38,8 @@ export function Drawer({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: "var(--ms-z-modal)",
-        animation: "ms-fade var(--ms-dur-base) var(--ms-ease)",
+        zIndex: "var(--po-z-modal)",
+        animation: "po-fade var(--po-dur-base) var(--po-ease)",
       }}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: overlay click-to-close; Esc handles keyboard */}
@@ -52,28 +52,28 @@ export function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="ms-sheet"
+        className="po-sheet"
         style={{
           position: "absolute",
           top: 0,
           right: 0,
           bottom: 0,
-          background: "var(--ms-panel)",
-          borderLeft: "1px solid var(--ms-line-strong)",
+          background: "var(--po-panel)",
+          borderLeft: "1px solid var(--po-line-strong)",
           padding: 24,
           boxSizing: "border-box",
           overflowY: "auto",
           overscrollBehavior: "contain",
-          animation: "ms-fade var(--ms-dur-drawer) var(--ms-ease)",
+          animation: "po-fade var(--po-dur-drawer) var(--po-ease)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <h3 className="ms-display" style={{ fontSize: "var(--ms-fs-h2)", margin: 0 }}>
+          <h3 className="po-display" style={{ fontSize: "var(--po-fs-h2)", margin: 0 }}>
             {title}
           </h3>
           <button
             type="button"
-            className="ms-btn ms-btn-ghost ms-modal-close"
+            className="po-btn po-btn-ghost po-modal-close"
             style={{ padding: 0 }}
             aria-label={common("close")}
             onClick={onClose}

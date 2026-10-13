@@ -36,7 +36,7 @@ describe("Select option groups", () => {
   it("draws one heading per run of grouped options, none for ungrouped rows", () => {
     const html = render(options);
     const headings = [
-      ...html.matchAll(/<div class="ms-menu-label" role="presentation">([^<]*)<\/div>/g),
+      ...html.matchAll(/<div class="po-menu-label" role="presentation">([^<]*)<\/div>/g),
     ].map((m) => m[1]);
     expect(headings).toEqual(["API keys", "MCP"]);
     // Order: ungrouped row, heading, its rows, heading, its rows.
@@ -58,16 +58,16 @@ describe("Select option groups", () => {
     const html = render(options);
     expect(html.match(/role="option"/g)).toHaveLength(5);
     expect([...html.matchAll(/id="lb-(\d)"/g)].map((m) => Number(m[1]))).toEqual([0, 1, 2, 3, 4]);
-    expect(html).not.toMatch(/<button[^>]*class="ms-menu-label"/);
+    expect(html).not.toMatch(/<button[^>]*class="po-menu-label"/);
     expect(html).toContain(
-      'id="lb-3" type="button" role="option" aria-selected="false" tabindex="-1" class="ms-menu-item active"',
+      'id="lb-3" type="button" role="option" aria-selected="false" tabindex="-1" class="po-menu-item active"',
     );
   });
 
   it("renders the hint and badge inside the option row", () => {
     const html = render(options);
     expect(html).toContain("po_live_…ab12");
-    expect(html).toContain('class="ms-badge ms-badge-neutral"');
+    expect(html).toContain('class="po-badge po-badge-neutral"');
     expect(html).toContain("revoked");
   });
 

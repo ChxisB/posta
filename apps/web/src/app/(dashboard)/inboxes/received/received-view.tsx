@@ -19,7 +19,7 @@ export function ReceivedView() {
         title={t("received.title")}
         badges={<BetaPill />}
       />
-      <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--ms-muted)" }}>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--po-muted)" }}>
         {t("received.hint")}
       </p>
       <ReceivedEmailsList />

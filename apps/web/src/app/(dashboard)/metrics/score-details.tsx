@@ -25,15 +25,15 @@ const BOUNCE_LINES = [
 ];
 
 const SEVERITY_DOT: Record<string, string> = {
-  critical: "var(--ms-danger)",
-  major: "var(--ms-warn)",
-  minor: "var(--ms-steel)",
+  critical: "var(--po-danger)",
+  major: "var(--po-warn)",
+  minor: "var(--po-steel)",
   info: "transparent",
 };
 
 function Microlabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+    <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
       {children}
     </div>
   );
@@ -41,7 +41,7 @@ function Microlabel({ children }: { children: React.ReactNode }) {
 
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ms-muted)", lineHeight: 1.5 }}>
+    <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--po-muted)", lineHeight: 1.5 }}>
       {children}
     </p>
   );
@@ -71,7 +71,7 @@ function RateTrack({
           right: 0,
           top: 10,
           height: 2,
-          background: "var(--ms-line-strong)",
+          background: "var(--po-line-strong)",
         }}
       />
       <div
@@ -81,7 +81,7 @@ function RateTrack({
           width: `calc(${at(dangerStart)} - ${at(warnStart)})`,
           top: 10,
           height: 2,
-          background: "color-mix(in srgb, var(--ms-warn) 55%, var(--ms-line-strong))",
+          background: "color-mix(in srgb, var(--po-warn) 55%, var(--po-line-strong))",
         }}
       />
       <div
@@ -91,7 +91,7 @@ function RateTrack({
           right: 0,
           top: 10,
           height: 2,
-          background: "color-mix(in srgb, var(--ms-danger) 55%, var(--ms-line-strong))",
+          background: "color-mix(in srgb, var(--po-danger) 55%, var(--po-line-strong))",
         }}
       />
       {lines.map((line, index) => (
@@ -103,18 +103,18 @@ function RateTrack({
             top: 4,
             width: 1,
             height: 14,
-            background: "var(--ms-line-strong)",
+            background: "var(--po-line-strong)",
           }}
         >
           <span
-            className="ms-mono"
+            className="po-mono"
             style={{
               position: "absolute",
               top: 16,
               left: 0,
               transform: index === lines.length - 1 ? "translateX(-100%)" : "translateX(-50%)",
               fontSize: 10.5,
-              color: "var(--ms-faint)",
+              color: "var(--po-faint)",
               whiteSpace: "nowrap",
             }}
           >
@@ -133,12 +133,12 @@ function RateTrack({
           transform: "translateX(-50%)",
           background:
             rate >= dangerStart
-              ? "var(--ms-danger)"
+              ? "var(--po-danger)"
               : rate >= warnStart
-                ? "var(--ms-warn)"
-                : "var(--ms-success)",
-          border: "2px solid var(--ms-panel)",
-          boxShadow: "0 0 0 1px var(--ms-line-strong)",
+                ? "var(--po-warn)"
+                : "var(--po-success)",
+          border: "2px solid var(--po-panel)",
+          boxShadow: "0 0 0 1px var(--po-line-strong)",
         }}
       />
     </div>
@@ -186,8 +186,8 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
       ) : (
         <>
           <p
-            className="ms-mono"
-            style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}
+            className="po-mono"
+            style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}
           >
             {t("window", { days: data.windowDays, sent: fmt.format(data.sent) })}
           </p>
@@ -197,7 +197,7 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
           data.contentScoreTenths !== null &&
           data.outcomeScoreTenths !== null ? (
             <div
-              className="ms-digits"
+              className="po-digits"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr auto auto auto",
@@ -208,14 +208,14 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
             >
               <span>{score("content")}</span>
               <span
-                className="ms-mono"
-                style={{ color: "var(--ms-faint)", fontSize: 12, textAlign: "right" }}
+                className="po-mono"
+                style={{ color: "var(--po-faint)", fontSize: 12, textAlign: "right" }}
               >
                 {points(data.contentScoreTenths)}
               </span>
               <span
-                className="ms-mono"
-                style={{ color: "var(--ms-muted)", fontSize: 12, textAlign: "right" }}
+                className="po-mono"
+                style={{ color: "var(--po-muted)", fontSize: 12, textAlign: "right" }}
               >
                 × {CONTENT_WEIGHT * 100}%
               </span>
@@ -224,14 +224,14 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
               </span>
               <span>{score("outcome")}</span>
               <span
-                className="ms-mono"
-                style={{ color: "var(--ms-faint)", fontSize: 12, textAlign: "right" }}
+                className="po-mono"
+                style={{ color: "var(--po-faint)", fontSize: 12, textAlign: "right" }}
               >
                 {points(data.outcomeScoreTenths)}
               </span>
               <span
-                className="ms-mono"
-                style={{ color: "var(--ms-muted)", fontSize: 12, textAlign: "right" }}
+                className="po-mono"
+                style={{ color: "var(--po-muted)", fontSize: 12, textAlign: "right" }}
               >
                 × {OUTCOME_WEIGHT * 100}%
               </span>
@@ -244,7 +244,7 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "baseline",
-                  borderTop: "1px solid var(--ms-line)",
+                  borderTop: "1px solid var(--po-line)",
                   marginTop: 4,
                   paddingTop: 10,
                 }}
@@ -265,18 +265,18 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
               flexWrap: "wrap",
               marginTop: 10,
               fontSize: 12.5,
-              color: "var(--ms-faint)",
+              color: "var(--po-faint)",
             }}
           >
             {data.governorCapTenths !== null && data.blendTenths !== null ? (
               <span>
-                <span style={{ color: "var(--ms-muted)" }}>{t("governor")}</span>{" "}
+                <span style={{ color: "var(--po-muted)" }}>{t("governor")}</span>{" "}
                 {t("governorLine", { value: points(data.governorCapTenths) })} ·{" "}
                 {data.blendTenths > data.governorCapTenths ? t("applied") : t("notApplied")}
               </span>
             ) : null}
             <span>
-              <span style={{ color: "var(--ms-muted)" }}>{t("guardrail")}</span>{" "}
+              <span style={{ color: "var(--po-muted)" }}>{t("guardrail")}</span>{" "}
               {data.guardrailCapTenths !== null
                 ? t("guardrailCapped", { value: points(data.guardrailCapTenths) })
                 : t("guardrailOk")}
@@ -298,7 +298,7 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                     gap: 12,
                     alignItems: "center",
                     padding: "9px 0",
-                    borderTop: index === 0 ? 0 : "1px solid var(--ms-line)",
+                    borderTop: index === 0 ? 0 : "1px solid var(--po-line)",
                   }}
                 >
                   <span
@@ -308,20 +308,20 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                       height: 8,
                       borderRadius: "50%",
                       boxSizing: "border-box",
-                      background: SEVERITY_DOT[factor.severity] ?? "var(--ms-muted)",
-                      border: factor.severity === "info" ? "1px solid var(--ms-faint)" : 0,
+                      background: SEVERITY_DOT[factor.severity] ?? "var(--po-muted)",
+                      border: factor.severity === "info" ? "1px solid var(--po-faint)" : 0,
                     }}
                   />
                   <span>
-                    <span style={{ color: "var(--ms-bone)" }}>
+                    <span style={{ color: "var(--po-bone)" }}>
                       {insights(`check.${factor.id}.title`)}
                     </span>
                     <span
-                      className="ms-mono"
+                      className="po-mono"
                       style={{
                         display: "block",
                         fontSize: 12,
-                        color: "var(--ms-muted)",
+                        color: "var(--po-muted)",
                         marginTop: 2,
                       }}
                     >
@@ -332,9 +332,9 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                     </span>
                   </span>
                   <span
-                    className="ms-digits"
+                    className="po-digits"
                     style={{
-                      color: factor.penaltyTenths > 0 ? "var(--ms-warn)" : "var(--ms-faint)",
+                      color: factor.penaltyTenths > 0 ? "var(--po-warn)" : "var(--po-faint)",
                       fontWeight: factor.penaltyTenths > 0 ? 800 : 500,
                       minWidth: 44,
                       textAlign: "right",
@@ -350,9 +350,9 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
             style={{
               margin: 0,
               paddingTop: 10,
-              borderTop: "1px solid var(--ms-line)",
+              borderTop: "1px solid var(--po-line)",
               fontSize: 12.5,
-              color: "var(--ms-muted)",
+              color: "var(--po-muted)",
             }}
           >
             {t("passing", { count: Math.max(0, data.checksTotal - data.factors.length) })}
@@ -375,8 +375,8 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                       alignItems: "baseline",
                     }}
                   >
-                    <span style={{ color: "var(--ms-bone)" }}>{row.label}</span>
-                    <span className="ms-digits">{pct2.format(row.rate)}</span>
+                    <span style={{ color: "var(--po-bone)" }}>{row.label}</span>
+                    <span className="po-digits">{pct2.format(row.rate)}</span>
                   </div>
                   <RateTrack
                     rate={row.rate}
@@ -404,26 +404,26 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
                   gap: "10px 14px",
                   alignItems: "center",
                   padding: "12px 14px",
-                  border: "1px solid var(--ms-line-strong)",
+                  border: "1px solid var(--po-line-strong)",
                   borderRadius: 12,
-                  background: "var(--ms-panel-raised)",
+                  background: "var(--po-panel-raised)",
                 }}
               >
                 <span
-                  className="ms-digits"
-                  style={{ fontSize: 20, color: "var(--ms-success)", whiteSpace: "nowrap" }}
+                  className="po-digits"
+                  style={{ fontSize: 20, color: "var(--po-success)", whiteSpace: "nowrap" }}
                 >
                   +{points(best.liftTenths)}
                 </span>
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ color: "var(--ms-bone)" }}>
+                  <span style={{ color: "var(--po-bone)" }}>
                     {insights(`check.${best.id}.advice`)}
                   </span>
                   <span
                     style={{
                       display: "block",
                       fontSize: 12,
-                      color: "var(--ms-muted)",
+                      color: "var(--po-muted)",
                       marginTop: 2,
                     }}
                   >

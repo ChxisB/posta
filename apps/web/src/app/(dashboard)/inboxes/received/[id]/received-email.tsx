@@ -34,16 +34,16 @@ const META_GRID: React.CSSProperties = {
   gridTemplateColumns: "repeat(3, 1fr)",
   gap: "22px 28px",
   padding: "22px 0",
-  borderTop: "1px solid var(--ms-line)",
-  borderBottom: "1px solid var(--ms-line)",
+  borderTop: "1px solid var(--po-line)",
+  borderBottom: "1px solid var(--po-line)",
 };
 
-const note: React.CSSProperties = { fontSize: 12, color: "var(--ms-muted)", lineHeight: 1.5 };
+const note: React.CSSProperties = { fontSize: 12, color: "var(--po-muted)", lineHeight: 1.5 };
 
 /** A meta value that is data: mono, breaking between an address's parts. */
 function Mono({ text }: { text: string }) {
   return (
-    <span className="ms-mono" style={{ fontSize: 13, overflowWrap: "anywhere" }}>
+    <span className="po-mono" style={{ fontSize: 13, overflowWrap: "anywhere" }}>
       <Breakable text={text} />
     </span>
   );
@@ -53,14 +53,14 @@ function Banner({ tone, children }: { tone: "danger" | "warn"; children: React.R
   return (
     <div
       role="status"
-      className="ms-wrap-row"
+      className="po-wrap-row"
       style={{
         display: "flex",
         alignItems: "center",
         gap: 12,
         fontSize: 13.5,
-        border: `1px solid var(--ms-${tone}-border)`,
-        color: `var(--ms-${tone})`,
+        border: `1px solid var(--po-${tone}-border)`,
+        color: `var(--po-${tone})`,
         borderRadius: 12,
         padding: "11px 16px",
         marginBottom: 18,
@@ -82,16 +82,16 @@ function ReceivedEmailSkeleton() {
           <Skeleton width={150} height="1lh" />
         </div>
         <h1
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h1)", margin: 0, display: "flex" }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h1)", margin: 0, display: "flex" }}
         >
           <Skeleton width={260} height="1lh" />
         </h1>
-        <div className="ms-mono" style={{ fontSize: 12, marginTop: 8, display: "flex" }}>
+        <div className="po-mono" style={{ fontSize: 12, marginTop: 8, display: "flex" }}>
           <Skeleton width={180} height="1lh" />
         </div>
       </div>
-      <div className="ms-meta-grid" style={META_GRID}>
+      <div className="po-meta-grid" style={META_GRID}>
         <MetaItem label={t("detail.subject")}>
           <Skeleton width={200} height={14} />
         </MetaItem>
@@ -108,9 +108,9 @@ function ReceivedEmailSkeleton() {
         style={{
           marginTop: 26,
           height: 640,
-          border: "1px solid var(--ms-line)",
+          border: "1px solid var(--po-line)",
           borderRadius: 14,
-          background: "var(--ms-panel)",
+          background: "var(--po-panel)",
         }}
       />
     </>
@@ -291,7 +291,7 @@ export function ReceivedEmailView() {
             {canRelease ? (
               <button
                 type="button"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={releasing}
                 onClick={() => release(false)}
               >
@@ -301,7 +301,7 @@ export function ReceivedEmailView() {
             ) : null}
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               onClick={() => setComposer("reply")}
             >
               {t("detail.reply")}
@@ -309,14 +309,14 @@ export function ReceivedEmailView() {
             {virus ? null : (
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 onClick={() => setComposer("forward")}
               >
                 {t("detail.forward")}
               </button>
             )}
             {email.rawUrl ? (
-              <a className="ms-btn ms-btn-secondary" href={email.rawUrl}>
+              <a className="po-btn po-btn-secondary" href={email.rawUrl}>
                 {t("detail.downloadRaw")}
               </a>
             ) : null}
@@ -351,7 +351,7 @@ export function ReceivedEmailView() {
         <Banner tone="danger">
           {t("downloadsBlocked")}
           {email.virus.signature ? (
-            <span className="ms-mono" style={{ color: "var(--ms-bone)" }}>
+            <span className="po-mono" style={{ color: "var(--po-bone)" }}>
               {email.virus.signature}
             </span>
           ) : null}
@@ -363,7 +363,7 @@ export function ReceivedEmailView() {
           {held ? (
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled={releasing}
               onClick={() => release(true)}
             >
@@ -375,12 +375,12 @@ export function ReceivedEmailView() {
         <Banner tone="warn">{t("message.screening")}</Banner>
       ) : null}
 
-      <div className="ms-meta-grid" style={META_GRID}>
+      <div className="po-meta-grid" style={META_GRID}>
         <MetaItem label={te("detail.from")}>
           <Mono text={email.fromName ? `${email.fromName} <${email.from}>` : email.from || "<>"} />
         </MetaItem>
         <MetaItem label={te("detail.subject")}>
-          {email.subject || <span style={{ color: "var(--ms-muted)" }}>{t("noSubject")}</span>}
+          {email.subject || <span style={{ color: "var(--po-muted)" }}>{t("noSubject")}</span>}
         </MetaItem>
         <MetaItem label={te("detail.id")}>
           <CopyChip value={email.id} />
@@ -395,13 +395,13 @@ export function ReceivedEmailView() {
         </MetaItem>
         <MetaItem label={t("detail.inboxes")}>
           {email.memberships.length === 0 ? (
-            <span style={{ color: "var(--ms-muted)" }}>{t("detail.catchAllOnly")}</span>
+            <span style={{ color: "var(--po-muted)" }}>{t("detail.catchAllOnly")}</span>
           ) : (
             <span style={{ display: "grid", gap: 4 }}>
               {email.memberships.map((m) => (
                 <span key={m.inboxId} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <Link
-                    className="ms-link ms-mono"
+                    className="po-link po-mono"
                     href={`/inboxes/${m.inboxId}?thread=${m.threadId}`}
                   >
                     {m.address}
@@ -454,17 +454,17 @@ export function ReceivedEmailView() {
             <span>
               {t(`spam.${email.spam.verdict}`)}
               {email.spam.score !== null ? (
-                <span className="ms-mono" style={{ color: "var(--ms-muted)", marginLeft: 6 }}>
+                <span className="po-mono" style={{ color: "var(--po-muted)", marginLeft: 6 }}>
                   {email.spam.score}
                 </span>
               ) : null}
             </span>
           ) : (
-            <span style={{ color: "var(--ms-muted)" }}>{t("virus.none")}</span>
+            <span style={{ color: "var(--po-muted)" }}>{t("virus.none")}</span>
           )}
         </MetaItem>
         <MetaItem label={t("detail.virus")}>
-          <span style={{ color: virus ? "var(--ms-danger)" : undefined }}>
+          <span style={{ color: virus ? "var(--po-danger)" : undefined }}>
             {virus
               ? t("virus.fail", { signature: email.virus.signature ?? "" })
               : t(`virus.${email.virus.verdict ?? "none"}`)}
@@ -472,7 +472,7 @@ export function ReceivedEmailView() {
         </MetaItem>
         {email.hiddenTextRemoved ? (
           <MetaItem label={t("detail.hiddenText")}>
-            <span className="ms-badge ms-badge-warn">{t("message.hiddenText")}</span>
+            <span className="po-badge po-badge-warn">{t("message.hiddenText")}</span>
           </MetaItem>
         ) : null}
         {email.extracted?.code ? (
@@ -507,28 +507,28 @@ export function ReceivedEmailView() {
       </div>
 
       <section style={{ marginTop: 26 }}>
-        <div className="ms-microlabel">{te("detail.events")}</div>
-        <div className="ms-events" style={{ marginTop: 12 }}>
+        <div className="po-microlabel">{te("detail.events")}</div>
+        <div className="po-events" style={{ marginTop: 12 }}>
           {timeline.map((step, index) => (
             <div key={step.key} style={{ display: "contents" }}>
               {index > 0 ? (
-                <div className="ms-events-gap">
-                  <span className="ms-events-line" />
+                <div className="po-events-gap">
+                  <span className="po-events-line" />
                 </div>
               ) : null}
-              <div className="ms-events-node">
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ms-bone)" }}>
+              <div className="po-events-node">
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--po-bone)" }}>
                   {step.label}
                 </span>
                 {step.at ? (
-                  <span style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 5 }}>
+                  <span style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 5 }}>
                     {formatDayTime(step.at, locale)}
                   </span>
                 ) : null}
                 {step.detail ? (
                   <span
-                    className="ms-mono"
-                    style={{ fontSize: 11, color: "var(--ms-muted)", marginTop: 3, maxWidth: 220 }}
+                    className="po-mono"
+                    style={{ fontSize: 11, color: "var(--po-muted)", marginTop: 3, maxWidth: 220 }}
                   >
                     {step.detail}
                   </span>
@@ -541,7 +541,7 @@ export function ReceivedEmailView() {
 
       {email.attachments.length > 0 ? (
         <section style={{ marginTop: 26 }}>
-          <div className="ms-microlabel">{t("detail.attachments")}</div>
+          <div className="po-microlabel">{t("detail.attachments")}</div>
           <div style={{ marginTop: 10 }}>
             <Table>
               <thead>
@@ -557,28 +557,28 @@ export function ReceivedEmailView() {
               <tbody>
                 {email.attachments.map((attachment) => (
                   <tr key={attachment.id}>
-                    <td className="ms-mono ms-cell-wrap">
+                    <td className="po-mono po-cell-wrap">
                       <Breakable text={attachment.filename ?? t("detail.unnamed")} />
                       {attachment.inline ? (
                         <span
-                          className="ms-chip"
+                          className="po-chip"
                           style={{ fontSize: 10.5, padding: "1px 7px", marginLeft: 8 }}
                         >
                           {t("detail.inline")}
                         </span>
                       ) : null}
                     </td>
-                    <td className="ms-mono" style={{ color: "var(--ms-muted)" }}>
+                    <td className="po-mono" style={{ color: "var(--po-muted)" }}>
                       {attachment.contentType}
                     </td>
-                    <td className="right ms-mono">{formatBytes(attachment.size)}</td>
+                    <td className="right po-mono">{formatBytes(attachment.size)}</td>
                     <td className="right">
                       {attachment.downloadUrl ? (
-                        <a className="ms-link" href={attachment.downloadUrl}>
+                        <a className="po-link" href={attachment.downloadUrl}>
                           {t("detail.download")}
                         </a>
                       ) : (
-                        <span style={{ color: "var(--ms-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>—</span>
                       )}
                     </td>
                   </tr>
@@ -678,11 +678,11 @@ function ComposeModal({
       >
         {mode === "forward" ? (
           <>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="forward-to">{t("compose.to")}</label>
               <input
                 id="forward-to"
-                className="ms-input mono"
+                className="po-input mono"
                 style={{ width: "100%" }}
                 value={to}
                 disabled={pending}
@@ -691,7 +691,7 @@ function ComposeModal({
                 onChange={(event) => setTo(event.target.value)}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="forward-mode">{t("compose.mode")}</label>
               <Select
                 id="forward-mode"
@@ -707,13 +707,13 @@ function ComposeModal({
             </div>
           </>
         ) : null}
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="compose-text">
             {mode === "forward" ? t("compose.note") : t("compose.message")}
           </label>
           <textarea
             id="compose-text"
-            className="ms-input"
+            className="po-input"
             rows={7}
             style={{ width: "100%", resize: "vertical" }}
             value={text}
@@ -722,15 +722,15 @@ function ComposeModal({
           />
         </div>
         {error ? (
-          <div className="ms-field-error" style={{ margin: 0 }}>
+          <div className="po-field-error" style={{ margin: 0 }}>
             {error.message}
           </div>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {cancelLabel} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {cancelLabel} <span className="po-keycap">Esc</span>
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={!ready || pending}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={!ready || pending}>
             <BtnSpinner on={pending} />
             {mode === "forward" ? t("detail.forward") : t("detail.reply")} <ConfirmKeycap />
           </button>

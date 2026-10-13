@@ -41,10 +41,10 @@ const STATUS_ORDER = { serving: 0, sandbox: 1, unreachable: 2 } as const;
 
 const cardTitle: React.CSSProperties = {
   margin: "0 0 4px",
-  fontSize: "var(--ms-fs-section)",
+  fontSize: "var(--po-fs-section)",
   fontWeight: 600,
 };
-const cardSub: React.CSSProperties = { margin: 0, fontSize: 13, color: "var(--ms-muted)" };
+const cardSub: React.CSSProperties = { margin: 0, fontSize: 13, color: "var(--po-muted)" };
 
 function SkeletonRows() {
   return (
@@ -207,7 +207,7 @@ export function RegionsView() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={refresh.isPending || !list.data}
             onClick={() => refresh.mutate({})}
           >
@@ -217,14 +217,14 @@ export function RegionsView() {
         }
       />
       {list.isError ? (
-        <div className="ms-card ms-state">
-          <span className="ms-state-glyph" aria-hidden="true">
+        <div className="po-card po-state">
+          <span className="po-state-glyph" aria-hidden="true">
             !
           </span>
-          <p className="ms-state-headline">{common("loadError")}</p>
-          <p className="ms-state-body">{list.error.message}</p>
-          <div className="ms-state-actions">
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={refetch}>
+          <p className="po-state-headline">{common("loadError")}</p>
+          <p className="po-state-body">{list.error.message}</p>
+          <div className="po-state-actions">
+            <button type="button" className="po-btn po-btn-secondary" onClick={refetch}>
               {common("retry")}
             </button>
           </div>
@@ -264,7 +264,7 @@ export function RegionsView() {
               prefill={prefillFor(quotaFor)}
             />
           ) : null}
-          <div className="ms-card" style={{ padding: 0, marginBottom: 16 }}>
+          <div className="po-card" style={{ padding: 0, marginBottom: 16 }}>
             <Table className="nowrap">
               {header}
               {list.data ? (
@@ -284,7 +284,7 @@ export function RegionsView() {
                         <td>
                           <RegionBadge status={r.status} />
                         </td>
-                        <td className="ms-mono">
+                        <td className="po-mono">
                           {plan === "NONE" || plan === "ESSENTIALS"
                             ? t(`planCell.${plan}`)
                             : (plan ?? mutedDash)}
@@ -298,7 +298,7 @@ export function RegionsView() {
                                 warn={sandbox}
                                 style={{ flex: 1 }}
                               />
-                              <span className="ms-mono ms-digits" style={{ fontSize: 12 }}>
+                              <span className="po-mono po-digits" style={{ fontSize: 12 }}>
                                 {r.status === "serving"
                                   ? f.pct0(
                                       account.quota.max24h > 0
@@ -312,7 +312,7 @@ export function RegionsView() {
                               </span>
                             </div>
                           ) : (
-                            <span style={{ color: "var(--ms-danger)", fontSize: 12 }}>
+                            <span style={{ color: "var(--po-danger)", fontSize: 12 }}>
                               {tr("error", { message: r.error ?? "" })}
                             </span>
                           )}
@@ -349,7 +349,7 @@ export function RegionsView() {
                         <RegionLabel region={k.region} tip={k.region} />
                       </td>
                       <td>
-                        <span className="ms-badge ms-badge-neutral">{tr("notProvisioned")}</span>
+                        <span className="po-badge po-badge-neutral">{tr("notProvisioned")}</span>
                       </td>
                       <td>{mutedDash}</td>
                       <td>{mutedDash}</td>
@@ -368,14 +368,14 @@ export function RegionsView() {
               )}
             </Table>
           </div>
-          <div className="ms-grid ms-grid-12">
+          <div className="po-grid po-grid-12">
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {list.data ? (
                 <ReserveCard list={list.data} onChanged={refetch} />
               ) : (
-                <Skeleton width="100%" height={300} radius="var(--ms-r-card)" />
+                <Skeleton width="100%" height={300} radius="var(--po-r-card)" />
               )}
-              <div className="ms-card" style={{ padding: 20, overflow: "hidden" }}>
+              <div className="po-card" style={{ padding: 20, overflow: "hidden" }}>
                 <div style={{ marginBottom: 16 }}>
                   <h3 style={cardTitle}>{t("sparks.title")}</h3>
                   <p style={cardSub}>{t("sparks.subtitle")}</p>
@@ -390,7 +390,7 @@ export function RegionsView() {
                               flexWrap: "wrap",
                               justifyContent: "space-between",
                               gap: "0 12px",
-                              fontSize: "var(--ms-fs-label)",
+                              fontSize: "var(--po-fs-label)",
                               padding: "0 20px 4px",
                             }}
                           >
@@ -398,9 +398,9 @@ export function RegionsView() {
                               <RegionLabel region={r.region} tip={r.region} />
                             </span>
                             <span
-                              className="ms-mono ms-digits"
+                              className="po-mono po-digits"
                               style={{
-                                color: "var(--ms-muted)",
+                                color: "var(--po-muted)",
                                 fontSize: 12,
                                 whiteSpace: "nowrap",
                               }}
@@ -418,7 +418,7 @@ export function RegionsView() {
                               height={44}
                               min={0}
                               max={sharedPeak}
-                              color={r.status === "serving" ? "var(--ms-steel)" : "var(--ms-muted)"}
+                              color={r.status === "serving" ? "var(--po-steel)" : "var(--po-muted)"}
                             />
                           </div>
                         </div>
@@ -433,12 +433,12 @@ export function RegionsView() {
                       ))}
                 </div>
               </div>
-              <div className="ms-card" style={{ padding: 20 }}>
+              <div className="po-card" style={{ padding: 20 }}>
                 <div style={{ marginBottom: 16 }}>
                   <h3 style={cardTitle}>{t("perRegion.title")}</h3>
                   <p style={cardSub}>{t("perRegion.subtitle")}</p>
                 </div>
-                <dl className="ms-kv">
+                <dl className="po-kv">
                   {(
                     [
                       "quota",
@@ -466,7 +466,7 @@ export function RegionsView() {
                 envRegions={list.data.envRegions ?? [list.data.defaultRegion]}
               />
             ) : (
-              <Skeleton width="100%" height={520} radius="var(--ms-r-card)" />
+              <Skeleton width="100%" height={520} radius="var(--po-r-card)" />
             )}
           </div>
         </>

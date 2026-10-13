@@ -23,11 +23,11 @@ export type FlagReason =
 // What makes each email wait: a hold or a verdict the operator decides on,
 // or a judge or reader that could not answer.
 export const WHY_DOT: Record<string, string> = {
-  held: "var(--ms-warn)",
-  verdict: "var(--ms-warn)",
-  destination: "var(--ms-warn)",
-  outage: "var(--ms-danger)",
-  media: "var(--ms-danger)",
+  held: "var(--po-warn)",
+  verdict: "var(--po-warn)",
+  destination: "var(--po-warn)",
+  outage: "var(--po-danger)",
+  media: "var(--po-danger)",
 };
 
 const PAID = ["starter", "pro", "scale"];
@@ -43,7 +43,7 @@ export function usePlanLabel(): (plan: string, planQuota: number | null) => stri
 export function PlanBadge({ plan, planQuota }: { plan: string; planQuota: number | null }) {
   const label = usePlanLabel();
   const tone = plan === "system" ? "info" : PAID.includes(plan) ? "success" : "neutral";
-  return <span className={`ms-badge ms-badge-${tone}`}>{label(plan, planQuota)}</span>;
+  return <span className={`po-badge po-badge-${tone}`}>{label(plan, planQuota)}</span>;
 }
 
 export function usePercent(): (rate: number) => string {
@@ -57,13 +57,13 @@ export function usePercent(): (rate: number) => string {
 }
 
 export function scoreColor(tenths: number): string | undefined {
-  return tenths < 50 ? "var(--ms-danger)" : tenths < 70 ? "var(--ms-warn)" : undefined;
+  return tenths < 50 ? "var(--po-danger)" : tenths < 70 ? "var(--po-warn)" : undefined;
 }
 
 const DOT: Record<Guardrail, string> = {
-  ok: "var(--ms-success)",
-  warning: "var(--ms-warn)",
-  paused: "var(--ms-danger)",
+  ok: "var(--po-success)",
+  warning: "var(--po-warn)",
+  paused: "var(--po-danger)",
 };
 
 /** Suspended badge, operator-paused dot, or the guardrail dot — the Teams screen's rules. */
@@ -78,10 +78,10 @@ export function GuardrailCell({
 }) {
   const t = useTranslations("console.teams.guardrail");
   const common = useTranslations("console.common");
-  if (suspendedAt) return <span className="ms-badge ms-badge-danger">{t("suspended")}</span>;
+  if (suspendedAt) return <span className="po-badge po-badge-danger">{t("suspended")}</span>;
   const dot = (color: string, label: string) => (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      <span className="ms-dot" style={{ background: color }} />
+      <span className="po-dot" style={{ background: color }} />
       {label}
     </span>
   );
@@ -94,7 +94,7 @@ export function GuardrailCell({
 export function RegionCell({ region }: { region: string | null }) {
   const domains = useTranslations("domains");
   const common = useTranslations("console.common");
-  if (!region) return <span style={{ color: "var(--ms-muted)" }}>{common("unknownRegion")}</span>;
+  if (!region) return <span style={{ color: "var(--po-muted)" }}>{common("unknownRegion")}</span>;
   return (
     <Tooltip inline text={region}>
       {regionFlag(region)} {domains(`regions.${region as DomainRegion}`)}
@@ -163,11 +163,11 @@ export function FlagStatusBadge({
   suspendedAt: Date | null;
 }) {
   const t = useTranslations("console.safety.status");
-  if (suspendedAt) return <span className="ms-badge ms-badge-danger">{t("suspended")}</span>;
+  if (suspendedAt) return <span className="po-badge po-badge-danger">{t("suspended")}</span>;
   return status === "open" ? (
-    <span className="ms-badge ms-badge-warn">{t("open")}</span>
+    <span className="po-badge po-badge-warn">{t("open")}</span>
   ) : (
-    <span className="ms-badge ms-badge-neutral">{t("cleared")}</span>
+    <span className="po-badge po-badge-neutral">{t("cleared")}</span>
   );
 }
 
@@ -175,13 +175,13 @@ export function FlagStatusBadge({
 export function LoadErrorCard({ onRetry }: { onRetry: () => void }) {
   const common = useTranslations("console.common");
   return (
-    <div className="ms-card ms-state">
-      <span className="ms-state-glyph" aria-hidden="true">
+    <div className="po-card po-state">
+      <span className="po-state-glyph" aria-hidden="true">
         !
       </span>
-      <p className="ms-state-headline">{common("loadError")}</p>
-      <div className="ms-state-actions">
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onRetry}>
+      <p className="po-state-headline">{common("loadError")}</p>
+      <div className="po-state-actions">
+        <button type="button" className="po-btn po-btn-secondary" onClick={onRetry}>
           {common("retry")}
         </button>
       </div>
@@ -208,20 +208,20 @@ export function CardHead({
     <div
       style={
         inset
-          ? { padding: "16px 20px 12px", borderBottom: "1px solid var(--ms-line)" }
+          ? { padding: "16px 20px 12px", borderBottom: "1px solid var(--po-line)" }
           : flush
             ? undefined
             : { marginBottom: 16 }
       }
     >
       <h3
-        className="ms-display"
-        style={{ fontSize: "var(--ms-fs-h2)", color: "var(--ms-bone)", margin: 0 }}
+        className="po-display"
+        style={{ fontSize: "var(--po-fs-h2)", color: "var(--po-bone)", margin: 0 }}
       >
         {title}
       </h3>
       {subtitle ? (
-        <p style={{ margin: "4px 0 0", fontSize: "var(--ms-fs-label)", color: "var(--ms-muted)" }}>
+        <p style={{ margin: "4px 0 0", fontSize: "var(--po-fs-label)", color: "var(--po-muted)" }}>
           {subtitle}
         </p>
       ) : null}
@@ -242,7 +242,7 @@ export function RiskCell({
 }) {
   const t = useTranslations("console.safety");
   const common = useTranslations("console.common");
-  if (plan === "system") return <span style={{ color: "var(--ms-muted)" }}>{t("exempt")}</span>;
+  if (plan === "system") return <span style={{ color: "var(--po-muted)" }}>{t("exempt")}</span>;
   if (risk === null) return <>{common("none")}</>;
   return (
     <span style={{ color: riskColor(risk, thresholds?.flagRisk, thresholds?.alertRisk) }}>
@@ -264,7 +264,7 @@ function keyedSpans(spans: RevealSpan[]): { key: string; span: RevealSpan }[] {
 /** Text the server redacted, a masked or shortened run marked as such. */
 export function RevealText({ spans }: { spans: RevealSpan[] }) {
   return keyedSpans(spans).map(({ key, span }) => (
-    <span key={key} className={span.redacted ? "ms-redact" : undefined}>
+    <span key={key} className={span.redacted ? "po-redact" : undefined}>
       {span.text}
     </span>
   ));

@@ -16,7 +16,7 @@ export type EmptyStateArea =
 /**
  * Centered empty state: floating 3D app-icon tile render for the area,
  * "No X yet." headline, one-line explainer, optional CTA. Layout, depth
- * and motion live in components.css (.ms-empty*).
+ * and motion live in components.css (.po-empty*).
  */
 export function EmptyState({
   area,
@@ -30,13 +30,13 @@ export function EmptyState({
   cta?: ReactNode;
 }) {
   return (
-    <div className="ms-card ms-empty">
-      <div className="ms-empty-scene" aria-hidden="true">
+    <div className="po-card po-empty">
+      <div className="po-empty-scene" aria-hidden="true">
         {/* Both theme variants stay in the DOM (each <20KB); the CSS
-            ms-dark-only/ms-light-only swap makes the toggle instant. */}
+            po-dark-only/po-light-only swap makes the toggle instant. */}
         {/* biome-ignore lint/performance/noImgElement: tiny pre-sized webp tile, nothing for next/image to optimize */}
         <img
-          className="ms-empty-tile ms-dark-only"
+          className="po-empty-tile po-dark-only"
           src={`/empty-states/${area}.webp`}
           alt=""
           width={96}
@@ -44,16 +44,16 @@ export function EmptyState({
         />
         {/* biome-ignore lint/performance/noImgElement: tiny pre-sized webp tile, nothing for next/image to optimize */}
         <img
-          className="ms-empty-tile ms-light-only"
+          className="po-empty-tile po-light-only"
           src={`/empty-states/light/${area}.webp`}
           alt=""
           width={96}
           height={96}
         />
       </div>
-      <p className="ms-empty-headline">{headline}</p>
-      {body ? <p className="ms-empty-body">{body}</p> : null}
-      {cta ? <div className="ms-empty-cta">{cta}</div> : null}
+      <p className="po-empty-headline">{headline}</p>
+      {body ? <p className="po-empty-body">{body}</p> : null}
+      {cta ? <div className="po-empty-cta">{cta}</div> : null}
     </div>
   );
 }

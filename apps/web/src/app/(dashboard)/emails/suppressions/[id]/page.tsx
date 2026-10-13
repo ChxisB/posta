@@ -34,7 +34,7 @@ function SuppressionDetailSkeleton() {
   return (
     <>
       <div
-        className="ms-page-row"
+        className="po-page-row"
         style={{
           display: "flex",
           alignItems: "flex-end",
@@ -43,35 +43,35 @@ function SuppressionDetailSkeleton() {
           marginBottom: 28,
         }}
       >
-        <div className="ms-page-title">
+        <div className="po-page-title">
           <div style={{ display: "flex", fontSize: 13, lineHeight: 1, marginBottom: 10 }}>
             <Skeleton width={220} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
           >
             <Skeleton width={280} height="1lh" />
           </h1>
         </div>
-        <div className="ms-page-actions" style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Skeleton width={110} height={30} radius="var(--ms-r-input)" />
+        <div className="po-page-actions" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <Skeleton width={110} height={30} radius="var(--po-r-input)" />
         </div>
       </div>
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 22,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.origin")}
           </div>
           <div style={{ fontSize: 14, marginTop: 4, display: "flex" }}>
@@ -79,15 +79,15 @@ function SuppressionDetailSkeleton() {
           </div>
         </div>
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.recipient")}
           </div>
-          <div className="ms-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
+          <div className="po-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
             <Skeleton width={180} height="1lh" />
           </div>
         </div>
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.added")}
           </div>
           <div style={{ fontSize: 14, marginTop: 4, display: "flex" }}>
@@ -125,10 +125,10 @@ export default function SuppressionDetailPage() {
   if (query.isError || !query.data) {
     return (
       <>
-        <p style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("suppressions.detail.notFound")}
         </p>
-        <Link href="/emails/suppressions" style={{ fontSize: "var(--ms-fs-ui)" }}>
+        <Link href="/emails/suppressions" style={{ fontSize: "var(--po-fs-ui)" }}>
           ← {t("suppressions.title")}
         </Link>
       </>
@@ -174,7 +174,7 @@ export default function SuppressionDetailPage() {
           canRemove ? (
             <button
               type="button"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={removeMutation.isPending}
               onClick={async () => {
                 const ok = await confirmDialog({
@@ -194,32 +194,32 @@ export default function SuppressionDetailPage() {
       />
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 22,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.origin")}
           </div>
           <div style={{ fontSize: 14, marginTop: 4 }}>{origin}</div>
         </div>
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.recipient")}
           </div>
-          <div className="ms-mono" style={{ fontSize: 13, marginTop: 5, overflowWrap: "anywhere" }}>
+          <div className="po-mono" style={{ fontSize: 13, marginTop: 5, overflowWrap: "anywhere" }}>
             {row.email ? <Breakable text={row.email} /> : "—"}
           </div>
         </div>
         <div>
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("suppressions.detail.added")}
           </div>
           <div style={{ fontSize: 14, marginTop: 4 }} title={formatUtcTimestamp(row.createdAt)}>
@@ -230,7 +230,7 @@ export default function SuppressionDetailPage() {
 
       {diagnostic ? (
         <>
-          <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+          <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
             {t("suppressions.detail.details")}
           </div>
           <CopyBlock value={diagnostic} />
@@ -239,7 +239,7 @@ export default function SuppressionDetailPage() {
 
       {guidanceKey ? (
         <div>
-          <div className="ms-microlabel" style={{ margin: "20px 0 8px" }}>
+          <div className="po-microlabel" style={{ margin: "20px 0 8px" }}>
             {t("bouncedDrawer.whatToDo")}
           </div>
           <GuidanceBlock guidanceKey={guidanceKey} />
@@ -247,7 +247,7 @@ export default function SuppressionDetailPage() {
       ) : null}
 
       {row.reason === "hard_bounce" ? (
-        <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 12 }}>
+        <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 12 }}>
           {t("suppressions.detail.removeNote")}
         </div>
       ) : null}

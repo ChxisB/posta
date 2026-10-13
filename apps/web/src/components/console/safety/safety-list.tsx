@@ -137,20 +137,20 @@ export function SafetyList() {
         subtitle={t("proof", counts)}
         titleAdornment={<Tooltip text={t("info")} />}
         actions={
-          <Link href="/console/safety/settings" className="ms-btn ms-btn-secondary">
+          <Link href="/console/safety/settings" className="po-btn po-btn-secondary">
             {t("settingsButton")}
           </Link>
         }
       />
       <WaitingList onChanged={refetch} />
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
           <input
             type="text"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             placeholder={t("search")}
             aria-label={t("search")}
@@ -206,7 +206,7 @@ export function SafetyList() {
         <LoadErrorCard onRetry={refetch} />
       ) : (
         <>
-          <div className="ms-card" style={{ padding: 0 }}>
+          <div className="po-card" style={{ padding: 0 }}>
             <Table className="nowrap">
               <thead>
                 <tr>
@@ -237,7 +237,7 @@ export function SafetyList() {
                   <SkeletonRows />
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={COLUMNS} style={{ color: "var(--ms-muted)" }}>
+                    <td colSpan={COLUMNS} style={{ color: "var(--po-muted)" }}>
                       {t("empty")}
                     </td>
                   </tr>
@@ -292,12 +292,12 @@ export function SafetyList() {
                             ? common("none")
                             : formatScoreTenths(row.scoreTenths, locale)}
                         </td>
-                        <td className="right ms-mono">
+                        <td className="right po-mono">
                           {standing && row.complaintRate7d !== null
                             ? percent(row.complaintRate7d)
                             : common("none")}
                         </td>
-                        <td className="right ms-mono">
+                        <td className="right po-mono">
                           {standing && row.hardBounceRate7d !== null
                             ? percent(row.hardBounceRate7d)
                             : common("none")}
@@ -318,7 +318,7 @@ export function SafetyList() {
                         <td>
                           <RegionCell region={row.region} />
                         </td>
-                        <td style={{ color: "var(--ms-muted)" }}>
+                        <td style={{ color: "var(--po-muted)" }}>
                           <RelativeTime date={row.openedAt} />
                         </td>
                         <td className="right" style={{ width: 40 }}>

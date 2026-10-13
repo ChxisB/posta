@@ -11,7 +11,7 @@ import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/lib/trpc";
 import { guardMessage } from "@/lib/trpc-error";
 
-const muted = { margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" } as const;
+const muted = { margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" } as const;
 
 export default function AcceptInvitePage() {
   const t = useTranslations("settings");
@@ -37,11 +37,11 @@ export default function AcceptInvitePage() {
   return (
     <AuthShell>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16 }}>
-        <h1 className="ms-display" style={{ fontSize: "var(--ms-fs-h2)", margin: 0 }}>
+        <h1 className="po-display" style={{ fontSize: "var(--po-fs-h2)", margin: 0 }}>
           {t("invitations.accept.title")}
         </h1>
         {invite ? (
-          <p style={{ ...muted, color: "var(--ms-bone)" }}>
+          <p style={{ ...muted, color: "var(--po-bone)" }}>
             {invite.inviterName
               ? t("invitations.accept.invitedBy", {
                   inviter: invite.inviterName,
@@ -52,7 +52,7 @@ export default function AcceptInvitePage() {
           </p>
         ) : null}
         {preview.isError || invite?.state === "expired" || invite?.state === "accepted" ? (
-          <p style={{ ...muted, color: "var(--ms-danger)" }}>
+          <p style={{ ...muted, color: "var(--po-danger)" }}>
             {invite?.state === "expired"
               ? t("invitations.accept.expired")
               : invite?.state === "accepted"
@@ -71,13 +71,13 @@ export default function AcceptInvitePage() {
             ) : null}
             <div style={{ display: "flex", gap: 10 }}>
               <Link
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 href={`/login?next=${encodeURIComponent(next)}`}
               >
                 {t("invitations.accept.signIn")}
               </Link>
               <Link
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 href={`/signup?next=${encodeURIComponent(next)}${
                   invite?.prefillEmail ? `&email=${encodeURIComponent(invite.prefillEmail)}` : ""
                 }`}
@@ -87,7 +87,7 @@ export default function AcceptInvitePage() {
             </div>
           </>
         ) : accept.isError ? (
-          <p style={{ ...muted, color: "var(--ms-danger)" }}>
+          <p style={{ ...muted, color: "var(--po-danger)" }}>
             {accept.error.data?.code === "FORBIDDEN"
               ? t("invitations.accept.emailMismatch")
               : guardMessage(accept.error, t("invitations.accept.invalid"))}
@@ -99,7 +99,7 @@ export default function AcceptInvitePage() {
             </p>
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={accept.isPending}
               onClick={() => accept.mutate({ token })}
             >

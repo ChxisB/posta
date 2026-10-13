@@ -24,15 +24,15 @@ const SOURCE_KEYS: Record<MediaLinkSource, string> = {
   "web page link": "page",
 };
 const LABEL: React.CSSProperties = { marginBottom: 4 };
-const NOTE: React.CSSProperties = { margin: "0 0 14px", fontSize: 13, color: "var(--ms-muted)" };
+const NOTE: React.CSSProperties = { margin: "0 0 14px", fontSize: 13, color: "var(--po-muted)" };
 const PREVIEW: React.CSSProperties = {
   display: "block",
   width: "100%",
   height: 180,
   objectFit: "contain",
-  background: "var(--ms-inset)",
-  border: "1px solid var(--ms-line)",
-  borderRadius: "var(--ms-r-input)",
+  background: "var(--po-inset)",
+  border: "1px solid var(--po-line)",
+  borderRadius: "var(--po-r-input)",
 };
 
 /**
@@ -91,9 +91,9 @@ export function MediaPanel({
 
   return (
     <Modal open onClose={onClose} size="wide" title={t("title", { team: team.name })}>
-      <p style={{ margin: "6px 0 14px", color: "var(--ms-muted)", fontSize: 13.5 }}>{t("lead")}</p>
+      <p style={{ margin: "6px 0 14px", color: "var(--po-muted)", fontSize: 13.5 }}>{t("lead")}</p>
       {query.isError ? (
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-danger)" }}>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-danger)" }}>
           {errorMessage === "expired"
             ? view("expired")
             : errorMessage === "purged"
@@ -101,10 +101,10 @@ export function MediaPanel({
               : view("failed")}
         </p>
       ) : !data ? (
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>…</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>…</p>
       ) : expired ? (
         // The window's promise holds for an open panel too: what it fetched hides with it.
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-warn)" }}>{view("expired")}</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-warn)" }}>{view("expired")}</p>
       ) : (
         <>
           <div
@@ -116,16 +116,16 @@ export function MediaPanel({
               flexWrap: "wrap",
             }}
           >
-            <span className="ms-chip">{view("expires", { time: formatMmSs(left) })}</span>
-            <span className="ms-chip">{t("redrawn")}</span>
-            <span className="ms-chip">{view("recipientsHidden")}</span>
-            <span className="ms-chip">{view("noExport")}</span>
+            <span className="po-chip">{view("expires", { time: formatMmSs(left) })}</span>
+            <span className="po-chip">{t("redrawn")}</span>
+            <span className="po-chip">{view("recipientsHidden")}</span>
+            <span className="po-chip">{view("noExport")}</span>
             {data.redactions > 0 ? (
-              <span className="ms-chip">{view("redactions", { count: data.redactions })}</span>
+              <span className="po-chip">{view("redactions", { count: data.redactions })}</span>
             ) : null}
           </div>
 
-          <div className="ms-microlabel" style={LABEL}>
+          <div className="po-microlabel" style={LABEL}>
             {t("why")}
           </div>
           <div
@@ -140,30 +140,30 @@ export function MediaPanel({
           >
             {data.why ? (
               <>
-                <span className="ms-dot" style={{ background: WHY_DOT[data.why] }} />
+                <span className="po-dot" style={{ background: WHY_DOT[data.why] }} />
                 {waiting(`why.${data.why}`)}
               </>
             ) : (
               common("none")
             )}
             {data.issues.length > 0 ? (
-              <span style={{ color: "var(--ms-muted)" }}>
+              <span style={{ color: "var(--po-muted)" }}>
                 · {data.issues.map((issue) => t(`issues.${issue}`)).join(" · ")}
               </span>
             ) : null}
           </div>
 
-          <div className="ms-microlabel" style={LABEL}>
+          <div className="po-microlabel" style={LABEL}>
             {t("text")}
           </div>
           {data.text.length === 0 ? (
             <p style={NOTE}>{t("noText")}</p>
           ) : (
-            <div className="ms-revealed" style={{ marginBottom: 14 }}>
+            <div className="po-revealed" style={{ marginBottom: 14 }}>
               {data.text.map((entry, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: fixed order, position is identity
                 <div key={i} style={{ marginTop: i === 0 ? 0 : 10 }}>
-                  <div style={{ color: "var(--ms-muted)" }}>
+                  <div style={{ color: "var(--po-muted)" }}>
                     <RevealText spans={entry.source} />
                   </div>
                   <RevealText spans={entry.spans} />
@@ -172,7 +172,7 @@ export function MediaPanel({
             </div>
           )}
 
-          <div className="ms-microlabel" style={LABEL}>
+          <div className="po-microlabel" style={LABEL}>
             {t("links")}
           </div>
           {data.links.length === 0 ? (
@@ -192,10 +192,10 @@ export function MediaPanel({
                     // biome-ignore lint/suspicious/noArrayIndexKey: fixed order, position is identity
                     <tr key={i}>
                       <td>{t(`sources.${SOURCE_KEYS[link.source]}`)}</td>
-                      <td className="ms-mono" style={{ overflowWrap: "anywhere" }}>
+                      <td className="po-mono" style={{ overflowWrap: "anywhere" }}>
                         <RevealText spans={link.link} />
                       </td>
-                      <td className="right" style={{ color: "var(--ms-muted)" }}>
+                      <td className="right" style={{ color: "var(--po-muted)" }}>
                         {link.registeredAt ? (
                           <RelativeTime date={link.registeredAt} />
                         ) : (
@@ -209,7 +209,7 @@ export function MediaPanel({
             </div>
           )}
 
-          <div className="ms-microlabel" style={LABEL}>
+          <div className="po-microlabel" style={LABEL}>
             {t("files")}
           </div>
           {data.files.length === 0 ? (
@@ -230,10 +230,10 @@ export function MediaPanel({
                   {data.files.map((file, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: fixed order, position is identity
                     <tr key={i}>
-                      <td className="ms-mono" style={{ overflowWrap: "anywhere" }}>
+                      <td className="po-mono" style={{ overflowWrap: "anywhere" }}>
                         <RevealText spans={file.name} />
                       </td>
-                      <td className="ms-mono">{file.kind}</td>
+                      <td className="po-mono">{file.kind}</td>
                       <td>
                         {file.flags.length > 0
                           ? file.flags.map((flag) => t(`flags.${flag}`)).join(", ")
@@ -250,7 +250,7 @@ export function MediaPanel({
             </div>
           )}
 
-          <div className="ms-microlabel" style={LABEL}>
+          <div className="po-microlabel" style={LABEL}>
             {t("previews")}
           </div>
           {data.previews.length === 0 ? (
@@ -276,7 +276,7 @@ export function MediaPanel({
                     style={{
                       marginTop: 4,
                       fontSize: 12,
-                      color: "var(--ms-muted)",
+                      color: "var(--po-muted)",
                       overflowWrap: "anywhere",
                     }}
                   >
@@ -288,15 +288,15 @@ export function MediaPanel({
           )}
         </>
       )}
-      <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>{view("note")}</p>
+      <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>{view("note")}</p>
       <ModalFooter>
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-          {view("close")} <span className="ms-keycap">Esc</span>
+        <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+          {view("close")} <span className="po-keycap">Esc</span>
         </button>
         {data && !expired && data.releasable && data.sameMedia > 0 ? (
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={release.isPending}
             onClick={() => releaseSame(data.asOf)}
           >

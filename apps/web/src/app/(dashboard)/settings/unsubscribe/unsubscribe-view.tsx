@@ -44,8 +44,8 @@ function badHex(value: string): boolean {
 function fieldLabelStyle(): React.CSSProperties {
   return {
     display: "block",
-    fontSize: "var(--ms-fs-label)",
-    color: "var(--ms-muted)",
+    fontSize: "var(--po-fs-label)",
+    color: "var(--po-muted)",
     marginBottom: 6,
   };
 }
@@ -53,11 +53,11 @@ function fieldLabelStyle(): React.CSSProperties {
 function UnsubscribeSkeleton() {
   const t = useTranslations("settings.unsubscribe");
   return (
-    <section className="ms-card" style={{ padding: 24, maxWidth: 640 }}>
+    <section className="po-card" style={{ padding: 24, maxWidth: 640 }}>
       {[t("brandName"), t("message"), t("redirectUrl")].map((label) => (
-        <div key={label} className="ms-field" style={{ marginBottom: 18 }}>
+        <div key={label} className="po-field" style={{ marginBottom: 18 }}>
           <span style={fieldLabelStyle()}>{label}</span>
-          <Skeleton width="100%" height={30} radius="var(--ms-r-input)" />
+          <Skeleton width="100%" height={30} radius="var(--po-r-input)" />
         </div>
       ))}
     </section>
@@ -82,7 +82,7 @@ function ColorField({
   const t = useTranslations("settings.unsubscribe");
   const trimmed = value.trim();
   return (
-    <div className="ms-field">
+    <div className="po-field">
       <label htmlFor={id}>{label}</label>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input
@@ -95,16 +95,16 @@ function ColorField({
             width: 30,
             height: 30,
             padding: 2,
-            border: "1px solid var(--ms-line-strong)",
-            borderRadius: "var(--ms-r-input)",
-            background: "var(--ms-inset)",
+            border: "1px solid var(--po-line-strong)",
+            borderRadius: "var(--po-r-input)",
+            background: "var(--po-inset)",
             cursor: disabled ? "default" : "pointer",
           }}
         />
         <input
           id={id}
           type="text"
-          className="ms-input ms-mono"
+          className="po-input po-mono"
           style={{ width: 110 }}
           maxLength={7}
           disabled={disabled}
@@ -113,7 +113,7 @@ function ColorField({
           onChange={(e) => onChange(e.target.value)}
         />
       </div>
-      {badHex(value) ? <span className="ms-field-error">{t("colorInvalid")}</span> : null}
+      {badHex(value) ? <span className="po-field-error">{t("colorInvalid")}</span> : null}
     </div>
   );
 }
@@ -162,9 +162,9 @@ export function UnsubscribeView() {
   const logoAvailable = Boolean(team?.logoUrl);
 
   return (
-    <div className="ms-unsub-layout">
+    <div className="po-unsub-layout">
       <form
-        className="ms-unsub-form"
+        className="po-unsub-form"
         onSubmit={(e) => {
           e.preventDefault();
           if (redirectInvalid || colorInvalid) return;
@@ -182,8 +182,8 @@ export function UnsubscribeView() {
           });
         }}
       >
-        <section className="ms-card" style={{ padding: 24 }}>
-          <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <section className="po-card" style={{ padding: 24 }}>
+          <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
             {t("subtitle")}
           </p>
 
@@ -198,7 +198,7 @@ export function UnsubscribeView() {
           >
             <div style={{ minWidth: 0 }}>
               <span style={fieldLabelStyle()}>{t("showLogo")}</span>
-              <span style={{ display: "block", fontSize: 12, color: "var(--ms-muted)" }}>
+              <span style={{ display: "block", fontSize: 12, color: "var(--po-muted)" }}>
                 {logoAvailable ? t("showLogoNote") : t("showLogoMissing")}
               </span>
             </div>
@@ -221,7 +221,7 @@ export function UnsubscribeView() {
           >
             <div style={{ minWidth: 0 }}>
               <span style={fieldLabelStyle()}>{t("poweredBy")}</span>
-              <span style={{ display: "block", fontSize: 12, color: "var(--ms-muted)" }}>
+              <span style={{ display: "block", fontSize: 12, color: "var(--po-muted)" }}>
                 {data.poweredByLocked ? t("poweredByLocked") : t("poweredByNote")}
               </span>
             </div>
@@ -233,7 +233,7 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <div className="ms-field" style={{ marginBottom: 18 }}>
+          <div className="po-field" style={{ marginBottom: 18 }}>
             <label htmlFor="unsub-logo-radius">{t("logoRadius")}</label>
             <Select
               id="unsub-logo-radius"
@@ -249,7 +249,7 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <p className="ms-microlabel" style={{ margin: "0 0 10px" }}>
+          <p className="po-microlabel" style={{ margin: "0 0 10px" }}>
             {t("colors")}
           </p>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 18 }}>
@@ -279,12 +279,12 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <div className="ms-field" style={{ marginBottom: 18 }}>
+          <div className="po-field" style={{ marginBottom: 18 }}>
             <label htmlFor="unsub-brand">{t("brandName")}</label>
             <input
               id="unsub-brand"
               type="text"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               maxLength={80}
               disabled={disabled}
@@ -294,11 +294,11 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <div className="ms-field" style={{ marginBottom: 18 }}>
+          <div className="po-field" style={{ marginBottom: 18 }}>
             <label htmlFor="unsub-message">{t("message")}</label>
             <textarea
               id="unsub-message"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%", minHeight: 80, resize: "vertical" }}
               maxLength={500}
               disabled={disabled}
@@ -308,11 +308,11 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <div className="ms-field" style={{ marginBottom: 18 }}>
+          <div className="po-field" style={{ marginBottom: 18 }}>
             <label htmlFor="unsub-success">{t("successMessage")}</label>
             <textarea
               id="unsub-success"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%", minHeight: 60, resize: "vertical" }}
               maxLength={500}
               disabled={disabled}
@@ -322,12 +322,12 @@ export function UnsubscribeView() {
             />
           </div>
 
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="unsub-redirect">{t("redirectUrl")}</label>
             <input
               id="unsub-redirect"
               type="url"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               disabled={disabled}
               placeholder="https://example.com/goodbye"
@@ -335,12 +335,12 @@ export function UnsubscribeView() {
               onChange={(e) => set({ redirectUrl: e.target.value })}
             />
             <span
-              style={{ display: "block", marginTop: 6, fontSize: 12, color: "var(--ms-muted)" }}
+              style={{ display: "block", marginTop: 6, fontSize: 12, color: "var(--po-muted)" }}
             >
               {t("redirectUrlNote")}
             </span>
             {redirectInvalid ? (
-              <span className="ms-field-error">{t("redirectUrlInvalid")}</span>
+              <span className="po-field-error">{t("redirectUrlInvalid")}</span>
             ) : null}
           </div>
 
@@ -355,18 +355,18 @@ export function UnsubscribeView() {
               }}
             >
               {save.isSuccess && draft === null ? (
-                <span style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+                <span style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
                   ✓ {t("saved")}
                 </span>
               ) : null}
               {save.isError ? (
-                <span style={{ color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+                <span style={{ color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
                   {t("error")}
                 </span>
               ) : null}
               <button
                 type="submit"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 disabled={disabled || redirectInvalid || colorInvalid}
               >
                 <BtnSpinner on={save.isPending} />
@@ -386,7 +386,7 @@ export function UnsubscribeView() {
             marginBottom: 10,
           }}
         >
-          <p className="ms-microlabel" style={{ margin: 0 }}>
+          <p className="po-microlabel" style={{ margin: 0 }}>
             {t("preview")}
           </p>
           <div style={{ display: "flex", gap: 2 }}>
@@ -394,7 +394,7 @@ export function UnsubscribeView() {
               <button
                 key={state}
                 type="button"
-                className={previewState === state ? "ms-code-tab active" : "ms-code-tab"}
+                className={previewState === state ? "po-code-tab active" : "po-code-tab"}
                 onClick={() => setPreviewState(state)}
               >
                 {state === "confirm" ? t("previewPreferences") : t("previewSuccess")}

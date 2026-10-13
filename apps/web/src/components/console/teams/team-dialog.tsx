@@ -20,8 +20,8 @@ import type { TeamDetail } from "./types";
 function Figure({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <div className="ms-microlabel">{label}</div>
-      <div className="ms-digits" style={{ fontSize: 24 }}>
+      <div className="po-microlabel">{label}</div>
+      <div className="po-digits" style={{ fontSize: 24 }}>
         {value}
       </div>
     </div>
@@ -32,7 +32,7 @@ function LiveViewLine({ expiresAt }: { expiresAt: Date }) {
   const t = useTranslations("console.teams");
   const left = formatMmSs(useCountdown(expiresAt));
   return (
-    <p style={{ margin: "0 0 16px", color: "var(--ms-warn)", fontSize: 13 }}>
+    <p style={{ margin: "0 0 16px", color: "var(--po-warn)", fontSize: 13 }}>
       {t("detail.supportView", { left })}
     </p>
   );
@@ -77,11 +77,11 @@ export function TeamDialog({
 
   return (
     <Modal open onClose={onClose} onConfirm={onAdjustLimits} title={name} size="wide">
-      <p style={{ margin: "6px 0 18px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+      <p style={{ margin: "6px 0 18px", color: "var(--po-muted)", fontSize: 13.5 }}>
         {t("detail.lead")}
       </p>
       {detail?.supportView ? <LiveViewLine expiresAt={detail.supportView.expiresAt} /> : null}
-      <div className="ms-grid ms-grid-2" style={{ gap: 12, marginBottom: 16 }}>
+      <div className="po-grid po-grid-2" style={{ gap: 12, marginBottom: 16 }}>
         {detail ? (
           <>
             <Figure
@@ -114,7 +114,7 @@ export function TeamDialog({
       </div>
       {detail ? (
         <>
-          <dl className="ms-kv">
+          <dl className="po-kv">
             {idRow}
             <KvRow label={t("detail.type")}>
               {planLabel(planName(detail.plan), detail.planQuota)}
@@ -148,7 +148,7 @@ export function TeamDialog({
                     link: (chunks) =>
                       detail.stripeSubscriptionUrl ? (
                         <a
-                          className="ms-link"
+                          className="po-link"
                           href={detail.stripeSubscriptionUrl}
                           target="_blank"
                           rel="noreferrer"
@@ -168,13 +168,13 @@ export function TeamDialog({
             </KvRow>
           </dl>
           {detail.standingAt ? (
-            <p style={{ margin: "12px 0 0", color: "var(--ms-muted)", fontSize: 12 }}>
+            <p style={{ margin: "12px 0 0", color: "var(--po-muted)", fontSize: 12 }}>
               {t("detail.standingAt", { ago: formatRelative(detail.standingAt, locale) })}
             </p>
           ) : null}
         </>
       ) : (
-        <dl className="ms-kv">
+        <dl className="po-kv">
           {idRow}
           {["type", "owner", "members", "region", "guardrail", "created", "stripe", "ceiling"].map(
             (key) => (
@@ -188,8 +188,8 @@ export function TeamDialog({
       <LinkedTeams teamId={id} />
       <MembersSection teamId={id} />
       <ModalFooter>
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-          {common("close")} <span className="ms-keycap">Esc</span>
+        <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+          {common("close")} <span className="po-keycap">Esc</span>
         </button>
         {detail && viewOff ? (
           // Inline, so the trigger is a span: the default trigger is itself a
@@ -199,7 +199,7 @@ export function TeamDialog({
           <Tooltip inline text={t(`menu.${viewOff}`)}>
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled
               style={{ pointerEvents: "none" }}
             >
@@ -209,14 +209,14 @@ export function TeamDialog({
         ) : (
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={!detail}
             onClick={onViewAsOwner}
           >
             {t("menu.view")}
           </button>
         )}
-        <button type="button" className="ms-btn ms-btn-primary" onClick={onAdjustLimits}>
+        <button type="button" className="po-btn po-btn-primary" onClick={onAdjustLimits}>
           {t("menu.limits")}
         </button>
       </ModalFooter>

@@ -28,19 +28,19 @@ export function LoadError({
   const t = useTranslations("common.loadError");
   const gone = trpcErrorCode(error) === "NOT_FOUND";
   return (
-    <div className="ms-card ms-state">
-      <span className={gone ? "ms-state-glyph neutral" : "ms-state-glyph"} aria-hidden="true">
+    <div className="po-card po-state">
+      <span className={gone ? "po-state-glyph neutral" : "po-state-glyph"} aria-hidden="true">
         {gone ? "?" : "!"}
       </span>
-      <p className="ms-state-headline">{gone ? notFoundHeadline : headline}</p>
-      <p className="ms-state-body">{t(gone ? "gone" : "ours")}</p>
-      <div className="ms-state-actions">
+      <p className="po-state-headline">{gone ? notFoundHeadline : headline}</p>
+      <p className="po-state-body">{t(gone ? "gone" : "ours")}</p>
+      <div className="po-state-actions">
         {gone ? null : (
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onRetry}>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onRetry}>
             {t("retry")}
           </button>
         )}
-        <Link className="ms-btn ms-btn-secondary" href={backHref}>
+        <Link className="po-btn po-btn-secondary" href={backHref}>
           {t("back", { to: backLabel })}
         </Link>
       </div>

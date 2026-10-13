@@ -85,12 +85,12 @@ export function FromField({
   const noDomains = domains.isSuccess && (domains.data?.length ?? 0) === 0 && !parts.domain;
 
   return (
-    <div className="ms-field">
+    <div className="po-field">
       <label htmlFor={`${id}-name`}>{t("composer.fromLabel")}</label>
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
         <input
           id={`${id}-name`}
-          className="ms-input"
+          className="po-input"
           style={{ flex: "1 1 84px", minWidth: 72 }}
           placeholder={t("composer.fromNamePlaceholder")}
           autoComplete="off"
@@ -98,7 +98,7 @@ export function FromField({
           onChange={(e) => update({ name: e.target.value })}
         />
         <input
-          className="ms-input mono"
+          className="po-input mono"
           style={{ flex: "1 1 76px", minWidth: 64 }}
           placeholder={t("composer.fromLocalPlaceholder")}
           aria-label={t("composer.fromLocalLabel")}
@@ -117,13 +117,13 @@ export function FromField({
             minWidth: 0,
           }}
         >
-          <span className="ms-mono" style={{ color: "var(--ms-muted)" }} aria-hidden="true">
+          <span className="po-mono" style={{ color: "var(--po-muted)" }} aria-hidden="true">
             @
           </span>
           {noDomains ? (
             <Link
               href="/domains/new"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               style={{ flex: "0 0 auto" }}
             >
               {t("composer.fromAddDomain")}

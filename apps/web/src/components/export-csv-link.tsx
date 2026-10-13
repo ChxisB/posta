@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 export function ExportCsvLink({ href }: { href: string }) {
   const common = useTranslations("common");
   return (
-    <a className="ms-btn ms-btn-secondary" href={href}>
+    <a className="po-btn po-btn-secondary" href={href}>
       {common("exportCsv")}
     </a>
   );

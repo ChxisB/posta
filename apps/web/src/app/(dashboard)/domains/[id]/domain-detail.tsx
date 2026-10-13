@@ -54,14 +54,14 @@ function GradientBanner({
   return (
     <div
       role="status"
-      className="ms-wrap-row"
+      className="po-wrap-row"
       style={{
         display: "flex",
         alignItems: "center",
         gap: 12,
-        backgroundColor: "var(--ms-ground)",
+        backgroundColor: "var(--po-ground)",
         backgroundImage: glow,
-        border: `1px solid var(--ms-${variant}-border)`,
+        border: `1px solid var(--po-${variant}-border)`,
         borderRadius: 12,
         padding: "11px 16px",
         marginTop: 24,
@@ -81,7 +81,7 @@ function TadaIcon() {
       height="17"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="var(--ms-success)"
+      stroke="var(--po-success)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -111,10 +111,10 @@ function ConfigSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="ms-config-section">
-      <h3 style={{ fontSize: 14, fontWeight: 500, color: "var(--ms-bone)", margin: 0 }}>{title}</h3>
+    <section className="po-config-section">
+      <h3 style={{ fontSize: 14, fontWeight: 500, color: "var(--po-bone)", margin: 0 }}>{title}</h3>
       {description ? (
-        <p style={{ fontSize: 12.5, color: "var(--ms-muted)", margin: "6px 0 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12.5, color: "var(--po-muted)", margin: "6px 0 0", lineHeight: 1.5 }}>
           {description}
         </p>
       ) : null}
@@ -144,15 +144,15 @@ function TrackingCnameCard({
 }) {
   const t = useTranslations("domains");
   const verified = record.live === "found";
-  const cell = { color: "var(--ms-muted)" } as const;
+  const cell = { color: "var(--po-muted)" } as const;
   return (
     <div
       style={{
         marginTop: 14,
         maxWidth: 640,
-        border: "1px solid var(--ms-line)",
-        borderRadius: "var(--ms-r-card)",
-        background: "var(--ms-inset)",
+        border: "1px solid var(--po-line)",
+        borderRadius: "var(--po-r-card)",
+        background: "var(--po-inset)",
         padding: 14,
       }}
     >
@@ -165,15 +165,15 @@ function TrackingCnameCard({
           marginBottom: 12,
         }}
       >
-        <p className="ms-microlabel" style={{ margin: 0 }}>
+        <p className="po-microlabel" style={{ margin: 0 }}>
           {t("detail.configuration.cnameToAdd")}
         </p>
-        <span className={`ms-badge ${verified ? "ms-badge-success" : "ms-badge-warn"}`}>
+        <span className={`po-badge ${verified ? "po-badge-success" : "po-badge-warn"}`}>
           {t(`detail.recordStatus.${verified ? "verified" : "pending"}`)}
         </span>
       </div>
       <div
-        className="ms-mono"
+        className="po-mono"
         style={{
           display: "grid",
           gridTemplateColumns: "auto 1fr",
@@ -196,14 +196,14 @@ function TrackingCnameCard({
       <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
         <button
           type="button"
-          className="ms-btn ms-btn-secondary"
+          className="po-btn po-btn-secondary"
           disabled={recheckPending}
           onClick={onRecheck}
         >
           <BtnSpinner on={recheckPending} />
           {t("detail.checkDns")}
         </button>
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onShowRecords}>
+        <button type="button" className="po-btn po-btn-secondary" onClick={onShowRecords}>
           {t("detail.configuration.viewDnsRecord")}
         </button>
       </div>
@@ -278,12 +278,12 @@ function ConfigurationPanel({
     cursor: "pointer",
     fontFamily: "inherit",
     fontSize: 12.5,
-    color: "var(--ms-bone)",
+    color: "var(--po-bone)",
     textDecoration: "underline",
   };
 
   return (
-    <div className="ms-config-panel" style={{ maxWidth: 1000 }}>
+    <div className="po-config-panel" style={{ maxWidth: 1000 }}>
       {/* Branded subdomain: set up in its own onboarding flow; here we only
           surface the configured host and the way back into it. Hidden while
           tracking is fully off — nothing is being served, so there is nothing
@@ -294,10 +294,10 @@ function ConfigurationPanel({
           description={t("detail.tracking.subdomainHint")}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <span className="ms-mono" style={{ fontSize: 14, color: "var(--ms-bone)" }}>
+            <span className="po-mono" style={{ fontSize: 14, color: "var(--po-bone)" }}>
               {trackingSubdomain}.{domainName}
             </span>
-            <span className={`ms-badge ${trackingVerified ? "ms-badge-success" : "ms-badge-warn"}`}>
+            <span className={`po-badge ${trackingVerified ? "po-badge-success" : "po-badge-warn"}`}>
               {t(`detail.recordStatus.${trackingVerified ? "verified" : "pending"}`)}
             </span>
             {subdomainsSupported ? (
@@ -332,7 +332,7 @@ function ConfigurationPanel({
                 display: "flex",
                 gap: 6,
                 alignItems: "center",
-                color: "var(--ms-muted)",
+                color: "var(--po-muted)",
               }}
             >
               <span
@@ -342,7 +342,7 @@ function ConfigurationPanel({
                   height: 7,
                   borderRadius: "50%",
                   flexShrink: 0,
-                  background: "var(--ms-faint)",
+                  background: "var(--po-faint)",
                 }}
               />
               {t("detail.configuration.subdomainNeutral")}
@@ -379,7 +379,7 @@ function ConfigurationPanel({
               href={OPEN_TRACKING_DOCS_URL}
               target="_blank"
               rel="noreferrer"
-              style={{ color: "var(--ms-bone)", textDecoration: "underline" }}
+              style={{ color: "var(--po-bone)", textDecoration: "underline" }}
             >
               {t("detail.tracking.openLearnMore")} ↗
             </a>
@@ -596,21 +596,21 @@ export function DomainDetail({ id }: { id: string }) {
             <Skeleton width={140} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", margin: 0, display: "flex" }}
           >
             <Skeleton width={260} height="1lh" />
           </h1>
         </div>
         <div
-          className="ms-meta-grid"
+          className="po-meta-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 28,
             padding: "20px 0",
-            borderTop: "1px solid var(--ms-line)",
-            borderBottom: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
+            borderBottom: "1px solid var(--po-line)",
             maxWidth: 1000,
           }}
         >
@@ -638,7 +638,7 @@ export function DomainDetail({ id }: { id: string }) {
             fontSize: 13.5,
             padding: "11px 16px",
             marginTop: 24,
-            border: "1px solid var(--ms-line)",
+            border: "1px solid var(--po-line)",
             borderRadius: 12,
             maxWidth: 1000,
           }}
@@ -646,9 +646,9 @@ export function DomainDetail({ id }: { id: string }) {
           <Skeleton width={280} height="1lh" />
         </div>
         {/* Records | Configuration tab bar. */}
-        <div className="ms-tabs bleed" style={{ marginTop: 26 }}>
-          <Skeleton width={64} height={30} radius="var(--ms-r-input)" />
-          <Skeleton width={96} height={30} radius="var(--ms-r-input)" />
+        <div className="po-tabs bleed" style={{ marginTop: 26 }}>
+          <Skeleton width={64} height={30} radius="var(--po-r-input)" />
+          <Skeleton width={96} height={30} radius="var(--po-r-input)" />
         </div>
         <section style={{ marginTop: 24, maxWidth: 1000 }}>
           <DnsRecordsTableSkeleton showStatus />
@@ -751,7 +751,7 @@ export function DomainDetail({ id }: { id: string }) {
           needsDnsCheck ? (
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               title={t("detail.checkDnsTooltip")}
               disabled={verify.isPending || minSpin}
               onClick={runCheck}
@@ -823,8 +823,8 @@ export function DomainDetail({ id }: { id: string }) {
                   top: "calc(100% + 6px)",
                   right: 0,
                   whiteSpace: "nowrap",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-label)",
                 }}
               >
                 ✓ {common("copied")}
@@ -835,14 +835,14 @@ export function DomainDetail({ id }: { id: string }) {
       />
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 28,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
           maxWidth: 1000,
         }}
       >
@@ -859,7 +859,7 @@ export function DomainDetail({ id }: { id: string }) {
         </MetaItem>
         {receivingOn && data.receivingEnabled ? (
           <MetaItem label={t("detail.receiving.summaryLabel")}>
-            <Link href="/inboxes" className="ms-link">
+            <Link href="/inboxes" className="po-link">
               {t(
                 data.receivingCatchAll
                   ? "detail.receiving.summaryCatchAll"
@@ -874,10 +874,10 @@ export function DomainDetail({ id }: { id: string }) {
       {checking ? (
         <GradientBanner variant="warn">
           <Spinner size={16} />
-          <span style={{ fontSize: 13.5, color: "var(--ms-warn)" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-warn)" }}>
             {t("detail.bannerLooking")}
           </span>
-          <span style={{ fontSize: 13.5, color: "var(--ms-bone)", flex: "1 1 320px" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-bone)", flex: "1 1 320px" }}>
             {provider
               ? t("detail.bannerLookingBody", { provider: provider.name })
               : t("detail.bannerLookingBodyGeneric")}
@@ -886,10 +886,10 @@ export function DomainDetail({ id }: { id: string }) {
       ) : status === "verified" ? (
         <GradientBanner variant="success">
           <TadaIcon />
-          <span style={{ fontSize: 13.5, color: "var(--ms-success)" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-success)" }}>
             {t("detail.bannerVerified")}
           </span>
-          <span style={{ fontSize: 13.5, color: "var(--ms-bone)", flex: "1 1 320px" }}>
+          <span style={{ fontSize: 13.5, color: "var(--po-bone)", flex: "1 1 320px" }}>
             {t("detail.bannerVerifiedBody")}
           </span>
         </GradientBanner>
@@ -898,20 +898,20 @@ export function DomainDetail({ id }: { id: string }) {
       {status === "verified" && data.warmup ? (
         <div
           role="status"
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{
             display: "flex",
             alignItems: "baseline",
             gap: 12,
             fontSize: 13.5,
-            border: "1px solid var(--ms-line)",
+            border: "1px solid var(--po-line)",
             borderRadius: 12,
             padding: "11px 16px",
             marginTop: 12,
             maxWidth: 1000,
           }}
         >
-          <span style={{ color: "var(--ms-bone)" }}>
+          <span style={{ color: "var(--po-bone)" }}>
             <DotParts
               text={
                 data.warmup.fullAt
@@ -925,7 +925,7 @@ export function DomainDetail({ id }: { id: string }) {
               }
             />
           </span>
-          <span style={{ color: "var(--ms-muted)" }}>
+          <span style={{ color: "var(--po-muted)" }}>
             {t(data.warmup.shared ? "detail.warmupBodyShared" : "detail.warmupBody")}
           </span>
         </div>
@@ -933,7 +933,7 @@ export function DomainDetail({ id }: { id: string }) {
 
       {/* Tracking and TLS settings are stored regardless of status and apply
           once the domain sends, so they can be set while DNS propagates. */}
-      <div className="ms-tabs bleed" style={{ marginTop: 26 }}>
+      <div className="po-tabs bleed" style={{ marginTop: 26 }}>
         <button
           type="button"
           className={tab === "records" ? "active" : ""}
@@ -980,7 +980,7 @@ export function DomainDetail({ id }: { id: string }) {
       ) : (
         <section style={{ marginTop: 24, maxWidth: 1000 }}>
           {status !== "verified" ? (
-            <h2 className="ms-display" style={{ fontSize: 22, margin: 0, color: "var(--ms-bone)" }}>
+            <h2 className="po-display" style={{ fontSize: 22, margin: 0, color: "var(--po-bone)" }}>
               {provider
                 ? t("detail.recordsHeading", { provider: provider.name })
                 : t("detail.recordsHeadingGeneric")}
@@ -989,10 +989,10 @@ export function DomainDetail({ id }: { id: string }) {
 
           {records.isError ? (
             <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 20 }}>
-              <p style={{ margin: 0, fontSize: "var(--ms-fs-ui)" }}>{t("detail.recordsError")}</p>
+              <p style={{ margin: 0, fontSize: "var(--po-fs-ui)" }}>{t("detail.recordsError")}</p>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 onClick={() => records.refetch()}
               >
                 {t("detail.retry")}
@@ -1049,10 +1049,10 @@ export function DomainDetail({ id }: { id: string }) {
                           }}
                         >
                           <div style={{ minWidth: 0 }}>
-                            <span style={{ display: "block", fontSize: "var(--ms-fs-label)" }}>
+                            <span style={{ display: "block", fontSize: "var(--po-fs-label)" }}>
                               {t("detail.receiving.catchAll")}
                             </span>
-                            <span style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+                            <span style={{ fontSize: 12, color: "var(--po-muted)" }}>
                               {data.catchAllAllowed || data.receivingCatchAll
                                 ? t("detail.receiving.catchAllHint")
                                 : t("detail.receiving.catchAllPaid")}
@@ -1102,7 +1102,7 @@ export function DomainDetail({ id }: { id: string }) {
           {status !== "verified" && provider?.url ? (
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
               <a
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 style={{ textDecoration: "none" }}
                 href={provider.url}
                 target="_blank"
@@ -1124,7 +1124,7 @@ export function DomainDetail({ id }: { id: string }) {
         <p
           style={{
             margin: "10px 0 14px",
-            color: "var(--ms-muted)",
+            color: "var(--po-muted)",
             fontSize: 13.5,
             lineHeight: 1.6,
           }}
@@ -1132,12 +1132,12 @@ export function DomainDetail({ id }: { id: string }) {
           {t("detail.deleteBody")}
         </p>
         <CopyChip value={data.name} />
-        <div className="ms-field" style={{ marginTop: 14 }}>
+        <div className="po-field" style={{ marginTop: 14 }}>
           <label htmlFor="delete-confirm">{t("detail.deleteConfirmLabel")}</label>
           <input
             id="delete-confirm"
             type="text"
-            className="ms-input mono"
+            className="po-input mono"
             style={{ width: "100%" }}
             placeholder={data.name}
             autoComplete="off"
@@ -1149,18 +1149,18 @@ export function DomainDetail({ id }: { id: string }) {
         </div>
         {deleteDomain.isError ? (
           <p
-            style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}
+            style={{ margin: "8px 0 0", color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}
           >
             {guardMessage(deleteDomain.error, t("detail.deleteError"))}
           </p>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={!confirmMatches || deleteDomain.isPending}
             onClick={confirmDelete}
           >

@@ -26,7 +26,7 @@ type RegionDialog = "quota" | "template" | "pause" | "resume" | "stop" | null;
 export function RegionBadge({ status }: { status: ServedRegion["status"] }) {
   const t = useTranslations("console.region");
   const tone = status === "serving" ? "success" : status === "sandbox" ? "warn" : "danger";
-  return <span className={`ms-badge ms-badge-${tone}`}>{t(status)}</span>;
+  return <span className={`po-badge po-badge-${tone}`}>{t(status)}</span>;
 }
 
 /**
@@ -124,7 +124,7 @@ export function QuotaBar({
   style?: React.CSSProperties;
 }) {
   const pctOf = (value: number) => (max > 0 ? (value / max) * 100 : 0);
-  const fills = segments ?? [{ value: used, color: warn ? "var(--ms-warn)" : "var(--ms-steel)" }];
+  const fills = segments ?? [{ value: used, color: warn ? "var(--po-warn)" : "var(--po-steel)" }];
   return (
     <div
       aria-hidden="true"
@@ -133,8 +133,8 @@ export function QuotaBar({
         display: "flex",
         height: 6,
         borderRadius: 999,
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line)",
         overflow: "hidden",
         ...style,
       }}
@@ -165,7 +165,7 @@ export function QuotaBar({
             top: 0,
             bottom: 0,
             width: 1,
-            background: "var(--ms-bone)",
+            background: "var(--po-bone)",
             opacity: 0.8,
           }}
         />

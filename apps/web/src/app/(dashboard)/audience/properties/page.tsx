@@ -79,7 +79,7 @@ function PropertiesSkeleton() {
 
 function MonoKey({ text }: { text: string }) {
   return (
-    <span className="ms-mono" style={{ fontSize: 13, color: "var(--ms-bone)" }}>
+    <span className="po-mono" style={{ fontSize: 13, color: "var(--po-bone)" }}>
       {text}
     </span>
   );
@@ -189,13 +189,13 @@ export default function PropertiesPage() {
   );
 
   const renderCoverage = (cov: Coverage | undefined) => {
-    if (!cov) return <span style={{ color: "var(--ms-faint)", fontSize: 13 }}>—</span>;
+    if (!cov) return <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>;
     return (
       <>
-        <span className="ms-mono" style={{ fontSize: 13 }}>
+        <span className="po-mono" style={{ fontSize: 13 }}>
           {nf.format(cov.contactCount)} / {nf.format(cov.totalContacts)}
         </span>{" "}
-        <span style={{ color: "var(--ms-faint)", fontSize: 12.5 }}>
+        <span style={{ color: "var(--po-faint)", fontSize: 12.5 }}>
           {pf.format(cov.totalContacts > 0 ? cov.contactCount / cov.totalContacts : 0)}
         </span>
       </>
@@ -230,7 +230,7 @@ export default function PropertiesPage() {
       <PageHeader
         title={t("title")}
         actions={
-          <button type="button" className="ms-btn ms-btn-primary" onClick={() => openAdd()}>
+          <button type="button" className="po-btn po-btn-primary" onClick={() => openAdd()}>
             <PlusGlyph size={14} />
             {t("add")}
           </button>
@@ -240,7 +240,7 @@ export default function PropertiesPage() {
       <AudienceTabs />
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
@@ -261,7 +261,7 @@ export default function PropertiesPage() {
       ) : defined.isError ? (
         <div
           style={{
-            border: "1px solid var(--ms-line)",
+            border: "1px solid var(--po-line)",
             borderRadius: 16,
             padding: 22,
             textAlign: "center",
@@ -270,7 +270,7 @@ export default function PropertiesPage() {
           <div style={{ fontSize: 14.5, fontWeight: 600 }}>{t("loadError")}</div>
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             style={{ marginTop: 12 }}
             onClick={() => defined.refetch()}
           >
@@ -283,7 +283,7 @@ export default function PropertiesPage() {
           headline={t("empty")}
           body={t("emptyHint")}
           cta={
-            <button type="button" className="ms-btn ms-btn-primary" onClick={() => openAdd()}>
+            <button type="button" className="po-btn po-btn-primary" onClick={() => openAdd()}>
               <PlusGlyph size={14} />
               {t("add")}
             </button>
@@ -305,25 +305,25 @@ export default function PropertiesPage() {
                   <td>
                     <MonoKey text={row.key} />
                     {copiedId === row.id ? (
-                      <span style={{ marginLeft: 8, color: "var(--ms-muted)", fontSize: 12.5 }}>
+                      <span style={{ marginLeft: 8, color: "var(--po-muted)", fontSize: 12.5 }}>
                         ✓ {common("copied")}
                       </span>
                     ) : null}
                   </td>
-                  <td style={{ color: "var(--ms-muted)" }}>{typeLabel(row.type)}</td>
+                  <td style={{ color: "var(--po-muted)" }}>{typeLabel(row.type)}</td>
                   <td>
                     {row.fallbackValue ? (
-                      <span style={{ color: "var(--ms-muted)", fontSize: 13 }}>
+                      <span style={{ color: "var(--po-muted)", fontSize: 13 }}>
                         {row.fallbackValue}
                       </span>
                     ) : (
-                      <span style={{ color: "var(--ms-faint)", fontSize: 13 }}>—</span>
+                      <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
                     )}
                   </td>
-                  <td className="right" style={{ color: "var(--ms-muted)" }}>
+                  <td className="right" style={{ color: "var(--po-muted)" }}>
                     {renderCoverage(coverageByKey.get(row.key.toLowerCase()))}
                   </td>
-                  <td className="right" style={{ color: "var(--ms-muted)" }}>
+                  <td className="right" style={{ color: "var(--po-muted)" }}>
                     <RelativeTime date={row.createdAt} />
                   </td>
                   <td className="right" style={{ width: 40 }}>
@@ -346,26 +346,26 @@ export default function PropertiesPage() {
                 <tr key={`derived-${row.key}`}>
                   <td>
                     <MonoKey text={row.key} />{" "}
-                    <span className="ms-badge ms-badge-neutral" style={{ marginLeft: 6 }}>
+                    <span className="po-badge po-badge-neutral" style={{ marginLeft: 6 }}>
                       {t("inUse")}
                     </span>
                   </td>
                   <td>
-                    <span style={{ color: "var(--ms-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
                   </td>
                   <td>
-                    <span style={{ color: "var(--ms-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
                   </td>
-                  <td className="right" style={{ color: "var(--ms-muted)" }}>
+                  <td className="right" style={{ color: "var(--po-muted)" }}>
                     {renderCoverage(coverageByKey.get(row.key.toLowerCase()))}
                   </td>
                   <td className="right">
-                    <span style={{ color: "var(--ms-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
                   </td>
                   <td className="right" style={{ width: 40 }}>
                     <button
                       type="button"
-                      className="ms-btn ms-btn-secondary"
+                      className="po-btn po-btn-secondary"
                       onClick={() => openAdd(row.key)}
                     >
                       {t("define")}
@@ -400,11 +400,11 @@ export default function PropertiesPage() {
             submitAdd();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="prop-key">{t("keyLabel")}</label>
             <input
               id="prop-key"
-              className={`ms-input${defineMutation.isError ? " error" : ""}`}
+              className={`po-input${defineMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("keyPlaceholder")}
               disabled={defineMutation.isPending}
@@ -412,7 +412,7 @@ export default function PropertiesPage() {
               onChange={(event) => setKey(event.target.value)}
             />
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="prop-type">{t("typeLabel")}</label>
             <Select
               id="prop-type"
@@ -429,18 +429,18 @@ export default function PropertiesPage() {
             <p
               style={{
                 margin: "6px 0 0",
-                color: "var(--ms-faint)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-faint)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {t("typeImmutable")}
             </p>
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="prop-fallback">{t("fallbackLabel")}</label>
             <input
               id="prop-fallback"
-              className={`ms-input${fallbackInvalid ? " error" : ""}`}
+              className={`po-input${fallbackInvalid ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={
                 type === "number" ? t("fallbackNumberPlaceholder") : t("fallbackPlaceholder")
@@ -454,8 +454,8 @@ export default function PropertiesPage() {
             <p
               style={{
                 margin: "10px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {t("fallbackInvalidNumber")}
@@ -465,20 +465,20 @@ export default function PropertiesPage() {
             <p
               style={{
                 margin: "10px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {defineMutation.error.data?.code === "CONFLICT" ? t("addExists") : t("addError")}
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeAdd}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeAdd}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={defineMutation.isPending || key.trim().length === 0 || fallbackInvalid}
             >
               <BtnSpinner on={defineMutation.isPending} />
@@ -500,16 +500,16 @@ export default function PropertiesPage() {
             submitDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("deleteBody", { key: deleteTarget?.key ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={removeMutation.isPending}
             >
               <BtnSpinner on={removeMutation.isPending} />

@@ -3,11 +3,11 @@ import { NavGlyph } from "./icons/nav-icons";
 
 /** Tile tint per badge tone, so a row's tile and its status pill read as one. */
 export const TONE_COLOR = {
-  success: "var(--ms-success)",
-  info: "var(--ms-info)",
-  warn: "var(--ms-warn)",
-  danger: "var(--ms-danger)",
-  neutral: "var(--ms-muted)",
+  success: "var(--po-success)",
+  info: "var(--po-info)",
+  warn: "var(--po-warn)",
+  danger: "var(--po-danger)",
+  neutral: "var(--po-muted)",
 } as const;
 
 /**
@@ -35,8 +35,8 @@ export function StatusTile({
         alignItems: "center",
         justifyContent: "center",
         borderRadius: Math.max(7, Math.round(size * 0.28)),
-        border: `1px solid color-mix(in srgb, ${color} 45%, var(--ms-line))`,
-        background: `linear-gradient(180deg, color-mix(in srgb, ${color} 16%, var(--ms-panel)), color-mix(in srgb, ${color} 6%, var(--ms-panel)))`,
+        border: `1px solid color-mix(in srgb, ${color} 45%, var(--po-line))`,
+        background: `linear-gradient(180deg, color-mix(in srgb, ${color} 16%, var(--po-panel)), color-mix(in srgb, ${color} 6%, var(--po-panel)))`,
         color,
       }}
     >

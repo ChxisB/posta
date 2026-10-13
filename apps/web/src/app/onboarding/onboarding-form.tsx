@@ -51,17 +51,17 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
   return (
     <AuthShell>
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
-        <h1 className="ms-display" style={{ fontSize: "var(--ms-fs-h2)", margin: 0 }}>
+        <h1 className="po-display" style={{ fontSize: "var(--po-fs-h2)", margin: 0 }}>
           {t("title")}
         </h1>
         {logoUploadsEnabled ? (
-          <div className="ms-field">
-            {/* span, not label: the picker is a button, not a labelable input. Metrics mirror .ms-field label. */}
+          <div className="po-field">
+            {/* span, not label: the picker is a button, not a labelable input. Metrics mirror .po-field label. */}
             <span
               style={{
                 display: "block",
-                fontSize: "var(--ms-fs-label)",
-                color: "var(--ms-muted)",
+                fontSize: "var(--po-fs-label)",
+                color: "var(--po-muted)",
                 marginBottom: 6,
               }}
             >
@@ -90,13 +90,13 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
                 borderRadius: 17,
                 padding: 0,
                 overflow: "hidden",
-                background: "var(--ms-panel-raised)",
-                border: `1px ${logoPreview ? "solid" : "dashed"} var(--ms-line)`,
+                background: "var(--po-panel-raised)",
+                border: `1px ${logoPreview ? "solid" : "dashed"} var(--po-line)`,
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--ms-muted)",
+                color: "var(--po-muted)",
               }}
             >
               {logoPreview ? (
@@ -112,12 +112,12 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
             </button>
           </div>
         ) : null}
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="team-name">{t("teamName")}</label>
           <input
             id="team-name"
             type="text"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             required
             maxLength={CUSTOMER_TEXT_MAX}
@@ -127,7 +127,7 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
           />
         </div>
         {createTeam.isError ? (
-          <p style={{ margin: 0, color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+          <p style={{ margin: 0, color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
             {createTeam.error.data?.code === "BAD_REQUEST"
               ? common("nameRule", { max: CUSTOMER_TEXT_MAX })
               : t("error")}
@@ -135,7 +135,7 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
         ) : null}
         <button
           type="submit"
-          className="ms-btn ms-btn-primary"
+          className="po-btn po-btn-primary"
           style={{ justifyContent: "center" }}
           disabled={busy}
         >

@@ -31,8 +31,8 @@ export default function EditTemplatePage() {
   if (template.hiddenBySupportView) {
     return (
       <p
-        className="ms-card"
-        style={{ padding: 24, margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}
+        className="po-card"
+        style={{ padding: 24, margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}
       >
         {t("editor.hiddenBySupportView")}
       </p>

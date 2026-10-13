@@ -21,9 +21,9 @@ const STALE_MS = 3 * 60_000;
 type Tone = "success" | "warn" | "danger" | "off";
 
 const DOT: Record<Tone, React.CSSProperties> = {
-  success: { background: "var(--ms-success)" },
-  warn: { background: "var(--ms-warn)" },
-  danger: { background: "var(--ms-danger)" },
+  success: { background: "var(--po-success)" },
+  warn: { background: "var(--po-warn)" },
+  danger: { background: "var(--po-danger)" },
   off: {},
 };
 
@@ -75,15 +75,15 @@ export function HealthPill({ summary }: { summary: Summary }) {
     <Tooltip inline text={t("pillTip")}>
       <button
         type="button"
-        className={`ms-badge ms-badge-${tone}`}
+        className={`po-badge po-badge-${tone}`}
         style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
         onClick={() =>
           document.getElementById("health")?.scrollIntoView({ behavior: "smooth", block: "start" })
         }
       >
         <span
-          className="ms-dot"
-          style={{ background: tone === "neutral" ? "var(--ms-faint)" : `var(--ms-${tone})` }}
+          className="po-dot"
+          style={{ background: tone === "neutral" ? "var(--po-faint)" : `var(--po-${tone})` }}
         />
         {label}
       </button>
@@ -260,11 +260,11 @@ export function HealthCard({ summary }: { summary: Summary }) {
   });
 
   return (
-    <div id="health" className="ms-card" style={{ padding: 20 }}>
-      <h3 className="ms-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
+    <div id="health" className="po-card" style={{ padding: 20 }}>
+      <h3 className="po-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
         {t("health.title")}
       </h3>
-      <p style={{ margin: "4px 0 12px", fontSize: 13, color: "var(--ms-muted)" }}>
+      <p style={{ margin: "4px 0 12px", fontSize: 13, color: "var(--po-muted)" }}>
         <DotParts text={t("health.subtitle")} />
       </p>
       <div>
@@ -272,17 +272,17 @@ export function HealthCard({ summary }: { summary: Summary }) {
           <button
             key={row.probe}
             type="button"
-            className="ms-health-row"
+            className="po-health-row"
             onClick={() => setOpen(row)}
           >
-            <span className={row.tone === "off" ? "ms-dot ring" : "ms-dot"} style={DOT[row.tone]} />
+            <span className={row.tone === "off" ? "po-dot ring" : "po-dot"} style={DOT[row.tone]} />
             <span>{t(`health.rows.${row.probe}`)}</span>
             <span
-              className="ms-mono"
+              className="po-mono"
               style={{
                 marginLeft: "auto",
                 fontSize: 12,
-                color: row.muted ? "var(--ms-faint)" : "var(--ms-muted)",
+                color: row.muted ? "var(--po-faint)" : "var(--po-muted)",
                 textAlign: "right",
               }}
             >

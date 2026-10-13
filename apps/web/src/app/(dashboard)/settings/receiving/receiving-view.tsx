@@ -25,23 +25,23 @@ export function ReceivingView() {
     <div style={{ maxWidth: 640 }}>
       <SectionCard title={t("settingsReceiving.title")}>
         {data ? (
-          <dl className="ms-kv">
+          <dl className="po-kv">
             <KvRow label={t("settingsReceiving.mxHost")}>
-              <span className="ms-mono">{data.mxHost ?? none}</span>
+              <span className="po-mono">{data.mxHost ?? none}</span>
             </KvRow>
             <KvRow label={t("settingsReceiving.lastMessage")}>
               {data.lastMessageAt ? <RelativeTime date={data.lastMessageAt} /> : "—"}
             </KvRow>
             <KvRow label={t("settingsReceiving.receivedToday")}>
-              <span className="ms-digits">
+              <span className="po-digits">
                 {new Intl.NumberFormat(locale).format(data.receivedToday)}
               </span>
             </KvRow>
             <KvRow label={t("settingsReceiving.virus")}>
-              <span className="ms-mono">{data.clamavHost ?? none}</span>
+              <span className="po-mono">{data.clamavHost ?? none}</span>
             </KvRow>
             <KvRow label={t("settingsReceiving.sharedDomain")}>
-              <span className="ms-mono">{data.sharedInboxDomain ?? none}</span>
+              <span className="po-mono">{data.sharedInboxDomain ?? none}</span>
             </KvRow>
             <KvRow label={t("settingsReceiving.maxSize")}>{formatBytes(data.maxSizeBytes)}</KvRow>
           </dl>

@@ -32,7 +32,7 @@ export function MonitoringCard() {
   if (query.isError) return <LoadErrorCard onRetry={() => query.refetch()} />;
   if (!data) {
     return (
-      <div className="ms-card" style={{ padding: 20, marginTop: 16 }}>
+      <div className="po-card" style={{ padding: 20, marginTop: 16 }}>
         <div style={{ display: "flex" }}>
           <Skeleton width={140} height={22} />
         </div>
@@ -45,10 +45,10 @@ export function MonitoringCard() {
 
   const head = (
     <>
-      <h3 className="ms-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
+      <h3 className="po-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
         {t("title")}
       </h3>
-      <p style={{ margin: "4px 0 12px", fontSize: 13, color: "var(--ms-muted)" }}>
+      <p style={{ margin: "4px 0 12px", fontSize: 13, color: "var(--po-muted)" }}>
         <DotParts text={data.judge.on ? t("subtitle") : t("off")} />
       </p>
     </>
@@ -56,7 +56,7 @@ export function MonitoringCard() {
 
   if (!data.judge.on) {
     return (
-      <div className="ms-card" style={{ padding: 20, marginTop: 16 }}>
+      <div className="po-card" style={{ padding: 20, marginTop: 16 }}>
         {head}
         <p style={{ margin: 0, fontSize: 13 }}>
           {t("offLead")}{" "}
@@ -78,7 +78,7 @@ export function MonitoringCard() {
       id: "unjudged",
       label: t("unjudgedRate"),
       value: unjudgedRate === null ? common("none") : formatPercent(unjudgedRate, locale, 1),
-      ...(unjudgedRate !== null && unjudgedRate > 0.2 ? { color: "var(--ms-warn)" } : {}),
+      ...(unjudgedRate !== null && unjudgedRate > 0.2 ? { color: "var(--po-warn)" } : {}),
     },
     {
       id: "flagged",
@@ -88,20 +88,20 @@ export function MonitoringCard() {
         </Tooltip>
       ),
       value: nf.format(today.flagged),
-      ...(today.flagged > 0 ? { color: "var(--ms-warn)" } : {}),
+      ...(today.flagged > 0 ? { color: "var(--po-warn)" } : {}),
     },
     {
       id: "flags",
       label: t("openFlags"),
       value: nf.format(data.openFlags),
-      ...(data.openFlags > 0 ? { color: "var(--ms-danger)" } : {}),
+      ...(data.openFlags > 0 ? { color: "var(--po-danger)" } : {}),
     },
   ];
   return (
     <>
       <button
         type="button"
-        className="ms-card"
+        className="po-card"
         style={{
           display: "block",
           width: "100%",
@@ -121,9 +121,9 @@ export function MonitoringCard() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px 36px" }}>
           {figures.map((figure) => (
             <div key={figure.id}>
-              <div className="ms-microlabel">{figure.label}</div>
+              <div className="po-microlabel">{figure.label}</div>
               <div
-                className={figure.id === "judge" ? "ms-mono" : "ms-digits"}
+                className={figure.id === "judge" ? "po-mono" : "po-digits"}
                 style={{
                   fontSize: figure.id === "judge" ? 13 : 22,
                   marginTop: 4,

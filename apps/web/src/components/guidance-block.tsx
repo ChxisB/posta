@@ -12,13 +12,13 @@ export function GuidanceBlock({ guidanceKey }: { guidanceKey: string }) {
   const bg = useTranslations("bounce-guidance");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ms-bone)" }}>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--po-bone)" }}>
         {bg(`${guidanceKey}.title`)}
       </div>
-      <div style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>
+      <div style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>
         {bg(`${guidanceKey}.body`)}
       </div>
-      <div style={{ fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>
+      <div style={{ fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>
         {bg(`${guidanceKey}.action`)}
       </div>
     </div>

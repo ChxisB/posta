@@ -32,8 +32,8 @@ function QuotaCell({ region }: { region: ServedRegion }) {
           share: region.share,
           usable: region.usableReserve,
           segments: [
-            { value: region.bulkSent24h, color: "var(--ms-steel)" },
-            { value: tx, color: tx > region.usableReserve ? "var(--ms-warn)" : "var(--ms-info)" },
+            { value: region.bulkSent24h, color: "var(--po-steel)" },
+            { value: tx, color: tx > region.usableReserve ? "var(--po-warn)" : "var(--po-info)" },
           ],
           tick: region.share / max,
         }
@@ -47,7 +47,7 @@ function QuotaCell({ region }: { region: ServedRegion }) {
       ].join("\n")
     : t("quotaShort", { quota: usedOf, rate });
   return (
-    <Tooltip inline text={tip} triggerClassName="ms-quota-cell">
+    <Tooltip inline text={tip} triggerClassName="po-quota-cell">
       <QuotaBar
         used={used}
         max={max}
@@ -56,7 +56,7 @@ function QuotaCell({ region }: { region: ServedRegion }) {
         tick={split?.tick}
         style={{ flex: 1 }}
       />
-      <span className="ms-mono ms-digits" style={{ fontSize: 12 }}>
+      <span className="po-mono po-digits" style={{ fontSize: 12 }}>
         {serving ? f.pct0(max > 0 ? used / max : 0) : usedOf}
       </span>
     </Tooltip>
@@ -168,7 +168,7 @@ function Row({
               tr("complaintEstimate"),
             ].join("\n")}
           >
-            <span style={sesTone ? { color: `var(--ms-${sesTone})` } : undefined}>
+            <span style={sesTone ? { color: `var(--po-${sesTone})` } : undefined}>
               {f.pct2(ses)}
             </span>
           </Tooltip>
@@ -187,7 +187,7 @@ function Row({
           {formatUsd(r.cost.cents, f.locale)}
         </Tooltip>
       </td>
-      <td className="right ms-cell-menu" style={{ width: 40 }}>
+      <td className="right po-cell-menu" style={{ width: 40 }}>
         <RegionMenu region={r} onChanged={onChanged} />
       </td>
     </tr>
@@ -202,7 +202,7 @@ function Row({
 export function RegionsTable({ list, onChanged }: { list: RegionList; onChanged: () => void }) {
   const t = useTranslations("console.overview.regions.columns");
   return (
-    <div className="ms-card ms-card-table" style={{ marginBottom: 16 }}>
+    <div className="po-card po-card-table" style={{ marginBottom: 16 }}>
       <Table className="nowrap baseline">
         <thead>
           <tr>

@@ -29,7 +29,7 @@ export function ListFooter({
   const showChooser = size !== undefined && onSize && sizeLabel && !singlePage;
   return (
     <div
-      className="ms-wrap-row"
+      className="po-wrap-row"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -37,7 +37,7 @@ export function ListFooter({
         gap: 10,
         marginTop: 14,
         fontSize: 13,
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
       }}
     >
       <span>{left}</span>
@@ -54,7 +54,7 @@ export function ListFooter({
         {loadMore ? (
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             onClick={loadMore.onClick}
             disabled={loadMore.loading}
           >

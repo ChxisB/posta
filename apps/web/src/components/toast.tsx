@@ -44,9 +44,9 @@ export function ToastHost() {
   }, [current]);
   if (!current) return null;
   return (
-    <div className="ms-toast-host">
-      <div role="status" className={`ms-toast ms-toast-${current.tone}`}>
-        <span className="ms-toast-icon" aria-hidden="true">
+    <div className="po-toast-host">
+      <div role="status" className={`po-toast po-toast-${current.tone}`}>
+        <span className="po-toast-icon" aria-hidden="true">
           {ICON[current.tone]}
         </span>
         <span>{current.message}</span>

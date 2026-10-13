@@ -72,11 +72,11 @@ export function EditDialog({
           submit();
         }}
       >
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="inbox-edit-name">{t("create.name")}</label>
           <input
             id="inbox-edit-name"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             value={name}
             maxLength={64}
@@ -84,22 +84,22 @@ export function EditDialog({
             onChange={(event) => setName(event.target.value)}
           />
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="inbox-edit-from">{t("edit.fromName")}</label>
           <input
             id="inbox-edit-from"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             value={fromName}
             maxLength={78}
             disabled={save.isPending}
             onChange={(event) => setFromName(event.target.value)}
           />
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
             {t("edit.fromNameHint")}
           </p>
         </div>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="inbox-edit-expires">{t("expires.label")}</label>
           <Select
             id="inbox-edit-expires"
@@ -118,17 +118,17 @@ export function EditDialog({
           />
         </div>
         {save.error ? (
-          <div className="ms-field-error" style={{ margin: 0 }}>
+          <div className="po-field-error" style={{ margin: 0 }}>
             {save.error.message}
           </div>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={!ready || save.isPending}
           >
             <BtnSpinner on={save.isPending} />

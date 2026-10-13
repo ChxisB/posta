@@ -36,7 +36,7 @@ export default async function UpdatesConfirmPage({
         <form method="post" action="/api/updates/confirm" className={styles.form}>
           <p className={styles.subline}>{m.confirmPrompt.replace("{email}", link.email)}</p>
           <input type="hidden" name="token" value={token} />
-          <button type="submit" className={`ms-btn ms-btn-primary ${styles.button}`}>
+          <button type="submit" className={`po-btn po-btn-primary ${styles.button}`}>
             {m.confirmButton}
           </button>
         </form>

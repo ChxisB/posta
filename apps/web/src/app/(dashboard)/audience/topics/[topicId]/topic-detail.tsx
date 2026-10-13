@@ -114,21 +114,21 @@ export function TopicDetail({ id }: { id: string }) {
             <Skeleton width={140} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", margin: 0, display: "flex" }}
           >
             <Skeleton width={280} height="1lh" />
           </h1>
         </div>
         <div
-          className="ms-meta-grid"
+          className="po-meta-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
             gap: 28,
             padding: "20px 0",
-            borderTop: "1px solid var(--ms-line)",
-            borderBottom: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
+            borderBottom: "1px solid var(--po-line)",
           }}
         >
           <MetaItem label={t("detail.id")}>
@@ -163,11 +163,11 @@ export function TopicDetail({ id }: { id: string }) {
         actions={
           <>
             {copied ? (
-              <span style={{ color: "var(--ms-muted)", fontSize: 12.5 }}>✓ {common("copied")}</span>
+              <span style={{ color: "var(--po-muted)", fontSize: 12.5 }}>✓ {common("copied")}</span>
             ) : null}
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               onClick={() =>
                 setEditTarget({
                   id: data.id,
@@ -200,14 +200,14 @@ export function TopicDetail({ id }: { id: string }) {
       />
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
           gap: 28,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <MetaItem label={t("detail.id")}>
@@ -215,7 +215,7 @@ export function TopicDetail({ id }: { id: string }) {
         </MetaItem>
         <MetaItem label={t("defaultLabel")}>
           <span
-            className={`ms-badge ${data.defaultSubscribed ? "ms-badge-success" : "ms-badge-neutral"}`}
+            className={`po-badge ${data.defaultSubscribed ? "po-badge-success" : "po-badge-neutral"}`}
           >
             {data.defaultSubscribed ? t("optIn") : t("optOut")}
           </span>
@@ -229,11 +229,11 @@ export function TopicDetail({ id }: { id: string }) {
       </div>
 
       {data.description ? (
-        <div style={{ padding: "20px 0", borderBottom: "1px solid var(--ms-line)" }}>
-          <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+        <div style={{ padding: "20px 0", borderBottom: "1px solid var(--po-line)" }}>
+          <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
             {t("detail.description")}
           </p>
-          <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--ms-bone)" }}>
+          <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--po-bone)" }}>
             {data.description}
           </p>
         </div>
@@ -241,7 +241,7 @@ export function TopicDetail({ id }: { id: string }) {
 
       <section style={{ marginTop: 26 }}>
         <div
-          className="ms-filter-row"
+          className="po-filter-row"
           style={{
             display: "flex",
             alignItems: "center",
@@ -250,7 +250,7 @@ export function TopicDetail({ id }: { id: string }) {
             marginBottom: 14,
           }}
         >
-          <p className="ms-microlabel" style={{ margin: 0 }}>
+          <p className="po-microlabel" style={{ margin: 0 }}>
             {t("detail.contacts")}
           </p>
           <Select
@@ -283,7 +283,7 @@ export function TopicDetail({ id }: { id: string }) {
               onAction={() => setSubFilter("")}
             />
           ) : (
-            <p style={{ margin: 0, fontSize: 14, color: "var(--ms-muted)" }}>{t("detail.empty")}</p>
+            <p style={{ margin: 0, fontSize: 14, color: "var(--po-muted)" }}>{t("detail.empty")}</p>
           )
         ) : (
           <>
@@ -301,7 +301,7 @@ export function TopicDetail({ id }: { id: string }) {
                         >
                           <ContactAvatar email={row.email} name={name} size={24} />
                           <Link
-                            className="ms-mono"
+                            className="po-mono"
                             style={{ fontSize: 13, flexShrink: 0 }}
                             href={detailHref}
                             onClick={(event) => event.stopPropagation()}
@@ -311,7 +311,7 @@ export function TopicDetail({ id }: { id: string }) {
                           {name ? (
                             <span
                               style={{
-                                color: "var(--ms-muted)",
+                                color: "var(--po-muted)",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -324,14 +324,14 @@ export function TopicDetail({ id }: { id: string }) {
                       </td>
                       <td>
                         <span
-                          className={`ms-badge ${row.subscribed ? "ms-badge-success" : "ms-badge-neutral"}`}
+                          className={`po-badge ${row.subscribed ? "po-badge-success" : "po-badge-neutral"}`}
                         >
                           {row.subscribed
                             ? tAud("contacts.subscribed")
                             : tAud("contacts.unsubscribedBadge")}
                         </span>
                       </td>
-                      <td className="right" style={{ color: "var(--ms-muted)" }}>
+                      <td className="right" style={{ color: "var(--po-muted)" }}>
                         <RelativeTime date={row.createdAt} />
                       </td>
                     </tr>

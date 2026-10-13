@@ -29,7 +29,7 @@ const KPIS: { kind: KpiKind; initial: PeriodKey }[] = [
 
 export function KpiCards() {
   return (
-    <div className="ms-grid ms-grid-4" style={{ marginBottom: 16 }}>
+    <div className="po-grid po-grid-4" style={{ marginBottom: 16 }}>
       {KPIS.map((k) => (
         <KpiCard key={k.kind} kind={k.kind} initial={k.initial} />
       ))}
@@ -91,7 +91,7 @@ function KpiCard({ kind, initial }: { kind: KpiKind; initial: PeriodKey }) {
     <>
       {/* biome-ignore lint/a11y/useSemanticElements: the card holds the period menu's own button, which a <button> could not nest */}
       <div
-        className="ms-card ms-card-bleed"
+        className="po-card po-card-bleed"
         role="button"
         tabIndex={0}
         style={{ padding: 20, position: "relative", paddingBottom: 70, cursor: "pointer" }}
@@ -109,23 +109,23 @@ function KpiCard({ kind, initial }: { kind: KpiKind; initial: PeriodKey }) {
         }}
       >
         {/* The right padding keeps a long label from running under the period trigger. */}
-        <div className="ms-microlabel" style={{ paddingRight: 64 }}>
+        <div className="po-microlabel" style={{ paddingRight: 64 }}>
           {t(`kpi.${kind}`)}
         </div>
         {/* Out of flow, so the microlabel sits at the card padding instead of centring
             against the taller trigger. */}
-        <div className="ms-kpi-period" style={{ position: "absolute", top: 14, right: 20 }}>
+        <div className="po-kpi-period" style={{ position: "absolute", top: 14, right: 20 }}>
           <PopoverMenu
             ariaLabel={t("kpi.period")}
             triggerGlyph={(menuOpen) => (
               <span
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 style={{
                   height: 24,
                   padding: "0 8px",
                   fontSize: 12,
                   fontWeight: 500,
-                  color: "var(--ms-muted)",
+                  color: "var(--po-muted)",
                   alignItems: "center",
                   gap: 4,
                   whiteSpace: "nowrap",
@@ -146,16 +146,16 @@ function KpiCard({ kind, initial }: { kind: KpiKind; initial: PeriodKey }) {
           />
         </div>
         <div
-          className="ms-digits"
-          style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1, marginTop: 6, display: "flex" }}
+          className="po-digits"
+          style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1, marginTop: 6, display: "flex" }}
         >
           {headline ?? <Skeleton width={120} height="1lh" />}
         </div>
-        <div style={{ fontSize: 13, color: "var(--ms-muted)", marginTop: 4, display: "flex" }}>
+        <div style={{ fontSize: 13, color: "var(--po-muted)", marginTop: 4, display: "flex" }}>
           {sub ?? <Skeleton width={160} height="1lh" />}
         </div>
         {data ? (
-          <div className="ms-bleed" data-spark="" style={{ height: 56 }}>
+          <div className="po-bleed" data-spark="" style={{ height: 56 }}>
             <Sparkline
               values={data.points.map((p) => kpiValue(kind, p))}
               labels={data.points.map((p) => pointLabel(p.t, data.grain, locale))}

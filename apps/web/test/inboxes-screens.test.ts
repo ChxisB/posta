@@ -182,8 +182,8 @@ describe("inbox screens", () => {
         createElement(QuarantinedBadge, { key: "c", reason: "injection" }),
       ]),
     );
-    expect(html).toContain('class="ms-badge ms-badge-danger">Failed authentication<');
-    expect(html).toContain('class="ms-badge ms-badge-success">Known thread<');
+    expect(html).toContain('class="po-badge po-badge-danger">Failed authentication<');
+    expect(html).toContain('class="po-badge po-badge-success">Known thread<');
     expect(html).toContain("Quarantined · prompt injection");
   });
 

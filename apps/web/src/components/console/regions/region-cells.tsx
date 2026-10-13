@@ -8,7 +8,7 @@ import { useRegionFormats } from "./formatters";
 
 /** An unknown value in a region table cell. */
 export const mutedDash = (
-  <span className="ms-mono" style={{ color: "var(--ms-muted)" }}>
+  <span className="po-mono" style={{ color: "var(--po-muted)" }}>
     —
   </span>
 );
@@ -42,7 +42,7 @@ export function StatusText({
 }) {
   return (
     <>
-      <span className="ms-dot" style={{ background: `var(--ms-${tone})`, marginRight: 8 }} />
+      <span className="po-dot" style={{ background: `var(--po-${tone})`, marginRight: 8 }} />
       {tip ? (
         <Tooltip inline text={tip}>
           {text}

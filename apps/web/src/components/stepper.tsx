@@ -5,7 +5,7 @@
  * composer: a vertical number rail beside the card on desktop, per-row marker
  * rails on the second screen, and a labelled horizontal bar that replaces the
  * rail on narrow screens (the rail's wrapped numbers read as detached
- * otherwise — see the .ms-stepbar rules in components.css).
+ * otherwise — see the .po-stepbar rules in components.css).
  */
 
 /** Vertical rail for the first screen: the current number lit, the rest faint. */
@@ -13,7 +13,7 @@ export function StepRail({ current = 1, total = 2 }: { current?: number; total?:
   return (
     <div
       aria-hidden="true"
-      className="ms-stepper-rail"
+      className="po-stepper-rail"
       style={{
         width: 30,
         flex: "none",
@@ -35,15 +35,15 @@ export function StepRail({ current = 1, total = 2 }: { current?: number; total?:
                   marginTop: 6,
                   // Softens the join at each number instead of butting into it.
                   background:
-                    "linear-gradient(to bottom, transparent, var(--ms-line) 22%, var(--ms-line) 78%, transparent)",
+                    "linear-gradient(to bottom, transparent, var(--po-line) 22%, var(--po-line) 78%, transparent)",
                 }}
               />
             ) : null}
             <span
-              className="ms-mono"
+              className="po-mono"
               style={{
                 fontSize: 11,
-                color: num === current ? "var(--ms-bone)" : "var(--ms-faint)",
+                color: num === current ? "var(--po-bone)" : "var(--po-faint)",
                 marginTop: index > 0 ? 6 : 0,
               }}
             >
@@ -79,7 +79,7 @@ export function MarkerRail({
   return (
     <div
       aria-hidden="true"
-      className="ms-stepper-rail"
+      className="po-stepper-rail"
       style={{
         width: 30,
         flex: "none",
@@ -89,7 +89,7 @@ export function MarkerRail({
       }}
     >
       <span
-        className="ms-mono"
+        className="po-mono"
         style={{ position: "relative", fontSize: 11, color, whiteSpace: "nowrap" }}
       >
         {fadeTop ? (
@@ -101,7 +101,7 @@ export function MarkerRail({
               transform: "translateX(-50%)",
               width: 1,
               height: 40,
-              background: "linear-gradient(to bottom, transparent, var(--ms-line))",
+              background: "linear-gradient(to bottom, transparent, var(--po-line))",
             }}
           />
         ) : null}
@@ -128,11 +128,11 @@ export function MarkerRail({
             width: 1,
             height: 56,
             marginTop: 6,
-            background: "linear-gradient(to bottom, var(--ms-line), transparent)",
+            background: "linear-gradient(to bottom, var(--po-line), transparent)",
           }}
         />
       ) : line ? (
-        <span style={{ flex: 1, width: 1, background: "var(--ms-line)", marginTop: 6 }} />
+        <span style={{ flex: 1, width: 1, background: "var(--po-line)", marginTop: 6 }} />
       ) : null}
     </div>
   );
@@ -145,18 +145,18 @@ export function MarkerRail({
  */
 export function MobileStepBar({ steps, active }: { steps: string[]; active: number }) {
   return (
-    <ol className="ms-stepbar">
+    <ol className="po-stepbar">
       {steps.map((label, index) => {
         const num = index + 1;
         const state = num < active ? "done" : num === active ? "current" : "upcoming";
         return (
           <li
             key={label}
-            className={`ms-stepbar-step ${state}`}
+            className={`po-stepbar-step ${state}`}
             {...(num === active ? { "aria-current": "step" } : {})}
           >
-            <span className="ms-stepbar-dot ms-mono">{num < active ? "✓" : `0${num}`}</span>
-            <span className="ms-stepbar-text">{label}</span>
+            <span className="po-stepbar-dot po-mono">{num < active ? "✓" : `0${num}`}</span>
+            <span className="po-stepbar-text">{label}</span>
           </li>
         );
       })}

@@ -31,14 +31,14 @@ const TRUST_TONE: Record<SenderTrust, BadgeTone> = {
 /** Who a sender is to the inbox, in words; the tone follows how far it is trusted. */
 export function TrustBadge({ trust }: { trust: SenderTrust }) {
   const t = useTranslations("inboxes");
-  return <span className={`ms-badge ms-badge-${TRUST_TONE[trust]}`}>{t(`trust.${trust}`)}</span>;
+  return <span className={`po-badge po-badge-${TRUST_TONE[trust]}`}>{t(`trust.${trust}`)}</span>;
 }
 
 /** "Quarantined · prompt injection": why a message is held. */
 export function QuarantinedBadge({ reason }: { reason: string | null }) {
   const t = useTranslations("inboxes");
   return (
-    <span className="ms-badge ms-badge-danger">
+    <span className="po-badge po-badge-danger">
       {t("badge.quarantined", { reason: reason && t.has(`qr.${reason}`) ? t(`qr.${reason}`) : "" })}
     </span>
   );

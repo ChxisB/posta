@@ -93,7 +93,7 @@ afterAll(() => close());
  */
 const copyChip = (value: string) =>
   new RegExp(
-    `<span class="ms-chip"><span style="min-width:0;overflow-wrap:anywhere">${value}</span><button type="button" aria-label="Copy"`,
+    `<span class="po-chip"><span style="min-width:0;overflow-wrap:anywhere">${value}</span><button type="button" aria-label="Copy"`,
   );
 
 describe("the team's id on the console's team screens", () => {
@@ -126,7 +126,7 @@ describe("the team's id on the console's team screens", () => {
     // breaks before it rather than inside "owner …".
     expect(html).toMatch(
       new RegExp(
-        `<span class="ms-part">owner —\u00a0·</span> <span class="ms-part">${copyChip(teamId).source}`,
+        `<span class="po-part">owner —\u00a0·</span> <span class="po-part">${copyChip(teamId).source}`,
       ),
     );
   });

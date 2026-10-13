@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {...(theme === "light" ? { "data-theme": "light" } : {})}
       suppressHydrationWarning
     >
-      <body className="ms">
+      <body className="po">
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap, no user input */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {errorTracking ? <ErrorTracking config={errorTracking} /> : null}

@@ -17,7 +17,7 @@ import type { InboxDetail } from "../parts";
 const ACCEPT = ["anyone", "verified", "allowlist"] as const;
 const POLICIES = ["reply_only", "allowlist", "open"] as const;
 
-const hint: React.CSSProperties = { fontSize: 12, color: "var(--ms-muted)", lineHeight: 1.5 };
+const hint: React.CSSProperties = { fontSize: 12, color: "var(--po-muted)", lineHeight: 1.5 };
 
 /** One switch row: the rule, what it does, and its switch at the right. */
 function Rule({
@@ -32,7 +32,7 @@ function Rule({
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 14 }}>
       <div style={{ minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: "var(--ms-fs-label)", color: "var(--ms-bone)" }}>
+        <span style={{ display: "block", fontSize: "var(--po-fs-label)", color: "var(--po-bone)" }}>
           {label}
         </span>
         <span style={hint}>{note}</span>
@@ -69,7 +69,7 @@ function AddressList({
       {values.length > 0 ? (
         <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {values.map((value) => (
-            <span key={value} className="ms-chip">
+            <span key={value} className="po-chip">
               {value}
               {disabled ? null : (
                 <button
@@ -88,7 +88,7 @@ function AddressList({
         <span style={{ display: "flex", gap: 8 }}>
           <input
             id={id}
-            className="ms-input mono"
+            className="po-input mono"
             style={{ flex: "1 1 auto", minWidth: 0 }}
             value={entry}
             autoComplete="off"
@@ -101,7 +101,7 @@ function AddressList({
               }
             }}
           />
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={add}>
+          <button type="button" className="po-btn po-btn-secondary" onClick={add}>
             {addLabel}
           </button>
         </span>
@@ -178,7 +178,7 @@ export function SafetyForm({
         <p style={{ ...hint, margin: "0 0 12px" }}>{t("safety.whoCanWriteHint")}</p>
         <div style={{ display: "grid", gap: 6 }}>
           {ACCEPT.map((value) => (
-            <label key={value} className="ms-radio-card">
+            <label key={value} className="po-radio-card">
               <input
                 type="radio"
                 name="accept-from"
@@ -193,7 +193,7 @@ export function SafetyForm({
             </label>
           ))}
         </div>
-        <div className="ms-field" style={{ marginTop: 14 }}>
+        <div className="po-field" style={{ marginTop: 14 }}>
           <label htmlFor="safety-allowlist">{t("safety.allowlist")}</label>
           <AddressList
             id="safety-allowlist"
@@ -230,7 +230,7 @@ export function SafetyForm({
       </SectionCard>
 
       <SectionCard title={t("safety.maySend")}>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor="safety-policy">{t("safety.sendPolicy")}</label>
           <Select
             id="safety-policy"
@@ -267,12 +267,12 @@ export function SafetyForm({
             ariaLabel={t("safety.privateCodes")}
           />
         </Rule>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="safety-cap">{t("safety.sendCap")}</label>
           <input
             id="safety-cap"
             type="number"
-            className="ms-input"
+            className="po-input"
             style={{ width: 160 }}
             min={1}
             max={inbox.shared ? 50 : 100_000}
@@ -298,7 +298,7 @@ export function SafetyForm({
           removeLabel={(value) => t("safety.remove", { value })}
           disabled={locked}
         />
-        <div className="ms-field" style={{ marginTop: 14 }}>
+        <div className="po-field" style={{ marginTop: 14 }}>
           <label htmlFor="safety-owners">{t("safety.owners")}</label>
           <AddressList
             id="safety-owners"
@@ -327,13 +327,13 @@ export function SafetyForm({
       <p style={{ ...hint, margin: 0 }}>{t("safety.alwaysOn")}</p>
 
       {save.error ? (
-        <div className="ms-field-error" style={{ margin: 0 }}>
+        <div className="po-field-error" style={{ margin: 0 }}>
           {save.error.message}
         </div>
       ) : null}
       {admin ? (
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={locked || !changed}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={locked || !changed}>
             <BtnSpinner on={save.isPending} />
             {t("safety.save")}
           </button>

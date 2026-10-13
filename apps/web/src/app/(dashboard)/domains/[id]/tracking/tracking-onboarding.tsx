@@ -47,29 +47,29 @@ export function TrackingOnboarding({ id }: { id: string }) {
           </>
         }
       />
-      <div className="ms-step-col" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="po-step-col" style={{ display: "flex", flexDirection: "column" }}>
         <MobileStepBar
           steps={[t("trackingSetup.steps.details"), t("trackingSetup.steps.dns")]}
           active={detailsDone ? 2 : 1}
         />
 
         {/* Step 01 — Details */}
-        <div className="ms-step" style={{ display: "flex", gap: 44 }}>
+        <div className="po-step" style={{ display: "flex", gap: 44 }}>
           <MarkerRail
             marker="01"
             done={detailsDone}
             fadeTop
-            color={detailsDone ? "var(--ms-success)" : "var(--ms-bone)"}
+            color={detailsDone ? "var(--po-success)" : "var(--po-bone)"}
           />
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 28 }}>
             <h2
-              className="ms-display"
-              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--ms-bone)" }}
+              className="po-display"
+              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--po-bone)" }}
             >
               {t("trackingSetup.detailsTitle")}
             </h2>
             <p
-              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)", maxWidth: 520 }}
+              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)", maxWidth: 520 }}
             >
               {t("trackingSetup.detailsSubtitle")}
             </p>
@@ -91,17 +91,17 @@ export function TrackingOnboarding({ id }: { id: string }) {
         </div>
 
         {/* Step 02 — DNS record for the saved subdomain */}
-        <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-          <MarkerRail marker="02" color="var(--ms-bone)" fadeBottom />
+        <div className="po-step" style={{ display: "flex", gap: 44 }}>
+          <MarkerRail marker="02" color="var(--po-bone)" fadeBottom />
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2
-              className="ms-display"
-              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--ms-bone)" }}
+              className="po-display"
+              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--po-bone)" }}
             >
               {t("trackingSetup.dnsTitle")}
             </h2>
             <p
-              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)", maxWidth: 520 }}
+              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)", maxWidth: 520 }}
             >
               {t("trackingSetup.dnsSubtitle")}
             </p>
@@ -110,7 +110,7 @@ export function TrackingOnboarding({ id }: { id: string }) {
                 <DnsRecordsTable records={[trackingRow]} domain={domain.data?.name} />
                 <button
                   type="button"
-                  className="ms-btn ms-btn-primary"
+                  className="po-btn po-btn-primary"
                   style={{ marginTop: 24 }}
                   onClick={() => router.push(`/domains/${id}`)}
                 >
@@ -118,7 +118,7 @@ export function TrackingOnboarding({ id }: { id: string }) {
                 </button>
               </>
             ) : (
-              <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>
                 {t("trackingSetup.dnsPending")}
               </p>
             )}

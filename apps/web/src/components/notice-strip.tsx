@@ -24,17 +24,17 @@ export function NoticeStrip({
   action?: string | undefined;
   onAction?: (() => void) | undefined;
 }) {
-  const className = `ms-notice-strip ms-notice-strip-${tone}`;
+  const className = `po-notice-strip po-notice-strip-${tone}`;
   const label = action ? `${action} →` : null;
   const body = (
     <>
-      <span className="ms-notice-strip-text">{text}</span>
+      <span className="po-notice-strip-text">{text}</span>
       {label && onAction ? (
-        <button type="button" className="ms-notice-strip-action" onClick={onAction}>
+        <button type="button" className="po-notice-strip-action" onClick={onAction}>
           {label}
         </button>
       ) : label ? (
-        <span className="ms-notice-strip-action">{label}</span>
+        <span className="po-notice-strip-action">{label}</span>
       ) : null}
     </>
   );

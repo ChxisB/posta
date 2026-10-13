@@ -42,12 +42,12 @@ export function ConnectedAppsView() {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
-      <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}>
+      <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}>
         {t("intro")}
       </p>
       {listQuery.isPending ? <Skeleton width="100%" height={48} /> : null}
       {grants && grants.length === 0 ? (
-        <p className="ms-card" style={{ margin: 0, padding: 24, color: "var(--ms-muted)" }}>
+        <p className="po-card" style={{ margin: 0, padding: 24, color: "var(--po-muted)" }}>
           {t("empty")}
         </p>
       ) : null}
@@ -79,7 +79,7 @@ export function ConnectedAppsView() {
                   <td style={{ whiteSpace: "nowrap" }}>
                     {grant.userEmail ?? "—"}
                     {grant.own ? (
-                      <span className="ms-badge ms-badge-neutral" style={{ marginLeft: 8 }}>
+                      <span className="po-badge po-badge-neutral" style={{ marginLeft: 8 }}>
                         {t("you")}
                       </span>
                     ) : null}
@@ -87,10 +87,10 @@ export function ConnectedAppsView() {
                   <td>
                     <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       {grant.allTeams ? (
-                        <span className="ms-badge ms-badge-neutral">{t("allTeams")}</span>
+                        <span className="po-badge po-badge-neutral">{t("allTeams")}</span>
                       ) : null}
                       <Tooltip inline text={grant.scopes.join("\n")}>
-                        <span className="ms-chip">
+                        <span className="po-chip">
                           {t("scopesCount", { count: grant.scopes.length })}
                         </span>
                       </Tooltip>
@@ -130,23 +130,23 @@ export function ConnectedAppsView() {
               confirmRevoke();
             }}
           >
-            <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+            <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
               {t("revokeConfirm.body", { name: revokeTarget.name })}
             </p>
             {revokeMutation.isError ? (
-              <p className="ms-field-error" style={{ margin: 0 }}>
+              <p className="po-field-error" style={{ margin: 0 }}>
                 {revokeMutation.error.data?.code === "FORBIDDEN"
                   ? t("revokeAllTeamsForbidden")
                   : revokeMutation.error.message}
               </p>
             ) : null}
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeRevoke}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeRevoke}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="submit"
-                className="ms-btn ms-btn-destructive"
+                className="po-btn po-btn-destructive"
                 disabled={revokeMutation.isPending}
               >
                 <BtnSpinner on={revokeMutation.isPending} />

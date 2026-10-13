@@ -88,17 +88,17 @@ function DeliveryExpanded({ id }: { id: string }) {
     return (
       <div style={{ display: "grid", gap: 12, padding: "4px 0 8px" }}>
         <div>
-          <p className="ms-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
+          <p className="po-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
             {t("detail.payload")}
           </p>
           <div
-            className="ms-mono"
+            className="po-mono"
             style={{
               padding: 12,
               fontSize: 11.5,
               lineHeight: 1.6,
-              background: "var(--ms-ground)",
-              border: "1px solid var(--ms-line)",
+              background: "var(--po-ground)",
+              border: "1px solid var(--po-line)",
               borderRadius: 8,
               display: "flex",
               flexDirection: "column",
@@ -114,14 +114,14 @@ function DeliveryExpanded({ id }: { id: string }) {
           </div>
         </div>
         <div>
-          <p className="ms-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
+          <p className="po-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
             {t("detail.response")}
           </p>
-          <div className="ms-mono" style={{ fontSize: 11.5, lineHeight: 1.6, display: "flex" }}>
+          <div className="po-mono" style={{ fontSize: 11.5, lineHeight: 1.6, display: "flex" }}>
             <Skeleton width={40} height="1lh" />
           </div>
         </div>
-        <div className="ms-mono" style={{ fontSize: 11, display: "flex" }}>
+        <div className="po-mono" style={{ fontSize: 11, display: "flex" }}>
           <Skeleton width={260} height="1lh" />
         </div>
       </div>
@@ -129,7 +129,7 @@ function DeliveryExpanded({ id }: { id: string }) {
   }
   if (delivery.isError) {
     return (
-      <p style={{ margin: 0, fontSize: "var(--ms-fs-label)", color: "var(--ms-muted)" }}>
+      <p style={{ margin: 0, fontSize: "var(--po-fs-label)", color: "var(--po-muted)" }}>
         {t("detail.deliveriesError")}
       </p>
     );
@@ -138,18 +138,18 @@ function DeliveryExpanded({ id }: { id: string }) {
   return (
     <div style={{ display: "grid", gap: 12, padding: "4px 0 8px" }}>
       <div>
-        <p className="ms-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
+        <p className="po-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
           {t("detail.payload")}
         </p>
         <pre
-          className="ms-mono"
+          className="po-mono"
           style={{
             margin: 0,
             padding: 12,
             fontSize: 11.5,
             lineHeight: 1.6,
-            background: "var(--ms-ground)",
-            border: "1px solid var(--ms-line)",
+            background: "var(--po-ground)",
+            border: "1px solid var(--po-line)",
             borderRadius: 8,
             // A long diagnostic string wraps here rather than widening the
             // whole deliveries table into a horizontal scroll.
@@ -161,25 +161,25 @@ function DeliveryExpanded({ id }: { id: string }) {
         </pre>
       </div>
       <div>
-        <p className="ms-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
+        <p className="po-microlabel" style={{ margin: "0 0 6px", fontSize: 10.5 }}>
           {t("detail.response")}
         </p>
         {data.lastResponseCode !== null || data.lastResponseBody ? (
-          <div className="ms-mono" style={{ fontSize: 11.5, lineHeight: 1.6 }}>
+          <div className="po-mono" style={{ fontSize: 11.5, lineHeight: 1.6 }}>
             {data.lastResponseCode !== null ? <div>{data.lastResponseCode}</div> : null}
             {data.lastResponseBody ? (
-              <div style={{ color: "var(--ms-muted)", whiteSpace: "pre-wrap" }}>
+              <div style={{ color: "var(--po-muted)", whiteSpace: "pre-wrap" }}>
                 {data.lastResponseBody}
               </div>
             ) : null}
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: "var(--ms-fs-label)", color: "var(--ms-muted)" }}>
+          <p style={{ margin: 0, fontSize: "var(--po-fs-label)", color: "var(--po-muted)" }}>
             {t("detail.noResponse")}
           </p>
         )}
       </div>
-      <div className="ms-mono" style={{ fontSize: 11, color: "var(--ms-muted)" }}>
+      <div className="po-mono" style={{ fontSize: 11, color: "var(--po-muted)" }}>
         {t("detail.messageId")}: {data.messageId}
       </div>
     </div>
@@ -291,21 +291,21 @@ export function WebhookDetail({ id }: { id: string }) {
             <Skeleton width={140} height="1lh" />
           </div>
           <h1
-            className="ms-display"
-            style={{ fontSize: "var(--ms-fs-h1)", margin: 0, display: "flex" }}
+            className="po-display"
+            style={{ fontSize: "var(--po-fs-h1)", margin: 0, display: "flex" }}
           >
             <Skeleton width={320} height="1lh" />
           </h1>
         </div>
         <div
-          className="ms-meta-grid"
+          className="po-meta-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 28,
             padding: "20px 0",
-            borderTop: "1px solid var(--ms-line)",
-            borderBottom: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
+            borderBottom: "1px solid var(--po-line)",
             maxWidth: 1000,
           }}
         >
@@ -326,7 +326,7 @@ export function WebhookDetail({ id }: { id: string }) {
           </MetaItem>
         </div>
         <section style={{ marginTop: 26, maxWidth: 1000 }}>
-          <h2 className="ms-display" style={{ fontSize: 22, margin: 0, display: "flex" }}>
+          <h2 className="po-display" style={{ fontSize: 22, margin: 0, display: "flex" }}>
             <Skeleton width={140} height="1lh" />
           </h2>
           <div style={{ marginTop: 22 }}>
@@ -356,7 +356,7 @@ export function WebhookDetail({ id }: { id: string }) {
           <div style={{ position: "relative" }}>
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled={testMutation.isPending}
               onClick={() => testMutation.mutate({ id })}
             >
@@ -365,14 +365,14 @@ export function WebhookDetail({ id }: { id: string }) {
             </button>
             {testSent || testError ? (
               <span
-                className="ms-action-note"
+                className="po-action-note"
                 style={{
                   position: "absolute",
                   top: "calc(100% + 6px)",
                   right: 0,
                   whiteSpace: "nowrap",
-                  color: testError ? "var(--ms-danger)" : "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: testError ? "var(--po-danger)" : "var(--po-muted)",
+                  fontSize: "var(--po-fs-label)",
                 }}
               >
                 {testError ? t(`detail.${testError}`) : `✓ ${t("detail.testQueued")}`}
@@ -415,7 +415,7 @@ export function WebhookDetail({ id }: { id: string }) {
 
       {data.status === "auto_disabled" ? (
         <div
-          className="ms-wrap-row"
+          className="po-wrap-row"
           style={{ display: "flex", columnGap: 12, alignItems: "flex-start", maxWidth: 1000 }}
         >
           {/* The button drops under the strip before the strip's text gets narrower than this. */}
@@ -424,7 +424,7 @@ export function WebhookDetail({ id }: { id: string }) {
           </div>
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={updateMutation.isPending}
             onClick={() => void toggleEnabled(data)}
           >
@@ -445,14 +445,14 @@ export function WebhookDetail({ id }: { id: string }) {
       ) : null}
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 28,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
           maxWidth: 1000,
         }}
       >
@@ -460,9 +460,9 @@ export function WebhookDetail({ id }: { id: string }) {
           <CopyChip value={data.url} display={displayUrl(data.url)} />
         </MetaItem>
         <MetaItem label={t("detail.signingSecret")}>
-          <span className="ms-mono">{maskWebhookSecret(data.secretLast4)}</span>
+          <span className="po-mono">{maskWebhookSecret(data.secretLast4)}</span>
           {data.previousSecretExpiresAt ? (
-            <div style={{ marginTop: 4, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+            <div style={{ marginTop: 4, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
               {t("detail.previousSecret", {
                 date: new Intl.DateTimeFormat(locale, {
                   dateStyle: "medium",
@@ -474,12 +474,12 @@ export function WebhookDetail({ id }: { id: string }) {
         </MetaItem>
         {/* The chip list is the one tall cell: it spans both rows so Status
             and Created stay under URL and Secret instead of below it. */}
-        <div className="ms-meta-tall">
+        <div className="po-meta-tall">
           <MetaItem label={t("detail.events")}>
             {data.eventTypes === null ? (
-              <span className="ms-chip">{t("allEvents")}</span>
+              <span className="po-chip">{t("allEvents")}</span>
             ) : (
-              <div className="ms-wrap-row" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              <div className="po-wrap-row" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {data.eventTypes.map((eventType) => {
                   const meta = WEBHOOK_EVENT_META[eventType as WebhookEventType] as
                     | { dot: string }
@@ -487,12 +487,12 @@ export function WebhookDetail({ id }: { id: string }) {
                   return (
                     <span
                       key={eventType}
-                      className="ms-chip"
+                      className="po-chip"
                       style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       {meta ? (
                         <span
-                          className="ms-dot"
+                          className="po-dot"
                           style={{ background: meta.dot }}
                           aria-hidden="true"
                         />
@@ -518,18 +518,18 @@ export function WebhookDetail({ id }: { id: string }) {
       </div>
 
       <section style={{ marginTop: 26, maxWidth: 1000 }}>
-        <h2 className="ms-display" style={{ fontSize: 22, margin: 0, color: "var(--ms-bone)" }}>
+        <h2 className="po-display" style={{ fontSize: 22, margin: 0, color: "var(--po-bone)" }}>
           {t("detail.deliveries")}
         </h2>
         <div style={{ marginTop: 22 }}>
           {deliveries.isError ? (
             <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <p style={{ margin: 0, fontSize: "var(--ms-fs-ui)" }}>
+              <p style={{ margin: 0, fontSize: "var(--po-fs-ui)" }}>
                 {t("detail.deliveriesError")}
               </p>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 onClick={() => deliveries.refetch()}
               >
                 {t("detail.retry")}
@@ -538,7 +538,7 @@ export function WebhookDetail({ id }: { id: string }) {
           ) : !deliveries.isSuccess ? (
             <DeliveriesSkeleton />
           ) : page === 0 && pageItems.length === 0 ? (
-            <p style={{ margin: 0, fontSize: "var(--ms-fs-ui)", color: "var(--ms-muted)" }}>
+            <p style={{ margin: 0, fontSize: "var(--po-fs-ui)", color: "var(--po-muted)" }}>
               {t("detail.noDeliveries")}
             </p>
           ) : (
@@ -556,16 +556,16 @@ export function WebhookDetail({ id }: { id: string }) {
                         aria-expanded={expandedId === delivery.id}
                       >
                         <td>
-                          <span className="ms-mono">{delivery.eventType}</span>
+                          <span className="po-mono">{delivery.eventType}</span>
                         </td>
                         <td>
                           <DeliveryStatusBadge status={delivery.status} />
                         </td>
                         <td>
-                          <span className="ms-mono">{delivery.lastResponseCode ?? "—"}</span>
+                          <span className="po-mono">{delivery.lastResponseCode ?? "—"}</span>
                         </td>
                         <td>
-                          <span className="ms-mono">{delivery.attempts}</span>
+                          <span className="po-mono">{delivery.attempts}</span>
                         </td>
                         <td>
                           <RelativeTime date={delivery.createdAt} />
@@ -586,7 +586,7 @@ export function WebhookDetail({ id }: { id: string }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14 }}>
                   <button
                     type="button"
-                    className="ms-btn ms-btn-secondary"
+                    className="po-btn po-btn-secondary"
                     disabled={page === 0}
                     onClick={() => {
                       setExpandedId(null);
@@ -597,7 +597,7 @@ export function WebhookDetail({ id }: { id: string }) {
                   </button>
                   <button
                     type="button"
-                    className="ms-btn ms-btn-secondary"
+                    className="po-btn po-btn-secondary"
                     disabled={!hasMore}
                     onClick={() => {
                       setExpandedId(null);
@@ -640,16 +640,16 @@ export function WebhookDetail({ id }: { id: string }) {
             submitDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t.rich("deleteConfirm.body", { ...codeRichTags, url: data.url })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

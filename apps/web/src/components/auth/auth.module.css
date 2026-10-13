@@ -61,13 +61,13 @@
   background:
     radial-gradient(
       640px 460px at 50% 18%,
-      color-mix(in srgb, var(--ms-steel) 9%, transparent),
+      color-mix(in srgb, var(--po-steel) 9%, transparent),
       transparent 70%
     ),
     radial-gradient(
       760px 620px at 50% 46%,
-      color-mix(in srgb, var(--ms-ground) 62%, transparent),
-      color-mix(in srgb, var(--ms-ground) 26%, transparent) 78%
+      color-mix(in srgb, var(--po-ground) 62%, transparent),
+      color-mix(in srgb, var(--po-ground) 26%, transparent) 78%
     );
 }
 
@@ -100,18 +100,18 @@
   }
 }
 
-/* Composed with the global .ms-display — this only sizes/centers. */
+/* Composed with the global .po-display — this only sizes/centers. */
 .headline {
   margin: 8px 0 0;
-  font-size: var(--ms-fs-h2);
-  color: var(--ms-bone);
+  font-size: var(--po-fs-h2);
+  color: var(--po-bone);
   text-align: center;
 }
 
 .subline {
   margin: -8px 0 8px;
-  color: var(--ms-muted);
-  font-size: var(--ms-fs-label);
+  color: var(--po-muted);
+  font-size: var(--po-fs-label);
   text-align: center;
 }
 
@@ -142,21 +142,21 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--ms-faint);
-  font-size: var(--ms-fs-label);
+  color: var(--po-faint);
+  font-size: var(--po-fs-label);
 }
 .divider::before,
 .divider::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--ms-line);
+  background: var(--po-line);
 }
 
 .error {
   margin: 0;
-  color: var(--ms-danger);
-  font-size: var(--ms-fs-label);
+  color: var(--po-danger);
+  font-size: var(--po-fs-label);
 }
 
 /* Signup password meter: three bars + a word, tinted by score. */
@@ -174,39 +174,39 @@
 .strengthBar {
   flex: 1;
   height: 3px;
-  border-radius: var(--ms-r-pill);
-  background: var(--ms-inset);
-  transition: background var(--ms-dur-fast) var(--ms-ease);
+  border-radius: var(--po-r-pill);
+  background: var(--po-inset);
+  transition: background var(--po-dur-fast) var(--po-ease);
 }
 .strengthBarOn {
   composes: strengthBar;
   background: currentColor;
 }
 .strengthLabel {
-  font-size: var(--ms-fs-micro);
+  font-size: var(--po-fs-micro);
   white-space: nowrap;
 }
 
 /* Auth links underline on hover only (the emails-table affordance). */
 .column a {
-  color: var(--ms-bone);
+  color: var(--po-bone);
   text-decoration: none;
 }
 .column a:hover {
-  text-decoration: underline dotted var(--ms-faint);
+  text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
 
 /* Consent line: quiet, small, only rendered when a legal URL exists. */
 .legal {
   margin: 4px 0 0;
-  color: var(--ms-faint);
-  font-size: var(--ms-fs-micro);
+  color: var(--po-faint);
+  font-size: var(--po-fs-micro);
   text-align: center;
   line-height: 1.6;
 }
 .legal a {
-  color: var(--ms-muted);
+  color: var(--po-muted);
 }
 
 /* Password label row: field label left, "Forgot password?" link right. */
@@ -217,15 +217,15 @@
 }
 
 .forgot {
-  font-size: var(--ms-fs-label);
+  font-size: var(--po-fs-label);
 }
 
 /* Neutral recovery outcome line ("check your email"): calm subline voice,
    never a success/danger tint. */
 .notice {
   margin: 0;
-  color: var(--ms-muted);
-  font-size: var(--ms-fs-label);
+  color: var(--po-muted);
+  font-size: var(--po-fs-label);
   text-align: center;
   line-height: 1.6;
 }

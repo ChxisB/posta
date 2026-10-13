@@ -44,12 +44,12 @@ const COMPLAINT = { threshold: WARN_COMPLAINT_RATE, lineTop: 14 };
  * clicked hue (the info family's second step) so it separates from opened.
  */
 const CHART_SERIES = [
-  { key: "sent", color: "var(--ms-muted)" },
-  { key: "delivered", color: "var(--ms-success)", area: true },
-  { key: "opened", color: "var(--ms-info)" },
-  { key: "clicked", color: "var(--ms-dot-clicked)" },
-  { key: "bounced", color: "var(--ms-danger)" },
-  { key: "complained", color: "var(--ms-warn)" },
+  { key: "sent", color: "var(--po-muted)" },
+  { key: "delivered", color: "var(--po-success)", area: true },
+  { key: "opened", color: "var(--po-info)" },
+  { key: "clicked", color: "var(--po-dot-clicked)" },
+  { key: "bounced", color: "var(--po-danger)" },
+  { key: "complained", color: "var(--po-warn)" },
 ] as const;
 
 type Bar = {
@@ -121,8 +121,8 @@ function engagementBars(
 function KpiValue({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="ms-microlabel">{label}</div>
-      <div className="ms-digits" style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1 }}>
+      <div className="po-microlabel">{label}</div>
+      <div className="po-digits" style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1 }}>
         {children}
       </div>
     </div>
@@ -164,21 +164,21 @@ function RateCard(props: {
   }
 
   return (
-    <div className="ms-kpi-card" style={{ flex: 1 }}>
+    <div className="po-kpi-card" style={{ flex: 1 }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "2px 8px" }}>
-        <div className="ms-microlabel">{props.label}</div>
+        <div className="po-microlabel">{props.label}</div>
         {props.note ? (
           <span
-            className="ms-mono"
-            style={{ fontSize: 10, color: "var(--ms-faint)", whiteSpace: "nowrap" }}
+            className="po-mono"
+            style={{ fontSize: 10, color: "var(--po-faint)", whiteSpace: "nowrap" }}
           >
             {props.note}
           </span>
         ) : null}
       </div>
       <div
-        className="ms-digits"
-        style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1, marginTop: 6 }}
+        className="po-digits"
+        style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1, marginTop: 6 }}
       >
         {props.headline}
       </div>
@@ -201,7 +201,7 @@ function RateCard(props: {
               bottom: 0,
               left: `${(hover.index / props.bars.length) * 100}%`,
               width: `${100 / props.bars.length}%`,
-              background: "var(--ms-panel-raised)",
+              background: "var(--po-panel-raised)",
             }}
           />
         ) : null}
@@ -241,20 +241,20 @@ function RateCard(props: {
         </div>
         {hover && hoveredBar ? (
           <ChartTip plot={areaRef} pointer={hover.pointer}>
-            <div className="ms-mono" style={{ fontSize: 11, color: "var(--ms-muted)" }}>
+            <div className="po-mono" style={{ fontSize: 11, color: "var(--po-muted)" }}>
               {hoveredBar.dayLabel}
               {hoveredBar.partial ? ` · ${props.partialNote}` : ""}
             </div>
             <div
-              className="ms-mono"
-              style={{ fontSize: 12, color: "var(--ms-bone)", marginTop: 3 }}
+              className="po-mono"
+              style={{ fontSize: 12, color: "var(--po-bone)", marginTop: 3 }}
             >
               {hoveredBar.detail}
             </div>
             {hoveredBar.underFloor && props.floorNote ? (
               <div
-                className="ms-mono"
-                style={{ fontSize: 11, color: "var(--ms-faint)", marginTop: 3 }}
+                className="po-mono"
+                style={{ fontSize: 11, color: "var(--po-faint)", marginTop: 3 }}
               >
                 {props.floorNote}
               </div>
@@ -268,17 +268,17 @@ function RateCard(props: {
               left: 0,
               right: 0,
               top: props.risk.lineTop,
-              borderTop: "1px dashed var(--ms-danger)",
+              borderTop: "1px dashed var(--po-danger)",
             }}
           >
             <span
-              className="ms-mono"
+              className="po-mono"
               style={{
                 position: "absolute",
                 right: 0,
                 top: -16,
                 fontSize: 10,
-                color: "var(--ms-danger)",
+                color: "var(--po-danger)",
               }}
             >
               {props.risk.label}
@@ -292,21 +292,21 @@ function RateCard(props: {
           alignItems: "center",
           gap: 8,
           fontSize: 13,
-          color: "var(--ms-muted)",
+          color: "var(--po-muted)",
           padding: "7px 0",
-          borderTop: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
           marginTop: 12,
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: props.color }} />
         {props.rowLabel}
         <span style={{ marginLeft: "auto" }}>
-          <span className="ms-digits" style={{ fontSize: 12.5, color: "var(--ms-faint)" }}>
+          <span className="po-digits" style={{ fontSize: 12.5, color: "var(--po-faint)" }}>
             {props.rowCount}
           </span>
           <span
-            className="ms-digits"
-            style={{ fontSize: 12.5, color: "var(--ms-bone)", marginLeft: 8 }}
+            className="po-digits"
+            style={{ fontSize: 12.5, color: "var(--po-bone)", marginLeft: 8 }}
           >
             {props.rowPct}
           </span>
@@ -320,28 +320,28 @@ function RateCard(props: {
             alignItems: "center",
             gap: 8,
             fontSize: 13,
-            color: "var(--ms-muted)",
+            color: "var(--po-muted)",
             padding: "7px 0",
-            borderTop: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
           }}
         >
           <span
-            style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ms-faint)" }}
+            style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--po-faint)" }}
           />
           {/* Baseline-aligned pair: centering the boxes would float the smaller mono note above the label's x-height. */}
           <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
             {props.secondary.label}
-            <span className="ms-mono" style={{ fontSize: 10, color: "var(--ms-faint)" }}>
+            <span className="po-mono" style={{ fontSize: 10, color: "var(--po-faint)" }}>
               {props.secondary.note}
             </span>
           </span>
           <span style={{ marginLeft: "auto" }}>
-            <span className="ms-digits" style={{ fontSize: 12.5, color: "var(--ms-faint)" }}>
+            <span className="po-digits" style={{ fontSize: 12.5, color: "var(--po-faint)" }}>
               {props.secondary.count}
             </span>
             <span
-              className="ms-digits"
-              style={{ fontSize: 12.5, color: "var(--ms-muted)", marginLeft: 8 }}
+              className="po-digits"
+              style={{ fontSize: 12.5, color: "var(--po-muted)", marginLeft: 8 }}
             >
               {props.secondary.pct}
             </span>
@@ -361,16 +361,16 @@ function RateCard(props: {
 function MetricsSkeleton() {
   return (
     <>
-      <div className="ms-kpi-card">
-        <div className="ms-kpi-row" style={{ display: "flex", gap: 56, alignItems: "flex-start" }}>
+      <div className="po-kpi-card">
+        <div className="po-kpi-row" style={{ display: "flex", gap: 56, alignItems: "flex-start" }}>
           {[90, 110, 130].map((width) => (
             <div key={width}>
-              <div className="ms-microlabel" style={{ display: "flex" }}>
+              <div className="po-microlabel" style={{ display: "flex" }}>
                 <Skeleton width={width} height="1lh" />
               </div>
               <div
-                className="ms-digits"
-                style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1, display: "flex" }}
+                className="po-digits"
+                style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1, display: "flex" }}
               >
                 <Skeleton width={100} height="1lh" />
               </div>
@@ -378,20 +378,20 @@ function MetricsSkeleton() {
           ))}
         </div>
         <div style={{ marginTop: 18, display: "flex" }}>
-          <Skeleton width="100%" height={228} radius="var(--ms-r-input)" />
+          <Skeleton width="100%" height={228} radius="var(--po-r-input)" />
         </div>
       </div>
       {[0, 1].map((row) => (
-        <div key={row} className="ms-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
+        <div key={row} className="po-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
           {[0, 1].map((card) => (
-            <div key={card} className="ms-kpi-card" style={{ flex: 1 }}>
-              <div className="ms-microlabel" style={{ display: "flex" }}>
+            <div key={card} className="po-kpi-card" style={{ flex: 1 }}>
+              <div className="po-microlabel" style={{ display: "flex" }}>
                 <Skeleton width={110} height="1lh" />
               </div>
               <div
-                className="ms-digits"
+                className="po-digits"
                 style={{
-                  fontSize: "var(--ms-fs-kpi)",
+                  fontSize: "var(--po-fs-kpi)",
                   lineHeight: 1.1,
                   marginTop: 6,
                   display: "flex",
@@ -400,7 +400,7 @@ function MetricsSkeleton() {
                 <Skeleton width={80} height="1lh" />
               </div>
               <div style={{ marginTop: 16, display: "flex" }}>
-                <Skeleton width="100%" height={BAR_AREA} radius="var(--ms-r-input)" />
+                <Skeleton width="100%" height={BAR_AREA} radius="var(--po-r-input)" />
               </div>
               <div
                 style={{
@@ -408,7 +408,7 @@ function MetricsSkeleton() {
                   alignItems: "center",
                   fontSize: 13,
                   padding: "7px 0",
-                  borderTop: "1px solid var(--ms-line)",
+                  borderTop: "1px solid var(--po-line)",
                   marginTop: 12,
                 }}
               >
@@ -425,33 +425,33 @@ function MetricsSkeleton() {
 /** Mirrors the loaded score card: label row, hero digits line, 4-column footer. */
 function AccountScoreSkeleton() {
   return (
-    <div className="ms-kpi-card" style={{ marginTop: 18 }}>
-      <div className="ms-microlabel" style={{ display: "flex" }}>
+    <div className="po-kpi-card" style={{ marginTop: 18 }}>
+      <div className="po-microlabel" style={{ display: "flex" }}>
         <Skeleton width={110} height="1lh" />
       </div>
       <div
-        className="ms-digits"
-        style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1, marginTop: 6, display: "flex" }}
+        className="po-digits"
+        style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1, marginTop: 6, display: "flex" }}
       >
         <Skeleton width={110} height="1lh" />
       </div>
       <div
-        className="ms-kpi-row ms-score-row"
+        className="po-kpi-row po-score-row"
         style={{
           display: "flex",
           gap: 56,
           marginTop: 16,
           paddingTop: 14,
-          borderTop: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
           alignItems: "flex-start",
         }}
       >
         {[0, 1, 2, 3].map((column) => (
           <div key={column}>
-            <div className="ms-microlabel" style={{ display: "flex" }}>
+            <div className="po-microlabel" style={{ display: "flex" }}>
               <Skeleton width={80} height="1lh" />
             </div>
-            <div className="ms-digits" style={{ fontSize: 20, marginTop: 4, display: "flex" }}>
+            <div className="po-digits" style={{ fontSize: 20, marginTop: 4, display: "flex" }}>
               <Skeleton width={44} height="1lh" />
             </div>
           </div>
@@ -493,7 +493,7 @@ export default function MetricsPage() {
   const detailsGlyph = (
     <button
       type="button"
-      className="ms-tooltip-trigger"
+      className="po-tooltip-trigger"
       aria-label={t("score.details.title")}
       onClick={() => setScoreDetailsOpen(true)}
     >
@@ -540,9 +540,9 @@ export default function MetricsPage() {
         <EmptyState area="metrics" headline={t("empty")} body={t.rich("emptyHint", codeRichTags)} />
       ) : (
         <>
-          <div className="ms-kpi-card">
+          <div className="po-kpi-card">
             <div
-              className="ms-kpi-row"
+              className="po-kpi-row"
               style={{ display: "flex", gap: 56, alignItems: "flex-start" }}
             >
               <KpiValue label={t("kpi.emails")}>
@@ -578,7 +578,7 @@ export default function MetricsPage() {
           {scoreQuery.data === undefined ? (
             <AccountScoreSkeleton />
           ) : (
-            <div className="ms-kpi-card" style={{ marginTop: 18 }}>
+            <div className="po-kpi-card" style={{ marginTop: 18 }}>
               <div
                 style={{
                   display: "flex",
@@ -587,10 +587,10 @@ export default function MetricsPage() {
                   gap: "2px 8px",
                 }}
               >
-                <div className="ms-microlabel">{t("score.title")}</div>
+                <div className="po-microlabel">{t("score.title")}</div>
                 <span
-                  className="ms-mono"
-                  style={{ fontSize: 10, color: "var(--ms-faint)", whiteSpace: "nowrap" }}
+                  className="po-mono"
+                  style={{ fontSize: 10, color: "var(--po-faint)", whiteSpace: "nowrap" }}
                 >
                   {t("score.window")}
                 </span>
@@ -604,8 +604,8 @@ export default function MetricsPage() {
                 }}
               >
                 <div
-                  className="ms-digits"
-                  style={{ fontSize: "var(--ms-fs-kpi)", lineHeight: 1.1, marginTop: 6 }}
+                  className="po-digits"
+                  style={{ fontSize: "var(--po-fs-kpi)", lineHeight: 1.1, marginTop: 6 }}
                 >
                   {scoreQuery.data.scoreTenths != null ? (
                     <Odometer formatted={formatScoreTenths(scoreQuery.data.scoreTenths, locale)} />
@@ -614,78 +614,78 @@ export default function MetricsPage() {
                   )}
                 </div>
                 <span
-                  className="ms-digits"
-                  style={{ fontSize: 15, color: "var(--ms-muted)", whiteSpace: "nowrap" }}
+                  className="po-digits"
+                  style={{ fontSize: 15, color: "var(--po-muted)", whiteSpace: "nowrap" }}
                 >
                   {t("score.outOfTen")}
                 </span>
                 {scoreQuery.data.band ? (
-                  <span className={`ms-badge ms-badge-${BAND_TONE[scoreQuery.data.band]}`}>
+                  <span className={`po-badge po-badge-${BAND_TONE[scoreQuery.data.band]}`}>
                     {common(`band.${scoreQuery.data.band}`)}
                   </span>
                 ) : null}
                 {scoreQuery.data.guardrailStatus !== "ok" ? (
-                  <span style={{ fontSize: 12.5, color: "var(--ms-warn)" }}>
+                  <span style={{ fontSize: 12.5, color: "var(--po-warn)" }}>
                     {t("score.capped")}
                   </span>
                 ) : null}
               </div>
               <div
-                className="ms-kpi-row ms-score-row"
+                className="po-kpi-row po-score-row"
                 style={{
                   display: "flex",
                   gap: 56,
                   marginTop: 16,
                   paddingTop: 14,
-                  borderTop: "1px solid var(--ms-line)",
+                  borderTop: "1px solid var(--po-line)",
                   alignItems: "flex-start",
                 }}
               >
                 <div>
                   <div
-                    className="ms-microlabel"
+                    className="po-microlabel"
                     style={{ display: "flex", alignItems: "center", gap: 6 }}
                   >
                     {t("score.content")}
                     {detailsGlyph}
                   </div>
-                  <div className="ms-digits" style={{ fontSize: 20, marginTop: 4 }}>
+                  <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {scoreQuery.data.contentScoreTenths != null
                       ? formatScoreTenths(scoreQuery.data.contentScoreTenths, locale)
                       : "—"}
                   </div>
-                  <div style={{ fontSize: 12.5, color: "var(--ms-faint)", marginTop: 3 }}>
+                  <div style={{ fontSize: 12.5, color: "var(--po-faint)", marginTop: 3 }}>
                     {t("score.contentLine")}
                   </div>
                 </div>
                 <div>
                   <div
-                    className="ms-microlabel"
+                    className="po-microlabel"
                     style={{ display: "flex", alignItems: "center", gap: 6 }}
                   >
                     {t("score.outcome")}
                     {detailsGlyph}
                   </div>
-                  <div className="ms-digits" style={{ fontSize: 20, marginTop: 4 }}>
+                  <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {scoreQuery.data.outcomeScoreTenths != null
                       ? formatScoreTenths(scoreQuery.data.outcomeScoreTenths, locale)
                       : "—"}
                   </div>
-                  <div style={{ fontSize: 12.5, color: "var(--ms-faint)", marginTop: 3 }}>
+                  <div style={{ fontSize: 12.5, color: "var(--po-faint)", marginTop: 3 }}>
                     {scoreQuery.data.insufficientOutcomeData
                       ? t("score.insufficient")
                       : t("score.outcomeLine")}
                   </div>
                 </div>
                 <div>
-                  <div className="ms-microlabel">{t("score.complaintRate")}</div>
-                  <div className="ms-digits" style={{ fontSize: 20, marginTop: 4 }}>
+                  <div className="po-microlabel">{t("score.complaintRate")}</div>
+                  <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {pct2.format(scoreQuery.data.complaintRate)}
                   </div>
                 </div>
                 <div>
-                  <div className="ms-microlabel">{t("score.hardBounceRate")}</div>
-                  <div className="ms-digits" style={{ fontSize: 20, marginTop: 4 }}>
+                  <div className="po-microlabel">{t("score.hardBounceRate")}</div>
+                  <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {pct2.format(scoreQuery.data.hardBounceRate)}
                   </div>
                 </div>
@@ -700,17 +700,17 @@ export default function MetricsPage() {
                   marginTop: 16,
                   paddingTop: 12,
                   border: 0,
-                  borderTop: "1px solid var(--ms-line)",
+                  borderTop: "1px solid var(--po-line)",
                   background: "none",
-                  color: "var(--ms-muted)",
+                  color: "var(--po-muted)",
                   font: "inherit",
-                  fontSize: "var(--ms-fs-label)",
+                  fontSize: "var(--po-fs-label)",
                   cursor: "pointer",
                   textAlign: "left",
                 }}
               >
                 <span>{t("score.details.open")}</span>
-                <span style={{ marginLeft: "auto", color: "var(--ms-faint)" }}>→</span>
+                <span style={{ marginLeft: "auto", color: "var(--po-faint)" }}>→</span>
               </button>
               <ScoreDetailsDrawer
                 open={scoreDetailsOpen}
@@ -719,7 +719,7 @@ export default function MetricsPage() {
             </div>
           )}
 
-          <div className="ms-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
+          <div className="po-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
             <RateCard
               label={t("bounce.title")}
               note={t("guardrail.window", { days: GUARDRAIL_WINDOW_DAYS })}
@@ -728,7 +728,7 @@ export default function MetricsPage() {
                 label: t("bounce.risk", { rate: riskPct.format(WARN_BOUNCE_RATE) }),
                 lineTop: BOUNCE.lineTop,
               }}
-              color="var(--ms-danger)"
+              color="var(--po-danger)"
               partialNote={t("chart.soFar")}
               floorNote={t("chart.belowFloor")}
               bars={rateBars(
@@ -755,7 +755,7 @@ export default function MetricsPage() {
                 label: t("complaint.risk", { rate: riskPct.format(WARN_COMPLAINT_RATE) }),
                 lineTop: COMPLAINT.lineTop,
               }}
-              color="var(--ms-warn)"
+              color="var(--po-warn)"
               partialNote={t("chart.soFar")}
               floorNote={t("chart.belowFloor")}
               bars={rateBars(
@@ -776,7 +776,7 @@ export default function MetricsPage() {
             />
           </div>
 
-          <div className="ms-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
+          <div className="po-card-row" style={{ display: "flex", gap: 18, marginTop: 18 }}>
             <RateCard
               label={t("open.title")}
               note={t("engagement.denominator")}
@@ -785,7 +785,7 @@ export default function MetricsPage() {
                   ? pct1.format(data.totals.opened / data.totals.delivered)
                   : "—"
               }
-              color="var(--ms-info)"
+              color="var(--po-info)"
               partialNote={t("chart.soFar")}
               bars={engagementBars(data.days, (d) => d.opened, pct1, fmt, dayLabel, data.today)}
               rowLabel={t("open.opened")}
@@ -818,7 +818,7 @@ export default function MetricsPage() {
                   ? pct1.format(data.totals.clicked / data.totals.delivered)
                   : "—"
               }
-              color="var(--ms-info)"
+              color="var(--po-info)"
               partialNote={t("chart.soFar")}
               bars={engagementBars(data.days, (d) => d.clicked, pct1, fmt, dayLabel, data.today)}
               rowLabel={t("click.clicked")}

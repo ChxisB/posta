@@ -42,7 +42,7 @@ interface ComposerDraft {
 // must not render on the server. The ghost holds the field's height meanwhile.
 const MailyEditor = dynamic(() => import("@/components/maily-editor").then((m) => m.default), {
   ssr: false,
-  loading: () => <Skeleton width="100%" height={340} radius="var(--ms-r-input)" />,
+  loading: () => <Skeleton width="100%" height={340} radius="var(--po-r-input)" />,
 });
 
 export interface ComposerInitial {
@@ -67,8 +67,8 @@ export function ComposerSkeleton() {
           <Skeleton width={150} height="1lh" />
         </div>
         <h1
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
         >
           <Skeleton width={220} height="1lh" />
         </h1>
@@ -79,11 +79,11 @@ export function ComposerSkeleton() {
           <div key={row}>
             <Skeleton width={90} height={11} />
             <div style={{ marginTop: 8, display: "flex" }}>
-              <Skeleton width={width} height={38} radius="var(--ms-r-input)" />
+              <Skeleton width={width} height={38} radius="var(--po-r-input)" />
             </div>
           </div>
         ))}
-        <Skeleton width="100%" height={260} radius="var(--ms-r-input)" />
+        <Skeleton width="100%" height={260} radius="var(--po-r-input)" />
       </div>
     </>
   );
@@ -429,7 +429,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             <div style={{ position: "relative" }}>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 disabled={!complete || testMutation.isPending}
                 onClick={sendTest}
               >
@@ -438,14 +438,14 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
               </button>
               {testResult ? (
                 <span
-                  className="ms-action-note"
+                  className="po-action-note"
                   style={{
                     position: "absolute",
                     top: "calc(100% + 6px)",
                     right: 0,
                     whiteSpace: "nowrap",
-                    color: testResult.kind === "sent" ? "var(--ms-muted)" : "var(--ms-danger)",
-                    fontSize: "var(--ms-fs-label)",
+                    color: testResult.kind === "sent" ? "var(--po-muted)" : "var(--po-danger)",
+                    fontSize: "var(--po-fs-label)",
                   }}
                 >
                   {testResult.kind === "sent"
@@ -460,7 +460,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             </div>
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               disabled={!complete || saving}
               onClick={() => void saveDraft()}
             >
@@ -469,7 +469,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             </button>
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={!complete}
               onClick={() => {
                 sendMutation.reset();
@@ -483,7 +483,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
       />
 
       {step === 1 ? (
-        <div className="ms-stepper" style={{ display: "flex", gap: 44, alignItems: "flex-start" }}>
+        <div className="po-stepper" style={{ display: "flex", gap: 44, alignItems: "flex-start" }}>
           <MobileStepBar steps={[t("composer.steps.one"), t("composer.steps.two")]} active={1} />
           <StepRail current={1} />
           <form
@@ -494,27 +494,27 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             style={{
               width: 520,
               flex: "none",
-              background: "var(--ms-panel)",
-              border: "1px solid var(--ms-line-strong)",
-              borderRadius: "var(--ms-r-card)",
+              background: "var(--po-panel)",
+              border: "1px solid var(--po-line-strong)",
+              borderRadius: "var(--po-r-card)",
               padding: 24,
               boxSizing: "border-box",
             }}
           >
-            <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ms-bone)" }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: "var(--po-bone)" }}>
               {t("composer.steps.one")}
             </div>
 
-            <div className="ms-field" style={{ marginTop: 16 }}>
+            <div className="po-field" style={{ marginTop: 16 }}>
               <label htmlFor="bc-name">
                 {t("composer.nameLabel")}{" "}
-                <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+                <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
                   — {t("composer.optional")}
                 </span>
               </label>
               <input
                 id="bc-name"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 placeholder={t("composer.nameHint")}
                 value={name}
@@ -523,7 +523,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             </div>
 
             {(topics.data?.length ?? 0) > 0 ? (
-              <div className="ms-field" style={{ marginTop: 16 }}>
+              <div className="po-field" style={{ marginTop: 16 }}>
                 <label htmlFor="bc-topic">{t("composer.topicLabel")}</label>
                 <Select
                   id="bc-topic"
@@ -542,8 +542,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                 <p
                   style={{
                     margin: "6px 0 0",
-                    color: "var(--ms-muted)",
-                    fontSize: "var(--ms-fs-label)",
+                    color: "var(--po-muted)",
+                    fontSize: "var(--po-fs-label)",
                   }}
                 >
                   {t("composer.topicHint")}
@@ -552,7 +552,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             ) : null}
 
             {(segments.data?.length ?? 0) > 0 ? (
-              <div className="ms-field" style={{ marginTop: 16 }}>
+              <div className="po-field" style={{ marginTop: 16 }}>
                 <label htmlFor="bc-segment">{t("composer.segmentLabel")}</label>
                 <Select
                   id="bc-segment"
@@ -571,8 +571,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                 <p
                   style={{
                     margin: "6px 0 0",
-                    color: "var(--ms-muted)",
-                    fontSize: "var(--ms-fs-label)",
+                    color: "var(--po-muted)",
+                    fontSize: "var(--po-fs-label)",
                   }}
                 >
                   {t("composer.segmentHint")}
@@ -581,7 +581,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             ) : null}
 
             <div style={{ marginTop: 20 }}>
-              <button type="submit" className="ms-btn ms-btn-primary">
+              <button type="submit" className="po-btn po-btn-primary">
                 {t("composer.continue")}
               </button>
             </div>
@@ -598,20 +598,20 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
           </form>
         </div>
       ) : (
-        <div className="ms-step-col" style={{ display: "flex", flexDirection: "column" }}>
+        <div className="po-step-col" style={{ display: "flex", flexDirection: "column" }}>
           <MobileStepBar steps={[t("composer.steps.one"), t("composer.steps.two")]} active={2} />
 
           {/* Step 01 — done: targeting recap with a way back */}
-          <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-            <MarkerRail marker="01" done color="var(--ms-success)" />
+          <div className="po-step" style={{ display: "flex", gap: 44 }}>
+            <MarkerRail marker="01" done color="var(--po-success)" />
             <div style={{ flex: 1, minWidth: 0, paddingBottom: 24 }}>
               <div
                 style={{
                   maxWidth: 720,
-                  backgroundColor: "var(--ms-ground)",
+                  backgroundColor: "var(--po-ground)",
                   backgroundImage: statusGlow("success", 15),
-                  border: "1px solid var(--ms-success-border)",
-                  borderRadius: "var(--ms-r-card)",
+                  border: "1px solid var(--po-success-border)",
+                  borderRadius: "var(--po-r-card)",
                   padding: "12px 16px",
                   boxSizing: "border-box",
                   display: "flex",
@@ -626,30 +626,30 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                     style={{
                       fontSize: 14,
                       fontWeight: 600,
-                      color: "var(--ms-bone)",
+                      color: "var(--po-bone)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     }}
                   >
                     {selectedSegment?.name ?? t("composer.segmentNone")}{" "}
-                    <span style={{ color: "var(--ms-success)", fontWeight: 400 }}>✓</span>
+                    <span style={{ color: "var(--po-success)", fontWeight: 400 }}>✓</span>
                     {name.trim() ? (
-                      <span style={{ color: "var(--ms-muted)", fontWeight: 400 }}>
+                      <span style={{ color: "var(--po-muted)", fontWeight: 400 }}>
                         {" "}
                         · {name.trim()}
                       </span>
                     ) : null}
                   </div>
                   {selectedTopic ? (
-                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
                       {t("composer.topicLabel")}: {selectedTopic.name}
                     </p>
                   ) : null}
                 </div>
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   style={{ marginLeft: "auto" }}
                   onClick={() => setStep(1)}
                 >
@@ -660,8 +660,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
           </div>
 
           {/* Step 02 — content */}
-          <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-            <MarkerRail marker="02" color="var(--ms-bone)" line={false} />
+          <div className="po-step" style={{ display: "flex", gap: 44 }}>
+            <MarkerRail marker="02" color="var(--po-bone)" line={false} />
             <div
               style={{
                 flex: 1,
@@ -673,7 +673,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
               }}
             >
               {templateOptions.length > 0 ? (
-                <div className="ms-field">
+                <div className="po-field">
                   <label htmlFor="bc-template">{tTemplates("picker.label")}</label>
                   <Select
                     id="bc-template"
@@ -692,8 +692,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                   <p
                     style={{
                       margin: "6px 0 0",
-                      color: "var(--ms-muted)",
-                      fontSize: "var(--ms-fs-label)",
+                      color: "var(--po-muted)",
+                      fontSize: "var(--po-fs-label)",
                     }}
                   >
                     {tTemplates("picker.hint")}
@@ -703,27 +703,27 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
 
               <FromField key={editorNonce} id="bc-from" value={from} onChange={setFrom} />
 
-              <div className="ms-tpl-meta" style={{ gap: 10 }}>
-                <div className="ms-field">
+              <div className="po-tpl-meta" style={{ gap: 10 }}>
+                <div className="po-field">
                   <label htmlFor="bc-reply-to">
                     {t("composer.replyToLabel")}{" "}
-                    <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+                    <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
                       — {t("composer.optional")}
                     </span>
                   </label>
                   <input
                     id="bc-reply-to"
-                    className="ms-input mono"
+                    className="po-input mono"
                     style={{ width: "100%" }}
                     value={replyTo}
                     onChange={(event) => setReplyTo(event.target.value)}
                   />
                 </div>
-                <div className="ms-field">
+                <div className="po-field">
                   <label htmlFor="bc-subject">{t("composer.subjectLabel")}</label>
                   <input
                     id="bc-subject"
-                    className="ms-input"
+                    className="po-input"
                     style={{ width: "100%" }}
                     value={subject}
                     onChange={(event) => setSubject(event.target.value)}
@@ -731,7 +731,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                 </div>
               </div>
 
-              <div className="ms-field">
+              <div className="po-field">
                 <div
                   style={{
                     display: "flex",
@@ -754,8 +754,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                           borderRadius: 8,
                           border: 0,
                           cursor: "pointer",
-                          background: tab === key ? "var(--ms-panel-raised)" : "none",
-                          color: tab === key ? "var(--ms-bone)" : "var(--ms-muted)",
+                          background: tab === key ? "var(--po-panel-raised)" : "none",
+                          color: tab === key ? "var(--po-bone)" : "var(--po-muted)",
                           font: "inherit",
                         }}
                         onClick={() => setTab(key)}
@@ -801,8 +801,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                     ) : null}
                     <div
                       style={{
-                        border: "1px solid var(--ms-line)",
-                        borderRadius: "var(--ms-r-input)",
+                        border: "1px solid var(--po-line)",
+                        borderRadius: "var(--po-r-input)",
                         overflow: "hidden",
                       }}
                     >
@@ -817,8 +817,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                           style={{
                             margin: 0,
                             padding: "16px 18px",
-                            color: "var(--ms-muted)",
-                            fontSize: "var(--ms-fs-ui)",
+                            color: "var(--po-muted)",
+                            fontSize: "var(--po-fs-ui)",
                           }}
                         >
                           {t("composer.noHtml")}
@@ -840,7 +840,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
               </div>
 
               {saveError && !guardOpen ? (
-                <p className="ms-field-error" style={{ margin: 0 }}>
+                <p className="po-field-error" style={{ margin: 0 }}>
                   {t("composer.saveError")}
                 </p>
               ) : null}
@@ -870,35 +870,35 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             />
           ) : (
             <p
-              style={{ margin: "0 0 18px", fontSize: "var(--ms-fs-ui)", color: "var(--ms-muted)" }}
+              style={{ margin: "0 0 18px", fontSize: "var(--po-fs-ui)", color: "var(--po-muted)" }}
             >
               {t("guard.counting")}
             </p>
           )}
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="bc-schedule">
               {t("guard.scheduleLabel")}{" "}
-              <span style={{ color: "var(--ms-faint)", textTransform: "none" }}>
+              <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
                 — {t("composer.optional")}
               </span>
             </label>
             <input
               id="bc-schedule"
               type="datetime-local"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               value={schedule}
               onChange={(event) => setSchedule(event.target.value)}
             />
           </div>
-          {sendErrorMessage ? <p className="ms-field-error">{sendErrorMessage}</p> : null}
+          {sendErrorMessage ? <p className="po-field-error">{sendErrorMessage}</p> : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeGuard}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeGuard}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={sending || sendBlocked}
             >
               <BtnSpinner on={sending} />

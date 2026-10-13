@@ -21,9 +21,9 @@ function PlanBadge({ plan }: { plan: string }) {
     <span
       style={{
         fontSize: 11,
-        color: tone ? `var(--ms-${tone})` : "var(--ms-muted)",
-        background: tone ? `var(--ms-${tone}-bg)` : undefined,
-        border: `1px solid ${tone ? `var(--ms-${tone}-border)` : "var(--ms-line)"}`,
+        color: tone ? `var(--po-${tone})` : "var(--po-muted)",
+        background: tone ? `var(--po-${tone}-bg)` : undefined,
+        border: `1px solid ${tone ? `var(--po-${tone}-border)` : "var(--po-line)"}`,
         borderRadius: 999,
         padding: "1px 8px",
         flex: "none",
@@ -43,7 +43,7 @@ function ChevronStack() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
       }}
     >
       <ChevronGlyph size={10} direction="up" />
@@ -133,7 +133,7 @@ export function TeamSwitcher({
           width: "100%",
           padding: "7px 10px",
           borderRadius: 10,
-          background: open ? "var(--ms-panel-raised)" : "none",
+          background: open ? "var(--po-panel-raised)" : "none",
           border: 0,
           cursor: switchable ? "pointer" : "default",
           textAlign: "left",
@@ -164,7 +164,7 @@ export function TeamSwitcher({
       {open ? (
         <div
           role="menu"
-          className="ms-menu"
+          className="po-menu"
           style={{
             position: "absolute",
             top: "calc(100% + 4px)",
@@ -173,13 +173,13 @@ export function TeamSwitcher({
             minWidth: 0,
           }}
         >
-          <div className="ms-menu-label">{t("teams")}</div>
+          <div className="po-menu-label">{t("teams")}</div>
           {(data?.teams ?? []).map((team) => (
             <button
               key={team.teamId}
               type="button"
               role="menuitem"
-              className="ms-menu-item"
+              className="po-menu-item"
               onClick={() => {
                 setOpen(false);
                 if (team.teamId !== data?.activeTeamId) switchTeam.mutate({ teamId: team.teamId });
@@ -202,7 +202,7 @@ export function TeamSwitcher({
                   so the pill is always the right-most element of the row. */}
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none" }}>
                 {team.teamId === data?.activeTeamId ? (
-                  <span aria-hidden="true" style={{ color: "var(--ms-muted)" }}>
+                  <span aria-hidden="true" style={{ color: "var(--po-muted)" }}>
                     ✓
                   </span>
                 ) : null}
@@ -210,18 +210,18 @@ export function TeamSwitcher({
               </span>
             </button>
           ))}
-          <hr className="ms-menu-sep" />
+          <hr className="po-menu-sep" />
           <button
             type="button"
             role="menuitem"
-            className="ms-menu-item"
+            className="po-menu-item"
             onClick={() => {
               setOpen(false);
               setCreateOpen(true);
             }}
           >
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: "var(--ms-muted)", display: "inline-flex", flex: "none" }}>
+              <span style={{ color: "var(--po-muted)", display: "inline-flex", flex: "none" }}>
                 <PlusGlyph size={13} />
               </span>
               {t("create")}
@@ -237,12 +237,12 @@ export function TeamSwitcher({
           }}
           style={{ display: "grid", gap: 16, marginTop: 12 }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="new-team-name">{t("nameLabel")}</label>
             <input
               id="new-team-name"
               type="text"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               required
               maxLength={CUSTOMER_TEXT_MAX}
@@ -252,7 +252,7 @@ export function TeamSwitcher({
             />
           </div>
           {createTeam.isError ? (
-            <p style={{ margin: 0, color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+            <p style={{ margin: 0, color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
               {createTeam.error.data?.code === "FORBIDDEN"
                 ? t("limit")
                 : createTeam.error.data?.code === "BAD_REQUEST"
@@ -261,10 +261,10 @@ export function TeamSwitcher({
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
-              {tCommon("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+              {tCommon("cancel")} <span className="po-keycap">Esc</span>
             </button>
-            <button type="submit" className="ms-btn ms-btn-primary" disabled={createTeam.isPending}>
+            <button type="submit" className="po-btn po-btn-primary" disabled={createTeam.isPending}>
               <BtnSpinner on={createTeam.isPending} />
               {t("submit")} <ConfirmKeycap />
             </button>

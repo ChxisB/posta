@@ -15,7 +15,7 @@ import { AuthScreen } from "./auth-screen";
 import { SilkCanvas } from "./silk-canvas";
 import { GitHubIcon, GoogleIcon } from "./social-icons";
 
-const STRENGTH_TONES = ["", "var(--ms-danger)", "var(--ms-warn)", "var(--ms-success)"] as const;
+const STRENGTH_TONES = ["", "var(--po-danger)", "var(--po-warn)", "var(--po-success)"] as const;
 const STRENGTH_KEYS = ["", "weak", "fair", "strong"] as const;
 
 /** Three bars + a word under a new-password field; hidden while empty. */
@@ -221,7 +221,7 @@ export function AuthForm({
         </p>
         <button
           type="button"
-          className={`ms-btn ms-btn-secondary ${styles.button}`}
+          className={`po-btn po-btn-secondary ${styles.button}`}
           disabled={pending !== null}
           onClick={resendVerification}
         >
@@ -240,19 +240,19 @@ export function AuthForm({
   return (
     <main className={styles.screen}>
       {/* biome-ignore lint/performance/noImgElement: decorative full-bleed backdrop, no optimization needed */}
-      <img src="/auth/waves-dark.webp" alt="" className={`ms-dark-only ${styles.backdrop}`} />
+      <img src="/auth/waves-dark.webp" alt="" className={`po-dark-only ${styles.backdrop}`} />
       {/* biome-ignore lint/performance/noImgElement: decorative full-bleed backdrop, no optimization needed */}
-      <img src="/auth/waves-light.webp" alt="" className={`ms-light-only ${styles.backdrop}`} />
+      <img src="/auth/waves-light.webp" alt="" className={`po-light-only ${styles.backdrop}`} />
       <SilkCanvas />
       <div className={styles.column}>
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
           src="/logo/millionsend-wordmark.svg"
-          className="ms-wordmark"
+          className="po-wordmark"
           alt={tCommon("appName")}
           height={22}
         />
-        <h1 className={`ms-display ${styles.headline}`}>{t("title")}</h1>
+        <h1 className={`po-display ${styles.headline}`}>{t("title")}</h1>
         <p className={styles.subline}>
           {t("subline")} <Link href={otherPage}>{t("sublineLink")}</Link>
         </p>
@@ -261,7 +261,7 @@ export function AuthForm({
             {providers.google ? (
               <button
                 type="button"
-                className={`ms-btn ms-btn-secondary ${styles.button}`}
+                className={`po-btn po-btn-secondary ${styles.button}`}
                 disabled={pending !== null}
                 onClick={() => onSocial("google")}
               >
@@ -272,7 +272,7 @@ export function AuthForm({
             {providers.github ? (
               <button
                 type="button"
-                className={`ms-btn ms-btn-secondary ${styles.button}`}
+                className={`po-btn po-btn-secondary ${styles.button}`}
                 disabled={pending !== null}
                 onClick={() => onSocial("github")}
               >
@@ -285,12 +285,12 @@ export function AuthForm({
         {anySocial ? <div className={styles.divider}>{tSocial("or")}</div> : null}
         <form onSubmit={onSubmit} className={styles.form}>
           {mode === "signup" ? (
-            <div className={`ms-field ${styles.field}`}>
+            <div className={`po-field ${styles.field}`}>
               <label htmlFor="name">{t("name")}</label>
               <input
                 id="name"
                 type="text"
-                className={`ms-input ${styles.control}`}
+                className={`po-input ${styles.control}`}
                 autoComplete="name"
                 placeholder={t("namePlaceholder")}
                 required
@@ -300,12 +300,12 @@ export function AuthForm({
               />
             </div>
           ) : null}
-          <div className={`ms-field ${styles.field}`}>
+          <div className={`po-field ${styles.field}`}>
             <label htmlFor="email">{t("email")}</label>
             <input
               id="email"
               type="email"
-              className={`ms-input ${styles.control}`}
+              className={`po-input ${styles.control}`}
               autoComplete="email"
               placeholder={t("emailPlaceholder")}
               required
@@ -314,7 +314,7 @@ export function AuthForm({
             />
           </div>
           {passwordShown ? (
-            <div className={`ms-field ${styles.field}`}>
+            <div className={`po-field ${styles.field}`}>
               <div className={styles.labelRow}>
                 <label htmlFor="password">{t("password")}</label>
                 {mode === "login" && forgotPassword ? (
@@ -334,7 +334,7 @@ export function AuthForm({
                 ref={passwordRef}
                 id="password"
                 type="password"
-                className={`ms-input ${styles.control}`}
+                className={`po-input ${styles.control}`}
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 placeholder={t("passwordPlaceholder")}
                 required
@@ -354,7 +354,7 @@ export function AuthForm({
           {turnstile.slot}
           <button
             type="submit"
-            className={`ms-btn ms-btn-primary ${styles.button}`}
+            className={`po-btn po-btn-primary ${styles.button}`}
             disabled={pending !== null}
           >
             {t("submit")}

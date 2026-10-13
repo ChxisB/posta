@@ -87,7 +87,7 @@ export function CommandPalette() {
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: "var(--ms-z-modal)",
+        zIndex: "var(--po-z-modal)",
         background: "rgba(0,0,0,.72)",
       }}
       onMouseDown={(event) => {
@@ -97,7 +97,7 @@ export function CommandPalette() {
       <div
         role="dialog"
         aria-modal="true"
-        className="ms-cmdk"
+        className="po-cmdk"
         style={{
           position: "absolute",
           left: "50%",
@@ -105,8 +105,8 @@ export function CommandPalette() {
           transform: "translateX(-50%)",
           width: 600,
           maxWidth: "calc(100vw - 32px)",
-          background: "var(--ms-panel)",
-          border: "1px solid var(--ms-line-strong)",
+          background: "var(--po-panel)",
+          border: "1px solid var(--po-line-strong)",
           borderRadius: 22,
           overflow: "hidden",
         }}
@@ -117,14 +117,14 @@ export function CommandPalette() {
             alignItems: "center",
             gap: 12,
             padding: "16px 18px",
-            borderBottom: "1px solid var(--ms-line)",
+            borderBottom: "1px solid var(--po-line)",
           }}
         >
-          <span style={{ color: "var(--ms-faint)", fontSize: 15 }}>⌕</span>
+          <span style={{ color: "var(--po-faint)", fontSize: 15 }}>⌕</span>
           <input
             // biome-ignore lint/a11y/noAutofocus: command palette convention — focus must land in the query field
             autoFocus
-            className="ms-input"
+            className="po-input"
             style={{
               flex: 1,
               background: "transparent",
@@ -142,11 +142,11 @@ export function CommandPalette() {
             }}
             onKeyDown={onInputKeyDown}
           />
-          <span className="ms-keycap">Esc</span>
+          <span className="po-keycap">Esc</span>
         </div>
-        <div className="ms-cmdk-list" style={{ padding: 10, maxHeight: 420, overflowY: "auto" }}>
+        <div className="po-cmdk-list" style={{ padding: 10, maxHeight: 420, overflowY: "auto" }}>
           {flat.length === 0 ? (
-            <div style={{ padding: "9px 12px", fontSize: 14, color: "var(--ms-muted)" }}>
+            <div style={{ padding: "9px 12px", fontSize: 14, color: "var(--po-muted)" }}>
               {t("noResults")}
             </div>
           ) : (
@@ -154,7 +154,7 @@ export function CommandPalette() {
               group.items.length === 0 ? null : (
                 <div key={group.id}>
                   <div
-                    className="ms-microlabel"
+                    className="po-microlabel"
                     style={{ padding: "6px 12px 4px", fontSize: 10.5 }}
                   >
                     {group.label}
@@ -173,7 +173,7 @@ export function CommandPalette() {
                           alignItems: "center",
                           width: "100%",
                           padding: "9px 12px",
-                          background: selected ? "var(--ms-panel-raised)" : "none",
+                          background: selected ? "var(--po-panel-raised)" : "none",
                           border: 0,
                           borderRadius: 10,
                           cursor: "pointer",
@@ -184,12 +184,12 @@ export function CommandPalette() {
                         <span
                           style={{
                             fontSize: 14,
-                            color: selected ? "var(--ms-bone)" : "var(--ms-muted)",
+                            color: selected ? "var(--po-bone)" : "var(--po-muted)",
                           }}
                         >
                           {item.label}
                         </span>
-                        {selected ? <span className="ms-keycap">↵</span> : null}
+                        {selected ? <span className="po-keycap">↵</span> : null}
                       </button>
                     );
                   })}
@@ -199,25 +199,25 @@ export function CommandPalette() {
           )}
         </div>
         <div
-          className="ms-cmdk-hints"
+          className="po-cmdk-hints"
           style={{
             display: "flex",
             gap: 16,
             padding: "10px 18px",
-            borderTop: "1px solid var(--ms-line)",
+            borderTop: "1px solid var(--po-line)",
             fontSize: 11.5,
-            color: "var(--ms-muted)",
+            color: "var(--po-muted)",
           }}
         >
           <span>
-            <span className="ms-keycap">↑</span> <span className="ms-keycap">↓</span>{" "}
+            <span className="po-keycap">↑</span> <span className="po-keycap">↓</span>{" "}
             {t("hintNavigate")}
           </span>
           <span>
-            <span className="ms-keycap">↵</span> {t("hintOpen")}
+            <span className="po-keycap">↵</span> {t("hintOpen")}
           </span>
           <span>
-            <span className="ms-keycap">esc</span> {t("hintClose")}
+            <span className="po-keycap">esc</span> {t("hintClose")}
           </span>
         </div>
       </div>

@@ -53,13 +53,13 @@ function ContactsHead({ selectAll }: { selectAll?: React.ReactNode }) {
   return (
     <thead>
       <tr>
-        <th className="ms-check-cell">{selectAll}</th>
-        <th className="ms-col-lead" style={{ width: "40%" }}>
+        <th className="po-check-cell">{selectAll}</th>
+        <th className="po-col-lead" style={{ width: "40%" }}>
           {t("contacts.email")}
         </th>
         <th style={{ width: "22%" }}>{t("contacts.segments")}</th>
         <th style={{ width: "15%" }}>{t("contacts.status")}</th>
-        <th className="right ms-col-date">{t("contacts.added")}</th>
+        <th className="right po-col-date">{t("contacts.added")}</th>
         <th className="right" style={{ width: 40 }} />
       </tr>
     </thead>
@@ -76,7 +76,7 @@ function ContactsSkeleton() {
         {widths.map((width, row) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows, position is identity
           <tr key={row}>
-            <td className="ms-check-cell" />
+            <td className="po-check-cell" />
             <td>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <Skeleton width={24} height={24} radius="50%" />
@@ -121,7 +121,7 @@ function AddContactsSplit({
     // biome-ignore lint/a11y/noStaticElementInteractions: keydown only intercepts Escape bubbling from the trigger/menu
     <div
       ref={rootRef}
-      className="ms-split"
+      className="po-split"
       style={{ position: "relative", display: "inline-flex" }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -132,7 +132,7 @@ function AddContactsSplit({
     >
       <button
         type="button"
-        className="ms-btn ms-btn-primary"
+        className="po-btn po-btn-primary"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -144,7 +144,7 @@ function AddContactsSplit({
       {open ? (
         <div
           role="menu"
-          className="ms-menu"
+          className="po-menu"
           style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: "max-content" }}
         >
           {(
@@ -158,7 +158,7 @@ function AddContactsSplit({
               key={label}
               type="button"
               role="menuitem"
-              className="ms-menu-item"
+              className="po-menu-item"
               onClick={() => {
                 setOpen(false);
                 onSelect();
@@ -495,7 +495,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
               <>
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   onClick={() => setEraseOpen(true)}
                 >
                   {t("contacts.erase")}
@@ -515,14 +515,14 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
       <AudienceTabs />
 
       <div
-        className="ms-meta-grid ms-stat-strip"
+        className="po-meta-grid po-stat-strip"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr) auto",
           gap: 22,
           padding: "20px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
           marginBottom: 20,
         }}
       >
@@ -538,8 +538,8 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
           label={t("contacts.stats.unsubscribed")}
           value={stats.data ? nf.format(stats.data.unsubscribed) : null}
         />
-        <div className="ms-kpi-metrics">
-          <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+        <div className="po-kpi-metrics">
+          <div className="po-microlabel" style={{ fontSize: 10.5 }}>
             {t("contacts.stats.metrics")}
           </div>
           <div style={{ marginTop: 6, display: "flex" }}>
@@ -566,7 +566,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
       </div>
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox
@@ -646,7 +646,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
               selectAll={
                 <input
                   type="checkbox"
-                  className="ms-checkbox"
+                  className="po-checkbox"
                   aria-label={t("contacts.bulk.selectAll")}
                   checked={items.length > 0 && items.every((row) => selected.has(row.id))}
                   ref={(el) => {
@@ -670,11 +670,11 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                 const isSelected = selected.has(row.id);
                 const statusBadge = (
                   <span
-                    className={`ms-badge ${row.unsubscribed ? "ms-badge-neutral" : "ms-badge-success"}`}
+                    className={`po-badge ${row.unsubscribed ? "po-badge-neutral" : "po-badge-success"}`}
                   >
                     {row.unsubscribed ? t("contacts.unsubscribedBadge") : t("contacts.subscribed")}
                     {!row.unsubscribed && row.topics.length > 1 ? (
-                      <span className="ms-count">{row.topics.length}</span>
+                      <span className="po-count">{row.topics.length}</span>
                     ) : null}
                   </span>
                 );
@@ -685,10 +685,10 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                     onClick={() => router.push(detailHref)}
                   >
                     {/* biome-ignore lint/a11y/useKeyWithClickEvents: mouse-only guard so toggling the checkbox does not also trigger the row navigation; keyboard users reach the checkbox directly */}
-                    <td className="ms-check-cell" onClick={(event) => event.stopPropagation()}>
+                    <td className="po-check-cell" onClick={(event) => event.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="ms-checkbox"
+                        className="po-checkbox"
                         aria-label={t("contacts.bulk.selectRow", { email: row.email })}
                         checked={isSelected}
                         onChange={() => toggleSelected(row.id)}
@@ -698,7 +698,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                       <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                         <ContactAvatar email={row.email} name={name} size={24} />
                         <Link
-                          className="ms-mono"
+                          className="po-mono"
                           style={{
                             fontSize: 13,
                             flexShrink: 0,
@@ -716,7 +716,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                         {name && name.toLowerCase() !== row.email.toLowerCase() ? (
                           <span
                             style={{
-                              color: "var(--ms-muted)",
+                              color: "var(--po-muted)",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -737,7 +737,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                             display: "flex",
                             alignItems: "center",
                             minWidth: 0,
-                            color: "var(--ms-muted)",
+                            color: "var(--po-muted)",
                           }}
                         >
                           <span
@@ -755,13 +755,13 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                             // biome-ignore lint/a11y/noStaticElementInteractions: click containment only, the tooltip trigger inside stays the interactive element
                             <span onClick={(event) => event.stopPropagation()}>
                               <Tooltip text={row.segments.join("\n")}>
-                                <span className="ms-count">+{row.segments.length - 1}</span>
+                                <span className="po-count">+{row.segments.length - 1}</span>
                               </Tooltip>
                             </span>
                           ) : null}
                         </span>
                       ) : (
-                        <span style={{ color: "var(--ms-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>—</span>
                       )}
                     </td>
                     <td>
@@ -777,7 +777,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                     </td>
                     <td
                       className="right"
-                      style={{ color: "var(--ms-muted)", whiteSpace: "nowrap" }}
+                      style={{ color: "var(--po-muted)", whiteSpace: "nowrap" }}
                     >
                       <RelativeTime date={row.createdAt} />
                     </td>
@@ -843,11 +843,11 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             submitAdd();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="contact-email">{t("contacts.emailLabel")}</label>
             <input
               id="contact-email"
-              className={`ms-input mono${addMutation.isError ? " error" : ""}`}
+              className={`po-input mono${addMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("contacts.emailPlaceholder")}
               disabled={addMutation.isPending}
@@ -856,22 +856,22 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="contact-first">{t("contacts.firstNameLabel")}</label>
               <input
                 id="contact-first"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 disabled={addMutation.isPending}
                 value={newFirst}
                 onChange={(event) => setNewFirst(event.target.value)}
               />
             </div>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="contact-last">{t("contacts.lastNameLabel")}</label>
               <input
                 id="contact-last"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 disabled={addMutation.isPending}
                 value={newLast}
@@ -880,7 +880,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             </div>
           </div>
           {addMutation.isError ? (
-            <p className="ms-field-error">
+            <p className="po-field-error">
               {addMutation.error.data?.code === "CONFLICT"
                 ? t("contacts.addExists")
                 : addMutation.error.data?.code === "PRECONDITION_FAILED"
@@ -889,12 +889,12 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeAdd}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeAdd}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={addMutation.isPending || newEmail.trim().length === 0}
             >
               <BtnSpinner on={addMutation.isPending} />
@@ -913,32 +913,32 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
         }}
         title={t("contacts.importTitle")}
       >
-        <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("contacts.importBody")}
         </p>
         {importResult ? (
           <>
-            <p style={{ margin: 0, fontSize: "var(--ms-fs-ui)" }}>
+            <p style={{ margin: 0, fontSize: "var(--po-fs-ui)" }}>
               {t("contacts.importResult", {
                 created: nf.format(importResult.created),
                 skipped: nf.format(importResult.skipped),
               })}
             </p>
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-primary" onClick={closeImport}>
-                {t("contacts.importDone")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-primary" onClick={closeImport}>
+                {t("contacts.importDone")} <span className="po-keycap">Esc</span>
               </button>
             </ModalFooter>
           </>
         ) : (
           <>
-            <div className="ms-field">
+            <div className="po-field">
               <label htmlFor="contact-csv">{t("contacts.importFileLabel")}</label>
               <input
                 id="contact-csv"
                 type="file"
                 accept=".csv,text/csv"
-                className="ms-input"
+                className="po-input"
                 style={{ width: "100%" }}
                 disabled={importing}
                 onChange={(event) => {
@@ -955,8 +955,8 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
               <p
                 style={{
                   margin: "10px 0 0",
-                  color: importRows.length === 0 ? "var(--ms-danger)" : "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: importRows.length === 0 ? "var(--po-danger)" : "var(--po-muted)",
+                  fontSize: "var(--po-fs-label)",
                 }}
               >
                 {importRows.length === 0
@@ -965,19 +965,19 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
               </p>
             ) : null}
             {importError ? (
-              <p className="ms-field-error">
+              <p className="po-field-error">
                 {addManyMutation.error?.data?.code === "PRECONDITION_FAILED"
                   ? t("contacts.planLimit")
                   : t("contacts.importError")}
               </p>
             ) : null}
             <ModalFooter>
-              <button type="button" className="ms-btn ms-btn-secondary" onClick={closeImport}>
-                {common("cancel")} <span className="ms-keycap">Esc</span>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeImport}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
               </button>
               <button
                 type="button"
-                className="ms-btn ms-btn-primary"
+                className="po-btn po-btn-primary"
                 disabled={importing || !importRows || importRows.length === 0}
                 onClick={() => void runImport()}
               >
@@ -990,18 +990,18 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
       </Modal>
 
       <Modal open={migrateOpen} onClose={closeMigrate} title={t("contacts.migrate.title")}>
-        <p style={{ margin: "0 0 14px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 14px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("contacts.migrate.body")}
         </p>
         <CopyChip value={migrateCommand(migrateToUrl)} title={migrateCommand(migrateToUrl)} />
-        <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "14px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           <a href={MIGRATE_DOCS_URL} target="_blank" rel="noreferrer">
             {t("contacts.migrate.docs")} ↗
           </a>
         </p>
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeMigrate}>
-            {common("close")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeMigrate}>
+            {common("close")} <span className="po-keycap">Esc</span>
           </button>
         </ModalFooter>
       </Modal>
@@ -1018,16 +1018,16 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             submitDelete();
           }}
         >
-          <p style={{ margin: "0 0 22px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("contacts.deleteBody", { email: deleteTarget?.email ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />
@@ -1049,14 +1049,14 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             submitErase();
           }}
         >
-          <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("contacts.eraseBody")}
           </p>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="erase-email">{t("contacts.emailLabel")}</label>
             <input
               id="erase-email"
-              className={`ms-input mono${eraseMutation.isError ? " error" : ""}`}
+              className={`po-input mono${eraseMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("contacts.emailPlaceholder")}
               disabled={eraseMutation.isPending}
@@ -1065,15 +1065,15 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             />
           </div>
           {eraseMutation.isError ? (
-            <p className="ms-field-error">{t("contacts.eraseInvalid")}</p>
+            <p className="po-field-error">{t("contacts.eraseInvalid")}</p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeErase}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeErase}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={eraseMutation.isPending || eraseEmail.trim().length === 0}
             >
               <BtnSpinner on={eraseMutation.isPending} />
@@ -1084,33 +1084,33 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
       </Modal>
 
       {selected.size > 0 ? (
-        <div className="ms-bulk-bar" role="toolbar" aria-label={t("contacts.bulk.edit")}>
-          <span className="ms-bulk-count">
+        <div className="po-bulk-bar" role="toolbar" aria-label={t("contacts.bulk.edit")}>
+          <span className="po-bulk-count">
             {t("contacts.bulk.selected", { count: selected.size })}
           </span>
           <button
             type="button"
-            className="ms-menu-trigger-bare"
+            className="po-menu-trigger-bare"
             aria-label={t("contacts.bulk.clear")}
             onClick={clearSelection}
           >
             ✕
           </button>
-          <span className="ms-bulk-sep" aria-hidden="true" />
+          <span className="po-bulk-sep" aria-hidden="true" />
           <div ref={bulkMenuRef} style={{ position: "relative", display: "inline-flex" }}>
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               aria-haspopup="menu"
               aria-expanded={bulkMenuOpen}
               onClick={() => setBulkMenuOpen((v) => !v)}
             >
-              {t("contacts.bulk.edit")} <span className="ms-keycap">E</span>
+              {t("contacts.bulk.edit")} <span className="po-keycap">E</span>
             </button>
             {bulkMenuOpen ? (
               <div
                 role="menu"
-                className="ms-menu"
+                className="po-menu"
                 style={{
                   position: "absolute",
                   bottom: "calc(100% + 8px)",
@@ -1129,7 +1129,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                     key={modal}
                     type="button"
                     role="menuitem"
-                    className="ms-menu-item"
+                    className="po-menu-item"
                     onClick={() => openBulkModal(modal)}
                   >
                     {label}
@@ -1141,16 +1141,16 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
           {canManage ? (
             <button
               type="button"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={bulkBusy}
               onClick={() => void runBulkDelete()}
             >
               <BtnSpinner on={bulkBusy && bulkModal === null} />
-              {t("contacts.bulk.delete")} <span className="ms-keycap">⌫</span>
+              {t("contacts.bulk.delete")} <span className="po-keycap">⌫</span>
             </button>
           ) : null}
           {bulkError && bulkModal === null ? (
-            <span className="ms-field-error" style={{ margin: 0 }}>
+            <span className="po-field-error" style={{ margin: 0 }}>
               {t("contacts.bulk.error")}
             </span>
           ) : null}
@@ -1169,10 +1169,10 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
         }}
         title={t("contacts.bulk.addToSegments")}
       >
-        <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("contacts.bulk.addSegmentsBody", { count: selected.size })}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="bulk-segments">{t("contacts.bulk.segmentsLabel")}</label>
           <ChipMultiSelect
             id="bulk-segments"
@@ -1185,14 +1185,14 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             disabled={bulkBusy}
           />
         </div>
-        {bulkError ? <p className="ms-field-error">{t("contacts.bulk.error")}</p> : null}
+        {bulkError ? <p className="po-field-error">{t("contacts.bulk.error")}</p> : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeBulkModal}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeBulkModal}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={bulkBusy || bulkSegmentIds.length === 0}
             onClick={() =>
               void runBulk((contactIds) =>
@@ -1218,10 +1218,10 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
         }}
         title={t("contacts.bulk.removeFromSegment")}
       >
-        <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("contacts.bulk.removeSegmentBody", { count: selected.size })}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="bulk-segment">{t("contacts.bulk.segmentLabel")}</label>
           <Select
             id="bulk-segment"
@@ -1232,14 +1232,14 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             options={(segments.data ?? []).map((s) => ({ value: s.id, label: s.name }))}
           />
         </div>
-        {bulkError ? <p className="ms-field-error">{t("contacts.bulk.error")}</p> : null}
+        {bulkError ? <p className="po-field-error">{t("contacts.bulk.error")}</p> : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeBulkModal}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeBulkModal}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={bulkBusy || bulkSegmentId === ""}
             onClick={() =>
               void runBulk((contactIds) =>
@@ -1265,10 +1265,10 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
         }}
         title={t("contacts.bulk.subscribeToTopics")}
       >
-        <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("contacts.bulk.subscribeTopicsBody", { count: selected.size })}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="bulk-topics">{t("contacts.bulk.topicsLabel")}</label>
           <ChipMultiSelect
             id="bulk-topics"
@@ -1281,14 +1281,14 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             disabled={bulkBusy}
           />
         </div>
-        {bulkError ? <p className="ms-field-error">{t("contacts.bulk.error")}</p> : null}
+        {bulkError ? <p className="po-field-error">{t("contacts.bulk.error")}</p> : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={closeBulkModal}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={closeBulkModal}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={bulkBusy || bulkTopicIds.length === 0}
             onClick={() =>
               void runBulk((contactIds) =>

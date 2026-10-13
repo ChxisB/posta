@@ -39,14 +39,14 @@ export function LinkedTeams({ teamId, framed = false }: { teamId: string; framed
             link.matches.map((match) => (
               <tr key={`${link.linkedTeamId}:${match.kind}:${match.value}:${match.matched}`}>
                 <td>{t(`kinds.${match.kind}`)}</td>
-                <td className="ms-mono" style={{ overflowWrap: "anywhere" }}>
+                <td className="po-mono" style={{ overflowWrap: "anywhere" }}>
                   {shown(match.kind, match.value)}
                 </td>
-                <td className="ms-mono" style={{ overflowWrap: "anywhere" }}>
+                <td className="po-mono" style={{ overflowWrap: "anywhere" }}>
                   {shown(match.kind, match.matched)}
                 </td>
                 <td>
-                  <Link className="ms-link" href={`/console/safety/${link.linkedTeamId}`}>
+                  <Link className="po-link" href={`/console/safety/${link.linkedTeamId}`}>
                     {link.linkedTeamName}
                   </Link>
                 </td>
@@ -58,7 +58,7 @@ export function LinkedTeams({ teamId, framed = false }: { teamId: string; framed
       {links.map((link) => (
         <p
           key={link.linkedTeamId}
-          style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ms-muted)" }}
+          style={{ margin: "10px 0 0", fontSize: 12, color: "var(--po-muted)" }}
         >
           {t("found", {
             team: link.linkedTeamName,
@@ -71,7 +71,7 @@ export function LinkedTeams({ teamId, framed = false }: { teamId: string; framed
     </>
   );
   return framed ? (
-    <div className="ms-card" style={{ padding: 20, marginBottom: 16 }}>
+    <div className="po-card" style={{ padding: 20, marginBottom: 16 }}>
       {body}
     </div>
   ) : (

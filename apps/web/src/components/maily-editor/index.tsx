@@ -170,7 +170,7 @@ export function MailyEditor({
     const { variable, fallback } = opts;
     return (
       <span
-        className="ms-maily-varpill"
+        className="po-maily-varpill"
         title={makeMergeToken(variable.name, fallback || undefined)}
       >
         <VariableIcon size={11} />
@@ -238,9 +238,9 @@ export function MailyEditor({
     () => ({
       hasMenuBar: false,
       immediatelyRender: false,
-      wrapClassName: "ms-maily-wrap",
-      contentClassName: "ms-maily-content",
-      bodyClassName: "ms-maily-body",
+      wrapClassName: "po-maily-wrap",
+      contentClassName: "po-maily-content",
+      bodyClassName: "po-maily-body",
       spellCheck: true,
     }),
     [],
@@ -272,9 +272,9 @@ export function MailyEditor({
   );
 
   return (
-    <div className="ms-maily">
+    <div className="po-maily">
       <EditorToolbar editor={editor} fields={fields} />
-      <div className="ms-maily-surface">
+      <div className="po-maily-surface">
         {/* Spread the seed so only the one set key (contentJson OR contentHtml)
             is passed — exactOptionalPropertyTypes rejects an explicit undefined. */}
         <Editor

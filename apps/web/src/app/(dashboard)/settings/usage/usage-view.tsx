@@ -17,9 +17,9 @@ const RING_C = 2 * Math.PI * RING_R;
 
 /** Utilization tint: healthy under 70%, warn under 100%, danger at/over. */
 function ringTint(frac: number): string {
-  if (frac >= 1) return "var(--ms-danger)";
-  if (frac >= 0.7) return "var(--ms-warn)";
-  return "var(--ms-success)";
+  if (frac >= 1) return "var(--po-danger)";
+  if (frac >= 0.7) return "var(--po-warn)";
+  return "var(--po-success)";
 }
 
 /** Circular quota gauge; no limit (self-host) leaves the track empty. */
@@ -32,7 +32,7 @@ function ProgressRing({ used, limit }: { used: number; limit: number | null }) {
         cy={RING_SIZE / 2}
         r={RING_R}
         fill="none"
-        stroke="var(--ms-line)"
+        stroke="var(--po-line)"
         strokeWidth={RING_STROKE}
       />
       {frac !== null && frac > 0 ? (
@@ -69,22 +69,22 @@ export function QuotaRow({
   const locale = useLocale();
   const fmt = new Intl.NumberFormat(locale);
   return (
-    <div className="ms-quota-row">
+    <div className="po-quota-row">
       <ProgressRing used={used} limit={limit} />
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: "var(--ms-bone)" }}>{label}</div>
-        <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 2 }}>{hint}</div>
+        <div style={{ fontSize: 14, color: "var(--po-bone)" }}>{label}</div>
+        <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 2 }}>{hint}</div>
       </div>
-      <div className="ms-quota-figure">
-        <div className="ms-digits" style={{ fontSize: 18, color: "var(--ms-bone)" }}>
+      <div className="po-quota-figure">
+        <div className="po-digits" style={{ fontSize: 18, color: "var(--po-bone)" }}>
           <Odometer formatted={fmt.format(used)} />
-          <span style={{ color: "var(--ms-muted)", fontWeight: 500 }}>
+          <span style={{ color: "var(--po-muted)", fontWeight: 500 }}>
             {" / "}
             {limit === null ? "∞" : fmt.format(limit)}
           </span>
         </div>
         {limit === null ? (
-          <div style={{ fontSize: 11, color: "var(--ms-faint)", marginTop: 1 }}>
+          <div style={{ fontSize: 11, color: "var(--po-faint)", marginTop: 1 }}>
             {t("unlimited")}
           </div>
         ) : null}
@@ -112,7 +112,7 @@ function HistoryHead({ received = false }: { received?: boolean }) {
         {received ? (
           <th className="right">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <StatusDot color="var(--ms-dot-opened)" />
+              <StatusDot color="var(--po-dot-opened)" />
               {t("received")}
             </span>
           </th>
@@ -127,8 +127,8 @@ function UsageSkeleton() {
   const t = useTranslations("settings.usage");
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
-      <section className="ms-card" style={{ padding: "20px 24px" }}>
-        <div className="ms-quota-row">
+      <section className="po-card" style={{ padding: "20px 24px" }}>
+        <div className="po-quota-row">
           <Skeleton width={RING_SIZE} height={RING_SIZE} radius="50%" />
           <div>
             <div style={{ fontSize: 14, display: "flex" }}>
@@ -138,14 +138,14 @@ function UsageSkeleton() {
               <Skeleton width={150} height="1lh" />
             </div>
           </div>
-          <div className="ms-digits ms-quota-figure" style={{ fontSize: 18, display: "flex" }}>
+          <div className="po-digits po-quota-figure" style={{ fontSize: 18, display: "flex" }}>
             <Skeleton width={90} height="1lh" />
           </div>
         </div>
       </section>
 
       <section>
-        <div className="ms-microlabel" style={{ marginBottom: 12 }}>
+        <div className="po-microlabel" style={{ marginBottom: 12 }}>
           {t("history")}
         </div>
         <Table>
@@ -157,7 +157,7 @@ function UsageSkeleton() {
                   <Skeleton width={80} height={13} />
                 </td>
                 {[0, 1, 2, 3].map((cell) => (
-                  <td key={cell} className="right ms-mono">
+                  <td key={cell} className="right po-mono">
                     <Skeleton width={24} height={13} />
                   </td>
                 ))}
@@ -185,7 +185,7 @@ export function UsageView() {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
-      <section className="ms-card" style={{ padding: "20px 24px" }}>
+      <section className="po-card" style={{ padding: "20px 24px" }}>
         {/* The deployment's one real quota — the plan's cap, per billing
             period on a monthly plan and per UTC day otherwise. Self-host
             has none, reported honestly as unlimited. */}
@@ -207,7 +207,7 @@ export function UsageView() {
       </section>
 
       {receiving ? (
-        <section className="ms-card" style={{ padding: "20px 24px" }}>
+        <section className="po-card" style={{ padding: "20px 24px" }}>
           <QuotaRow
             label={t(receiving.kind === "month" ? "receivedThisPeriod" : "receivedToday")}
             hint={
@@ -229,11 +229,11 @@ export function UsageView() {
       ) : null}
 
       <section>
-        <div className="ms-microlabel" style={{ marginBottom: 12 }}>
+        <div className="po-microlabel" style={{ marginBottom: 12 }}>
           {t("history")}
         </div>
         {data.rows.length === 0 ? (
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
             {t("empty")}
           </p>
         ) : (
@@ -248,13 +248,13 @@ export function UsageView() {
                   {/* ponytail: Free's sends are its shared counter minus received,
                       judged by today's plan; a day from before a plan change can
                       be off by that day's received count. */}
-                  <td className="right ms-mono">
+                  <td className="right po-mono">
                     {shared ? Math.max(0, row.accepted - row.received) : row.accepted}
                   </td>
-                  <td className="right ms-mono">{row.delivered}</td>
-                  <td className="right ms-mono">{row.bounced}</td>
-                  <td className="right ms-mono">{row.complained}</td>
-                  {receiving ? <td className="right ms-mono">{row.received}</td> : null}
+                  <td className="right po-mono">{row.delivered}</td>
+                  <td className="right po-mono">{row.bounced}</td>
+                  <td className="right po-mono">{row.complained}</td>
+                  {receiving ? <td className="right po-mono">{row.received}</td> : null}
                 </tr>
               ))}
             </tbody>

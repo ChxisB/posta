@@ -19,33 +19,33 @@ const SERVICE_QUOTAS_URL =
 
 const lead: React.CSSProperties = {
   margin: "10px 0 14px",
-  color: "var(--ms-muted)",
+  color: "var(--po-muted)",
   fontSize: 13.5,
   lineHeight: 1.6,
 };
 const danger: React.CSSProperties = {
   margin: "8px 0 0",
-  color: "var(--ms-danger)",
-  fontSize: "var(--ms-fs-label)",
+  color: "var(--po-danger)",
+  fontSize: "var(--po-fs-label)",
 };
 /** The mock's pre.code block: inset ground, hairline, 12px mono. */
 export const codeBlock: React.CSSProperties = {
   margin: 0,
-  background: "var(--ms-inset)",
-  border: "1px solid var(--ms-line)",
-  borderRadius: "var(--ms-r-input)",
+  background: "var(--po-inset)",
+  border: "1px solid var(--po-line)",
+  borderRadius: "var(--po-r-input)",
   padding: "10px 12px",
   fontSize: 12,
   lineHeight: 1.6,
-  color: "var(--ms-bone)",
+  color: "var(--po-bone)",
   overflowX: "auto",
   whiteSpace: "pre-wrap",
 };
 
 function CancelButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button type="button" className="ms-btn ms-btn-secondary" onClick={onClick}>
-      {label} <span className="ms-keycap">Esc</span>
+    <button type="button" className="po-btn po-btn-secondary" onClick={onClick}>
+      {label} <span className="po-keycap">Esc</span>
     </button>
   );
 }
@@ -134,7 +134,7 @@ export function QuotaDialog({
       {denied ? (
         <>
           <p style={{ ...lead, marginTop: 0 }}>{t("quotaDialog.denied")}</p>
-          <pre className="ms-mono" style={codeBlock}>
+          <pre className="po-mono" style={codeBlock}>
             {denied.text}
           </pre>
           <div style={{ marginTop: 10 }}>
@@ -143,7 +143,7 @@ export function QuotaDialog({
           <ModalFooter>
             <CancelButton onClick={onClose} label={common("close")} />
             <a
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               href={SERVICE_QUOTAS_URL}
               target="_blank"
               rel="noreferrer"
@@ -159,33 +159,33 @@ export function QuotaDialog({
             submit();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="quota-desired">{t("quotaDialog.desired")}</label>
             <input
               id="quota-desired"
               type="number"
               min={1}
               step={1}
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: "100%" }}
               value={desired}
               disabled={request.isPending}
               onChange={(e) => setDesired(e.target.value)}
             />
-            <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+            <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
               <DotParts
                 text={t("quotaDialog.hint", { current: f.n(max), sent: f.n(region.sent24h) })}
               />
             </p>
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="quota-why">{t("quotaDialog.justification")}</label>
             {facts.isPending ? (
-              <Skeleton width="100%" height={72} radius="var(--ms-r-input)" />
+              <Skeleton width="100%" height={72} radius="var(--po-r-input)" />
             ) : (
               <textarea
                 id="quota-why"
-                className="ms-input"
+                className="po-input"
                 rows={3}
                 style={{ width: "100%", resize: "vertical" }}
                 value={justificationValue}
@@ -199,7 +199,7 @@ export function QuotaDialog({
             <CancelButton onClick={onClose} label={common("cancel")} />
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={!valid || request.isPending}
             >
               <BtnSpinner on={request.isPending} />
@@ -250,17 +250,17 @@ export function TemplateDialog({
     <Modal open={open} onClose={onClose} onConfirm={copy} title={t("templateDialog.title")}>
       <p style={lead}>{t("templateDialog.lead", { region })}</p>
       {text ? (
-        <pre className="ms-mono" style={codeBlock}>
+        <pre className="po-mono" style={codeBlock}>
           {text}
         </pre>
       ) : facts.isError ? (
         <p style={danger}>{common("loadError")}</p>
       ) : (
-        <Skeleton width="100%" height={150} radius="var(--ms-r-input)" />
+        <Skeleton width="100%" height={150} radius="var(--po-r-input)" />
       )}
       <ModalFooter>
         <CancelButton onClick={onClose} label={common("close")} />
-        <button type="button" className="ms-btn ms-btn-primary" disabled={!text} onClick={copy}>
+        <button type="button" className="po-btn po-btn-primary" disabled={!text} onClick={copy}>
           {common("copy")} <ConfirmKeycap />
         </button>
       </ModalFooter>
@@ -310,12 +310,12 @@ export function PauseDialog({
         }}
       >
         <p style={lead}>{t("pauseDialog.lead")}</p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor="pause-region-reason">{t("pauseDialog.reason")}</label>
           <input
             id="pause-region-reason"
             type="text"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             placeholder={t("pauseDialog.reasonPlaceholder")}
             value={reason}
@@ -328,7 +328,7 @@ export function PauseDialog({
           <CancelButton onClick={onClose} label={common("cancel")} />
           <button
             type="submit"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={reason.trim() === "" || hold.isPending}
           >
             <BtnSpinner on={hold.isPending} />
@@ -379,7 +379,7 @@ export function ResumeDialog({
         <CancelButton onClick={onClose} label={common("cancel")} />
         <button
           type="button"
-          className="ms-btn ms-btn-primary"
+          className="po-btn po-btn-primary"
           disabled={release.isPending}
           onClick={submit}
         >
@@ -405,7 +405,7 @@ export function StopDialog({
   return (
     <Modal open={open} onClose={onClose} title={t("stopDialog.title", { region })}>
       <p style={lead}>{t("stopDialog.lead")}</p>
-      <p style={{ ...lead, marginTop: 0, color: "var(--ms-bone)" }}>
+      <p style={{ ...lead, marginTop: 0, color: "var(--po-bone)" }}>
         {t("stopDialog.body", { region })}
       </p>
       <ModalFooter>

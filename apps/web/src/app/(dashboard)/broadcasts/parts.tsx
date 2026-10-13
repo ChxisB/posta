@@ -68,10 +68,10 @@ export function StatusPill({
   hold?: string | undefined;
 }) {
   const t = useTranslations("broadcasts");
-  if (hold) return <span className="ms-badge ms-badge-warn">{hold}</span>;
+  if (hold) return <span className="po-badge po-badge-warn">{hold}</span>;
   return (
     <span
-      className={`ms-badge ms-badge-${PILL_VARIANT[status]}`}
+      className={`po-badge po-badge-${PILL_VARIANT[status]}`}
       style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
     >
       {status === "sending" ? (
@@ -82,7 +82,7 @@ export function StatusPill({
             height: 6,
             borderRadius: "50%",
             background: "currentColor",
-            animation: "ms-pulse 2s infinite",
+            animation: "po-pulse 2s infinite",
             flex: "none",
           }}
         />
@@ -224,11 +224,11 @@ export function SendPlanSummary({
       : null;
   return (
     <>
-      <p style={{ margin: `0 0 ${steps.length > 0 ? 14 : 18}px`, fontSize: "var(--ms-fs-ui)" }}>
+      <p style={{ margin: `0 0 ${steps.length > 0 ? 14 : 18}px`, fontSize: "var(--po-fs-ui)" }}>
         {count === 0 ? t("guard.zero") : t("guard.body", { count: nf.format(count) })}
       </p>
       {steps.length > 0 ? (
-        <ol className="ms-steps" aria-label={t("guard.title")}>
+        <ol className="po-steps" aria-label={t("guard.title")}>
           {steps.map((step, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: fixed order, position is identity
             <li key={i} className={step.now ? "now" : undefined}>
@@ -242,7 +242,7 @@ export function SendPlanSummary({
         </ol>
       ) : null}
       {paced && (planLine || estimate.planHold === null) ? (
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
           {planLine ? (
             <>
               {planLine} · <Link href="/settings/billing">{t("guard.seePlans")}</Link>
@@ -253,7 +253,7 @@ export function SendPlanSummary({
         </p>
       ) : null}
       {estimate?.blocked ? (
-        <p className="ms-field-error" style={{ margin: "0 0 18px" }}>
+        <p className="po-field-error" style={{ margin: "0 0 18px" }}>
           {t(cloud ? "guard.tooLarge" : "guard.tooLargeSelfHost", { days: estimate.horizonDays })}
         </p>
       ) : null}
@@ -294,7 +294,7 @@ export function PacingSteps({
   if (days.length < 2) return null;
   const time = (d: Date) => formatStepTime(d, locale);
   return (
-    <ol className={compact ? "ms-steps compact" : "ms-steps"} aria-label={t("detail.pacing")}>
+    <ol className={compact ? "po-steps compact" : "po-steps"} aria-label={t("detail.pacing")}>
       {days.map((day, i) => {
         const n = nf.format(day.count);
         const last = i === days.length - 1;
@@ -394,7 +394,7 @@ export function SendingStatus({
         <StatusPill status={status} hold={hold} />
       </div>
       {line ? (
-        <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 6 }}>
+        <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 6 }}>
           <DotParts text={line} />
         </div>
       ) : null}
@@ -420,12 +420,12 @@ export function FinishCell({
           them, never inside the zone ("GMT-3"). */}
       <div style={{ fontSize: 13, marginTop: 7 }}>
         <span title={formatUtcTimestamp(about)}>
-          <span className="ms-part">{formatStepDay(about, locale)},</span>{" "}
-          <span className="ms-part">{formatStepTime(about, locale)}</span>
+          <span className="po-part">{formatStepDay(about, locale)},</span>{" "}
+          <span className="po-part">{formatStepTime(about, locale)}</span>
         </span>
       </div>
       {startedAt ? (
-        <div style={{ fontSize: 12, color: "var(--ms-faint)", marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: "var(--po-faint)", marginTop: 4 }}>
           {t("detail.started", { time: formatDayTime(startedAt, locale) })}
         </div>
       ) : null}
@@ -456,7 +456,7 @@ export function ContentPreview({
           display: "flex",
           justifyContent: "flex-end",
           padding: "8px 12px",
-          borderBottom: "1px solid var(--ms-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <PreviewSchemePills scheme={scheme} onChange={setScheme} />

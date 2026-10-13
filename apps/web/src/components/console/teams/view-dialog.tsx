@@ -91,10 +91,10 @@ export function ViewDialog({
           submit();
         }}
       >
-        <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+        <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
           {t("lead")}
         </p>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-reason`}>{common("reason")}</label>
           <Select
             id={`${id}-reason`}
@@ -109,12 +109,12 @@ export function ViewDialog({
             }))}
           />
         </div>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-reference`}>{t("reference")}</label>
           <input
             id={`${id}-reference`}
             type="text"
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%" }}
             maxLength={200}
             required
@@ -126,30 +126,30 @@ export function ViewDialog({
         </div>
         <div
           style={{
-            border: "1px dashed var(--ms-line-strong)",
+            border: "1px dashed var(--po-line-strong)",
             borderRadius: 10,
             padding: "14px 16px",
-            color: "var(--ms-muted)",
+            color: "var(--po-muted)",
             fontSize: 13,
             display: "flex",
             flexDirection: "column",
             gap: 6,
           }}
         >
-          <b style={{ color: "var(--ms-bone)", fontWeight: 600 }}>{t("hiddenTitle")}</b>
+          <b style={{ color: "var(--po-bone)", fontWeight: 600 }}>{t("hiddenTitle")}</b>
           {t("hiddenBody")}
         </div>
         {verified ? (
-          <p style={{ margin: "14px 0 0", color: "var(--ms-muted)", fontSize: 13 }}>
+          <p style={{ margin: "14px 0 0", color: "var(--po-muted)", fontSize: 13 }}>
             {t("verified", { left: formatMmSs(left) })}
           </p>
         ) : step?.sent ? (
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor={`${id}-code`}>{t("code")}</label>
             <input
               id={`${id}-code`}
               type="text"
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: "100%" }}
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -163,8 +163,8 @@ export function ViewDialog({
             <p
               style={{
                 margin: "6px 0 0",
-                color: "var(--ms-muted)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-muted)",
+                fontSize: "var(--po-fs-label)",
                 display: "flex",
                 flexWrap: "wrap",
                 alignItems: "center",
@@ -177,7 +177,7 @@ export function ViewDialog({
               </span>
               <button
                 type="button"
-                className="ms-btn ms-btn-ghost ms-btn-sm"
+                className="po-btn po-btn-ghost po-btn-sm"
                 disabled={pending}
                 onClick={() => {
                   setCode("");
@@ -192,7 +192,7 @@ export function ViewDialog({
           <p
             style={{
               margin: "14px 0 0",
-              color: step.signedInRecently ? "var(--ms-muted)" : "var(--ms-warn)",
+              color: step.signedInRecently ? "var(--po-muted)" : "var(--po-warn)",
               fontSize: 13,
             }}
           >
@@ -204,18 +204,18 @@ export function ViewDialog({
           <p
             style={{
               margin: "12px 0 0",
-              color: "var(--ms-danger)",
-              fontSize: "var(--ms-fs-label)",
+              color: "var(--po-danger)",
+              fontSize: "var(--po-fs-label)",
             }}
           >
             {KNOWN_ERRORS.includes(error) ? t(`errors.${error}`) : error}
           </p>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={pending || !valid}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={pending || !valid}>
             <BtnSpinner on={pending} />
             {t(step || verified ? "confirm" : "sendCode")} <ConfirmKeycap />
           </button>

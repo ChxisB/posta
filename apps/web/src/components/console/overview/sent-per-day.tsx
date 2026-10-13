@@ -38,7 +38,7 @@ export function SentPerDay() {
         key: "sent",
         label: t("legendSent"),
         tip: t("legendSentTip"),
-        color: "var(--ms-steel)",
+        color: "var(--po-steel)",
         value: null,
       },
     ];
@@ -47,7 +47,7 @@ export function SentPerDay() {
       key: "committed",
       label: t("legendCommitted"),
       tip: t("legendCommittedTip"),
-      color: "var(--ms-muted)",
+      color: "var(--po-muted)",
       value: data.committedPerDay,
     });
   }
@@ -56,7 +56,7 @@ export function SentPerDay() {
       key: `quota-${q.region}`,
       label: t("legendQuota", { region: q.region }),
       tip: t("legendQuotaTip"),
-      color: "var(--ms-line-strong)",
+      color: "var(--po-line-strong)",
       value: q.max24h,
     });
   }
@@ -73,7 +73,7 @@ export function SentPerDay() {
     : [];
 
   return (
-    <div className="ms-card" style={{ padding: 20 }}>
+    <div className="po-card" style={{ padding: 20 }}>
       <div
         style={{
           display: "flex",
@@ -85,19 +85,19 @@ export function SentPerDay() {
         }}
       >
         <div>
-          <h3 className="ms-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
+          <h3 className="po-display" style={{ fontSize: 22, margin: 0, fontWeight: 500 }}>
             {hourly ? t("titleHourly") : t("title")}
           </h3>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
             {t("subtitle")}
           </p>
         </div>
         <PeriodBar value={period} onChange={setPeriod} />
       </div>
       {query.isError ? (
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>{common("loadError")}</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>{common("loadError")}</p>
       ) : !data ? (
-        <Skeleton width="100%" height={HEIGHT} radius="var(--ms-r-input)" />
+        <Skeleton width="100%" height={HEIGHT} radius="var(--po-r-input)" />
       ) : (
         <LineChart
           days={data.points.map((p) => p.t)}
@@ -114,7 +114,7 @@ export function SentPerDay() {
           flexWrap: "wrap",
           marginTop: 12,
           fontSize: 12,
-          color: "var(--ms-muted)",
+          color: "var(--po-muted)",
         }}
       >
         {shown.map((entry) => (

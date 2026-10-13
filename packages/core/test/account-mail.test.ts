@@ -160,7 +160,7 @@ describe("accountMailCard", () => {
   it("leads with the heading and drops the button when there is no url", () => {
     const card = accountMailCard({ heading: "It works.", paragraphs: ["Hello"], muted: [] });
     expect(card.html).toContain(">It works.</p>");
-    expect(card.html).not.toContain('class="ms-btn"');
+    expect(card.html).not.toContain('class="po-btn"');
     expect(card.text.startsWith("It works.\n\nHello")).toBe(true);
   });
 
@@ -174,7 +174,7 @@ describe("accountMailCard", () => {
     expect(card.html).toContain("wordmark-ink.png");
     expect(card.html).toContain("wordmark-bone.png");
     expect(card.html).toContain("@media (prefers-color-scheme:dark)");
-    expect(card.html).toContain("u + .body .ms-gmail");
+    expect(card.html).toContain("u + .body .po-gmail");
   });
 });
 

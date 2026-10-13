@@ -27,7 +27,7 @@ export default async function OnboardingPage() {
       teamLogoUrl={membership.logoUrl}
       userEmail={session.user.email}
     >
-      <main className="ms-main" style={{ flex: 1, minWidth: 0, padding: "34px 40px" }}>
+      <main className="po-main" style={{ flex: 1, minWidth: 0, padding: "34px 40px" }}>
         <OnboardingSteps
           userEmail={session.user.email}
           apiUrl={apiBaseUrl()}

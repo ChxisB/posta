@@ -16,7 +16,7 @@ import { useTeamRole } from "@/lib/use-team-role";
 
 function Microlabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+    <div className="po-microlabel" style={{ fontSize: 10.5 }}>
       {children}
     </div>
   );
@@ -50,12 +50,12 @@ function JsonSection({
         : t("detail.bodyTruncated", { size: formatBytes(bytes) });
   return (
     <section style={{ marginTop: 26 }}>
-      <div className="ms-microlabel">{label}</div>
+      <div className="po-microlabel">{label}</div>
       <div
         style={{
           marginTop: 10,
-          background: "var(--ms-panel)",
-          border: "1px solid var(--ms-line)",
+          background: "var(--po-panel)",
+          border: "1px solid var(--po-line)",
           borderRadius: 14,
           overflow: "hidden",
         }}
@@ -65,21 +65,21 @@ function JsonSection({
             style={{
               margin: 0,
               padding: "14px 16px",
-              color: "var(--ms-muted)",
-              fontSize: "var(--ms-fs-ui)",
+              color: "var(--po-muted)",
+              fontSize: "var(--po-fs-ui)",
             }}
           >
             {message}
           </p>
         ) : (
           <pre
-            className="ms-mono ms-hl ms-json"
+            className="po-mono po-hl po-json"
             style={{
               margin: 0,
               padding: "14px 16px",
               fontSize: 12,
               lineHeight: 1.7,
-              color: "var(--ms-bone)",
+              color: "var(--po-bone)",
             }}
           >
             <JsonView value={value} requestPath={requestPath} />
@@ -94,18 +94,18 @@ function JsonSection({
 function JsonSectionSkeleton({ label }: { label: string }) {
   return (
     <section style={{ marginTop: 26 }}>
-      <div className="ms-microlabel">{label}</div>
+      <div className="po-microlabel">{label}</div>
       <div
         style={{
           marginTop: 10,
-          background: "var(--ms-panel)",
-          border: "1px solid var(--ms-line)",
+          background: "var(--po-panel)",
+          border: "1px solid var(--po-line)",
           borderRadius: 14,
           overflow: "hidden",
         }}
       >
         <div
-          className="ms-mono"
+          className="po-mono"
           style={{
             padding: "14px 16px",
             fontSize: 12,
@@ -137,33 +137,33 @@ function LogDetailSkeleton() {
           <Skeleton width={180} height="1lh" />
         </div>
         <h1
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
         >
           <Skeleton width={300} height="1lh" />
         </h1>
       </div>
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: "22px 28px",
           padding: "22px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div>
           <Microlabel>{t("detail.status")}</Microlabel>
-          <div className="ms-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
+          <div className="po-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
             <Skeleton width={32} height="1lh" />
           </div>
         </div>
         <div>
           <Microlabel>{t("detail.when")}</Microlabel>
-          <div className="ms-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
+          <div className="po-mono" style={{ fontSize: 13, marginTop: 5, display: "flex" }}>
             <Skeleton width={220} height="1lh" />
           </div>
         </div>
@@ -204,10 +204,10 @@ export default function LogDetailPage() {
   if (query.isError || !log) {
     return (
       <>
-        <p style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("detail.notFound")}
         </p>
-        <Link href="/logs" style={{ fontSize: "var(--ms-fs-ui)" }}>
+        <Link href="/logs" style={{ fontSize: "var(--po-fs-ui)" }}>
           ← {t("list.title")}
         </Link>
       </>
@@ -227,20 +227,20 @@ export default function LogDetailPage() {
       />
 
       <div
-        className="ms-meta-grid"
+        className="po-meta-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: "22px 28px",
           padding: "22px 0",
-          borderTop: "1px solid var(--ms-line)",
-          borderBottom: "1px solid var(--ms-line)",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
         }}
       >
         <div>
           <Microlabel>{t("detail.status")}</Microlabel>
           <div
-            className="ms-mono"
+            className="po-mono"
             style={{ fontSize: 13, marginTop: 5, color: statusCodeColor(log.statusCode) }}
           >
             {log.statusCode}
@@ -252,7 +252,7 @@ export default function LogDetailPage() {
             <span title={formatUtcTimestampMs(log.createdAt)}>
               {formatDayTime(log.createdAt, locale)}
             </span>
-            <span style={{ color: "var(--ms-muted)", marginLeft: 10 }}>
+            <span style={{ color: "var(--po-muted)", marginLeft: 10 }}>
               <RelativeTime date={log.createdAt} />
             </span>
           </div>
@@ -278,7 +278,7 @@ export default function LogDetailPage() {
                   : t("list.sources.mcp")}
             </Link>
             {log.apiKeyRevoked ? (
-              <span className="ms-badge ms-badge-neutral">{t("list.revoked")}</span>
+              <span className="po-badge po-badge-neutral">{t("list.revoked")}</span>
             ) : null}
           </div>
         </div>

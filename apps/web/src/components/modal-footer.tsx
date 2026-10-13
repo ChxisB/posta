@@ -1,11 +1,11 @@
 /**
  * The one canonical dialog footer: a right-aligned row for a modal's actions.
- * Pass Cancel (ms-btn-secondary, filled) first and Confirm (ms-btn-primary or
- * ms-btn-destructive) second — the flow order the layout preserves left to
+ * Pass Cancel (po-btn-secondary, filled) first and Confirm (po-btn-primary or
+ * po-btn-destructive) second — the flow order the layout preserves left to
  * right. A thin layout wrapper only; it renders whatever buttons it is given.
  */
 export function ModalFooter({ children }: { children: React.ReactNode }) {
-  return <div className="ms-modal-footer">{children}</div>;
+  return <div className="po-modal-footer">{children}</div>;
 }
 
 /**
@@ -16,5 +16,5 @@ export function ModalFooter({ children }: { children: React.ReactNode }) {
  */
 export function ConfirmKeycap() {
   const mac = typeof navigator !== "undefined" && /Mac|iP(hone|ad|od)/.test(navigator.platform);
-  return <span className="ms-keycap">{mac ? "⌘↵" : "Ctrl↵"}</span>;
+  return <span className="po-keycap">{mac ? "⌘↵" : "Ctrl↵"}</span>;
 }

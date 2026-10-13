@@ -144,7 +144,7 @@ export default function TopicsPage() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             onClick={() => setCreateOpen(true)}
           >
             <PlusGlyph size={14} />
@@ -158,7 +158,7 @@ export default function TopicsPage() {
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 520px", minWidth: 0 }}>
           <div
-            className="ms-filter-row"
+            className="po-filter-row"
             style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
           >
             <SearchBox value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
@@ -169,7 +169,7 @@ export default function TopicsPage() {
           ) : query.isError ? (
             <div
               style={{
-                border: "1px solid var(--ms-line)",
+                border: "1px solid var(--po-line)",
                 borderRadius: 16,
                 padding: 22,
                 textAlign: "center",
@@ -178,7 +178,7 @@ export default function TopicsPage() {
               <div style={{ fontSize: 14.5, fontWeight: 600 }}>{t("loadError")}</div>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 style={{ marginTop: 12 }}
                 onClick={() => query.refetch()}
               >
@@ -193,7 +193,7 @@ export default function TopicsPage() {
               cta={
                 <button
                   type="button"
-                  className="ms-btn ms-btn-primary"
+                  className="po-btn po-btn-primary"
                   onClick={() => setCreateOpen(true)}
                 >
                   <PlusGlyph size={14} />
@@ -224,14 +224,14 @@ export default function TopicsPage() {
                           <div style={{ fontSize: 14 }}>
                             <Link
                               href={detailHref}
-                              style={{ color: "var(--ms-bone)" }}
+                              style={{ color: "var(--po-bone)" }}
                               onClick={(event) => event.stopPropagation()}
                             >
                               {row.name}
                             </Link>
                             {copied === row.id ? (
                               <span
-                                style={{ marginLeft: 8, color: "var(--ms-muted)", fontSize: 12.5 }}
+                                style={{ marginLeft: 8, color: "var(--po-muted)", fontSize: 12.5 }}
                               >
                                 ✓ {common("copied")}
                               </span>
@@ -240,7 +240,7 @@ export default function TopicsPage() {
                         </td>
                         <td>
                           <span
-                            className={`ms-badge ${row.defaultSubscribed ? "ms-badge-success" : "ms-badge-neutral"}`}
+                            className={`po-badge ${row.defaultSubscribed ? "po-badge-success" : "po-badge-neutral"}`}
                           >
                             {row.defaultSubscribed ? t("optIn") : t("optOut")}
                           </span>
@@ -252,7 +252,7 @@ export default function TopicsPage() {
                               alignItems: "center",
                               gap: 6,
                               color:
-                                row.visibility === "public" ? "var(--ms-bone)" : "var(--ms-muted)",
+                                row.visibility === "public" ? "var(--po-bone)" : "var(--po-muted)",
                             }}
                           >
                             {row.visibility === "public" ? (
@@ -265,7 +265,7 @@ export default function TopicsPage() {
                               : t("visibilityPrivate")}
                           </span>
                         </td>
-                        <td className="right" style={{ color: "var(--ms-muted)" }}>
+                        <td className="right" style={{ color: "var(--po-muted)" }}>
                           <RelativeTime date={row.createdAt} />
                         </td>
                         {/* biome-ignore lint/a11y/useKeyWithClickEvents: mouse-only guard so a menu click does not also trigger the row navigation; keyboard users reach the menu button directly */}
@@ -332,10 +332,10 @@ export default function TopicsPage() {
               marginBottom: 10,
             }}
           >
-            <p className="ms-microlabel" style={{ margin: 0 }}>
+            <p className="po-microlabel" style={{ margin: 0 }}>
               {t("previewTitle")}
             </p>
-            <Link href="/settings/unsubscribe" className="ms-btn ms-btn-ghost">
+            <Link href="/settings/unsubscribe" className="po-btn po-btn-ghost">
               {t("customize")}
             </Link>
           </div>
@@ -357,7 +357,7 @@ export default function TopicsPage() {
               }}
             />
           ) : (
-            <Skeleton width="100%" height={420} radius="var(--ms-r-card)" />
+            <Skeleton width="100%" height={420} radius="var(--po-r-card)" />
           )}
         </aside>
       </div>
@@ -374,11 +374,11 @@ export default function TopicsPage() {
             submitCreate();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="topic-name">{t("nameLabel")}</label>
             <input
               id="topic-name"
-              className={`ms-input${createMutation.isError ? " error" : ""}`}
+              className={`po-input${createMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("namePlaceholder")}
               disabled={createMutation.isPending}
@@ -386,11 +386,11 @@ export default function TopicsPage() {
               onChange={(event) => setName(event.target.value)}
             />
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="topic-description">{t("descriptionLabel")}</label>
             <input
               id="topic-description"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               placeholder={t("descriptionPlaceholder")}
               disabled={createMutation.isPending}
@@ -398,8 +398,8 @@ export default function TopicsPage() {
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
-            <div className="ms-label-row">
+          <div className="po-field" style={{ marginTop: 14 }}>
+            <div className="po-label-row">
               <label htmlFor="topic-default">{t("defaultLabel")}</label>
               <Tooltip text={t("defaultHint")} />
             </div>
@@ -418,15 +418,15 @@ export default function TopicsPage() {
             <p
               style={{
                 margin: "6px 0 0",
-                color: "var(--ms-faint)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-faint)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {t("defaultImmutable")}
             </p>
           </div>
-          <div className="ms-field" style={{ marginTop: 14 }}>
-            <div className="ms-label-row">
+          <div className="po-field" style={{ marginTop: 14 }}>
+            <div className="po-label-row">
               <label htmlFor="topic-visibility">{t("visibilityLabel")}</label>
               <Tooltip text={t("visibilityTooltip")} />
             </div>
@@ -443,14 +443,14 @@ export default function TopicsPage() {
               ]}
             />
           </div>
-          {createMutation.isError ? <p className="ms-field-error">{t("createError")}</p> : null}
+          {createMutation.isError ? <p className="po-field-error">{t("createError")}</p> : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={createMutation.isPending || name.trim().length === 0}
             >
               <BtnSpinner on={createMutation.isPending} />

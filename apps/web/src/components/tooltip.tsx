@@ -19,7 +19,7 @@ export function CircleInfoGlyph() {
 
 /**
  * Info tooltip — the default muted 14px circle-i trigger (or any custom
- * trigger passed as children) opening a portaled .ms-tooltip panel centered
+ * trigger passed as children) opening a portaled .po-tooltip panel centered
  * above the anchor (flipping below near the viewport top, clamped inside the
  * viewport horizontally). Opens on hover and focus; click/tap toggles it
  * pinned for touch, and Esc or an outside tap dismisses. The panel is wired
@@ -112,8 +112,8 @@ export function Tooltip({
           ref={setTrigger}
           className={
             triggerClassName
-              ? `ms-tooltip-trigger inline ${triggerClassName}`
-              : "ms-tooltip-trigger inline"
+              ? `po-tooltip-trigger inline ${triggerClassName}`
+              : "po-tooltip-trigger inline"
           }
           // Focus is how keyboard users reach the stamp; a button here would swallow the row's click.
           tabIndex={focusableChild ? undefined : 0}
@@ -125,7 +125,7 @@ export function Tooltip({
         <button
           ref={setTrigger}
           type="button"
-          className="ms-tooltip-trigger"
+          className="po-tooltip-trigger"
           aria-label={t("info")}
           {...hoverProps}
           onClick={() => setPinned((v) => !v)}
@@ -139,7 +139,7 @@ export function Tooltip({
               ref={panelRef}
               id={panelId}
               role="tooltip"
-              className="ms-tooltip"
+              className="po-tooltip"
               // First-paint guess; the layout effect measures and corrects it before paint.
               style={{
                 left: rect.left + rect.width / 2,

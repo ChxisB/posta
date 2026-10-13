@@ -113,8 +113,8 @@ function ConsoleSidebar({
       style={{
         width: 240,
         flexShrink: 0,
-        background: "var(--ms-panel)",
-        borderRight: "1px solid var(--ms-line)",
+        background: "var(--po-panel)",
+        borderRight: "1px solid var(--po-line)",
         position: "sticky",
         top: 0,
         height: "100vh",
@@ -128,17 +128,17 @@ function ConsoleSidebar({
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
           src="/logo/millionsend-wordmark.svg"
-          className="ms-wordmark"
+          className="po-wordmark"
           alt={tCommon("appName")}
           style={{ height: 15, display: "block" }}
         />
       </div>
       <div style={{ padding: "2px 10px 12px" }}>
-        <span className="ms-microlabel">{t("console")}</span>
+        <span className="po-microlabel">{t("console")}</span>
       </div>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: delegated close-drawer hook; links stay the interactive elements */}
       <nav
-        className="ms-nav"
+        className="po-nav"
         aria-label={t("console")}
         style={{ minHeight: 0, overflowY: "auto", padding: 3, margin: "0 -3px -3px" }}
         onClick={
@@ -161,11 +161,11 @@ function ConsoleSidebar({
         ))}
       </nav>
       <div style={{ flex: 1 }} />
-      <div ref={accountRef} style={{ position: "relative", borderTop: "1px solid var(--ms-line)" }}>
+      <div ref={accountRef} style={{ position: "relative", borderTop: "1px solid var(--po-line)" }}>
         {menuOpen ? (
           <div
             role="menu"
-            className="ms-menu"
+            className="po-menu"
             style={{
               position: "absolute",
               bottom: "calc(100% + 6px)",
@@ -177,8 +177,8 @@ function ConsoleSidebar({
           >
             <AppearanceRow />
             <LanguageRow />
-            <hr className="ms-menu-sep" />
-            <button type="button" role="menuitem" className="ms-menu-item" onClick={signOutToLogin}>
+            <hr className="po-menu-sep" />
+            <button type="button" role="menuitem" className="po-menu-item" onClick={signOutToLogin}>
               {tCommon("signOut")}
             </button>
           </div>
@@ -208,8 +208,8 @@ function ConsoleSidebar({
               width: 26,
               height: 26,
               borderRadius: 8,
-              background: "var(--ms-inset)",
-              border: "1px solid var(--ms-line)",
+              background: "var(--po-inset)",
+              border: "1px solid var(--po-line)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -221,11 +221,11 @@ function ConsoleSidebar({
             {userEmail.charAt(0).toUpperCase()}
           </span>
           <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 13, color: "var(--ms-bone)" }}>{t("operator")}</span>
+            <span style={{ fontSize: 13, color: "var(--po-bone)" }}>{t("operator")}</span>
             <span
               style={{
                 fontSize: 11,
-                color: "var(--ms-muted)",
+                color: "var(--po-muted)",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -234,7 +234,7 @@ function ConsoleSidebar({
               {userEmail}
             </span>
           </span>
-          <span style={{ marginLeft: "auto", color: "var(--ms-faint)" }}>
+          <span style={{ marginLeft: "auto", color: "var(--po-faint)" }}>
             <EllipsisGlyph size={13} />
           </span>
         </button>
@@ -276,11 +276,11 @@ export function ConsoleShell({
     };
   }, [drawerOpen]);
   return (
-    <div className="ms-app-shell" style={{ display: "flex", minHeight: "100vh" }}>
-      <header className="ms-mobile-topbar">
+    <div className="po-app-shell" style={{ display: "flex", minHeight: "100vh" }}>
+      <header className="po-mobile-topbar">
         <button
           type="button"
-          className="ms-btn ms-btn-icon"
+          className="po-btn po-btn-icon"
           aria-label={tCommon("openNav")}
           aria-expanded={drawerOpen}
           onClick={() => setDrawerOpen((open) => !open)}
@@ -290,7 +290,7 @@ export function ConsoleShell({
         {/* biome-ignore lint/performance/noImgElement: static SVG logo */}
         <img
           src="/logo/millionsend-wordmark.svg"
-          className="ms-wordmark"
+          className="po-wordmark"
           alt={tCommon("appName")}
           style={{ height: 15, display: "block" }}
         />
@@ -298,11 +298,11 @@ export function ConsoleShell({
       {drawerOpen ? (
         // biome-ignore lint/a11y/noStaticElementInteractions: scrim click-to-dismiss; Esc handles keyboard
         // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard dismissal is the Esc listener above
-        <div className="ms-drawer-scrim" onClick={() => setDrawerOpen(false)} />
+        <div className="po-drawer-scrim" onClick={() => setDrawerOpen(false)} />
       ) : null}
       <ConsoleSidebar
         userEmail={userEmail}
-        className={drawerOpen ? "ms-sidebar open" : "ms-sidebar"}
+        className={drawerOpen ? "po-sidebar open" : "po-sidebar"}
         onNavigate={() => setDrawerOpen(false)}
       />
       {children}

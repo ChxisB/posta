@@ -161,7 +161,7 @@ export default function SegmentsPage() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             onClick={() => {
               createMutation.reset();
               setCreateOpen(true);
@@ -176,7 +176,7 @@ export default function SegmentsPage() {
       <AudienceTabs />
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} />
@@ -187,7 +187,7 @@ export default function SegmentsPage() {
       ) : query.isError ? (
         <div
           style={{
-            border: "1px solid var(--ms-line)",
+            border: "1px solid var(--po-line)",
             borderRadius: 16,
             padding: 22,
             textAlign: "center",
@@ -196,7 +196,7 @@ export default function SegmentsPage() {
           <div style={{ fontSize: 14.5, fontWeight: 600 }}>{t("loadError")}</div>
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             style={{ marginTop: 12 }}
             onClick={() => query.refetch()}
           >
@@ -211,7 +211,7 @@ export default function SegmentsPage() {
           cta={
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               onClick={() => setCreateOpen(true)}
             >
               <PlusGlyph size={14} />
@@ -236,7 +236,7 @@ export default function SegmentsPage() {
                     <div style={{ fontSize: 14 }}>
                       <Link
                         href={`/audience/segments/${row.id}`}
-                        style={{ color: "var(--ms-bone)" }}
+                        style={{ color: "var(--po-bone)" }}
                       >
                         {row.name}
                       </Link>
@@ -246,15 +246,15 @@ export default function SegmentsPage() {
                         <span
                           style={{
                             marginLeft: 8,
-                            color: "var(--ms-faint)",
-                            fontSize: "var(--ms-fs-label)",
+                            color: "var(--po-faint)",
+                            fontSize: "var(--po-fs-label)",
                           }}
                         >
                           {t("manual")}
                         </span>
                       ) : null}
                       {copiedId === row.id ? (
-                        <span style={{ marginLeft: 8, color: "var(--ms-muted)", fontSize: 12.5 }}>
+                        <span style={{ marginLeft: 8, color: "var(--po-muted)", fontSize: 12.5 }}>
                           ✓ {common("copied")}
                         </span>
                       ) : null}
@@ -272,15 +272,15 @@ export default function SegmentsPage() {
                           : t("countedAt", { time: formatRelative(row.countedAt, locale) })
                       }
                     >
-                      <span className="ms-mono">
+                      <span className="po-mono">
                         {row.contactCount === null ? "—" : nf.format(row.contactCount)}
                       </span>
                     </Tooltip>
                   </td>
-                  <td className="right ms-mono" style={{ color: "var(--ms-muted)" }}>
+                  <td className="right po-mono" style={{ color: "var(--po-muted)" }}>
                     {row.unsubscribedCount === null ? "—" : nf.format(row.unsubscribedCount)}
                   </td>
-                  <td className="right" style={{ color: "var(--ms-muted)" }}>
+                  <td className="right" style={{ color: "var(--po-muted)" }}>
                     <RelativeTime date={row.createdAt} />
                   </td>
                   <td className="right" style={{ width: 40 }}>
@@ -335,11 +335,11 @@ export default function SegmentsPage() {
             submitCreate();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="seg-name">{t("builder.nameLabel")}</label>
             <input
               id="seg-name"
-              className={`ms-input${createMutation.isError ? " error" : ""}`}
+              className={`po-input${createMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("builder.namePlaceholder")}
               disabled={createMutation.isPending}
@@ -356,8 +356,8 @@ export default function SegmentsPage() {
             <p
               style={{
                 margin: "10px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {t("builder.saveError")}
@@ -365,10 +365,10 @@ export default function SegmentsPage() {
           ) : null}
 
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeCreate}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
-            <button type="submit" className="ms-btn ms-btn-primary" disabled={!canSave}>
+            <button type="submit" className="po-btn po-btn-primary" disabled={!canSave}>
               <BtnSpinner on={createMutation.isPending} />
               {t("builder.save")} <ConfirmKeycap />
             </button>
@@ -388,27 +388,27 @@ export default function SegmentsPage() {
             submitDelete();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("deleteBody", { name: deleteTarget?.name ?? "—" })}
           </p>
           {deleteMutation.isError ? (
             <p
               style={{
                 margin: "10px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {deleteMutation.error.data?.code === "CONFLICT" ? t("deleteInUse") : t("deleteError")}
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeDelete}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={deleteMutation.isPending}
             >
               <BtnSpinner on={deleteMutation.isPending} />

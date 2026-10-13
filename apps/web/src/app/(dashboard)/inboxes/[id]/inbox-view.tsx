@@ -103,7 +103,7 @@ export function InboxView() {
         actions={
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             disabled={inbox.expired}
             onClick={() => setSending(true)}
           >
@@ -145,8 +145,8 @@ export function InboxView() {
           style={{
             margin: "0 0 18px",
             fontSize: 13.5,
-            color: "var(--ms-warn)",
-            border: "1px solid var(--ms-warn-border)",
+            color: "var(--po-warn)",
+            border: "1px solid var(--po-warn-border)",
             borderRadius: 12,
             padding: "11px 16px",
           }}
@@ -155,7 +155,7 @@ export function InboxView() {
         </p>
       ) : null}
 
-      <div className="ms-tabs bleed" role="tablist" style={{ marginBottom: 18 }}>
+      <div className="po-tabs bleed" role="tablist" style={{ marginBottom: 18 }}>
         {TABS.map((key) => (
           <button
             key={key}
@@ -168,8 +168,8 @@ export function InboxView() {
             {t(`tabs.${key}`)}
             {key === "review" && review > 0 ? (
               <span
-                className="ms-digits"
-                style={{ marginLeft: 7, fontWeight: 500, color: "var(--ms-faint)" }}
+                className="po-digits"
+                style={{ marginLeft: 7, fontWeight: 500, color: "var(--po-faint)" }}
               >
                 {nf.format(review)}
               </span>

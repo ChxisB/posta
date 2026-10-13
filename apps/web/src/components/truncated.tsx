@@ -25,12 +25,12 @@ export function Truncated({ text }: { text: string }) {
     return () => observer.disconnect();
   }, [cut]);
   const line = (
-    <span ref={ref} className="ms-truncate">
+    <span ref={ref} className="po-truncate">
       {text}
     </span>
   );
   return cut ? (
-    <Tooltip inline triggerClassName="ms-truncate-host" text={text}>
+    <Tooltip inline triggerClassName="po-truncate-host" text={text}>
       {line}
     </Tooltip>
   ) : (

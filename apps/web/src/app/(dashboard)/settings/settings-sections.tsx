@@ -84,33 +84,33 @@ function TeamSection({ billing }: { billing: boolean }) {
     return (
       <SectionCard title={t("team.title")}>
         <div
-          className="ms-kpi-row"
+          className="po-kpi-row"
           style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}
         >
           <div style={{ display: "grid", gap: 20, maxWidth: 420, alignContent: "start" }}>
-            <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
-              {/* span, not label: there is no control to label yet. Metrics mirror .ms-field label. */}
+            <div className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+              {/* span, not label: there is no control to label yet. Metrics mirror .po-field label. */}
               <span
                 style={{
                   display: "block",
-                  fontSize: "var(--ms-fs-label)",
-                  color: "var(--ms-muted)",
+                  fontSize: "var(--po-fs-label)",
+                  color: "var(--po-muted)",
                   marginBottom: 6,
                 }}
               >
                 {t("team.name")}
               </span>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <Skeleton width={200} height={30} radius="var(--ms-r-input)" />
-                <Skeleton width={56} height={30} radius="var(--ms-r-input)" />
+                <Skeleton width={200} height={30} radius="var(--po-r-input)" />
+                <Skeleton width={56} height={30} radius="var(--po-r-input)" />
               </div>
             </div>
-            <div className="ms-field" style={{ minWidth: 0 }}>
+            <div className="po-field" style={{ minWidth: 0 }}>
               <span
                 style={{
                   display: "block",
-                  fontSize: "var(--ms-fs-label)",
-                  color: "var(--ms-muted)",
+                  fontSize: "var(--po-fs-label)",
+                  color: "var(--po-muted)",
                   marginBottom: 6,
                 }}
               >
@@ -120,12 +120,12 @@ function TeamSection({ billing }: { billing: boolean }) {
             </div>
           </div>
           {billing ? (
-            <div className="ms-field">
+            <div className="po-field">
               <span
                 style={{
                   display: "block",
-                  fontSize: "var(--ms-fs-label)",
-                  color: "var(--ms-muted)",
+                  fontSize: "var(--po-fs-label)",
+                  color: "var(--po-muted)",
                   marginBottom: 6,
                 }}
               >
@@ -146,7 +146,7 @@ function TeamSection({ billing }: { billing: boolean }) {
     <SectionCard title={t("team.title")}>
       {/* Name over logo on the left, plan beside them; the columns stack on narrow screens. */}
       <div
-        className="ms-kpi-row"
+        className="po-kpi-row"
         style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}
       >
         <div style={{ display: "grid", gap: 20, maxWidth: 420, alignContent: "start" }}>
@@ -156,13 +156,13 @@ function TeamSection({ billing }: { billing: boolean }) {
               rename.mutate({ name });
             }}
           >
-            <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+            <div className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
               <label htmlFor="settings-team-name">{t("team.name")}</label>
               <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                 <input
                   id="settings-team-name"
                   type="text"
-                  className="ms-input"
+                  className="po-input"
                   style={{ flex: 1, minWidth: 0, maxWidth: 420 }}
                   required
                   maxLength={CUSTOMER_TEXT_MAX}
@@ -172,14 +172,14 @@ function TeamSection({ billing }: { billing: boolean }) {
                 />
                 <button
                   type="submit"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={rename.isPending}
                 >
                   <BtnSpinner on={rename.isPending} />
                   {t("team.save")}
                 </button>
                 {rename.isSuccess && draft === null ? (
-                  <span style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+                  <span style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
                     ✓ {t("team.saved")}
                   </span>
                 ) : null}
@@ -189,8 +189,8 @@ function TeamSection({ billing }: { billing: boolean }) {
               <p
                 style={{
                   margin: "8px 0 0",
-                  color: "var(--ms-danger)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--po-danger)",
+                  fontSize: "var(--po-fs-label)",
                 }}
               >
                 {trpcErrorCode(rename.error) === "BAD_REQUEST"
@@ -201,13 +201,13 @@ function TeamSection({ billing }: { billing: boolean }) {
           </form>
           {/* minWidth 0: the uuid chip does not wrap, so without this the field's
               min-content pins the card wider than a phone viewport. */}
-          <div className="ms-field" style={{ minWidth: 0 }}>
+          <div className="po-field" style={{ minWidth: 0 }}>
             {/* span, not label: the id is read-only, so there is no control to label. */}
             <span
               style={{
                 display: "block",
-                fontSize: "var(--ms-fs-label)",
-                color: "var(--ms-muted)",
+                fontSize: "var(--po-fs-label)",
+                color: "var(--po-muted)",
                 marginBottom: 6,
               }}
             >
@@ -218,13 +218,13 @@ function TeamSection({ billing }: { billing: boolean }) {
             {activeTeamId ? <CopyChip value={activeTeamId} /> : <SkeletonChip width={300} />}
           </div>
           {team.logoUploadsEnabled && canManageLogo ? (
-            <div className="ms-field" style={{ maxWidth: 420 }}>
-              {/* span, not label: the controls are buttons, not a labelable input. Metrics mirror .ms-field label. */}
+            <div className="po-field" style={{ maxWidth: 420 }}>
+              {/* span, not label: the controls are buttons, not a labelable input. Metrics mirror .po-field label. */}
               <span
                 style={{
                   display: "block",
-                  fontSize: "var(--ms-fs-label)",
-                  color: "var(--ms-muted)",
+                  fontSize: "var(--po-fs-label)",
+                  color: "var(--po-muted)",
                   marginBottom: 6,
                 }}
               >
@@ -251,7 +251,7 @@ function TeamSection({ billing }: { billing: boolean }) {
                 <TeamLogo name={team.name} logoUrl={team.logoUrl} size={30} />
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={logoBusy || !teamList}
                   onClick={() => logoInputRef.current?.click()}
                 >
@@ -261,7 +261,7 @@ function TeamSection({ billing }: { billing: boolean }) {
                 {team.logoUrl ? (
                   <button
                     type="button"
-                    className="ms-btn ms-btn-secondary"
+                    className="po-btn po-btn-secondary"
                     disabled={logoBusy}
                     onClick={async () => {
                       const ok = await confirmDialog({
@@ -280,8 +280,8 @@ function TeamSection({ billing }: { billing: boolean }) {
               <p
                 style={{
                   margin: "6px 0 0",
-                  color: "var(--ms-muted)",
-                  fontSize: "var(--ms-fs-label)",
+                  color: "var(--po-muted)",
+                  fontSize: "var(--po-fs-label)",
                 }}
               >
                 {t("team.logo.hint")}
@@ -290,8 +290,8 @@ function TeamSection({ billing }: { billing: boolean }) {
                 <p
                   style={{
                     margin: "6px 0 0",
-                    color: "var(--ms-danger)",
-                    fontSize: "var(--ms-fs-label)",
+                    color: "var(--po-danger)",
+                    fontSize: "var(--po-fs-label)",
                   }}
                 >
                   {t("team.logo.error")}
@@ -301,12 +301,12 @@ function TeamSection({ billing }: { billing: boolean }) {
           ) : null}
         </div>
         {billing ? (
-          <div className="ms-field">
+          <div className="po-field">
             <span
               style={{
                 display: "block",
-                fontSize: "var(--ms-fs-label)",
-                color: "var(--ms-muted)",
+                fontSize: "var(--po-fs-label)",
+                color: "var(--po-muted)",
                 marginBottom: 6,
               }}
             >
@@ -316,7 +316,7 @@ function TeamSection({ billing }: { billing: boolean }) {
               {/* The pill is the way into billing; a paid plan reads as a success, the system team as information. */}
               <Link
                 href="/settings/billing"
-                className={`ms-badge ${team.plan === "free" ? "ms-badge-neutral" : team.plan === "system" ? "ms-badge-info" : "ms-badge-success"}`}
+                className={`po-badge ${team.plan === "free" ? "po-badge-neutral" : team.plan === "system" ? "po-badge-info" : "po-badge-success"}`}
                 style={{ textDecoration: "none" }}
               >
                 {t(`plans.${team.plan}`)}
@@ -383,7 +383,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             close();
           }}
         >
-          <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t(
               create.data.emailed
                 ? "invitations.created.emailedBody"
@@ -395,7 +395,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
           </p>
           <CopyChip value={create.data.acceptUrl} />
           {create.data.emailed ? null : (
-            <p style={{ margin: 0, color: "var(--ms-warn)", fontSize: "var(--ms-fs-label)" }}>
+            <p style={{ margin: 0, color: "var(--po-warn)", fontSize: "var(--po-fs-label)" }}>
               {t(
                 create.data.noSender
                   ? "invitations.created.noSender"
@@ -404,7 +404,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             </p>
           )}
           <ModalFooter>
-            <button type="submit" className="ms-btn ms-btn-primary">
+            <button type="submit" className="po-btn po-btn-primary">
               {t("invitations.created.done")} <ConfirmKeycap />
             </button>
           </ModalFooter>
@@ -417,12 +417,12 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             confirm();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="invite-email">{t("invitations.invite.email")}</label>
             <input
               id="invite-email"
               type="email"
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               required
               value={email}
@@ -431,7 +431,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
               onChange={(event) => setEmail(event.target.value)}
             />
           </div>
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="invite-role">{t("invitations.invite.role")}</label>
             <Select
               id="invite-role"
@@ -447,7 +447,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             />
           </div>
           {create.isError ? (
-            <p style={{ margin: 0, color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+            <p style={{ margin: 0, color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
               {trpcErrorCode(create.error) === "TOO_MANY_REQUESTS" ||
               trpcErrorCode(create.error) === "CONFLICT"
                 ? create.error.message
@@ -455,12 +455,12 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={close}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={close}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={email.trim().length === 0 || create.isPending}
             >
               <BtnSpinner on={create.isPending} />
@@ -498,7 +498,7 @@ function PendingInvitations() {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <div className="ms-microlabel" style={{ marginBottom: 8 }}>
+      <div className="po-microlabel" style={{ marginBottom: 8 }}>
         {t("invitations.pending.title")}
       </div>
       <Table style={{ whiteSpace: "nowrap" }}>
@@ -513,13 +513,13 @@ function PendingInvitations() {
         <tbody>
           {invitations.map((invite) => (
             <tr key={invite.id}>
-              <td className="ms-mono ms-cell-wrap">
+              <td className="po-mono po-cell-wrap">
                 <Breakable text={invite.email} />
               </td>
               <td>{t(`members.roles.${invite.role}`)}</td>
               <td>
                 {new Date(invite.expiresAt).getTime() <= Date.now() ? (
-                  <span className="ms-badge ms-badge-warn">{t("invitations.pending.expired")}</span>
+                  <span className="po-badge po-badge-warn">{t("invitations.pending.expired")}</span>
                 ) : (
                   <RelativeTime date={invite.expiresAt} />
                 )}
@@ -527,7 +527,7 @@ function PendingInvitations() {
               <td className="right" style={{ whiteSpace: "nowrap" }}>
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={busy}
                   style={{ marginRight: 8 }}
                   onClick={() => resend.mutate({ id: invite.id })}
@@ -536,7 +536,7 @@ function PendingInvitations() {
                 </button>
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   disabled={busy}
                   onClick={async () => {
                     const ok = await confirmDialog({
@@ -556,7 +556,7 @@ function PendingInvitations() {
         </tbody>
       </Table>
       {error ? (
-        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
           {t("invitations.pending.resendError", { reason: error })}
         </p>
       ) : null}
@@ -641,7 +641,7 @@ function MembersSection() {
         canManage ? (
           <button
             type="button"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             onClick={() => setInviteOpen(true)}
           >
             {t("invitations.invite.trigger")}
@@ -679,8 +679,8 @@ function MembersSection() {
               const editable = canManage && !m.self && (role === "owner" || m.role !== "owner");
               return (
                 <tr key={m.userId}>
-                  <td className="ms-cell-wrap">{m.name}</td>
-                  <td className="ms-mono ms-cell-wrap">
+                  <td className="po-cell-wrap">{m.name}</td>
+                  <td className="po-mono po-cell-wrap">
                     <Breakable text={m.email} />
                   </td>
                   <td>
@@ -704,7 +704,7 @@ function MembersSection() {
                       cannotLeave ? null : (
                         <button
                           type="button"
-                          className="ms-btn ms-btn-secondary"
+                          className="po-btn po-btn-secondary"
                           disabled={busy}
                           onClick={() => void confirmLeave()}
                         >
@@ -714,7 +714,7 @@ function MembersSection() {
                     ) : editable ? (
                       <button
                         type="button"
-                        className="ms-btn ms-btn-secondary"
+                        className="po-btn po-btn-secondary"
                         disabled={busy}
                         onClick={() => void confirmRemove(m)}
                       >
@@ -729,7 +729,7 @@ function MembersSection() {
         )}
       </Table>
       {error ? (
-        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
           {t("members.error", { reason: error })}
         </p>
       ) : null}
@@ -794,7 +794,7 @@ function SupportAccessSection() {
         live ? (
           <button
             type="button"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={end.isPending}
             onClick={() => end.mutate()}
           >
@@ -804,11 +804,11 @@ function SupportAccessSection() {
         ) : null
       }
     >
-      <p style={{ margin: "0 0 14px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+      <p style={{ margin: "0 0 14px", color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
         {t("intro")}
       </p>
       {live ? (
-        <dl className="ms-kv">
+        <dl className="po-kv">
           <KvRow label={t("operator")}>{actors("operator")}</KvRow>
           <KvRow label={t("started")}>{formatDayTime(live.startedAt, locale)}</KvRow>
           <KvRow label={t("expires")}>
@@ -818,7 +818,7 @@ function SupportAccessSection() {
           <KvRow label={t("reference")}>{live.reference ?? "—"}</KvRow>
         </dl>
       ) : (
-        <p style={{ margin: 0, color: "var(--ms-bone)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: 0, color: "var(--po-bone)", fontSize: "var(--po-fs-ui)" }}>
           {t("none", { team })}
         </p>
       )}
@@ -833,7 +833,7 @@ function LanguageSection() {
 
   return (
     <SectionCard title={t("language.title")}>
-      <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+      <div className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
         <label htmlFor="settings-locale">{t("language.label")}</label>
         <Select
           id="settings-locale"
@@ -870,12 +870,12 @@ function InstanceField({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+    <div className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
       <label htmlFor={id}>{label}</label>
       <input
         id={id}
         type="number"
-        className="ms-input ms-number"
+        className="po-input po-number"
         style={{ width: "100%" }}
         min={min}
         max={max}
@@ -911,25 +911,25 @@ function InstanceSection() {
     // The save-button row is omitted: canEdit is unknown until load.
     return (
       <SectionCard title={t("instance.title")}>
-        <p style={{ margin: "-8px 0 16px", fontSize: "var(--ms-fs-label)", display: "flex" }}>
+        <p style={{ margin: "-8px 0 16px", fontSize: "var(--po-fs-label)", display: "flex" }}>
           <Skeleton width={260} height="1lh" />
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
           {[t("instance.rateLabel"), t("instance.retentionLabel"), t("instance.reserveLabel")].map(
             (label) => (
-              <div key={label} className="ms-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
-                {/* span, not label: there is no control to label yet. Metrics mirror .ms-field label. */}
+              <div key={label} className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
+                {/* span, not label: there is no control to label yet. Metrics mirror .po-field label. */}
                 <span
                   style={{
                     display: "block",
-                    fontSize: "var(--ms-fs-label)",
-                    color: "var(--ms-muted)",
+                    fontSize: "var(--po-fs-label)",
+                    color: "var(--po-muted)",
                     marginBottom: 6,
                   }}
                 >
                   {label}
                 </span>
-                <Skeleton width="100%" height={30} radius="var(--ms-r-input)" />
+                <Skeleton width="100%" height={30} radius="var(--po-r-input)" />
               </div>
             ),
           )}
@@ -949,14 +949,14 @@ function InstanceSection() {
       <p
         style={{
           margin: "-8px 0 16px",
-          color: "var(--ms-muted)",
-          fontSize: "var(--ms-fs-label)",
+          color: "var(--po-muted)",
+          fontSize: "var(--po-fs-label)",
         }}
       >
         {t("instance.subtitle")}
       </p>
       <p
-        style={{ margin: "-8px 0 16px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}
+        style={{ margin: "-8px 0 16px", color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}
       >
         {t.rich("instance.updates", {
           link: (chunks) => (
@@ -1004,7 +1004,7 @@ function InstanceSection() {
             onChange={() => {}}
           />
         </div>
-        <p style={{ margin: "8px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
           {t.rich("instance.reserveNote", {
             link: (chunks) =>
               operator.data?.isOperator ? <Link href="/console/regions">{chunks}</Link> : chunks,
@@ -1012,12 +1012,12 @@ function InstanceSection() {
         </p>
         {data.canEdit ? (
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 16 }}>
-            <button type="submit" className="ms-btn ms-btn-secondary" disabled={save.isPending}>
+            <button type="submit" className="po-btn po-btn-secondary" disabled={save.isPending}>
               <BtnSpinner on={save.isPending} />
               {t("instance.save")}
             </button>
             {save.isSuccess && clean ? (
-              <span style={{ color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+              <span style={{ color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
                 ✓ {t("instance.saved")}
               </span>
             ) : null}
@@ -1025,7 +1025,7 @@ function InstanceSection() {
         ) : null}
         {save.isError ? (
           <p
-            style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}
+            style={{ margin: "8px 0 0", color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}
           >
             {t("instance.error")}
           </p>
@@ -1088,7 +1088,7 @@ function DangerSection() {
   return (
     // Collapsed by default: the irreversible actions stay out of reach until
     // the operator opens the zone.
-    <details className="ms-card ms-card-danger" style={{ padding: 24 }}>
+    <details className="po-card po-card-danger" style={{ padding: 24 }}>
       <summary
         style={{
           display: "flex",
@@ -1100,20 +1100,20 @@ function DangerSection() {
         }}
       >
         <h2
-          className="ms-display"
-          style={{ fontSize: "var(--ms-fs-h2)", color: "var(--ms-bone)", margin: 0 }}
+          className="po-display"
+          style={{ fontSize: "var(--po-fs-h2)", color: "var(--po-bone)", margin: 0 }}
         >
           {t("title")}
         </h2>
-        <span className="ms-danger-chevron" style={{ display: "flex", color: "var(--ms-muted)" }}>
+        <span className="po-danger-chevron" style={{ display: "flex", color: "var(--po-muted)" }}>
           <ChevronGlyph direction="down" />
         </span>
       </summary>
-      <div className="ms-actions" style={{ marginTop: 18 }}>
+      <div className="po-actions" style={{ marginTop: 18 }}>
         {role === "owner" ? (
           <button
             type="button"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={busy}
             onClick={() => void confirmDeleteTeam()}
           >
@@ -1123,7 +1123,7 @@ function DangerSection() {
         ) : null}
         <button
           type="button"
-          className="ms-btn ms-btn-destructive"
+          className="po-btn po-btn-destructive"
           disabled={busy}
           onClick={() => void confirmDeleteAccount()}
         >
@@ -1131,11 +1131,11 @@ function DangerSection() {
           {t("deleteAccount")}
         </button>
       </div>
-      <p style={{ margin: "8px 0 0", color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+      <p style={{ margin: "8px 0 0", color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
         {t("hint")}
       </p>
       {error ? (
-        <p style={{ margin: "8px 0 0", color: "var(--ms-danger)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--po-danger)", fontSize: "var(--po-fs-label)" }}>
           {error}
         </p>
       ) : null}

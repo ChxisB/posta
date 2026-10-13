@@ -55,8 +55,8 @@ export function UnsubscribePreview({
     <div>
       <div
         style={{
-          border: "1px solid var(--ms-line)",
-          borderRadius: "var(--ms-r-card)",
+          border: "1px solid var(--po-line)",
+          borderRadius: "var(--po-r-card)",
           overflow: "hidden",
         }}
       >
@@ -71,7 +71,7 @@ export function UnsubscribePreview({
           data-theme={scheme}
           style={{
             zoom: 0.8,
-            background: "var(--ms-void)",
+            background: "var(--po-void)",
             colorScheme: scheme,
           }}
         >

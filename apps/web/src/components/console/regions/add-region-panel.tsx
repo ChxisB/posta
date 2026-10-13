@@ -7,9 +7,9 @@ import { DotParts } from "@/components/dot-parts";
 import type { ServedRegion } from "../region-actions";
 import { codeBlock, TemplateDialog } from "./region-dialogs";
 
-const faint: React.CSSProperties = { color: "var(--ms-faint)" };
-const muted: React.CSSProperties = { color: "var(--ms-muted)" };
-const key: React.CSSProperties = { color: "var(--ms-info)" };
+const faint: React.CSSProperties = { color: "var(--po-faint)" };
+const muted: React.CSSProperties = { color: "var(--po-muted)" };
+const key: React.CSSProperties = { color: "var(--po-info)" };
 
 type CheckTone = "success" | "warn" | "danger" | "neutral";
 
@@ -30,15 +30,15 @@ function Check({
         display: "flex",
         alignItems: "center",
         gap: 10,
-        fontSize: "var(--ms-fs-label)",
+        fontSize: "var(--po-fs-label)",
         padding: "7px 0",
-        borderBottom: last ? 0 : "1px solid var(--ms-line)",
+        borderBottom: last ? 0 : "1px solid var(--po-line)",
       }}
     >
-      <span className="ms-dot" style={{ background: `var(--ms-${tone})` }} />
+      <span className="po-dot" style={{ background: `var(--po-${tone})` }} />
       {children}
       {trailing ? (
-        <span className="ms-mono" style={{ marginLeft: "auto", fontSize: 12, ...muted }}>
+        <span className="po-mono" style={{ marginLeft: "auto", fontSize: 12, ...muted }}>
           {trailing}
         </span>
       ) : null}
@@ -59,11 +59,11 @@ function Step({ n, last, children }: { n: string; last?: boolean; children: Reac
           flex: "none",
         }}
       >
-        <span className="ms-mono" style={{ fontSize: 11, color: "var(--ms-bone)" }}>
+        <span className="po-mono" style={{ fontSize: 11, color: "var(--po-bone)" }}>
           {n}
         </span>
         {last ? null : (
-          <span style={{ flex: 1, width: 1, background: "var(--ms-line)", marginTop: 6 }} />
+          <span style={{ flex: 1, width: 1, background: "var(--po-line)", marginTop: 6 }} />
         )}
       </div>
       <div style={{ flex: 1, minWidth: 0, paddingBottom: last ? 0 : 22 }}>{children}</div>
@@ -72,7 +72,7 @@ function Step({ n, last, children }: { n: string; last?: boolean; children: Reac
 }
 
 const h4: React.CSSProperties = { margin: "0 0 4px", fontSize: 15, fontWeight: 600 };
-const p: React.CSSProperties = { margin: "0 0 8px", fontSize: 13, color: "var(--ms-muted)" };
+const p: React.CSSProperties = { margin: "0 0 8px", fontSize: 13, color: "var(--po-muted)" };
 
 /**
  * The three-step "Add region" walkthrough for the region the URL names:
@@ -105,7 +105,7 @@ export function AddRegionPanel({
         : "danger";
 
   return (
-    <div className="ms-card" id="add-region" style={{ padding: 20, scrollMarginTop: 24 }}>
+    <div className="po-card" id="add-region" style={{ padding: 20, scrollMarginTop: 24 }}>
       <div
         style={{
           display: "flex",
@@ -116,18 +116,18 @@ export function AddRegionPanel({
         }}
       >
         <div>
-          <h3 style={{ margin: "0 0 4px", fontSize: "var(--ms-fs-section)", fontWeight: 600 }}>
+          <h3 style={{ margin: "0 0 4px", fontSize: "var(--po-fs-section)", fontWeight: 600 }}>
             <DotParts text={t("title", { region: `${flag} ${region}` })} />
           </h3>
           <p style={{ ...p, margin: 0 }}>{t("subtitle")}</p>
         </div>
-        <span className="ms-badge ms-badge-neutral">{t("notStarted")}</span>
+        <span className="po-badge po-badge-neutral">{t("notStarted")}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <Step n="01">
           <h4 style={h4}>{t("step1")}</h4>
           <p style={p}>{t("step1Body")}</p>
-          <pre className="ms-mono" style={codeBlock}>
+          <pre className="po-mono" style={codeBlock}>
             {"$ npx @tack-labs/posta-setup\n"}
             <span style={muted}>{t("cliRegion")}</span>
             {`  ${region}  `}
@@ -157,12 +157,12 @@ export function AddRegionPanel({
         </Step>
         <Step n="02">
           <h4 style={h4}>{t("step2")}</h4>
-          <pre className="ms-mono" style={codeBlock}>
+          <pre className="po-mono" style={codeBlock}>
             {`AWS_REGIONS=${all.join(",")}\nSNS_TOPIC_ARNS=${all.map(arn).join(",")}\n`}
             <span style={faint}>{t("queueNote")}</span>
           </pre>
           <p style={{ ...p, marginTop: 8 }}>
-            <span className="ms-chip">AWS_REGION</span>{" "}
+            <span className="po-chip">AWS_REGION</span>{" "}
             {t("step2Note").replace(/^AWS_REGION\s*/, "")}
           </p>
         </Step>
@@ -184,7 +184,7 @@ export function AddRegionPanel({
                       font: "inherit",
                       color: "inherit",
                       cursor: "pointer",
-                      textDecoration: "underline dotted var(--ms-faint)",
+                      textDecoration: "underline dotted var(--po-faint)",
                       textUnderlineOffset: 3,
                     }}
                   >

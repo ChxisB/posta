@@ -239,7 +239,7 @@ function RevealDialog({
           submit();
         }}
       >
-        <p style={{ margin: "6px 0 16px", color: "var(--ms-muted)", fontSize: 13.5 }}>
+        <p style={{ margin: "6px 0 16px", color: "var(--po-muted)", fontSize: 13.5 }}>
           {email ? (
             <DotParts
               text={t("lead", {
@@ -253,7 +253,7 @@ function RevealDialog({
             t("leadTeam", { team: request.team.name })
           )}
         </p>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-reason`}>{t("reason")}</label>
           <Select
             id={`${id}-reason`}
@@ -268,11 +268,11 @@ function RevealDialog({
             }))}
           />
         </div>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-why`}>{t("why")}</label>
           <textarea
             id={`${id}-why`}
-            className="ms-input"
+            className="po-input"
             style={{ width: "100%", minHeight: 76, resize: "vertical" }}
             maxLength={CONTENT_REVEAL_JUSTIFICATION_MAX}
             disabled={pending}
@@ -280,30 +280,30 @@ function RevealDialog({
             value={justification}
             onChange={(event) => setJustification(event.target.value)}
           />
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
             {t("whyHelper", { reason: request.flagLabel })}
           </p>
           {short && justification.length > 0 ? (
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--ms-warn)" }}>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--po-warn)" }}>
               {t("whyShort", { min: CONTENT_REVEAL_JUSTIFICATION_MIN })}
             </p>
           ) : null}
         </div>
-        <div className="ms-field" style={{ marginBottom: 14 }}>
+        <div className="po-field" style={{ marginBottom: 14 }}>
           <label htmlFor={`${id}-scope`}>{t("scope")}</label>
           {windowOnly ? (
             <p id={`${id}-scope`} style={{ margin: 0, fontSize: 13 }}>
               {windowLabel}
               <span
                 className="sub"
-                style={{ display: "block", color: "var(--ms-muted)", fontSize: 12 }}
+                style={{ display: "block", color: "var(--po-muted)", fontSize: 12 }}
               >
                 {t("scopeWindowSub")}
               </span>
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label className="ms-radio-card">
+              <label className="po-radio-card">
                 <input
                   id={`${id}-scope`}
                   type="radio"
@@ -320,7 +320,7 @@ function RevealDialog({
                 </span>
               </label>
               {request.flaggedCount > 1 && !oneMessage ? (
-                <label className="ms-radio-card">
+                <label className="po-radio-card">
                   <input
                     type="radio"
                     name={`${id}-scope-group`}
@@ -337,22 +337,22 @@ function RevealDialog({
             </div>
           )}
         </div>
-        <div className="ms-grid ms-grid-12" style={{ marginBottom: 14, fontSize: 13 }}>
+        <div className="po-grid po-grid-12" style={{ marginBottom: 14, fontSize: 13 }}>
           <div>
-            <div className="ms-microlabel">{t("window")}</div>
+            <div className="po-microlabel">{t("window")}</div>
             {t("windowValue")}
           </div>
           <div>
-            <div className="ms-microlabel">{t("recorded")}</div>
+            <div className="po-microlabel">{t("recorded")}</div>
             <DotParts text={t("recordedValue")} />
           </div>
         </div>
-        <p style={{ margin: 0, fontSize: 12.5, color: "var(--ms-muted)" }}>{t("note")}</p>
+        <p style={{ margin: 0, fontSize: 12.5, color: "var(--po-muted)" }}>{t("note")}</p>
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={pending || short}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={pending || short}>
             <BtnSpinner on={pending} />
             {t("confirm")} <ConfirmKeycap />
           </button>
@@ -419,15 +419,15 @@ function RevealedView({
 
   return (
     <Modal open onClose={onClose} size="wide" title={t("title", { team: team.name })}>
-      <p style={{ margin: "6px 0 14px", color: "var(--ms-muted)", fontSize: 13.5 }}>{t("lead")}</p>
+      <p style={{ margin: "6px 0 14px", color: "var(--po-muted)", fontSize: 13.5 }}>{t("lead")}</p>
       {query.isPending ? (
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)" }}>…</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-muted)" }}>…</p>
       ) : expired ? (
         // "30 minutes, then hidden again" is the promise; an open dialog that
         // outlives its window must hide what it already fetched.
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-warn)" }}>{t("expired")}</p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-warn)" }}>{t("expired")}</p>
       ) : query.isError ? (
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ms-danger)" }}>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--po-danger)" }}>
           {errorMessage === "expired"
             ? t("expired")
             : errorMessage === "purged"
@@ -445,49 +445,49 @@ function RevealedView({
               flexWrap: "wrap",
             }}
           >
-            <span className="ms-chip">{t("expires", { time: formatMmSs(left) })}</span>
-            <span className="ms-chip">{t("renderedOnly")}</span>
-            <span className="ms-chip">{t("recipientsHidden")}</span>
-            <span className="ms-chip">{t("noExport")}</span>
+            <span className="po-chip">{t("expires", { time: formatMmSs(left) })}</span>
+            <span className="po-chip">{t("renderedOnly")}</span>
+            <span className="po-chip">{t("recipientsHidden")}</span>
+            <span className="po-chip">{t("noExport")}</span>
             {query.data.redactions > 0 ? (
-              <span className="ms-chip">{t("redactions", { count: query.data.redactions })}</span>
+              <span className="po-chip">{t("redactions", { count: query.data.redactions })}</span>
             ) : null}
           </div>
-          <div className="ms-microlabel" style={{ marginBottom: 4 }}>
+          <div className="po-microlabel" style={{ marginBottom: 4 }}>
             {t("subject")}
           </div>
           <div style={{ fontWeight: 600, marginBottom: 12 }}>
             <RevealText spans={query.data.subject} />
           </div>
-          <div className="ms-microlabel" style={{ marginBottom: 4 }}>
+          <div className="po-microlabel" style={{ marginBottom: 4 }}>
             {t("body")}
           </div>
-          <div className="ms-revealed">
+          <div className="po-revealed">
             {query.data.spans.length === 0 ? (
-              <span style={{ color: "var(--ms-muted)" }}>{t("empty")}</span>
+              <span style={{ color: "var(--po-muted)" }}>{t("empty")}</span>
             ) : (
               <RevealText spans={query.data.spans} />
             )}
           </div>
-          <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+          <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
             {query.data.verdict
               ? t("verdict", { verdict: verdictLine(query.data.verdict, monitorT) })
               : t("verdictNone")}
           </p>
         </>
       )}
-      <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>{t("note")}</p>
+      <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>{t("note")}</p>
       <ModalFooter>
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-          {t("close")} <span className="ms-keycap">Esc</span>
+        <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+          {t("close")} <span className="po-keycap">Esc</span>
         </button>
         {onClear ? (
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClear}>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClear}>
             {t("clear")}
           </button>
         ) : null}
         {onSuspend ? (
-          <button type="button" className="ms-btn ms-btn-destructive" onClick={onSuspend}>
+          <button type="button" className="po-btn po-btn-destructive" onClick={onSuspend}>
             {t("suspend")}
           </button>
         ) : null}
@@ -516,12 +516,12 @@ export function RevealCell({
   if (grant && left > 0) {
     return (
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-        <span className="ms-chip" style={{ whiteSpace: "nowrap" }}>
+        <span className="po-chip" style={{ whiteSpace: "nowrap" }}>
           {t("left", { time: formatMmSs(left) })}
         </span>
         <button
           type="button"
-          className="ms-btn ms-btn-secondary ms-btn-sm"
+          className="po-btn po-btn-secondary po-btn-sm"
           onClick={() => onOpen(grant.id)}
         >
           {t("open")}
@@ -532,7 +532,7 @@ export function RevealCell({
   const button = (
     <button
       type="button"
-      className="ms-btn ms-btn-secondary ms-btn-sm"
+      className="po-btn po-btn-secondary po-btn-sm"
       disabled={disabled}
       onClick={onReveal}
     >

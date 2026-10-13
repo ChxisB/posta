@@ -9,24 +9,24 @@ import { StatusTile } from "./status-tile";
 export function emailStatusColor(status: string): string {
   switch (status) {
     case "delivered":
-      return "var(--ms-success)";
+      return "var(--po-success)";
     case "opened":
     case "clicked":
-      return "var(--ms-info)";
+      return "var(--po-info)";
     case "bounced":
     case "suppressed":
     case "failed":
     case "rendering_failure":
-      return "var(--ms-danger)";
+      return "var(--po-danger)";
     case "complained":
     case "unsubscribed":
-      return "var(--ms-warn)";
+      return "var(--po-warn)";
     case "delivery_delayed":
-      return "var(--ms-neutral)";
+      return "var(--po-neutral)";
     default:
       // queued / queued_quota / sent / canceled / prefetched — the baseline,
       // not an outcome.
-      return "var(--ms-muted)";
+      return "var(--po-muted)";
   }
 }
 
@@ -174,8 +174,8 @@ export function EventIconTile({
         justifyContent: "center",
         borderRadius: 10,
         // Dashed for a prefetch: it happened, and it does not count.
-        border: `1px ${dashed || type === "prefetched" ? "dashed" : "solid"} color-mix(in srgb, ${color} 45%, var(--ms-line))`,
-        background: `linear-gradient(180deg, color-mix(in srgb, ${color} 16%, var(--ms-panel)), color-mix(in srgb, ${color} 5%, var(--ms-panel)))`,
+        border: `1px ${dashed || type === "prefetched" ? "dashed" : "solid"} color-mix(in srgb, ${color} 45%, var(--po-line))`,
+        background: `linear-gradient(180deg, color-mix(in srgb, ${color} 16%, var(--po-panel)), color-mix(in srgb, ${color} 5%, var(--po-panel)))`,
         color,
       }}
     >

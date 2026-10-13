@@ -424,7 +424,7 @@ export function ResourceApiButton({ resource }: { resource: Resource }) {
     <>
       <button
         type="button"
-        className="ms-btn ms-btn-icon"
+        className="po-btn po-btn-icon"
         aria-label={title}
         onClick={() => setOpen(true)}
       >
@@ -440,7 +440,7 @@ export function ResourceApiButton({ resource }: { resource: Resource }) {
             language={sheet.sdk ? LANG_META[lang].hljs : "bash"}
           />
         ))}
-        <p style={{ margin: "20px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "20px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
           {t("emails.apiSheet.keyHint")}
         </p>
       </Drawer>
@@ -461,7 +461,7 @@ function LangTabs({
     <div
       role="tablist"
       aria-label={label}
-      className="ms-scroll-x"
+      className="po-scroll-x"
       style={{
         display: "flex",
         gap: 4,
@@ -477,7 +477,7 @@ function LangTabs({
           type="button"
           role="tab"
           aria-selected={key === value}
-          className={key === value ? "ms-code-tab active" : "ms-code-tab"}
+          className={key === value ? "po-code-tab active" : "po-code-tab"}
           onClick={() => onChange(key)}
         >
           <LangIcon path={LANG_META[key].icon.path} />
@@ -499,7 +499,7 @@ function SheetSection({
 }) {
   return (
     <section style={{ marginTop: 22 }}>
-      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--ms-bone)" }}>{title}</h3>
+      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--po-bone)" }}>{title}</h3>
       <CodeBlock code={code} language={language} />
     </section>
   );
@@ -508,16 +508,16 @@ function SheetSection({
 function CodeBlock({ code, language }: { code: string; language: HighlightLanguage }) {
   return (
     <pre
-      className="ms-mono ms-hl"
+      className="po-mono po-hl"
       style={{
         margin: "10px 0 0",
         padding: "14px 16px",
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line)",
         borderRadius: 10,
         fontSize: 12,
         lineHeight: 1.65,
-        color: "var(--ms-bone)",
+        color: "var(--po-bone)",
         overflowX: "auto",
         // Shell one-liners run past the drawer; wrapping beats a scrollbar
         // there, while SDK code keeps its indentation intact.
@@ -544,7 +544,7 @@ export function ApiDocsButton() {
     <>
       <button
         type="button"
-        className="ms-btn ms-btn-icon"
+        className="po-btn po-btn-icon"
         aria-label={t("list.apiDocs")}
         onClick={() => setOpen(true)}
       >
@@ -568,7 +568,7 @@ export function ApiDocsButton() {
           />
         ))}
 
-        <p style={{ margin: "20px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "20px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
           {t("apiSheet.keyHint")}
         </p>
       </Drawer>

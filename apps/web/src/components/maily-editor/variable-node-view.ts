@@ -45,36 +45,36 @@ export function createVariableNodeView(strings: VariableViewStrings) {
     let attrs = (props.node as { attrs: VariableAttrs }).attrs;
 
     const wrap = document.createElement("span");
-    wrap.className = "ms-varview";
+    wrap.className = "po-varview";
 
     const pill = document.createElement("button");
     pill.type = "button";
-    pill.className = "ms-maily-varpill";
+    pill.className = "po-maily-varpill";
     pill.innerHTML = BRACES_SVG;
     const labelSpan = document.createElement("span");
     pill.appendChild(labelSpan);
 
     const pop = document.createElement("span");
-    pop.className = "ms-varpop";
+    pop.className = "po-varpop";
     pop.hidden = true;
 
     const nameRow = document.createElement("span");
-    nameRow.className = "ms-varpop-row";
+    nameRow.className = "po-varpop-row";
     const nameLabel = document.createElement("span");
-    nameLabel.className = "ms-varpop-label";
+    nameLabel.className = "po-varpop-label";
     nameLabel.textContent = strings.variable;
     const nameCode = document.createElement("code");
-    nameCode.className = "ms-varpop-name";
+    nameCode.className = "po-varpop-name";
     nameRow.append(nameLabel, nameCode);
 
     const fallbackRow = document.createElement("label");
-    fallbackRow.className = "ms-varpop-row";
+    fallbackRow.className = "po-varpop-row";
     const fallbackLabel = document.createElement("span");
-    fallbackLabel.className = "ms-varpop-label";
+    fallbackLabel.className = "po-varpop-label";
     fallbackLabel.textContent = strings.fallback;
     const input = document.createElement("input");
     input.type = "text";
-    input.className = "ms-varpop-input";
+    input.className = "po-varpop-input";
     input.placeholder = strings.fallbackPlaceholder;
     input.autocomplete = "off";
     input.spellcheck = false;

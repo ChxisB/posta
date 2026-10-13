@@ -71,16 +71,16 @@ function SnippetBlock({ code, language }: { code: string; language: HighlightLan
   return (
     <div style={{ position: "relative" }}>
       <pre
-        className="ms-mono ms-hl"
+        className="po-mono po-hl"
         style={{
           margin: 0,
           padding: "14px 40px 14px 16px",
-          background: "var(--ms-inset)",
-          border: "1px solid var(--ms-line)",
+          background: "var(--po-inset)",
+          border: "1px solid var(--po-line)",
           borderRadius: 10,
           fontSize: 12,
           lineHeight: 1.65,
-          color: "var(--ms-bone)",
+          color: "var(--po-bone)",
           overflowX: "auto",
         }}
       >
@@ -94,7 +94,7 @@ function SnippetBlock({ code, language }: { code: string; language: HighlightLan
           right: 7,
           padding: 4,
           borderRadius: 6,
-          background: "var(--ms-inset)",
+          background: "var(--po-inset)",
           display: "flex",
         }}
       >
@@ -112,25 +112,25 @@ export function McpView({ serverUrl }: { serverUrl: string }) {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
-      <section className="ms-card" style={{ padding: 24 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 14, color: "var(--ms-bone)" }}>{t("intro")}</p>
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+      <section className="po-card" style={{ padding: 24 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 14, color: "var(--po-bone)" }}>{t("intro")}</p>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
           {t("subtitle")}
         </p>
-        <div className="ms-microlabel" style={{ marginBottom: 6 }}>
+        <div className="po-microlabel" style={{ marginBottom: 6 }}>
           {t("serverUrl")}
         </div>
         <CopyChip value={serverUrl} />
-        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
           {t("serverUrlNote")}
         </p>
       </section>
 
-      <section className="ms-card" style={{ padding: 24 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 600, color: "var(--ms-bone)" }}>
+      <section className="po-card" style={{ padding: 24 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 600, color: "var(--po-bone)" }}>
           {t("connectTitle")}
         </h2>
-        <div className="ms-tabs" style={{ marginBottom: 14 }}>
+        <div className="po-tabs" style={{ marginBottom: 14 }}>
           {CLIENTS.map((key) => (
             <button
               key={key}
@@ -143,11 +143,11 @@ export function McpView({ serverUrl }: { serverUrl: string }) {
           ))}
         </div>
         <SnippetBlock code={snippet.code} language={snippet.language} />
-        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--po-muted)" }}>
           {t.rich(`notes.${client}`, codeRichTags)}
         </p>
         <p
-          style={{ margin: "14px 0 0", fontSize: 12.5, color: "var(--ms-muted)", lineHeight: 1.6 }}
+          style={{ margin: "14px 0 0", fontSize: 12.5, color: "var(--po-muted)", lineHeight: 1.6 }}
         >
           {t.rich("authNote", {
             ...codeRichTags,
@@ -156,11 +156,11 @@ export function McpView({ serverUrl }: { serverUrl: string }) {
         </p>
       </section>
 
-      <section className="ms-card" style={{ padding: 24 }}>
-        <h2 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 600, color: "var(--ms-bone)" }}>
+      <section className="po-card" style={{ padding: 24 }}>
+        <h2 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 600, color: "var(--po-bone)" }}>
           {t("toolsTitle")}
         </h2>
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--po-muted)" }}>
           {t("toolsIntro")}
         </p>
         <Table>
@@ -173,19 +173,19 @@ export function McpView({ serverUrl }: { serverUrl: string }) {
           <tbody>
             {MCP_TOOLS.map((tool) => (
               <tr key={tool.name}>
-                <td className="ms-mono" style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>
+                <td className="po-mono" style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>
                   {tool.name}
                   {tool.readOnly ? (
-                    <span className="ms-badge ms-badge-neutral" style={{ marginLeft: 8 }}>
+                    <span className="po-badge po-badge-neutral" style={{ marginLeft: 8 }}>
                       {t("readOnly")}
                     </span>
                   ) : null}
                 </td>
                 <td>
-                  <span className="ms-mono" style={{ fontSize: 12 }}>
+                  <span className="po-mono" style={{ fontSize: 12 }}>
                     {tool.scope}
                   </span>
-                  <span style={{ marginLeft: 8, fontSize: 12, color: "var(--ms-muted)" }}>
+                  <span style={{ marginLeft: 8, fontSize: 12, color: "var(--po-muted)" }}>
                     {scopeT(tool.scope.replace(":", "_"))}
                   </span>
                 </td>
@@ -193,7 +193,7 @@ export function McpView({ serverUrl }: { serverUrl: string }) {
             ))}
           </tbody>
         </Table>
-        <p style={{ margin: "16px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "16px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           <a href={MCP_DOCS_URL} target="_blank" rel="noreferrer">
             {t("docs")} ↗
           </a>

@@ -14,7 +14,7 @@ const DNS_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const optionHint: React.CSSProperties = {
   margin: "4px 0 0 28px",
   fontSize: 12,
-  color: "var(--ms-muted)",
+  color: "var(--po-muted)",
   lineHeight: 1.5,
 };
 
@@ -91,16 +91,16 @@ export function TrackingSetup({
 
   return (
     <div
-      className="ms-card-glow"
+      className="po-card-glow"
       style={{ width: 520, maxWidth: "100%", padding: 22, boxSizing: "border-box" }}
     >
       {heading ? (
         <>
-          <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--ms-bone)", margin: 0 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--po-bone)", margin: 0 }}>
             {t("detail.setup.title")}
           </h3>
           <p
-            style={{ fontSize: 12.5, color: "var(--ms-muted)", margin: "6px 0 0", lineHeight: 1.5 }}
+            style={{ fontSize: 12.5, color: "var(--po-muted)", margin: "6px 0 0", lineHeight: 1.5 }}
           >
             {t("detail.setup.subtitle")}
           </p>
@@ -117,11 +117,11 @@ export function TrackingSetup({
           marginTop: heading ? 16 : 0,
         }}
       >
-        <div className="ms-field" style={{ flex: 1, minWidth: 160 }}>
+        <div className="po-field" style={{ flex: 1, minWidth: 160 }}>
           <input
             id="tracking-subdomain"
             type="text"
-            className={`ms-input mono${invalid || clashesReturnPath ? " error" : ""}`}
+            className={`po-input mono${invalid || clashesReturnPath ? " error" : ""}`}
             style={{ width: "100%" }}
             aria-label={t("detail.tracking.subdomain")}
             placeholder={t("detail.tracking.subdomainPlaceholder")}
@@ -136,25 +136,25 @@ export function TrackingSetup({
           />
         </div>
         <span
-          className="ms-mono"
-          style={{ fontSize: 13, color: "var(--ms-muted)", whiteSpace: "nowrap" }}
+          className="po-mono"
+          style={{ fontSize: 13, color: "var(--po-muted)", whiteSpace: "nowrap" }}
         >
           .{domainName}
         </span>
       </div>
 
       {invalid ? (
-        <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--ms-danger)" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--po-danger)" }}>
           {t("detail.tracking.subdomainError")}
         </p>
       ) : clashesReturnPath ? (
-        <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--ms-danger)" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--po-danger)" }}>
           {t("detail.tracking.subdomainReturnPathClash")}
         </p>
       ) : null}
 
       {/* Tracking options, each with its own explainer. */}
-      <p className="ms-microlabel" style={{ margin: "18px 0 10px" }}>
+      <p className="po-microlabel" style={{ margin: "18px 0 10px" }}>
         {t("detail.setup.options")}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -162,12 +162,12 @@ export function TrackingSetup({
           <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
             <input
               type="checkbox"
-              className="ms-checkbox"
+              className="po-checkbox"
               checked={click}
               disabled={saving}
               onChange={(e) => setClick(e.target.checked)}
             />
-            <span style={{ fontSize: 13.5, color: "var(--ms-bone)" }}>
+            <span style={{ fontSize: 13.5, color: "var(--po-bone)" }}>
               {t("detail.tracking.click")}
             </span>
           </label>
@@ -177,12 +177,12 @@ export function TrackingSetup({
           <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
             <input
               type="checkbox"
-              className="ms-checkbox"
+              className="po-checkbox"
               checked={open}
               disabled={saving}
               onChange={(e) => setOpen(e.target.checked)}
             />
-            <span style={{ fontSize: 13.5, color: "var(--ms-bone)" }}>
+            <span style={{ fontSize: 13.5, color: "var(--po-bone)" }}>
               {t("detail.tracking.open")}
             </span>
           </label>
@@ -192,7 +192,7 @@ export function TrackingSetup({
               href={OPEN_TRACKING_DOCS_URL}
               target="_blank"
               rel="noreferrer"
-              style={{ color: "var(--ms-bone)", textDecoration: "underline" }}
+              style={{ color: "var(--po-bone)", textDecoration: "underline" }}
             >
               {t("detail.tracking.openLearnMore")} ↗
             </a>
@@ -201,7 +201,7 @@ export function TrackingSetup({
       </div>
 
       {update.isError ? (
-        <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--ms-danger)" }}>
+        <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "var(--po-danger)" }}>
           {update.error.message}
         </p>
       ) : null}
@@ -209,7 +209,7 @@ export function TrackingSetup({
       <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
         <button
           type="button"
-          className="ms-btn ms-btn-primary"
+          className="po-btn po-btn-primary"
           disabled={!canSave || saving}
           onClick={save}
         >
@@ -219,7 +219,7 @@ export function TrackingSetup({
         {onCancel ? (
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             disabled={saving}
             onClick={onCancel}
           >

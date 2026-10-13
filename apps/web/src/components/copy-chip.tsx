@@ -26,7 +26,7 @@ export function useCopy(value: string) {
  */
 export function CopyMark({ copied, size = 13 }: { copied: boolean; size?: number }) {
   return (
-    <span className={`ms-copy-mark${copied ? " done" : ""}`} aria-hidden="true">
+    <span className={`po-copy-mark${copied ? " done" : ""}`} aria-hidden="true">
       {copied ? (
         <svg
           width={size}
@@ -79,7 +79,7 @@ export function CopyChip({
 }) {
   const { copied, copy, label } = useCopy(value);
   return (
-    <span className="ms-chip" {...(title ? { title } : {})}>
+    <span className="po-chip" {...(title ? { title } : {})}>
       {/* Width-constrained chips (table cells) end-ellipsize; the full value is copied.
           minWidth 0 lets this flex item shrink below the nowrap value's min-content,
           otherwise it overflows the chip's max-width instead of ellipsizing. */}
@@ -104,7 +104,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
   const t = useTranslations("common");
   const { copied, copy } = useCopy(value);
   return (
-    <button type="button" className="ms-btn ms-btn-secondary" onClick={copy}>
+    <button type="button" className="po-btn po-btn-secondary" onClick={copy}>
       <CopyMark copied={copied} size={12} />
       {copied ? t("copied") : label}
     </button>
@@ -125,7 +125,7 @@ export function CopyGlyph({ value }: { value: string }) {
         padding: 0,
         marginLeft: 6,
         cursor: "pointer",
-        color: "var(--ms-muted)",
+        color: "var(--po-muted)",
         font: "inherit",
         display: "inline-flex",
         verticalAlign: "middle",
@@ -145,19 +145,19 @@ export function CopyBlock({ value }: { value: string }) {
     <div
       style={{
         position: "relative",
-        background: "var(--ms-inset)",
-        border: "1px solid var(--ms-line)",
+        background: "var(--po-inset)",
+        border: "1px solid var(--po-line)",
         borderRadius: 10,
         padding: "14px 40px 14px 16px",
       }}
     >
       <pre
-        className="ms-mono"
+        className="po-mono"
         style={{
           margin: 0,
           fontSize: 12,
           lineHeight: 1.7,
-          color: "var(--ms-bone)",
+          color: "var(--po-bone)",
           whiteSpace: "pre-wrap",
           overflowWrap: "anywhere",
         }}

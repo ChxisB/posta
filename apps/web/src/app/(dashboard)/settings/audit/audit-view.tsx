@@ -73,7 +73,7 @@ export function AuditView() {
   if (query.isError) {
     if (query.error.data?.code === "FORBIDDEN") {
       return (
-        <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
           {t("forbidden")}
         </p>
       );
@@ -89,7 +89,7 @@ export function AuditView() {
   }
   if (items.length === 0) {
     return (
-      <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-label)" }}>
+      <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}>
         {t("empty")}
       </p>
     );
@@ -116,7 +116,7 @@ export function AuditView() {
                 {row.actor.kind === "user" ? (
                   <span title={row.actor.email}>{row.actor.name ?? t("actors.deletedUser")}</span>
                 ) : (
-                  <span className="ms-chip">{t(`actors.${row.actor.kind}`)}</span>
+                  <span className="po-chip">{t(`actors.${row.actor.kind}`)}</span>
                 )}
               </td>
               {/* next-intl reads "." as nesting, so the catalogue keys carry "_" in its place. */}
@@ -126,7 +126,7 @@ export function AuditView() {
                   : row.action}
               </td>
               <td
-                className="ms-mono"
+                className="po-mono"
                 title={row.target ?? undefined}
                 style={{
                   fontSize: 13,

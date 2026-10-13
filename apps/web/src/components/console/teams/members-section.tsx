@@ -11,9 +11,9 @@ import { useTRPC } from "@/lib/trpc";
 import { CardHead } from "../safety/parts";
 
 const STATUS_DOT = {
-  suspended: "var(--ms-danger)",
-  deleted: "var(--ms-faint)",
-  active: "var(--ms-success)",
+  suspended: "var(--po-danger)",
+  deleted: "var(--po-faint)",
+  active: "var(--po-success)",
 } as const;
 
 /**
@@ -34,7 +34,7 @@ export function MembersSection({ teamId }: { teamId: string }) {
   const none = common("none");
   const temporary = (
     <Tooltip inline text={t("temporaryTip")}>
-      <span className="ms-badge ms-badge-warn" style={{ marginLeft: 8 }}>
+      <span className="po-badge po-badge-warn" style={{ marginLeft: 8 }}>
         {t("temporary")}
       </span>
     </Tooltip>
@@ -72,7 +72,7 @@ export function MembersSection({ teamId }: { teamId: string }) {
                   </Tooltip>
                   {member.disposable ? temporary : null}
                 </td>
-                <td className="ms-mono">
+                <td className="po-mono">
                   {member.signup?.ip ? (
                     <Tooltip
                       inline
@@ -123,7 +123,7 @@ export function MembersSection({ teamId }: { teamId: string }) {
                     </td>
                   </>
                 ) : null}
-                <td className="ms-mono">
+                <td className="po-mono">
                   {member.lastSeen?.ip ? (
                     <Tooltip
                       inline
@@ -169,7 +169,7 @@ export function MembersSection({ teamId }: { teamId: string }) {
                 const label = (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                     <span
-                      className="ms-dot"
+                      className="po-dot"
                       aria-hidden="true"
                       style={{
                         background:
@@ -187,7 +187,7 @@ export function MembersSection({ teamId }: { teamId: string }) {
                       {other.email}
                       {other.disposable ? temporary : null}
                     </td>
-                    <td className="ms-mono">{other.ip}</td>
+                    <td className="po-mono">{other.ip}</td>
                     <td>{t(`seen.${other.seen}`)}</td>
                     <td>
                       {tip ? (
@@ -206,10 +206,10 @@ export function MembersSection({ teamId }: { teamId: string }) {
         </>
       ) : null}
       {located ? (
-        <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--po-muted)" }}>
           {t.rich("attribution", {
             link: (chunks) => (
-              <a className="ms-link" href={IP_GEO_SOURCE_URL} target="_blank" rel="noreferrer">
+              <a className="po-link" href={IP_GEO_SOURCE_URL} target="_blank" rel="noreferrer">
                 {chunks}
               </a>
             ),

@@ -15,11 +15,11 @@ export function StatusPage({
   actions: ReactNode;
 }) {
   return (
-    <main className="ms-status">
-      <div className="ms-digits ms-status-code">{code}</div>
-      <h1 className="ms-status-title">{title}</h1>
-      <p className="ms-status-body">{body}</p>
-      <div className="ms-status-actions">{actions}</div>
+    <main className="po-status">
+      <div className="po-digits po-status-code">{code}</div>
+      <h1 className="po-status-title">{title}</h1>
+      <p className="po-status-body">{body}</p>
+      <div className="po-status-actions">{actions}</div>
     </main>
   );
 }

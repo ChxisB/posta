@@ -150,7 +150,7 @@ export default function SuppressionsPage() {
         title={t("suppressions.title")}
         {...(subtitle ? { subtitle } : {})}
         actions={
-          <button type="button" className="ms-btn ms-btn-primary" onClick={() => setAddOpen(true)}>
+          <button type="button" className="po-btn po-btn-primary" onClick={() => setAddOpen(true)}>
             <PlusGlyph size={14} />
             {t("suppressions.add")}
           </button>
@@ -159,7 +159,7 @@ export default function SuppressionsPage() {
       />
 
       <div
-        className="ms-filter-row"
+        className="po-filter-row"
         style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 18 }}
       >
         <SearchBox
@@ -221,7 +221,7 @@ export default function SuppressionsPage() {
           <Table>
             <thead>
               <tr>
-                <th className="ms-col-lead" style={{ width: "40%" }}>
+                <th className="po-col-lead" style={{ width: "40%" }}>
                   {t("suppressions.email")}
                 </th>
                 <th style={{ width: "18%" }}>{t("suppressions.origin")}</th>
@@ -233,7 +233,7 @@ export default function SuppressionsPage() {
             <tbody>
               {items.map((row) => (
                 <tr key={row.id}>
-                  <td className="ms-mono ms-cell-wrap">
+                  <td className="po-mono po-cell-wrap">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                       <ContactAvatar email={row.email ?? ""} size={28} />
                       {row.email ? (
@@ -241,16 +241,16 @@ export default function SuppressionsPage() {
                           <Breakable text={row.email} />
                         </Link>
                       ) : (
-                        <span style={{ color: "var(--ms-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>—</span>
                       )}
                     </span>
                   </td>
                   <td>
-                    <span className={`ms-badge ms-badge-${REASON_VARIANT[row.reason]}`}>
+                    <span className={`po-badge po-badge-${REASON_VARIANT[row.reason]}`}>
                       {t(`suppressions.reason.${row.reason}`)}
                     </span>
                   </td>
-                  <td style={{ color: "var(--ms-muted)" }}>
+                  <td style={{ color: "var(--po-muted)" }}>
                     <RelativeTime date={row.createdAt} />
                   </td>
                   <td className="right" style={{ width: 40 }}>
@@ -299,7 +299,7 @@ export default function SuppressionsPage() {
         onConfirm={submitAdd}
         title={t("suppressions.addTitle")}
       >
-        <p style={{ margin: "0 0 18px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+        <p style={{ margin: "0 0 18px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
           {t("suppressions.addBody")}
         </p>
         <form
@@ -308,11 +308,11 @@ export default function SuppressionsPage() {
             submitAdd();
           }}
         >
-          <div className="ms-field">
+          <div className="po-field">
             <label htmlFor="suppression-email">{t("suppressions.emailLabel")}</label>
             <input
               id="suppression-email"
-              className={`ms-input mono${addMutation.isError ? " error" : ""}`}
+              className={`po-input mono${addMutation.isError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("suppressions.emailPlaceholder")}
               disabled={addMutation.isPending}
@@ -324,20 +324,20 @@ export default function SuppressionsPage() {
             <p
               style={{
                 margin: "8px 0 0",
-                color: "var(--ms-danger)",
-                fontSize: "var(--ms-fs-label)",
+                color: "var(--po-danger)",
+                fontSize: "var(--po-fs-label)",
               }}
             >
               {t("suppressions.invalidEmail")}
             </p>
           ) : null}
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeAdd}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeAdd}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={addMutation.isPending || newEmail.trim().length === 0}
             >
               <BtnSpinner on={addMutation.isPending} />
@@ -359,16 +359,16 @@ export default function SuppressionsPage() {
             submitRemove();
           }}
         >
-          <p style={{ margin: "0 0 22px", color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+          <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
             {t("suppressions.removeBody", { email: removeTarget?.email ?? "—" })}
           </p>
           <ModalFooter>
-            <button type="button" className="ms-btn ms-btn-secondary" onClick={closeRemove}>
-              {common("cancel")} <span className="ms-keycap">Esc</span>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeRemove}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
             </button>
             <button
               type="submit"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={removeMutation.isPending}
             >
               <BtnSpinner on={removeMutation.isPending} />

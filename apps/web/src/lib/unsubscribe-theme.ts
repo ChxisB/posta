@@ -22,19 +22,19 @@ export function unsubscribeThemeStyle(colors: UnsubscribeThemeColors): CSSProper
   const style: Record<string, string> = {};
   if (bg) {
     style.background = bg;
-    style["--ms-void"] = bg;
-    style["--ms-ground"] = bg;
-    style["--ms-panel"] = `color-mix(in srgb, var(--ms-bone) 5%, ${bg})`;
-    style["--ms-panel-raised"] = `color-mix(in srgb, var(--ms-bone) 10%, ${bg})`;
-    style["--ms-inset"] = `color-mix(in srgb, var(--ms-bone) 8%, ${bg})`;
-    style["--ms-line"] = `color-mix(in srgb, var(--ms-bone) 14%, ${bg})`;
-    style["--ms-line-strong"] = `color-mix(in srgb, var(--ms-bone) 22%, ${bg})`;
+    style["--po-void"] = bg;
+    style["--po-ground"] = bg;
+    style["--po-panel"] = `color-mix(in srgb, var(--po-bone) 5%, ${bg})`;
+    style["--po-panel-raised"] = `color-mix(in srgb, var(--po-bone) 10%, ${bg})`;
+    style["--po-inset"] = `color-mix(in srgb, var(--po-bone) 8%, ${bg})`;
+    style["--po-line"] = `color-mix(in srgb, var(--po-bone) 14%, ${bg})`;
+    style["--po-line-strong"] = `color-mix(in srgb, var(--po-bone) 22%, ${bg})`;
   }
   if (text) {
     style.color = text;
-    style["--ms-bone"] = text;
-    style["--ms-muted"] = `color-mix(in srgb, ${text} 62%, transparent)`;
-    style["--ms-faint"] = `color-mix(in srgb, ${text} 38%, transparent)`;
+    style["--po-bone"] = text;
+    style["--po-muted"] = `color-mix(in srgb, ${text} 62%, transparent)`;
+    style["--po-faint"] = `color-mix(in srgb, ${text} 38%, transparent)`;
   }
   return style as CSSProperties;
 }

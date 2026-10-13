@@ -27,15 +27,15 @@ function FieldRow({
         alignItems: "baseline",
         gap: 16,
         padding: "12px 0",
-        borderBottom: "1px solid var(--ms-line)",
+        borderBottom: "1px solid var(--po-line)",
       }}
     >
-      <div className="ms-microlabel" style={{ width: 96, flex: "none" }}>
+      <div className="po-microlabel" style={{ width: 96, flex: "none" }}>
         {label}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
         {children}
-        {note ? <span style={{ fontSize: 12, color: "var(--ms-muted)" }}>{note}</span> : null}
+        {note ? <span style={{ fontSize: 12, color: "var(--po-muted)" }}>{note}</span> : null}
       </div>
     </div>
   );
@@ -52,7 +52,7 @@ export function SmtpView() {
         data.allowInsecureAuth ? (
           <p
             role="status"
-            style={{ margin: 0, fontSize: 13, color: "var(--ms-muted)", lineHeight: 1.55 }}
+            style={{ margin: 0, fontSize: 13, color: "var(--po-muted)", lineHeight: 1.55 }}
           >
             {t.rich("insecureNote", codeRichTags)}
           </p>
@@ -63,9 +63,9 @@ export function SmtpView() {
           </WarnCard>
         )
       ) : null}
-      <section className="ms-card" style={{ padding: 24 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 14, color: "var(--ms-bone)" }}>{t("intro")}</p>
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+      <section className="po-card" style={{ padding: 24 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 14, color: "var(--po-bone)" }}>{t("intro")}</p>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
           {t("subtitle")}
         </p>
 
@@ -73,7 +73,7 @@ export function SmtpView() {
           {data ? (
             <CopyChip value={data.host} />
           ) : (
-            <Skeleton width={200} height={26} radius="var(--ms-r-input)" />
+            <Skeleton width={200} height={26} radius="var(--po-r-input)" />
           )}
         </FieldRow>
 
@@ -81,7 +81,7 @@ export function SmtpView() {
           {data ? (
             <CopyChip value={String(data.port)} />
           ) : (
-            <Skeleton width={72} height={26} radius="var(--ms-r-input)" />
+            <Skeleton width={72} height={26} radius="var(--po-r-input)" />
           )}
         </FieldRow>
 
@@ -89,7 +89,7 @@ export function SmtpView() {
           {data ? (
             <CopyChip value={data.user} />
           ) : (
-            <Skeleton width={120} height={26} radius="var(--ms-r-input)" />
+            <Skeleton width={120} height={26} radius="var(--po-r-input)" />
           )}
         </FieldRow>
 
@@ -103,17 +103,17 @@ export function SmtpView() {
         >
           {data ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <span className="ms-mono" style={{ fontSize: 13, color: "var(--ms-bone)" }}>
+              <span className="po-mono" style={{ fontSize: 13, color: "var(--po-bone)" }}>
                 {data.passwordPlaceholder}
               </span>
               <Tooltip text={t("passwordTooltip")} />
             </span>
           ) : (
-            <Skeleton width={140} height={26} radius="var(--ms-r-input)" />
+            <Skeleton width={140} height={26} radius="var(--po-r-input)" />
           )}
         </FieldRow>
 
-        <p style={{ margin: "18px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "18px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
           <a href={SMTP_DOCS_URL} target="_blank" rel="noreferrer">
             {t("docs")} ↗
           </a>

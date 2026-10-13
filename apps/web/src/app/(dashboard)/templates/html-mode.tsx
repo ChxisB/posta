@@ -22,14 +22,14 @@ const PREVIEW_DEBOUNCE_MS = 350;
 const emptyStyle = {
   margin: 0,
   padding: "16px 18px",
-  color: "var(--ms-muted)",
-  fontSize: "var(--ms-fs-ui)",
+  color: "var(--po-muted)",
+  fontSize: "var(--po-fs-ui)",
 } as const;
 
 /**
  * Source editing for an html-authored template: the code editor beside a live
  * preview while the field is wide enough, one pane at a time below that
- * (container query under .ms-tpl-code in components.css). Each pane is a
+ * (container query under .po-tpl-code in components.css). Each pane is a
  * toolbar row over a body of the shared height, so the two line up.
  */
 export function HtmlCodeMode({
@@ -105,13 +105,13 @@ export function HtmlCodeMode({
   }
 
   return (
-    <div className="ms-tpl-code" data-pane={pane}>
-      <div className="ms-tpl-code-tabs">
+    <div className="po-tpl-code" data-pane={pane}>
+      <div className="po-tpl-code-tabs">
         {(["source", "preview"] as const).map((key) => (
           <button
             key={key}
             type="button"
-            className={pane === key ? "ms-code-tab active" : "ms-code-tab"}
+            className={pane === key ? "po-code-tab active" : "po-code-tab"}
             aria-pressed={pane === key}
             onClick={() => setPane(key)}
           >
@@ -119,10 +119,10 @@ export function HtmlCodeMode({
           </button>
         ))}
       </div>
-      <div className="ms-tpl-code-panes">
+      <div className="po-tpl-code-panes">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: ⌘F anywhere inside the code pane opens its own find; the browser's page find stays untouched elsewhere */}
         <div
-          className="ms-tpl-code-source"
+          className="po-tpl-code-source"
           onKeyDown={(e) => {
             if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
             if (e.key.toLowerCase() !== "f") return;
@@ -130,9 +130,9 @@ export function HtmlCodeMode({
             openFind();
           }}
         >
-          <div className="ms-tpl-code-head">
+          <div className="po-tpl-code-head">
             {findOpen ? (
-              <div className="ms-code-find">
+              <div className="po-code-find">
                 <SearchIcon size={14} />
                 <input
                   ref={findInput}
@@ -152,13 +152,13 @@ export function HtmlCodeMode({
                   }}
                 />
                 {query ? (
-                  <span className="ms-code-find-count" aria-live="polite">
+                  <span className="po-code-find-count" aria-live="polite">
                     {t("html.findCount", { current: cur + 1, total: matches.length })}
                   </span>
                 ) : null}
                 <button
                   type="button"
-                  className="ms-maily-tool"
+                  className="po-maily-tool"
                   aria-label={t("html.findPrev")}
                   title={t("html.findPrev")}
                   disabled={matches.length === 0}
@@ -168,7 +168,7 @@ export function HtmlCodeMode({
                 </button>
                 <button
                   type="button"
-                  className="ms-maily-tool"
+                  className="po-maily-tool"
                   aria-label={t("html.findNext")}
                   title={t("html.findNext")}
                   disabled={matches.length === 0}
@@ -178,7 +178,7 @@ export function HtmlCodeMode({
                 </button>
                 <button
                   type="button"
-                  className="ms-maily-tool"
+                  className="po-maily-tool"
                   aria-label={common("close")}
                   title={common("close")}
                   onClick={closeFind}
@@ -189,12 +189,12 @@ export function HtmlCodeMode({
             ) : (
               <button
                 type="button"
-                className="ms-maily-tool ms-maily-tool-labeled"
+                className="po-maily-tool po-maily-tool-labeled"
                 onClick={openFind}
               >
                 <SearchIcon size={14} />
                 {t("html.find")}
-                <span className="ms-keycap">⌘F</span>
+                <span className="po-keycap">⌘F</span>
               </button>
             )}
             <span style={{ marginLeft: "auto", flex: "none" }}>
@@ -216,7 +216,7 @@ export function HtmlCodeMode({
             current={cur}
           />
         </div>
-        <div className="ms-tpl-code-preview">
+        <div className="po-tpl-code-preview">
           <CodePreview
             html={debounced}
             title={t("editor.previewTab")}
@@ -225,7 +225,7 @@ export function HtmlCodeMode({
           />
         </div>
       </div>
-      <p className="ms-tpl-code-hint">{t(hasText ? "html.textStored" : "html.textNone")}</p>
+      <p className="po-tpl-code-hint">{t(hasText ? "html.textStored" : "html.textNone")}</p>
     </div>
   );
 }
@@ -253,13 +253,13 @@ function CodePreview({
   const filled = html.trim() !== "";
   return (
     <>
-      <div className="ms-tpl-code-head">
+      <div className="po-tpl-code-head">
         <span style={{ marginLeft: "auto", flex: "none" }}>
           <PreviewSchemePills scheme={scheme} onChange={setScheme} />
         </span>
       </div>
       <div
-        className="ms-tpl-code-frame"
+        className="po-tpl-code-frame"
         style={filled ? { background: scheme === "dark" ? "#111113" : "#ffffff" } : undefined}
       >
         {filled ? (
@@ -296,13 +296,13 @@ export function HtmlAuthoredBanner({
 }) {
   const t = useTranslations("templates");
   return (
-    <div className="ms-tpl-html-banner" role="status">
+    <div className="po-tpl-html-banner" role="status">
       <span>{t("html.banner")}</span>
-      <span className="ms-tpl-html-banner-actions">
-        <button type="button" className="ms-btn ms-btn-secondary" onClick={onEditHtml}>
+      <span className="po-tpl-html-banner-actions">
+        <button type="button" className="po-btn po-btn-secondary" onClick={onEditHtml}>
           {t("html.editHtml")}
         </button>
-        <button type="button" className="ms-btn ms-btn-ghost" onClick={onConvert}>
+        <button type="button" className="po-btn po-btn-ghost" onClick={onConvert}>
           {t("html.convert")}
         </button>
       </span>
@@ -341,17 +341,17 @@ export function ConvertBlocksDialog({
   };
   return (
     <Modal open={open} onClose={onClose} onConfirm={confirm} title={t("html.convertTitle")}>
-      <p style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}>
+      <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
         {t("html.convertBody")}
       </p>
       <ModalFooter>
-        <span className="ms-tpl-convert-actions">
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
-            {common("cancel")} <span className="ms-keycap">Esc</span>
+        <span className="po-tpl-convert-actions">
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
+            {common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="button"
-            className="ms-btn ms-btn-destructive"
+            className="po-btn po-btn-destructive"
             disabled={busy}
             onClick={onConvertInPlace}
           >
@@ -366,7 +366,7 @@ export function ConvertBlocksDialog({
           {onDuplicate ? (
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={busy}
               onClick={confirm}
             >

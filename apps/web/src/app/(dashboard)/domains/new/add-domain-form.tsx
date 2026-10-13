@@ -29,7 +29,7 @@ const HOSTNAME_RE = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 const hintStyle: React.CSSProperties = {
   margin: "6px 0 0",
-  color: "var(--ms-muted)",
+  color: "var(--po-muted)",
   fontSize: 12,
 };
 
@@ -65,7 +65,7 @@ function DnsRecordsStep({ id }: { id: string }) {
   const trackingStep = features.data?.trackingSubdomainsSupported ?? false;
   const dnsMarker = trackingStep ? "03" : "02";
   return (
-    <div className="ms-step-col" style={{ display: "flex", flexDirection: "column" }}>
+    <div className="po-step-col" style={{ display: "flex", flexDirection: "column" }}>
       <MobileStepBar
         steps={
           trackingStep
@@ -75,17 +75,17 @@ function DnsRecordsStep({ id }: { id: string }) {
         active={trackingStep ? 3 : 2}
       />
       {/* Step 01 — done: recap of the created domain */}
-      <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-        <MarkerRail marker="01" done fadeTop color="var(--ms-success)" />
+      <div className="po-step" style={{ display: "flex", gap: 44 }}>
+        <MarkerRail marker="01" done fadeTop color="var(--po-success)" />
         <div style={{ flex: 1, minWidth: 0, paddingBottom: 28 }}>
           <div
             style={{
               width: 520,
               maxWidth: "100%",
-              backgroundColor: "var(--ms-ground)",
+              backgroundColor: "var(--po-ground)",
               backgroundImage: statusGlow("success", 15),
-              border: "1px solid var(--ms-success-border)",
-              borderRadius: "var(--ms-r-card)",
+              border: "1px solid var(--po-success-border)",
+              borderRadius: "var(--po-r-card)",
               padding: "18px 24px",
               boxSizing: "border-box",
             }}
@@ -97,13 +97,13 @@ function DnsRecordsStep({ id }: { id: string }) {
                 gap: 8,
                 fontSize: 16,
                 fontWeight: 600,
-                color: "var(--ms-bone)",
+                color: "var(--po-bone)",
               }}
             >
               <span>{t("new.cardTitle")}</span>
-              <span style={{ color: "var(--ms-success)", fontWeight: 400 }}>✓</span>
+              <span style={{ color: "var(--po-success)", fontWeight: 400 }}>✓</span>
             </div>
-            <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--po-muted)" }}>
               {t("new.recapSubtitle")}
             </p>
             <div
@@ -112,9 +112,9 @@ function DnsRecordsStep({ id }: { id: string }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: "var(--ms-inset)",
-                border: "1px solid var(--ms-line)",
-                borderRadius: "var(--ms-r-input)",
+                background: "var(--po-inset)",
+                border: "1px solid var(--po-line)",
+                borderRadius: "var(--po-r-input)",
                 padding: "6px 10px",
               }}
             >
@@ -122,8 +122,8 @@ function DnsRecordsStep({ id }: { id: string }) {
                 <>
                   <span>{regionFlag(domain.data.region)}</span>
                   <span
-                    className="ms-mono"
-                    style={{ fontSize: 13, color: "var(--ms-bone)", overflowWrap: "anywhere" }}
+                    className="po-mono"
+                    style={{ fontSize: 13, color: "var(--po-bone)", overflowWrap: "anywhere" }}
                   >
                     {domain.data.name}
                   </span>
@@ -135,7 +135,7 @@ function DnsRecordsStep({ id }: { id: string }) {
                       reserves exactly that, and the mono line keeps its real
                       13px wrapper so nothing shifts when the domain lands. */}
                   <Skeleton width="1.2em" height="1lh" />
-                  <span className="ms-mono" style={{ fontSize: 13, display: "flex" }}>
+                  <span className="po-mono" style={{ fontSize: 13, display: "flex" }}>
                     <Skeleton width={200} height="1lh" />
                   </span>
                 </>
@@ -148,17 +148,17 @@ function DnsRecordsStep({ id }: { id: string }) {
       {/* Step 02 — optional branded tracking. Saving a subdomain here adds its
           CNAME to the records below; skipping just leaves tracking off. */}
       {trackingStep ? (
-        <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-          <MarkerRail marker="02" color="var(--ms-bone)" />
+        <div className="po-step" style={{ display: "flex", gap: 44 }}>
+          <MarkerRail marker="02" color="var(--po-bone)" />
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 28 }}>
             <h2
-              className="ms-display"
-              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--ms-bone)" }}
+              className="po-display"
+              style={{ fontSize: 22, margin: "0 0 6px", color: "var(--po-bone)" }}
             >
               {t("new.trackingTitle")}
             </h2>
             <p
-              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)", maxWidth: 520 }}
+              style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)", maxWidth: 520 }}
             >
               {t("new.trackingSubtitle")}
             </p>
@@ -180,10 +180,10 @@ function DnsRecordsStep({ id }: { id: string }) {
       ) : null}
 
       {/* Final step — fill in the DNS records */}
-      <div className="ms-step" style={{ display: "flex", gap: 44 }}>
-        <MarkerRail marker={dnsMarker} color="var(--ms-bone)" fadeBottom />
+      <div className="po-step" style={{ display: "flex", gap: 44 }}>
+        <MarkerRail marker={dnsMarker} color="var(--po-bone)" fadeBottom />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className="ms-display" style={{ fontSize: 22, margin: 0, color: "var(--ms-bone)" }}>
+          <h2 className="po-display" style={{ fontSize: 22, margin: 0, color: "var(--po-bone)" }}>
             {provider
               ? t("new.recordsTitleProvider", { provider: provider.name })
               : t("new.recordsTitle")}
@@ -191,10 +191,10 @@ function DnsRecordsStep({ id }: { id: string }) {
 
           {records.isError ? (
             <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 20 }}>
-              <p style={{ margin: 0, fontSize: "var(--ms-fs-ui)" }}>{t("detail.recordsError")}</p>
+              <p style={{ margin: 0, fontSize: "var(--po-fs-ui)" }}>{t("detail.recordsError")}</p>
               <button
                 type="button"
-                className="ms-btn ms-btn-secondary"
+                className="po-btn po-btn-secondary"
                 onClick={() => records.refetch()}
               >
                 {t("detail.retry")}
@@ -217,7 +217,7 @@ function DnsRecordsStep({ id }: { id: string }) {
             {/* The detail page owns verification from here. */}
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               onClick={() => router.push(`/domains/${id}`)}
             >
               {t("new.addedRecords")}
@@ -279,7 +279,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
   return (
     <>
       <AwsCredentialsBanner />
-      <div className="ms-stepper" style={{ display: "flex", gap: 44, alignItems: "flex-start" }}>
+      <div className="po-stepper" style={{ display: "flex", gap: 44, alignItems: "flex-start" }}>
         <MobileStepBar steps={[t("new.steps.one"), t("new.steps.two")]} active={1} />
         <StepRail current={1} />
 
@@ -288,23 +288,23 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
           style={{
             width: 520,
             flex: "none",
-            background: "var(--ms-panel)",
-            border: "1px solid var(--ms-line-strong)",
-            borderRadius: "var(--ms-r-card)",
+            background: "var(--po-panel)",
+            border: "1px solid var(--po-line-strong)",
+            borderRadius: "var(--po-r-card)",
             padding: 24,
             boxSizing: "border-box",
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ms-bone)" }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--po-bone)" }}>
             {t("new.cardTitle")}
           </div>
 
-          <div className="ms-field" style={{ marginTop: 16 }}>
+          <div className="po-field" style={{ marginTop: 16 }}>
             <label htmlFor="domain-name">{t("new.name")}</label>
             <input
               id="domain-name"
               type="text"
-              className={`ms-input mono${showNameError ? " error" : ""}`}
+              className={`po-input mono${showNameError ? " error" : ""}`}
               style={{ width: "100%" }}
               placeholder={t("new.namePlaceholder")}
               autoComplete="off"
@@ -315,7 +315,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
               onBlur={() => setTouched(true)}
             />
             {showNameError ? (
-              <p style={{ ...hintStyle, color: "var(--ms-danger)" }}>
+              <p style={{ ...hintStyle, color: "var(--po-danger)" }}>
                 {t.rich("new.nameError", codeRichTags)}
               </p>
             ) : (
@@ -323,8 +323,8 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
             )}
           </div>
 
-          <div className="ms-field" style={{ marginTop: 14 }}>
-            <div className="ms-label-row">
+          <div className="po-field" style={{ marginTop: 14 }}>
+            <div className="po-label-row">
               <label htmlFor="domain-region">{t("new.region")}</label>
               <Tooltip text={t("new.regionHint")} />
             </div>
@@ -350,7 +350,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
           <details
             style={{
               marginTop: 18,
-              borderTop: "1px solid var(--ms-line)",
+              borderTop: "1px solid var(--po-line)",
               paddingTop: 14,
             }}
             onToggle={(e) => setAdvancedOpen(e.currentTarget.open)}
@@ -363,21 +363,21 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                 cursor: "pointer",
                 listStyle: "none",
                 fontSize: 13.5,
-                color: "var(--ms-bone)",
+                color: "var(--po-bone)",
               }}
             >
               <span>{t("new.advanced")}</span>
-              <span style={{ display: "flex", alignItems: "center", color: "var(--ms-muted)" }}>
+              <span style={{ display: "flex", alignItems: "center", color: "var(--po-muted)" }}>
                 <ChevronGlyph direction={advancedOpen ? "up" : "down"} />
               </span>
             </summary>
-            <div className="ms-field" style={{ marginTop: 14 }}>
+            <div className="po-field" style={{ marginTop: 14 }}>
               <label htmlFor="domain-return-path">{t("new.returnPath")}</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input
                   id="domain-return-path"
                   type="text"
-                  className="ms-input mono"
+                  className="po-input mono"
                   style={{ width: 120 }}
                   autoComplete="off"
                   spellCheck={false}
@@ -385,7 +385,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                   disabled={create.isPending}
                   onChange={(e) => setReturnPath(e.target.value.trim().toLowerCase())}
                 />
-                <span className="ms-mono" style={{ fontSize: 12, color: "var(--ms-muted)" }}>
+                <span className="po-mono" style={{ fontSize: 12, color: "var(--po-muted)" }}>
                   .{previewDomain}
                 </span>
               </div>
@@ -394,7 +394,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
           </details>
 
           {create.isError ? (
-            <p style={{ margin: "14px 0 0", color: "var(--ms-danger)", fontSize: 13 }}>
+            <p style={{ margin: "14px 0 0", color: "var(--po-danger)", fontSize: 13 }}>
               {errorKey
                 ? t(errorKey)
                 : isAwsCredentialError(create.error.message)
@@ -405,7 +405,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
 
           <button
             type="submit"
-            className="ms-btn ms-btn-primary"
+            className="po-btn po-btn-primary"
             style={{ marginTop: 20 }}
             disabled={create.isPending || name.length === 0 || region === ""}
           >
@@ -415,18 +415,18 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
         </form>
 
         <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-          <p className="ms-microlabel" style={{ margin: "0 0 10px" }}>
+          <p className="po-microlabel" style={{ margin: "0 0 10px" }}>
             {t("new.preview.title")}
           </p>
-          <div className="ms-mail-preview">
+          <div className="po-mail-preview">
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <span
                 style={{
                   width: 36,
                   height: 36,
                   borderRadius: "50%",
-                  background: "var(--ms-bone)",
-                  color: "var(--ms-ground)",
+                  background: "var(--po-bone)",
+                  color: "var(--po-ground)",
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -438,9 +438,9 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                 {teamName.charAt(0).toUpperCase() || "@"}
               </span>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: "var(--ms-bone)", fontWeight: 600 }}>
+                <div style={{ fontSize: 14, color: "var(--po-bone)", fontWeight: 600 }}>
                   {teamName}{" "}
-                  <span style={{ fontWeight: 400, color: "var(--ms-muted)" }}>
+                  <span style={{ fontWeight: 400, color: "var(--po-muted)" }}>
                     {`<${t("new.preview.user")}@${previewDomain}>`}
                   </span>
                 </div>
@@ -457,7 +457,7 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                     gap: 3,
                     fontSize: 12.5,
                     fontFamily: "inherit",
-                    color: "var(--ms-muted)",
+                    color: "var(--po-muted)",
                     background: "none",
                     border: 0,
                     padding: 0,
@@ -479,13 +479,13 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                 style={{
                   marginTop: 14,
                   paddingTop: 12,
-                  borderTop: "1px solid var(--ms-line)",
+                  borderTop: "1px solid var(--po-line)",
                   display: "grid",
                   gridTemplateColumns: "max-content 1fr",
                   columnGap: 12,
                   rowGap: 4,
                   fontSize: 12.5,
-                  animation: "ms-fade 120ms var(--ms-ease) both",
+                  animation: "po-fade 120ms var(--po-ease) both",
                 }}
               >
                 {(
@@ -498,24 +498,24 @@ export function AddDomainForm({ userEmail }: { userEmail: string }) {
                   ] as const
                 ).map(([key, value]) => (
                   <Fragment key={key}>
-                    <span style={{ color: "var(--ms-muted)", textAlign: "right" }}>
+                    <span style={{ color: "var(--po-muted)", textAlign: "right" }}>
                       {t(`new.preview.details.${key}`)}
                     </span>
-                    <span style={{ color: "var(--ms-bone)", overflowWrap: "anywhere" }}>
+                    <span style={{ color: "var(--po-bone)", overflowWrap: "anywhere" }}>
                       {value}
                     </span>
                   </Fragment>
                 ))}
               </div>
             ) : null}
-            <div style={{ fontSize: 15, color: "var(--ms-bone)", fontWeight: 600, marginTop: 14 }}>
+            <div style={{ fontSize: 15, color: "var(--po-bone)", fontWeight: 600, marginTop: 14 }}>
               {t("new.preview.subject")}
             </div>
-            <div style={{ fontSize: 13, color: "var(--ms-muted)", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--po-muted)", marginTop: 4 }}>
               {t("new.preview.snippet")}
             </div>
           </div>
-          <div style={{ fontSize: 12, color: "var(--ms-muted)", marginTop: 10 }}>
+          <div style={{ fontSize: 12, color: "var(--po-muted)", marginTop: 10 }}>
             {t("new.preview.caption")}
           </div>
         </div>

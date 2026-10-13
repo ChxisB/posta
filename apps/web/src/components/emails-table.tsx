@@ -49,7 +49,7 @@ function WhenCell({ row }: { row: EmailRow }) {
       inline
       text={t("list.createdAt", { date: formatDateTime(new Date(row.createdAt), locale) })}
     >
-      <span style={{ color: "var(--ms-muted)" }}>{label}</span>
+      <span style={{ color: "var(--po-muted)" }}>{label}</span>
     </Tooltip>
   );
 }
@@ -81,7 +81,7 @@ export function EmailsTable({
       <tbody>
         {items.map((row) => (
           <tr key={row.id} className="hoverable" onClick={() => router.push(`/emails/${row.id}`)}>
-            <td className="ms-mono ms-cell-wrap">
+            <td className="po-mono po-cell-wrap">
               <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                 <EmailStatusIcon status={row.latestStatus} />
                 <Link href={`/emails/${row.id}`} onClick={(event) => event.stopPropagation()}>
@@ -89,7 +89,7 @@ export function EmailsTable({
                 </Link>
               </span>
               {row.to.length > 1 ? (
-                <span style={{ color: "var(--ms-muted)", marginLeft: 8 }}>
+                <span style={{ color: "var(--po-muted)", marginLeft: 8 }}>
                   +{row.to.length - 1}
                 </span>
               ) : null}
@@ -110,11 +110,11 @@ export function EmailsTable({
                 />
               )}
             </td>
-            <td className="ms-cell-fill">
+            <td className="po-cell-fill">
               <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                 {broadcastChip && row.broadcastId ? (
                   <span
-                    className="ms-chip"
+                    className="po-chip"
                     style={{ fontSize: 10.5, padding: "1px 7px", flex: "none" }}
                   >
                     {t("list.broadcastChip")}

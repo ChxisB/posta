@@ -7,7 +7,7 @@
 export function MetaItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ minWidth: 0 }}>
-      <p className="ms-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
+      <p className="po-microlabel" style={{ margin: 0, fontSize: 10.5 }}>
         {label}
       </p>
       <div
@@ -19,7 +19,7 @@ export function MetaItem({ label, children }: { label: string; children: React.R
           flexWrap: "wrap",
           gap: 6,
           fontSize: 14,
-          color: "var(--ms-bone)",
+          color: "var(--po-bone)",
         }}
       >
         {children}

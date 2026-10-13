@@ -13,7 +13,7 @@ import {
 export interface LineChartSeries {
   key: string;
   label: string;
-  /** CSS color — --ms-* token vars expected. */
+  /** CSS color — --po-* token vars expected. */
   color: string;
   values: number[];
   /** Subtle area fill under this series (the chart's one filled band). */
@@ -81,10 +81,10 @@ export function ChartTip({
         position: "fixed",
         left: 0,
         top: 0,
-        // Above a chart dialog: ties with its overlay resolve by DOM order, as for .ms-tooltip.
-        zIndex: "var(--ms-z-modal)",
-        background: "var(--ms-panel)",
-        border: "1px solid var(--ms-line-strong)",
+        // Above a chart dialog: ties with its overlay resolve by DOM order, as for .po-tooltip.
+        zIndex: "var(--po-z-modal)",
+        background: "var(--po-panel)",
+        border: "1px solid var(--po-line-strong)",
         borderRadius: 8,
         padding: "7px 10px",
         minWidth: 132,
@@ -193,7 +193,7 @@ export function LineChart({
                     y={0}
                     width={Math.min(plotEnd - left, pitch)}
                     height={baseline}
-                    fill="var(--ms-panel-raised)"
+                    fill="var(--po-panel-raised)"
                   />
                 );
               })()
@@ -205,15 +205,15 @@ export function LineChart({
                 x2={plotEnd}
                 y1={y(tick)}
                 y2={y(tick)}
-                stroke="var(--ms-line)"
+                stroke="var(--po-line)"
                 strokeDasharray="3 4"
               />
               <text
                 x={width}
                 y={y(tick) + 3}
                 fontSize={10}
-                fontFamily="var(--ms-font-mono)"
-                fill="var(--ms-faint)"
+                fontFamily="var(--po-font-mono)"
+                fill="var(--po-faint)"
                 textAnchor="end"
               >
                 {formatValue(tick)}
@@ -225,7 +225,7 @@ export function LineChart({
             x2={plotEnd}
             y1={baseline}
             y2={baseline}
-            stroke="var(--ms-line-strong)"
+            stroke="var(--po-line-strong)"
           />
           {axisLabels(n, labelStep, x, (i) => formatDay(days[i] ?? "").length * GLYPH_W, {
             start: PAD.left,
@@ -236,8 +236,8 @@ export function LineChart({
               x={labelX}
               y={height - 6}
               fontSize={10}
-              fontFamily="var(--ms-font-mono)"
-              fill="var(--ms-faint)"
+              fontFamily="var(--po-font-mono)"
+              fill="var(--po-faint)"
               textAnchor={anchor}
             >
               {formatDay(days[index] ?? "")}
@@ -290,7 +290,7 @@ export function LineChart({
                   cy={y(s.values[hover.index] ?? 0)}
                   r={3}
                   fill={s.color}
-                  stroke="var(--ms-panel)"
+                  stroke="var(--po-panel)"
                   strokeWidth={1.5}
                 />
               ))
@@ -300,8 +300,8 @@ export function LineChart({
       {hover ? (
         <ChartTip plot={wrapRef} pointer={hover.pointer}>
           <div
-            className="ms-mono"
-            style={{ fontSize: 11, color: "var(--ms-muted)", marginBottom: 4 }}
+            className="po-mono"
+            style={{ fontSize: 11, color: "var(--po-muted)", marginBottom: 4 }}
           >
             {formatDay(days[hover.index] ?? "")}
             {partialNote && hover.index === n - 1 ? ` · ${partialNote}` : ""}
@@ -326,8 +326,8 @@ export function LineChart({
                   flex: "none",
                 }}
               />
-              <span style={{ color: "var(--ms-muted)" }}>{s.label}</span>
-              <span className="ms-mono" style={{ marginLeft: "auto", color: "var(--ms-bone)" }}>
+              <span style={{ color: "var(--po-muted)" }}>{s.label}</span>
+              <span className="po-mono" style={{ marginLeft: "auto", color: "var(--po-bone)" }}>
                 {formatValue(s.values[hover.index] ?? 0)}
               </span>
             </div>

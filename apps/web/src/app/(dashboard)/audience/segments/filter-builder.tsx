@@ -138,7 +138,7 @@ function ConditionPopover({
       if (
         panelRef.current?.contains(target) ||
         anchor.contains(target) ||
-        target.closest(".ms-menu")
+        target.closest(".po-menu")
       )
         return;
       onClose();
@@ -202,17 +202,17 @@ function ConditionPopover({
   return createPortal(
     <div
       ref={panelRef}
-      className="ms-menu"
+      className="po-menu"
       role="dialog"
       aria-label={title}
-      style={{ ...style, padding: 14, overflowY: "auto", zIndex: "var(--ms-z-menu)" }}
+      style={{ ...style, padding: 14, overflowY: "auto", zIndex: "var(--po-z-menu)" }}
       onKeyDown={onKeyDown}
     >
       <form onSubmit={submit}>
-        <p className="ms-microlabel" style={{ margin: "0 0 12px", fontSize: 10.5 }}>
+        <p className="po-microlabel" style={{ margin: "0 0 12px", fontSize: 10.5 }}>
           {title}
         </p>
-        <div className="ms-field">
+        <div className="po-field">
           <label htmlFor={`${id}-field`}>{t("builder.fieldLabel")}</label>
           <Select
             id={`${id}-field`}
@@ -224,7 +224,7 @@ function ConditionPopover({
           />
           {pickerValue === CUSTOM_PROPERTY ? (
             <input
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: "100%", marginTop: 6 }}
               placeholder={t("builder.propertyKeyPlaceholder")}
               aria-label={t("builder.propertyKeyPlaceholder")}
@@ -233,7 +233,7 @@ function ConditionPopover({
             />
           ) : null}
         </div>
-        <div className="ms-field" style={{ marginTop: 12 }}>
+        <div className="po-field" style={{ marginTop: 12 }}>
           <label htmlFor={`${id}-op`}>{t("builder.opLabel")}</label>
           <Select
             id={`${id}-op`}
@@ -246,17 +246,17 @@ function ConditionPopover({
         </div>
         {valueless ? (
           <p
-            style={{ margin: "12px 0 0", color: "var(--ms-faint)", fontSize: "var(--ms-fs-label)" }}
+            style={{ margin: "12px 0 0", color: "var(--po-faint)", fontSize: "var(--po-fs-label)" }}
           >
             {t("builder.noValue")}
           </p>
         ) : (
-          <div className="ms-field" style={{ marginTop: 12 }}>
+          <div className="po-field" style={{ marginTop: 12 }}>
             <label htmlFor={`${id}-value`}>{t("builder.valuePlaceholder")}</label>
             <input
               id={`${id}-value`}
               type={row.field === "created_at" ? "date" : "text"}
-              className="ms-input"
+              className="po-input"
               style={{ width: "100%" }}
               value={row.value}
               onChange={(event) => setRow({ ...row, value: event.target.value })}
@@ -267,11 +267,11 @@ function ConditionPopover({
                   <button
                     key={s.value}
                     type="button"
-                    className="ms-menu-item"
+                    className="po-menu-item"
                     onClick={() => setRow({ ...row, value: s.value })}
                   >
-                    <span className="ms-mono">{s.value}</span>
-                    <span className="ms-mono" style={{ color: "var(--ms-muted)", fontSize: 12 }}>
+                    <span className="po-mono">{s.value}</span>
+                    <span className="po-mono" style={{ color: "var(--po-muted)", fontSize: 12 }}>
                       {nf.format(s.contactCount)}
                     </span>
                   </button>
@@ -284,7 +284,7 @@ function ConditionPopover({
           {onRemove ? (
             <button
               type="button"
-              className="ms-btn ms-btn-ghost"
+              className="po-btn po-btn-ghost"
               style={{ paddingLeft: 0 }}
               onClick={onRemove}
             >
@@ -292,10 +292,10 @@ function ConditionPopover({
             </button>
           ) : null}
           <span style={{ flex: 1 }} />
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={onClose}>
+          <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>
             {common("cancel")}
           </button>
-          <button type="submit" className="ms-btn ms-btn-primary" disabled={!complete}>
+          <button type="submit" className="po-btn po-btn-primary" disabled={!complete}>
             {initial ? t("builder.apply") : t("builder.add")}
           </button>
         </div>
@@ -320,7 +320,7 @@ function ConditionPill({
   const t = useTranslations("audience.segments");
   const property = isProperty(row.field);
   return (
-    <span className={`ms-pill${open ? " open" : ""}`}>
+    <span className={`po-pill${open ? " open" : ""}`}>
       <button
         type="button"
         aria-haspopup="dialog"
@@ -335,7 +335,7 @@ function ConditionPill({
       </button>
       <button
         type="button"
-        className="ms-pill-x"
+        className="po-pill-x"
         aria-label={t("builder.removeRow")}
         onClick={onRemove}
       >
@@ -368,7 +368,7 @@ export function FilterConditions({
   const adding = editing !== null && editing.index === null;
 
   return (
-    <div className="ms-field" style={{ marginTop: 16 }}>
+    <div className="po-field" style={{ marginTop: 16 }}>
       {/* biome-ignore lint/a11y/noLabelWithoutControl: group heading for the condition pills, not a single-control label */}
       <label style={{ marginBottom: 0 }}>{t("builder.conditionsLabel")}</label>
       <div
@@ -401,7 +401,7 @@ export function FilterConditions({
         ))}
         <button
           type="button"
-          className="ms-btn ms-btn-ghost"
+          className="po-btn po-btn-ghost"
           style={{ padding: "4px 8px" }}
           aria-haspopup="dialog"
           aria-expanded={adding}
@@ -412,7 +412,7 @@ export function FilterConditions({
         </button>
       </div>
       {rows.length === 0 ? (
-        <p style={{ margin: "8px 0 0", color: "var(--ms-faint)", fontSize: "var(--ms-fs-label)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--po-faint)", fontSize: "var(--po-fs-label)" }}>
           {t("builder.noConditions")}
         </p>
       ) : null}
@@ -480,15 +480,15 @@ export function FilterCountPreview({
       style={{
         marginTop: 14,
         padding: "10px 14px",
-        borderRadius: "var(--ms-r-input)",
-        background: "var(--ms-panel-raised)",
-        fontSize: "var(--ms-fs-ui)",
+        borderRadius: "var(--po-r-input)",
+        background: "var(--po-panel-raised)",
+        fontSize: "var(--po-fs-ui)",
       }}
     >
       {countQuery.isPending ? (
-        <span style={{ color: "var(--ms-muted)" }}>{t("builder.counting")}</span>
+        <span style={{ color: "var(--po-muted)" }}>{t("builder.counting")}</span>
       ) : countQuery.isError ? (
-        <span style={{ color: "var(--ms-danger)" }}>{t("builder.countError")}</span>
+        <span style={{ color: "var(--po-danger)" }}>{t("builder.countError")}</span>
       ) : (
         t("builder.matchCount", { count: countQuery.data?.count ?? 0 })
       )}

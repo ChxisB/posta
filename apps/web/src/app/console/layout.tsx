@@ -14,7 +14,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
   if (!operator) notFound();
   return (
     <ConsoleShell userEmail={operator.email}>
-      <main className="ms-main" style={{ flex: 1, minWidth: 0, padding: "32px 40px" }}>
+      <main className="po-main" style={{ flex: 1, minWidth: 0, padding: "32px 40px" }}>
         <div style={{ maxWidth: 1360, margin: "0 auto" }}>{children}</div>
       </main>
       <ToastHost />

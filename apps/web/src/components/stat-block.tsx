@@ -20,14 +20,14 @@ export function StatBlock({
 }) {
   return (
     <div>
-      <div className="ms-microlabel" style={{ fontSize: 10.5 }}>
+      <div className="po-microlabel" style={{ fontSize: 10.5 }}>
         {label}
       </div>
       <div
-        className="ms-digits"
+        className="po-digits"
         style={{
-          fontSize: "var(--ms-fs-kpi)",
-          color: "var(--ms-bone)",
+          fontSize: "var(--po-fs-kpi)",
+          color: "var(--po-bone)",
           marginTop: 6,
           display: "flex",
         }}
@@ -35,7 +35,7 @@ export function StatBlock({
         {value != null ? <Odometer formatted={value} /> : <Skeleton width={64} height="1lh" />}
       </div>
       {hint ? (
-        <div style={{ fontSize: 12.5, color: "var(--ms-muted)", marginTop: 4 }}>{hint}</div>
+        <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 4 }}>{hint}</div>
       ) : null}
     </div>
   );

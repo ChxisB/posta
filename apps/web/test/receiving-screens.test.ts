@@ -86,9 +86,9 @@ describe("the All received list", () => {
     ]);
     expect(html).toContain(">code<");
     expect(html).toContain(">link<");
-    expect(html).toContain('class="ms-badge ms-badge-danger">Quarantined<');
-    expect(html).toContain('class="ms-badge ms-badge-warn">Spam<');
+    expect(html).toContain('class="po-badge po-badge-danger">Quarantined<');
+    expect(html).toContain('class="po-badge po-badge-warn">Spam<');
     // Malware outranks the hold it caused.
-    expect(html).toContain('class="ms-badge ms-badge-danger">Virus<');
+    expect(html).toContain('class="po-badge po-badge-danger">Virus<');
   });
 });

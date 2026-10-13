@@ -87,8 +87,8 @@ describe("JsonView", () => {
     );
     expect(html).toContain(`href="/audience/contacts/${ID}"`);
     expect(html).toContain(`href="/audience/topics/${TOPIC}"`);
-    expect(html).toContain('class="ms-json-link"');
-    expect(html).toContain('class="hljs-string ms-json-marker">&quot;[redacted]&quot;</span>');
+    expect(html).toContain('class="po-json-link"');
+    expect(html).toContain('class="hljs-string po-json-marker">&quot;[redacted]&quot;</span>');
     expect(html).toContain(
       '<span class="hljs-attr">&quot;count&quot;</span>: <span class="hljs-number">1</span>',
     );

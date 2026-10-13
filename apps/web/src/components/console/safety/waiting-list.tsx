@@ -132,7 +132,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
 
   return (
     <>
-      <div className="ms-card" style={{ padding: 0, marginBottom: 16 }}>
+      <div className="po-card" style={{ padding: 0, marginBottom: 16 }}>
         <CardHead inset title={t("title", { count: total })} subtitle={t("subtitle")} />
         <Table className="nowrap">
           <thead>
@@ -170,7 +170,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                         ) : (
                           <Link href={`/console/safety/${group.team.id}`}>{group.team.name}</Link>
                         )}
-                        <span style={{ color: "var(--ms-muted)", fontWeight: 400 }}>
+                        <span style={{ color: "var(--po-muted)", fontWeight: 400 }}>
                           {[
                             t("count", { count: group.total }),
                             ...(held ? [t("heldTeam")] : suspended ? [t("suspendedTeam")] : []),
@@ -182,7 +182,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                       {held ? (
                         <button
                           type="button"
-                          className="ms-link"
+                          className="po-link"
                           style={LINK_BUTTON}
                           disabled={busy}
                           onClick={() => actions.reinstate(target)}
@@ -192,7 +192,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                       ) : suspended ? null : (
                         <button
                           type="button"
-                          className="ms-link"
+                          className="po-link"
                           style={LINK_BUTTON}
                           disabled={busy}
                           onClick={() =>
@@ -210,7 +210,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                       {suspended && !held ? null : " · "}
                       <button
                         type="button"
-                        className="ms-link"
+                        className="po-link"
                         style={LINK_BUTTON}
                         disabled={busy}
                         onClick={() =>
@@ -228,19 +228,19 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                   </tr>
                   {group.emails.map((email) => (
                     <tr key={email.id}>
-                      <td style={{ color: "var(--ms-muted)" }}>
+                      <td style={{ color: "var(--po-muted)" }}>
                         <RelativeTime date={email.createdAt} />
                       </td>
-                      <td className="ms-mono">{email.from}</td>
+                      <td className="po-mono">{email.from}</td>
                       <td>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                           <span
-                            className="ms-dot"
-                            style={{ background: WHY_DOT[email.why] ?? "var(--ms-muted)" }}
+                            className="po-dot"
+                            style={{ background: WHY_DOT[email.why] ?? "var(--po-muted)" }}
                           />
                           {t(`why.${email.why}`)}
                           {email.destinations.length > 0 ? (
-                            <span className="ms-mono" style={{ color: "var(--ms-muted)" }}>
+                            <span className="po-mono" style={{ color: "var(--po-muted)" }}>
                               {email.destinations.join(", ")}
                             </span>
                           ) : null}
@@ -254,7 +254,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                             {contentReveal ? (
                               <button
                                 type="button"
-                                className="ms-link"
+                                className="po-link"
                                 style={LINK_BUTTON}
                                 disabled={busy}
                                 onClick={() => openMedia(group.team, email)}
@@ -263,7 +263,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                               </button>
                             ) : (
                               <Tooltip inline text={revealT("off")}>
-                                <span style={{ color: "var(--ms-muted)" }}>{mediaT("row")}</span>
+                                <span style={{ color: "var(--po-muted)" }}>{mediaT("row")}</span>
                               </Tooltip>
                             )}
                             {" · "}
@@ -271,12 +271,12 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                         ) : null}
                         {suspended ? (
                           <Tooltip inline text={releaseTip}>
-                            <span style={{ color: "var(--ms-muted)" }}>{t("release")}</span>
+                            <span style={{ color: "var(--po-muted)" }}>{t("release")}</span>
                           </Tooltip>
                         ) : (
                           <button
                             type="button"
-                            className="ms-link"
+                            className="po-link"
                             style={LINK_BUTTON}
                             disabled={busy}
                             onClick={() => doRelease(group.team, [email.id])}
@@ -287,7 +287,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                         {" · "}
                         <button
                           type="button"
-                          className="ms-link"
+                          className="po-link"
                           style={LINK_BUTTON}
                           disabled={busy}
                           onClick={() =>
@@ -307,7 +307,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
                   ))}
                   {group.total > group.emails.length ? (
                     <tr>
-                      <td colSpan={COLUMNS} style={{ color: "var(--ms-muted)" }}>
+                      <td colSpan={COLUMNS} style={{ color: "var(--po-muted)" }}>
                         {t("more", { count: group.total - group.emails.length })}
                       </td>
                     </tr>
@@ -327,22 +327,22 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
           team: confirm?.team ?? "",
         })}
       >
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--ms-muted)" }}>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "var(--po-muted)" }}>
           {t(confirm?.action === "release" ? "releaseLead" : "cancelLead")}
         </p>
         <ModalFooter>
           <button
             type="button"
-            className="ms-btn ms-btn-secondary"
+            className="po-btn po-btn-secondary"
             onClick={() => setConfirm(null)}
           >
             {t("keep")}
-            <span className="ms-keycap">Esc</span>
+            <span className="po-keycap">Esc</span>
           </button>
           {confirm?.action === "release" ? (
             <button
               type="button"
-              className="ms-btn ms-btn-primary"
+              className="po-btn po-btn-primary"
               disabled={busy}
               onClick={doConfirm}
             >
@@ -353,7 +353,7 @@ export function WaitingList({ teamId, onChanged }: { teamId?: string; onChanged?
           ) : (
             <button
               type="button"
-              className="ms-btn ms-btn-destructive"
+              className="po-btn po-btn-destructive"
               disabled={busy}
               onClick={doConfirm}
             >

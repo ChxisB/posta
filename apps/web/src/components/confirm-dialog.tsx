@@ -97,18 +97,18 @@ export function ConfirmDialogHost() {
           {(request?.message ?? "").split("\n\n").map((para) => (
             <p
               key={para}
-              style={{ margin: 0, color: "var(--ms-muted)", fontSize: "var(--ms-fs-ui)" }}
+              style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}
             >
               {para}
             </p>
           ))}
         </div>
         {request?.typeToConfirm ? (
-          <div className="ms-field" style={{ marginTop: 14 }}>
+          <div className="po-field" style={{ marginTop: 14 }}>
             <label htmlFor="confirm-word">{common("typeToConfirm", { word })}</label>
             <input
               id="confirm-word"
-              className="ms-input mono"
+              className="po-input mono"
               style={{ width: "100%" }}
               autoComplete="off"
               autoCapitalize="characters"
@@ -121,12 +121,12 @@ export function ConfirmDialogHost() {
           </div>
         ) : null}
         <ModalFooter>
-          <button type="button" className="ms-btn ms-btn-secondary" onClick={() => close(false)}>
-            {request?.cancelLabel ?? common("cancel")} <span className="ms-keycap">Esc</span>
+          <button type="button" className="po-btn po-btn-secondary" onClick={() => close(false)}>
+            {request?.cancelLabel ?? common("cancel")} <span className="po-keycap">Esc</span>
           </button>
           <button
             type="submit"
-            className={request?.danger ? "ms-btn ms-btn-destructive" : "ms-btn ms-btn-primary"}
+            className={request?.danger ? "po-btn po-btn-destructive" : "po-btn po-btn-primary"}
             disabled={locked}
           >
             {request?.confirmLabel ?? common("confirm")} <ConfirmKeycap />

@@ -12,7 +12,7 @@ import { RegionsTable } from "./regions-table";
 import { SentPerDay } from "./sent-per-day";
 import { StatTiles } from "./stat-tiles";
 
-const CARD = "var(--ms-r-card)";
+const CARD = "var(--po-r-card)";
 
 function Ghosts({ n, height }: { n: number; height: number }) {
   return Array.from({ length: n }, (_, i) => i).map((i) => (
@@ -23,13 +23,13 @@ function Ghosts({ n, height }: { n: number; height: number }) {
 function OverviewSkeleton() {
   return (
     <>
-      <div className="ms-grid ms-grid-4" style={{ marginBottom: 16 }}>
+      <div className="po-grid po-grid-4" style={{ marginBottom: 16 }}>
         <Ghosts n={4} height={190} />
       </div>
-      <div className="ms-grid ms-grid-4" style={{ marginBottom: 16 }}>
+      <div className="po-grid po-grid-4" style={{ marginBottom: 16 }}>
         <Ghosts n={4} height={104} />
       </div>
-      <div className="ms-grid ms-grid-21">
+      <div className="po-grid po-grid-21">
         <Ghosts n={2} height={340} />
       </div>
     </>
@@ -62,15 +62,15 @@ export function OverviewView() {
         badges={s ? <HealthPill summary={s} /> : null}
       />
       {summary.isError ? (
-        <div className="ms-card ms-state">
-          <span className="ms-state-glyph" aria-hidden="true">
+        <div className="po-card po-state">
+          <span className="po-state-glyph" aria-hidden="true">
             !
           </span>
-          <p className="ms-state-headline">{common("loadError")}</p>
-          <div className="ms-state-actions">
+          <p className="po-state-headline">{common("loadError")}</p>
+          <div className="po-state-actions">
             <button
               type="button"
-              className="ms-btn ms-btn-secondary"
+              className="po-btn po-btn-secondary"
               onClick={() => summary.refetch()}
             >
               {common("retry")}
@@ -92,12 +92,12 @@ export function OverviewView() {
               }}
             />
           ) : regions.isError ? (
-            <div className="ms-card ms-state" style={{ marginBottom: 16 }}>
-              <p className="ms-state-headline">{common("loadError")}</p>
-              <div className="ms-state-actions">
+            <div className="po-card po-state" style={{ marginBottom: 16 }}>
+              <p className="po-state-headline">{common("loadError")}</p>
+              <div className="po-state-actions">
                 <button
                   type="button"
-                  className="ms-btn ms-btn-secondary"
+                  className="po-btn po-btn-secondary"
                   onClick={() => regions.refetch()}
                 >
                   {common("retry")}
@@ -109,7 +109,7 @@ export function OverviewView() {
               <Ghosts n={1} height={114} />
             </div>
           )}
-          <div className="ms-grid ms-grid-21">
+          <div className="po-grid po-grid-21">
             <SentPerDay />
             <HealthCard summary={s} />
           </div>

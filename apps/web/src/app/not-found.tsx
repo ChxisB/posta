@@ -11,10 +11,10 @@ export default async function NotFound() {
       body={t("body")}
       actions={
         <>
-          <a className="ms-btn ms-btn-primary" href="/emails">
+          <a className="po-btn po-btn-primary" href="/emails">
             {t("cta")}
           </a>
-          <a className="ms-btn ms-btn-secondary" href={DOCS_URL} target="_blank" rel="noreferrer">
+          <a className="po-btn po-btn-secondary" href={DOCS_URL} target="_blank" rel="noreferrer">
             {t("docs")}
           </a>
         </>
