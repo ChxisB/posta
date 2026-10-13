@@ -1,4 +1,4 @@
-import { autoLinks, LURE_NAMES, mailLinks, REAL_NAMES, readable } from "@millionsend/test-utils";
+import { autoLinks, LURE_NAMES, mailLinks, REAL_NAMES, readable } from "@posta/test-utils";
 import { describe, expect, it } from "vitest";
 import { en } from "../src/account-mail/en.js";
 import { ptBR } from "../src/account-mail/pt-BR.js";

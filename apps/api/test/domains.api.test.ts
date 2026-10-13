@@ -7,19 +7,19 @@ import {
   hashApiKey,
   PLAN_DOMAIN_LIMIT,
   SUSPENSION_REASONS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { DkimVerificationStatus, DnsResolver, SesIdentityClient } from "@millionsend/ses";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { DkimVerificationStatus, DnsResolver, SesIdentityClient } from "@posta/ses";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { type ApiDeps, createApi } from "../src/app.js";
 
 // Inbox deletion is the inbox module's; here only that the domain delete asks for it.
 const deleteInboxes = vi.hoisted(() => vi.fn());
-vi.mock("@millionsend/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@millionsend/core")>()),
+vi.mock("@posta/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@posta/core")>()),
   deleteInboxes,
 }));
 

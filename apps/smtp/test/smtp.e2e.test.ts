@@ -8,10 +8,10 @@ import {
   hashRecipient,
   OVERAGE_HARD_CAP,
   utcDay,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";

@@ -1,6 +1,6 @@
 import { createHmac, hkdfSync } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import type { JudgeVerdict } from "./abuse-judge/types.js";
 import { recordAudit } from "./audit.js";

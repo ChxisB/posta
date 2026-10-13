@@ -33,7 +33,7 @@ export async function migrateLocked(
 
 // CLI entry (pnpm db:migrate); guarded so importing migrateLocked runs nothing.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  // Reads DATABASE_URL directly instead of @millionsend/config: migrations run
+  // Reads DATABASE_URL directly instead of @posta/config: migrations run
   // before (and independently of) app boot, and must not demand the full app
   // environment (e.g. MASTER_ENCRYPTION_KEY) just to apply DDL.
   const databaseUrl = process.env.DATABASE_URL;

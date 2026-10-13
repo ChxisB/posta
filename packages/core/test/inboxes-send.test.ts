@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb, createWebhookEndpoint } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb, createWebhookEndpoint } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { acceptEmail } from "../src/accept-email.js";

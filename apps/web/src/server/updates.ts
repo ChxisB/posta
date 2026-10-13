@@ -1,4 +1,4 @@
-import { accountEmailFrom, env } from "@millionsend/config";
+import { accountEmailFrom, env } from "@posta/config";
 import {
   confirmSystemContact,
   deriveUpdatesKey,
@@ -6,8 +6,8 @@ import {
   makeUpdatesToken,
   type UpdatesSource,
   verifyUpdatesToken,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
 import { appBaseUrl } from "@/lib/api-base-url";
 import type { AppLocale } from "../i18n/request";
 import {

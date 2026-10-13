@@ -1,5 +1,5 @@
-import { fetchTeamStanding, SILENT_SUSPENSIONS } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+import { fetchTeamStanding, SILENT_SUSPENSIONS } from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNotNull } from "drizzle-orm";
 import en from "../../messages/en/common.json";

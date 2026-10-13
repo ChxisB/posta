@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { EnvKeyring, encryptEmailBody } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { EnvKeyring, encryptEmailBody } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { desc, eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 

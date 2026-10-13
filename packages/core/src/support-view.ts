@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { type AuditEvent, auditRow, recordAudit } from "./audit.js";
 import { SUPPORT_VIEW_REASONS, type SupportViewReason } from "./support-view-reasons.js";

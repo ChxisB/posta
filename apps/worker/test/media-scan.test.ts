@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createPromiseCache, type EmailAttachment } from "@millionsend/core";
+import { createPromiseCache, type EmailAttachment } from "@posta/core";
 import sharp from "sharp";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { decodeQr, MEDIA_TASK_TIMEOUT_MS, MediaPool, MediaPoolError } from "../src/media/pool.js";

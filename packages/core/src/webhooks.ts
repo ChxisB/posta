@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, like, sql } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import {

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, count, eq } from "drizzle-orm";
 import type { ApiKeyAuth } from "./api-key-auth.js";
 import { type EmailAttachment, encryptEmailBody, sealAttachments } from "./crypto/envelope.js";

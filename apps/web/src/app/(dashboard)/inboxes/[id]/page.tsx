@@ -1,4 +1,4 @@
-import { receivingEnabled } from "@millionsend/config";
+import { receivingEnabled } from "@posta/config";
 import { notFound } from "next/navigation";
 import { InboxView } from "./inbox-view";
 

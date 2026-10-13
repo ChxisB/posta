@@ -1,5 +1,5 @@
-import { AUDIT_ACTIONS, parseAuditActor } from "@millionsend/core";
-import { schema } from "@millionsend/db";
+import { AUDIT_ACTIONS, parseAuditActor } from "@posta/core";
+import { schema } from "@posta/db";
 import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { beforeCursor, createdAtCursorField, cursorSchema, paginate } from "../../keyset";

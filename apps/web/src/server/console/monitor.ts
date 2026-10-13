@@ -1,10 +1,6 @@
-import { abuseJudgeConfig, env } from "@millionsend/config";
-import {
-  getMonitorSettingsRow,
-  type MonitorSettings,
-  resolveMonitorSettings,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+import { abuseJudgeConfig, env } from "@posta/config";
+import { getMonitorSettingsRow, type MonitorSettings, resolveMonitorSettings } from "@posta/core";
+import type { Db } from "@posta/db";
 
 /** What the console says about the judge: off, or the TypeSafe model the env names. */
 export type JudgeStatus =

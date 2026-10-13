@@ -1,5 +1,5 @@
-import { env } from "@millionsend/config";
-import { CLIENT_ERRORS_PATH } from "@millionsend/core/error-tracking";
+import { env } from "@posta/config";
+import { CLIENT_ERRORS_PATH } from "@posta/core/error-tracking";
 import { type NextRequest, NextResponse } from "next/server";
 
 /** Paths the hosted unsubscribe flow needs; nothing else answers on its host. */

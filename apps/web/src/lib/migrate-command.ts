@@ -1,4 +1,4 @@
-export const MIGRATE_COMMAND = "npx @millionsend/cli migrate --from resend";
+export const MIGRATE_COMMAND = "npx @tack-labs/posta-cli migrate --from resend";
 
 /** Cloud is the CLI's default target; a self-hosted instance has to name its own API URL. */
 export function migrateCommand(toUrl: string | null): string {

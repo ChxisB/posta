@@ -5,8 +5,8 @@ const h = vi.hoisted(() => ({
   requests: [] as { email: string; source: string; locale: string }[],
 }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => ({}) };
 });
 vi.mock("@/server/updates", () => ({

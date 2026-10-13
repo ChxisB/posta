@@ -1,7 +1,7 @@
 "use client";
 
-import { parseSmtpDiagnostic, resolveBounceGuidance } from "@millionsend/core/bounce-guidance";
-import { PREFETCH_REASONS, type PrefetchReason } from "@millionsend/core/open-classifier";
+import { parseSmtpDiagnostic, resolveBounceGuidance } from "@posta/core/bounce-guidance";
+import { PREFETCH_REASONS, type PrefetchReason } from "@posta/core/open-classifier";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";

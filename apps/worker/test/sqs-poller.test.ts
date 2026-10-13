@@ -3,7 +3,7 @@ import {
   type Message,
   ReceiveMessageCommand,
 } from "@aws-sdk/client-sqs";
-import type { SerializedSesEvent } from "@millionsend/queue";
+import type { SerializedSesEvent } from "@posta/queue";
 import { describe, expect, it } from "vitest";
 import { pollSqsOnce, type SqsPollerDeps } from "../src/sqs-poller.js";
 

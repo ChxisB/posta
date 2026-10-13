@@ -315,7 +315,7 @@ Um script idempotente cria tudo que a API consegue criar. Os valores vêm da
 tabela de planos, não de flags:
 
 ```sh
-STRIPE_SECRET_KEY=sk_test_… pnpm --filter @millionsend/billing provision \
+STRIPE_SECRET_KEY=sk_test_… pnpm --filter @posta/billing provision \
   --webhook-url https://app.example.com/api/billing/webhook \
   --portal --app-url https://app.example.com
 ```

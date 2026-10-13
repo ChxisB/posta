@@ -1,7 +1,7 @@
-import { defaultSafety, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { defaultSafety, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setRegionAccountDeps } from "@/server/console/ses-regions";
@@ -15,8 +15,8 @@ process.env.MASTER_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64");
 // reads — send's APP_BASE_URL gate is exercised by setting/clearing it here.
 process.env.APP_BASE_URL = "http://localhost:3000";
 
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@posta/db")>();
   return { ...mod, getDb: () => db };
 });
 

@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 
 const SITE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const VERIFY_TIMEOUT_MS = 10_000;

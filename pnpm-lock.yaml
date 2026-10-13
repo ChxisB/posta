@@ -33,24 +33,24 @@ importers:
       '@hono/zod-openapi':
         specifier: ^1.6.3
         version: 1.6.3(hono@4.13.7)(zod@4.6.3)
-      '@millionsend/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@millionsend/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@millionsend/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@millionsend/queue':
-        specifier: workspace:*
-        version: link:../../packages/queue
-      '@millionsend/ses':
-        specifier: workspace:*
-        version: link:../../packages/ses
       '@modelcontextprotocol/server':
         specifier: 2.0.0
         version: 2.0.0
+      '@posta/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@posta/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@posta/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@posta/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
+      '@posta/ses':
+        specifier: workspace:*
+        version: link:../../packages/ses
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.3.16)(@opentelemetry/api@1.9.1)(kysely@0.29.5)(pg@8.23.0)(postgres@3.4.9)
@@ -64,12 +64,12 @@ importers:
         specifier: ^4.23.13
         version: 4.23.13
     devDependencies:
-      '@millionsend/test-utils':
-        specifier: workspace:*
-        version: link:../../packages/test-utils
       '@modelcontextprotocol/client':
         specifier: 2.3.1
         version: 2.3.1
+      '@posta/test-utils':
+        specifier: workspace:*
+        version: link:../../packages/test-utils
       '@types/node':
         specifier: ^22.20.5
         version: 22.20.5
@@ -119,7 +119,7 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@millionsend/api':
+      '@posta/api':
         specifier: workspace:*
         version: link:../api
       '@tailwindcss/postcss':
@@ -149,7 +149,7 @@ importers:
 
   apps/mx:
     dependencies:
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../../packages/core
       mailauth:
@@ -183,19 +183,19 @@ importers:
 
   apps/smtp:
     dependencies:
-      '@millionsend/config':
+      '@posta/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@millionsend/queue':
+      '@posta/queue':
         specifier: workspace:*
         version: link:../../packages/queue
-      '@millionsend/ses':
+      '@posta/ses':
         specifier: workspace:*
         version: link:../../packages/ses
       drizzle-orm:
@@ -214,7 +214,7 @@ importers:
         specifier: ^4.6.3
         version: 4.6.3
     devDependencies:
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../../packages/test-utils
       '@types/mailparser':
@@ -256,22 +256,22 @@ importers:
       '@maily-to/render':
         specifier: ^0.2.3
         version: 0.2.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@millionsend/billing':
+      '@posta/billing':
         specifier: workspace:*
         version: link:../../packages/billing
-      '@millionsend/config':
+      '@posta/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@millionsend/queue':
+      '@posta/queue':
         specifier: workspace:*
         version: link:../../packages/queue
-      '@millionsend/ses':
+      '@posta/ses':
         specifier: workspace:*
         version: link:../../packages/ses
       '@sentry/browser':
@@ -332,7 +332,7 @@ importers:
         specifier: ^4.6.3
         version: 4.6.3
     devDependencies:
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../../packages/test-utils
       '@sentry/bundler-plugins':
@@ -368,22 +368,22 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.1130.0
         version: 3.1130.0
-      '@millionsend/billing':
+      '@posta/billing':
         specifier: workspace:*
         version: link:../../packages/billing
-      '@millionsend/config':
+      '@posta/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@millionsend/queue':
+      '@posta/queue':
         specifier: workspace:*
         version: link:../../packages/queue
-      '@millionsend/ses':
+      '@posta/ses':
         specifier: workspace:*
         version: link:../../packages/ses
       drizzle-orm:
@@ -408,10 +408,10 @@ importers:
       '@hono/node-server':
         specifier: ^2.1.1
         version: 2.1.1(hono@4.13.7)
-      '@millionsend/api':
+      '@posta/api':
         specifier: workspace:*
         version: link:../api
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../../packages/test-utils
       '@types/node':
@@ -432,10 +432,10 @@ importers:
 
   packages/billing:
     dependencies:
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../core
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../db
       drizzle-orm:
@@ -445,7 +445,7 @@ importers:
         specifier: ^22.6.2
         version: 22.6.2(@types/node@22.20.5)
     devDependencies:
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../test-utils
       '@types/node':
@@ -466,16 +466,16 @@ importers:
       '@hono/node-server':
         specifier: ^2.1.1
         version: 2.1.1(hono@4.13.7)
-      '@millionsend/api':
+      '@posta/api':
         specifier: workspace:*
         version: link:../../apps/api
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../core
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../db
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../test-utils
       '@types/node':
@@ -515,10 +515,10 @@ importers:
 
   packages/core:
     dependencies:
-      '@millionsend/config':
+      '@posta/config':
         specifier: workspace:*
         version: link:../config
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../db
       '@sentry/core':
@@ -546,7 +546,7 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.3.14
         version: 0.3.16
-      '@millionsend/test-utils':
+      '@posta/test-utils':
         specifier: workspace:*
         version: link:../test-utils
       '@types/mailparser':
@@ -570,7 +570,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@millionsend/config':
+      '@posta/config':
         specifier: workspace:*
         version: link:../config
       drizzle-orm:
@@ -653,7 +653,7 @@ importers:
       '@aws-sdk/client-sts':
         specifier: ^3.1130.0
         version: 3.1130.0
-      '@millionsend/core':
+      '@posta/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -706,7 +706,7 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.3.14
         version: 0.3.16
-      '@millionsend/db':
+      '@posta/db':
         specifier: workspace:*
         version: link:../db
       drizzle-orm:

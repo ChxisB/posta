@@ -1,16 +1,16 @@
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 const h = vi.hoisted(() => ({ db: undefined as unknown as Db, secret: "s3cr3t-ask-token" }));
 
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 
-vi.mock("@millionsend/config", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/config")>();
+vi.mock("@posta/config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/config")>();
   return { ...actual, env: { ...actual.env, TRACKING_ASK_SECRET: h.secret } };
 });
 

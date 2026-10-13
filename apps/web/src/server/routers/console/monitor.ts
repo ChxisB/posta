@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import {
   clearMonitorOverride,
   getMonitorSettingsRow,
@@ -13,8 +13,8 @@ import {
   resolveMonitorSettings,
   resumeMonitorPause,
   setMonitorOverride,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";

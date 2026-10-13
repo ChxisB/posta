@@ -6,7 +6,7 @@ import {
   SES_TRANSACTIONAL_RESERVE_DEFAULT,
   servedRegions,
   sesTenantsEnabled,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   BREAKER_SES_COMPLAINT_RATE,
   bulkShare,
@@ -30,14 +30,14 @@ import {
   sesComplaintReadings,
   transactionalSent24h,
   usableReserve,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import {
   createQuotaRequestClient,
   type QuotaRequestClient,
   requestSesDailyQuota,
   SES_REGIONS,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";

@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 
 /** Replaces one downloaded file. Callers store only content that parsed. */
 export async function storeReferenceData(

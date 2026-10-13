@@ -1,4 +1,4 @@
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import { and, isNotNull, type SQL, sql } from "drizzle-orm";
 
 /**

@@ -1,5 +1,5 @@
-import { type BillingStripe, createStripe } from "@millionsend/billing";
-import { accountEmailFrom, env, notificationsEmailFrom } from "@millionsend/config";
+import { type BillingStripe, createStripe } from "@posta/billing";
+import { accountEmailFrom, env, notificationsEmailFrom } from "@posta/config";
 import {
   claimNotification,
   listTeamOwners,
@@ -7,8 +7,8 @@ import {
   planMove,
   QUOTA_COLUMNS,
   type QuotaTeamRow,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { buildAccountEmail, sendAccountMail } from "./system-mail";

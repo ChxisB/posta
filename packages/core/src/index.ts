@@ -1,4 +1,4 @@
-export type { ContactActivityType, SegmentCondition, SegmentFilter } from "@millionsend/db/schema";
+export type { ContactActivityType, SegmentCondition, SegmentFilter } from "@posta/db/schema";
 export {
   buildJudgeBlock,
   JUDGE_LINK_ROWS_MAX,

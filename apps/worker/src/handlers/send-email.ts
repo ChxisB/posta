@@ -1,4 +1,4 @@
-import { sharedInboxDomain } from "@millionsend/config";
+import { sharedInboxDomain } from "@posta/config";
 import {
   applyStatusCas,
   buildUnsubscribeHeaders,
@@ -47,10 +47,10 @@ import {
   transitionQueueState,
   utcDay,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { type EmailSendPriority, emailSendPriority } from "@millionsend/queue";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { type EmailSendPriority, emailSendPriority } from "@posta/queue";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { createTransport } from "nodemailer";
 import { MediaPoolError } from "../media/pool.js";

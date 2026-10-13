@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import type { Db } from "@millionsend/db";
+import type { Db } from "@posta/db";
 import { type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import type { AuditActor } from "../audit.js";

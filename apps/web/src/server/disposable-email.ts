@@ -1,5 +1,5 @@
-import { disposableDomains, isDisposableDomain } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+import { disposableDomains, isDisposableDomain } from "@posta/core";
+import type { Db } from "@posta/db";
 import { mailDomain } from "@/lib/format";
 import shipped from "../../data/disposable-email-domains.json";
 

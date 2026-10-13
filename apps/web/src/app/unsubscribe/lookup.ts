@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import {
   deriveUnsubscribeKey,
   isSubscribedToTopic,
@@ -6,9 +6,9 @@ import {
   STANDING_COLUMNS,
   teamStandingOf,
   verifyUnsubscribeToken,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { unsubscribeBaseUrl } from "@/lib/api-base-url";

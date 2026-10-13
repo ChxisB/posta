@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { CompositeKeyring, EnvKeyring } from "@millionsend/core";
+import { CompositeKeyring, EnvKeyring } from "@posta/core";
 import { expect, it } from "vitest";
 import { createKeyringFromEnv } from "../src/kms.js";
 

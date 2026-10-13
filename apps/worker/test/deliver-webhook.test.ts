@@ -6,10 +6,10 @@ import {
   type Keyring,
   verifyWebhookSignature,
   WEBHOOK_MAX_ATTEMPTS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import {

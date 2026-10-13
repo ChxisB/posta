@@ -1,6 +1,6 @@
-import { accountMailPhrase, errorSummary } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { accountMailPhrase, errorSummary } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { mailOperator, type SystemMailer } from "../system-mail.js";
 

@@ -1,5 +1,5 @@
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
-import { abuseJudgeConfig } from "@millionsend/config";
+import { abuseJudgeConfig } from "@posta/config";
 import {
   type ApiKeyAuth,
   acquireWaitSlot,
@@ -46,9 +46,9 @@ import {
   secretsEqual,
   verifyReceivedDownload,
   waitForReceived,
-} from "@millionsend/core";
-import { captureError } from "@millionsend/core/error-tracking-node";
-import { keysetCursorWhere, schema } from "@millionsend/db";
+} from "@posta/core";
+import { captureError } from "@posta/core/error-tracking-node";
+import { keysetCursorWhere, schema } from "@posta/db";
 import { and, asc, desc, eq, gt, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import type { Context, MiddlewareHandler } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -669,7 +669,7 @@ function mxFailure(c: Context, err: unknown): Response {
 
 /**
  * The internal API the MX (PROCESS=mx) calls, per the contract in
- * @millionsend/core/receiving-protocol. Registered only while this instance
+ * @posta/core/receiving-protocol. Registered only while this instance
  * receives mail, so otherwise both paths are a 404.
  */
 export function registerMxIngestRoutes(

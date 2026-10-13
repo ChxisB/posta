@@ -1,5 +1,5 @@
-import { cardFingerprints } from "@millionsend/billing";
-import type { FingerprintSources } from "@millionsend/core";
+import { cardFingerprints } from "@posta/billing";
+import type { FingerprintSources } from "@posta/core";
 import { getStripe } from "./billing";
 import { getKeyring } from "./keyring";
 

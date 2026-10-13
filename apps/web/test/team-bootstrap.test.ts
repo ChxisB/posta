@@ -1,7 +1,7 @@
-import { PLAN_TEAM_LIMIT, SUSPENSION_REASONS } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb, REAL_NAMES, REFUSED_NAMES } from "@millionsend/test-utils";
+import { PLAN_TEAM_LIMIT, SUSPENSION_REASONS } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb, REAL_NAMES, REFUSED_NAMES } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getActiveMembership } from "@/server/membership";

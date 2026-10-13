@@ -8,7 +8,7 @@ import {
   type GetTenantCommandOutput,
   UpdateReputationEntityCustomerManagedStatusCommand,
 } from "@aws-sdk/client-sesv2";
-import type { TenantSendingStatus } from "@millionsend/core";
+import type { TenantSendingStatus } from "@posta/core";
 
 /**
  * SES tenant management: one tenant per team so SES tracks reputation and

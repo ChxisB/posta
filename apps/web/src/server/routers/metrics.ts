@@ -12,8 +12,8 @@ import {
   utcDay,
   WARN_BOUNCE_RATE,
   WARN_COMPLAINT_RATE,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { canonicalTimeZone } from "@/lib/time-zone";

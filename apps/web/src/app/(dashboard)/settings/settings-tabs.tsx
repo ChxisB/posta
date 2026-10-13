@@ -1,4 +1,4 @@
-import { env, receivingEnabled } from "@millionsend/config";
+import { env, receivingEnabled } from "@posta/config";
 import { smtpRelayOffered } from "@/server/smtp";
 import { SettingsTabsNav } from "./settings-tabs-nav";
 

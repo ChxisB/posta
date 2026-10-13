@@ -1,5 +1,5 @@
 import { createHmac, hkdfSync, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
-import { accountMailDeliverable } from "@millionsend/config";
+import { accountMailDeliverable } from "@posta/config";
 import {
   bindConsoleCodeMail,
   CONSOLE_CODE_MINUTES,
@@ -8,8 +8,8 @@ import {
   createFixedWindowLimiter,
   replaceConsoleCodeRow,
   SUPPORT_VIEW_SIGN_IN_MINUTES,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { requireAuthSecret } from "./auth-secret";

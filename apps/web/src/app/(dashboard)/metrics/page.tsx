@@ -6,7 +6,7 @@ import {
   MIN_WARN_COMPLAINTS,
   WARN_BOUNCE_RATE,
   WARN_COMPLAINT_RATE,
-} from "@millionsend/core/deliverability";
+} from "@posta/core/deliverability";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";

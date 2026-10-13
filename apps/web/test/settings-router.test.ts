@@ -1,8 +1,8 @@
-import { DAY_MS, SUSPENSION_REASONS, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { SES_REGIONS } from "@millionsend/ses";
-import { createTeam, createTestDb, REFUSED_NAMES } from "@millionsend/test-utils";
+import { DAY_MS, SUSPENSION_REASONS, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { SES_REGIONS } from "@posta/ses";
+import { createTeam, createTestDb, REFUSED_NAMES } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TeamRole } from "@/server/membership";

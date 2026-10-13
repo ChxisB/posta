@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { deriveUnsubscribeKey, EnvKeyring, generateApiKey } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { deriveUnsubscribeKey, EnvKeyring, generateApiKey } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createApi } from "../src/app.js";

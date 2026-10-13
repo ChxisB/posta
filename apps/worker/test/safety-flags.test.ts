@@ -1,7 +1,7 @@
-import { utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { runSafetyFlags } from "../src/handlers/safety-flags.js";

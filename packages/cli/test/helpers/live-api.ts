@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { serve } from "@hono/node-server";
-import { createApi } from "@millionsend/api";
-import { EnvKeyring, generateApiKey } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { createApi } from "@posta/api";
+import { EnvKeyring, generateApiKey } from "@posta/core";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 
 export interface LiveApi {
   /** http://127.0.0.1:<ephemeral port> */

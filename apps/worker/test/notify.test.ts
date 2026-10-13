@@ -7,10 +7,10 @@ import {
   type QueuedWebhookDelivery,
   utcDay,
   WEBHOOK_MAX_ATTEMPTS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb, LURE_NAMES, mailLinks, readable } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb, LURE_NAMES, mailLinks, readable } from "@posta/test-utils";
 import { eq, like, sql } from "drizzle-orm";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { sweepNotifications } from "../src/handlers/notify.js";

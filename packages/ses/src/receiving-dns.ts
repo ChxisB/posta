@@ -1,4 +1,4 @@
-import { normalizeHostname } from "@millionsend/core/org-domain";
+import { normalizeHostname } from "@posta/core/org-domain";
 import {
   DNS_TIMEOUT_MS,
   type DnsResolver,

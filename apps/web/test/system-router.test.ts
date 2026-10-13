@@ -1,7 +1,7 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SesAccountClient } from "@millionsend/ses";
-import { createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SesAccountClient } from "@posta/ses";
+import { createTestDb } from "@posta/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCaller } from "@/server/routers";
 import { createSystemRouter } from "@/server/routers/system";

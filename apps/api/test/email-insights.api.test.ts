@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
-import { EnvKeyring, generateApiKey, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { EmailInsightCheck } from "@millionsend/db/schema";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { EnvKeyring, generateApiKey, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { EmailInsightCheck } from "@posta/db/schema";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApi } from "../src/app.js";
 

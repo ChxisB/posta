@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 
 /**
  * Whether the SMTP relay is offered to the people reading this dashboard.

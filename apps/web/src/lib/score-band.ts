@@ -1,4 +1,4 @@
-import type { EmailCheckResult, ScoreBand } from "@millionsend/core";
+import type { EmailCheckResult, ScoreBand } from "@posta/core";
 
 /** Band → status-badge tone. Bands are semantic (score health), never decorative. */
 export const BAND_TONE: Record<ScoreBand, string> = {

@@ -3,8 +3,8 @@ import {
   INBOX_KEYS_MAX,
   MAX_ACTIVE_API_KEYS,
   recordInboxActivity,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";

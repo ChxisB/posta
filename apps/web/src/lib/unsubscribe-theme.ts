@@ -1,4 +1,4 @@
-import type { schema } from "@millionsend/db";
+import type { schema } from "@posta/db";
 import type { CSSProperties } from "react";
 import { contrastTextColor, isHexColor } from "./hex-color";
 

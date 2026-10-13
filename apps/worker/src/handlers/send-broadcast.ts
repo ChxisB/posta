@@ -47,10 +47,10 @@ import {
   teamDestinationStanding,
   utcDay,
   warmupCap,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { EmailSendRequest, EnqueueEmailSends } from "@millionsend/queue";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { EmailSendRequest, EnqueueEmailSends } from "@posta/queue";
 import { and, asc, eq, gt, inArray, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { mailOwners, type SystemMailer } from "../system-mail.js";
 
@@ -152,7 +152,7 @@ const REGION_HOLD_RETRY_MS = 15 * 60 * 1000;
 // The merge and preheader helpers live in core so the dashboard's test send
 // renders exactly what the fan-out renders; re-exported for the callers that
 // reach them through this handler.
-export { applyMergeFields, injectPreheader, type MergeContact } from "@millionsend/core";
+export { applyMergeFields, injectPreheader, type MergeContact } from "@posta/core";
 
 export async function sendBroadcast(
   db: Db,

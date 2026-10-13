@@ -1,4 +1,4 @@
-import type { ReceivedAuthDetail, ReceivedAuthentication } from "@millionsend/db/schema";
+import type { ReceivedAuthDetail, ReceivedAuthentication } from "@posta/db/schema";
 import type { SenderTrust } from "../inboxes/types.js";
 import { registrableDomain } from "../org-domain.js";
 

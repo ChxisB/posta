@@ -1,4 +1,4 @@
-import { env, isCloudDeployment, receivingEnabled, sharedInboxDomain } from "@millionsend/config";
+import { env, isCloudDeployment, receivingEnabled, sharedInboxDomain } from "@posta/config";
 import {
   deriveInboxKeys,
   fetchEffectivePlan,
@@ -11,8 +11,8 @@ import {
   parseInboxActor,
   type SendOutcome,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, count, eq, inArray } from "drizzle-orm";
 import { getKeyring } from "./keyring";

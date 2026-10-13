@@ -1,4 +1,4 @@
-import { REAL_NAMES } from "@millionsend/test-utils";
+import { REAL_NAMES } from "@posta/test-utils";
 import { describe, expect, it } from "vitest";
 import { IMITATED_BRAND_WORDS, IMITATED_BRANDS, imitatedBrandIn } from "../src/imitated-brands.js";
 

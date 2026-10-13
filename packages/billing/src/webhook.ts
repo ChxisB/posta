@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { lt } from "drizzle-orm";
 import type Stripe from "stripe";
 import type { BillingDeps } from "./checkout.js";

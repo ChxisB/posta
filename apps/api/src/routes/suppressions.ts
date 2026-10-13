@@ -8,9 +8,9 @@ import {
   type SuppressionEventRow,
   suppressionHashesFor,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { type Env, errorBody, keysetPage } from "../app.js";
 import {

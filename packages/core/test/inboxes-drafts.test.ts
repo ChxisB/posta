@@ -1,6 +1,6 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb, createWebhookEndpoint } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb, createWebhookEndpoint } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { InboxActor } from "../src/inboxes/activity.js";

@@ -1,5 +1,5 @@
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TeamRole } from "@/server/membership";
@@ -18,8 +18,8 @@ const h = vi.hoisted(() => ({
 }));
 
 // getDb() inside the route handler must hit the per-test PGlite db.
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 

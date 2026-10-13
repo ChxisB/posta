@@ -1,5 +1,5 @@
-import { MAIL_LOCALES, type MailLocale } from "@millionsend/core";
-import { accountMailCard } from "@millionsend/core/html";
+import { MAIL_LOCALES, type MailLocale } from "@posta/core";
+import { accountMailCard } from "@posta/core/html";
 import en from "../../messages/en/onboarding-email.json";
 import ptBR from "../../messages/pt-BR/onboarding-email.json";
 

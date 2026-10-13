@@ -1,5 +1,5 @@
-import { type AuditEvent, recordAudit as recordAuditRow } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+import { type AuditEvent, recordAudit as recordAuditRow } from "@posta/core";
+import type { Db } from "@posta/db";
 import type { AuthSession } from "./trpc";
 
 /**

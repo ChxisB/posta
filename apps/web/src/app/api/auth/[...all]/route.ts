@@ -1,5 +1,5 @@
-import { env } from "@millionsend/config";
-import { getDb } from "@millionsend/db";
+import { env } from "@posta/config";
+import { getDb } from "@posta/db";
 import { sql } from "drizzle-orm";
 import { getAuth } from "@/server/auth";
 

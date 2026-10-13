@@ -1,5 +1,5 @@
-import { env } from "@millionsend/config";
-import { getDb } from "@millionsend/db";
+import { env } from "@posta/config";
+import { getDb } from "@posta/db";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";

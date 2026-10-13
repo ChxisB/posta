@@ -19,8 +19,8 @@ ARG SENTRY_URL
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
-  pnpm --filter @millionsend/web build
-RUN pnpm --filter @millionsend/docs build
+  pnpm --filter @posta/web build
+RUN pnpm --filter @posta/docs build
 # The webpack cache is build-only (hundreds of MB), and the runtime never
 # needs dev tooling (drizzle-kit, vitest, biome, typescript): a fresh
 # prod-only install from the same store leaves none of it behind. (`pnpm

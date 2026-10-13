@@ -1,5 +1,5 @@
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 
 /**
  * Optional S3-compatible object storage (team logo uploads). Enabled only

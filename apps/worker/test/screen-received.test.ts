@@ -8,10 +8,10 @@ import {
   JudgeError,
   type MonitorSettings,
   utcDay,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb, createWebhookEndpoint } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb, createWebhookEndpoint } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { screenReceived } from "../src/handlers/screen-received.js";

@@ -4,7 +4,7 @@ import {
   isCloudDeployment,
   SES_MAX_SEND_RATE_DEFAULT,
   SES_TRANSACTIONAL_RESERVE_DEFAULT,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   type BroadcastEstimate,
   broadcastSendSpacingMs,
@@ -27,8 +27,8 @@ import {
   sendingBroadcasts,
   transactionalSent24h,
   verifySenderDomain,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { and, inArray, isNotNull, sql } from "drizzle-orm";
 import { plannerRegionAccount } from "./console/ses-regions";
 

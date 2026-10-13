@@ -1,11 +1,11 @@
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { type ServerType, serve } from "@hono/node-server";
-import { createApi } from "@millionsend/api";
-import { EnvKeyring, generateApiKey } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { createApi } from "@posta/api";
+import { EnvKeyring, generateApiKey } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { afterAll, beforeAll, expect, it } from "vitest";

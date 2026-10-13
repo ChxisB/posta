@@ -1,5 +1,5 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { parseMailbox } from "@millionsend/core";
+import { parseMailbox } from "@posta/core";
 import type { SesSender } from "./handlers/send-email.js";
 
 /**

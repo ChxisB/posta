@@ -4,9 +4,9 @@ import {
   monitorHealth,
   recordProbes,
   SCREEN_RETRIES,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, gte, or, sql } from "drizzle-orm";
 import { mailOperator, type SystemMailer } from "../system-mail.js";
 

@@ -1,5 +1,5 @@
-import { ALL_TEAMS_GRANT } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+import { ALL_TEAMS_GRANT } from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, exists, or } from "drizzle-orm";
 import { z } from "zod";

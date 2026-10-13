@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
-import { env } from "@millionsend/config";
-import { getDb } from "@millionsend/db";
-import { createKeyringFromEnv } from "@millionsend/ses";
+import { env } from "@posta/config";
+import { getDb } from "@posta/db";
+import { createKeyringFromEnv } from "@posta/ses";
 import { formatReplay, replayMedia } from "./media/replay.js";
 import { mediaPool } from "./media/scan.js";
 

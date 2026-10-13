@@ -1,4 +1,4 @@
-import { isCloudDeployment } from "@millionsend/config";
+import { isCloudDeployment } from "@posta/config";
 import { apiBaseUrl } from "@/lib/api-base-url";
 import { AudienceContactsView } from "./contacts-view";
 

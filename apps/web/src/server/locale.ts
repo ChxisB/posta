@@ -1,6 +1,6 @@
-import { accountEmailFrom } from "@millionsend/config";
-import { accountLocale, type MailLocale } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+import { accountEmailFrom } from "@posta/config";
+import { accountLocale, type MailLocale } from "@posta/core";
+import type { Db } from "@posta/db";
 import { cookies } from "next/headers";
 import { type AppLocale, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES } from "../i18n/request";
 

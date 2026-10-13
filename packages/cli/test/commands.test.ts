@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PassThrough, Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { enrichmentItem } from "../src/apply.js";

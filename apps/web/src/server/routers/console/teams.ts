@@ -3,8 +3,8 @@ import {
   cancelAndRefundFraud,
   hasLiveSubscription,
   isLiveKey,
-} from "@millionsend/billing";
-import { env, isCloudDeployment, sesTenantsEnabled, supportViewEnabled } from "@millionsend/config";
+} from "@posta/billing";
+import { env, isCloudDeployment, sesTenantsEnabled, supportViewEnabled } from "@posta/config";
 import {
   accountMailPhrase,
   fetchAccountScore,
@@ -27,9 +27,9 @@ import {
   syncTenantSendingStatus,
   type TenantStatusOutcome,
   teamQuota,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
-import { createSesv2Client, type SesTenantClient, setTenantSendingStatus } from "@millionsend/ses";
+} from "@posta/core";
+import { schema } from "@posta/db";
+import { createSesv2Client, type SesTenantClient, setTenantSendingStatus } from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, ilike, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";

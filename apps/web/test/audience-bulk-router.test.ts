@@ -1,12 +1,12 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { inArray } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCaller } from "@/server/routers";
 
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@posta/db")>();
   return { ...mod, getDb: () => db };
 });
 

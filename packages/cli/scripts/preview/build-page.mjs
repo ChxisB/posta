@@ -162,7 +162,7 @@ const page = `<title>Migrate CLI Before and After</title>
 <header class="top">
   <div>
     <h1>The migrate CLI, before and after</h1>
-    <p class="lede">Nine recordings of <code>@millionsend/cli</code> against the same seeded Resend account and a fresh MillionSend instance, captured under a real pseudo-terminal at 100×50 (one at 60 columns). Left, 0.1.1 as published; right, the restyled build on this branch. Screens are the terminal's final state after every in-place redraw.</p>
+    <p class="lede">Nine recordings of <code>@tack-labs/posta-cli</code> against the same seeded Resend account and a fresh MillionSend instance, captured under a real pseudo-terminal at 100×50 (one at 60 columns). Left, 0.1.1 as published; right, the restyled build on this branch. Screens are the terminal's final state after every in-place redraw.</p>
   </div>
   <div class="legend" aria-label="Terminal colors"><span><b style="color:var(--t-green)">✓</b> done</span><span><b style="color:var(--t-cyan)">⟳</b> running</span><span><b style="color:var(--t-magenta)">!</b> manual</span><span><b style="color:var(--t-yellow)">~</b> update</span><span><b style="color:var(--t-red)">✗</b> failed</span></div>
 </header>

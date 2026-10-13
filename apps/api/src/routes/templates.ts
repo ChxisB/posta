@@ -1,6 +1,6 @@
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { type Env, errorBody, isUniqueViolation, keysetPage } from "../app.js";
 import {

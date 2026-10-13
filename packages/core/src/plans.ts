@@ -1,4 +1,4 @@
-import type { schema } from "@millionsend/db";
+import type { schema } from "@posta/db";
 import { DAY_MS } from "./utc-day.js";
 
 export type Plan = (typeof schema.planEnum.enumValues)[number];

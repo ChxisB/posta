@@ -1,4 +1,4 @@
-import { env, isCloudDeployment } from "@millionsend/config";
+import { env, isCloudDeployment } from "@posta/config";
 import {
   acceptEmail,
   applyMergeFields,
@@ -18,9 +18,9 @@ import {
   splitPersonName,
   substituteUnsubscribeUrl,
   verifySenderDomain,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { createTranslator } from "next-intl";

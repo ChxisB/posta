@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, inArray, or } from "drizzle-orm";
 import type { InboxKeys } from "../inboxes/keys.js";
 import { verifyThreadTokenRef } from "../inboxes/keys.js";

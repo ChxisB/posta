@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { MCP_SCOPES } from "@millionsend/core";
+import { MCP_SCOPES } from "@posta/core";
 import { describe, expect, it } from "vitest";
 import { MCP_TOOLS } from "@/app/(dashboard)/settings/mcp/mcp-tools";
 

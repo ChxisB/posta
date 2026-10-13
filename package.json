@@ -1,5 +1,5 @@
 {
-  "name": "millionsend-monorepo",
+  "name": "posta-monorepo",
   "private": true,
   "packageManager": "pnpm@11.11.0",
   "engines": {
@@ -13,7 +13,7 @@
     "typecheck": "turbo run typecheck",
     "setup:aws": "tsx scripts/aws-setup/index.ts",
     "test": "turbo run test",
-    "db:generate": "pnpm --filter @millionsend/db db:generate"
+    "db:generate": "pnpm --filter @posta/db db:generate"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

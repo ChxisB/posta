@@ -1,4 +1,4 @@
-import { rungByKey } from "@millionsend/core";
+import { rungByKey } from "@posta/core";
 import { describe, expect, it } from "vitest";
 import {
   pendingRungOf,

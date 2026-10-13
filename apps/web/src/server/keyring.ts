@@ -1,6 +1,6 @@
-import { env } from "@millionsend/config";
-import type { Keyring } from "@millionsend/core";
-import { createKeyringFromEnv } from "@millionsend/ses";
+import { env } from "@posta/config";
+import type { Keyring } from "@posta/core";
+import { createKeyringFromEnv } from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 
 // Built lazily so the web process only demands encryption configuration when

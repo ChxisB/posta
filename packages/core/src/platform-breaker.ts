@@ -1,6 +1,6 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { RegionBreakerReason } from "@millionsend/db/schema";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { RegionBreakerReason } from "@posta/db/schema";
 import { and, asc, desc, eq, gte, inArray, isNotNull, notInArray, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { MIN_PAUSE_COMPLAINTS, MIN_PAUSE_HARD_BOUNCES } from "./deliverability.js";

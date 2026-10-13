@@ -1,4 +1,4 @@
-# @millionsend/i18n
+# @posta/i18n
 
 One catalog, three renderers: the dashboard, MillionSend's own transactional emails, and the
 hosted unsubscribe/preferences pages all read from `messages/` (ICU MessageFormat, consumed

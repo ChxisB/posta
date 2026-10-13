@@ -1,4 +1,4 @@
-import { isCloudDeployment } from "@millionsend/config";
+import { isCloudDeployment } from "@posta/config";
 import {
   CONTACT_PROPERTY_KEY_MAX_LENGTH,
   CONTACT_PROPERTY_MAX_KEYS,
@@ -17,9 +17,9 @@ import {
   recordContactActivity,
   resultRows,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";

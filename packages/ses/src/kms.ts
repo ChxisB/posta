@@ -1,5 +1,5 @@
 import { KMS } from "@aws-sdk/client-kms";
-import { CompositeKeyring, EnvKeyring, type Keyring, KmsKeyring } from "@millionsend/core";
+import { CompositeKeyring, EnvKeyring, type Keyring, KmsKeyring } from "@posta/core";
 
 /** The env fields keyring selection reads (structural so tests pass literals). */
 export interface KeyringEnv {

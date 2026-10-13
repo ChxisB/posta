@@ -1,15 +1,15 @@
 import { randomBytes } from "node:crypto";
-import { EnvKeyring } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import type { SerializedSesEvent } from "@millionsend/queue";
+import { EnvKeyring } from "@posta/core";
+import type { Db } from "@posta/db";
+import type { SerializedSesEvent } from "@posta/queue";
 import {
   SNS_TEST_CERT_URL,
   SNS_TEST_TOPIC_ARN,
   signSnsMessage,
   snsTestCertPem,
   type UnsignedSnsMessage,
-} from "@millionsend/ses/test-support";
-import { createTestDb } from "@millionsend/test-utils";
+} from "@posta/ses/test-support";
+import { createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import { createApi } from "../src/app.js";
 

@@ -1,12 +1,12 @@
-import { isCloudDeployment } from "@millionsend/config";
+import { isCloudDeployment } from "@posta/config";
 import {
   escapeHtml,
   fetchTeamStanding,
   fillTemplate,
   linksDisabled,
   verifyClickToken,
-} from "@millionsend/core";
-import { type Db, getDb, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, getDb, schema } from "@posta/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import en from "../../../../../messages/en/common.json";

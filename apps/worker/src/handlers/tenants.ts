@@ -4,15 +4,15 @@ import {
   recordTenantAudit,
   recordTenantStatus,
   syncTenantSendingStatus,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import {
   provisionDomainTenant,
   type SesIdentityClient,
   type SesTenantClient,
   setTenantSendingStatus,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { asc, isNull, or, sql } from "drizzle-orm";
 
 export interface SyncTenantsDeps {

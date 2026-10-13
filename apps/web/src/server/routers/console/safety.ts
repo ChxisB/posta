@@ -1,4 +1,4 @@
-import { contentRevealOn, env } from "@millionsend/config";
+import { contentRevealOn, env } from "@posta/config";
 import {
   CHECKS,
   CONTENT_REVEAL_FIELDS,
@@ -28,9 +28,9 @@ import {
   TEAM_FLAG_REASONS,
   teamMonitorOverview,
   teamWarmupOverview,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import {
   and,

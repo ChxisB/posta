@@ -22,8 +22,8 @@ import {
   type SendOutcome,
   sendDraft,
   updateDraft,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { and, eq } from "drizzle-orm";
 import type { Context, MiddlewareHandler } from "hono";
 import { type ApiDeps, type Env, errorBody, RESTRICTED_DOMAIN_MESSAGE } from "../app.js";

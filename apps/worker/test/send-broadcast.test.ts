@@ -10,11 +10,11 @@ import {
   utcDay,
   verifyUnsubscribeToken,
   warmupCap,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { EmailSendRequest } from "@millionsend/queue";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { EmailSendRequest } from "@posta/queue";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { drainQuotaParked, reconcileStalledBroadcasts } from "../src/handlers/cron.js";

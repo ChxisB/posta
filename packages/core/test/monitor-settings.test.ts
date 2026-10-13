@@ -1,6 +1,6 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   isValidMonitorSetting,

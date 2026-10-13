@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_TEXT_MAX } from "@millionsend/core/customer-text";
+import { CUSTOMER_TEXT_MAX } from "@posta/core/customer-text";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";

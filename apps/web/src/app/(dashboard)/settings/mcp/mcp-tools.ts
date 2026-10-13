@@ -1,4 +1,4 @@
-import type { McpScope } from "@millionsend/core";
+import type { McpScope } from "@posta/core";
 
 /* Mirror of the tool registry in apps/api/src/mcp.ts — the API is the
    source of truth; test/mcp-tools-sync.test.ts fails when they drift. */

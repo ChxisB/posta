@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, count, eq } from "drizzle-orm";
 import { isUniqueViolation } from "../driver-result.js";
 import { type InboxActor, recordInboxActivity } from "./activity.js";

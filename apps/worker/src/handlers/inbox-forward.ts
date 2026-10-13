@@ -1,5 +1,5 @@
-import { forwardToForwardTargets, type InboxSendDeps } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+import { forwardToForwardTargets, type InboxSendDeps } from "@posta/core";
+import type { Db } from "@posta/db";
 
 /** The inbox.forward job: a delivered message passed on to the inbox's forward_to owners. */
 export async function forwardToOwners(

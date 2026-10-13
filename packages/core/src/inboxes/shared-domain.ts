@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { imitatedBrandIn } from "../imitated-brands.js";
 import { slugify } from "../slug.js";

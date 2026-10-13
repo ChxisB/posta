@@ -8,7 +8,7 @@ import {
   sharedInboxDomain,
   trackingSubdomainsSupported,
   unsubscribeBaseUrl,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   CLAMAV_MAX_BYTES,
   CLAMAV_TIMEOUT_MS,
@@ -19,10 +19,10 @@ import {
   hashRecipient,
   pacingHorizonDays,
   scanWithClamd,
-} from "@millionsend/core";
-import { initErrorTracking } from "@millionsend/core/error-tracking-node";
-import { getDb } from "@millionsend/db";
-import { EMAIL_SEND_PRIORITY, Queue } from "@millionsend/queue";
+} from "@posta/core";
+import { initErrorTracking } from "@posta/core/error-tracking-node";
+import { getDb } from "@posta/db";
+import { EMAIL_SEND_PRIORITY, Queue } from "@posta/queue";
 import {
   createCachingCertFetcher,
   createKeyringFromEnv,
@@ -31,7 +31,7 @@ import {
   createSesv2Client,
   regionAccountWithin,
   type SesIdentityClient,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { createApi } from "./app.js";
 
 await initErrorTracking("api");

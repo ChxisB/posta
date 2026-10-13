@@ -1,4 +1,4 @@
-import { sniffImageType } from "@millionsend/core";
+import { sniffImageType } from "@posta/core";
 import { describe, expect, it } from "vitest";
 import { isLogoImageType } from "@/lib/image-type";
 

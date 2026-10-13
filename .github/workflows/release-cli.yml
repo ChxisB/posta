@@ -1,7 +1,7 @@
 name: release-cli
 
-# Publishes packages/cli (@millionsend/cli) at its current version to npm via
-# Trusted Publishing (OIDC): configure npmjs.com → package @millionsend/cli →
+# Publishes packages/cli (@tack-labs/posta-cli) at its current version to npm via
+# Trusted Publishing (OIDC): configure npmjs.com → package @tack-labs/posta-cli →
 # Settings → Trusted Publisher → GitHub Actions, repo MillionSend/millionsend,
 # workflow release-cli.yml. No token stored. npm only lets a Trusted Publisher
 # be configured on a package that already exists, so the very first version
@@ -37,8 +37,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # The CLI's tests drive the built bundle end to end against the real API
       # on PGlite; a green run here is the gate before anything reaches npm.
-      - run: pnpm --filter @millionsend/cli typecheck
-      - run: pnpm --filter @millionsend/cli test
+      - run: pnpm --filter @tack-labs/posta-cli typecheck
+      - run: pnpm --filter @tack-labs/posta-cli test
       # npm ≥ 11.5.1 exchanges the OIDC token itself; publish runs
       # prepublishOnly (esbuild bundle).
       - run: npm install -g npm@11.8.0

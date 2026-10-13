@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { env, supportViewEnabled } from "@millionsend/config";
+import { env, supportViewEnabled } from "@posta/config";
 import {
   ALL_TEAMS_GRANT,
   endSupportView,
@@ -10,8 +10,8 @@ import {
   liveSupportViewForTeam,
   PLAN_TEAM_LIMIT,
   slugify,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";

@@ -4,7 +4,7 @@ import type { DekContext, Keyring } from "./keyring.js";
 /**
  * Structural subset of the aggregated `KMS` client from @aws-sdk/client-kms,
  * which satisfies it directly — no adapter. Tests inject fakes (mirrors the
- * SesIdentityClient pattern in @millionsend/ses).
+ * SesIdentityClient pattern in @posta/ses).
  */
 export interface KmsDekClient {
   encrypt(params: {

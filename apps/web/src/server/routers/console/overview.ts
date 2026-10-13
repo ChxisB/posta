@@ -1,4 +1,4 @@
-import { env, isCloudDeployment } from "@millionsend/config";
+import { env, isCloudDeployment } from "@posta/config";
 import {
   committedDailyVolume,
   DAY_MS,
@@ -6,8 +6,8 @@ import {
   PROBE_KEYS,
   PROBES,
   probeHistory,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { periodSchema, previousPeriod, resolvePeriod } from "../../console/periods";

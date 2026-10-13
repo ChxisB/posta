@@ -1,5 +1,5 @@
-import type { ErrorTrackingConfig } from "@millionsend/config";
-import { CLIENT_ERRORS_PATH, errorTrackingOptions } from "@millionsend/core/error-tracking";
+import type { ErrorTrackingConfig } from "@posta/config";
+import { CLIENT_ERRORS_PATH, errorTrackingOptions } from "@posta/core/error-tracking";
 import {
   breadcrumbsIntegration,
   browserTracingIntegration,

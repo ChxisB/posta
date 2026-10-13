@@ -1,5 +1,5 @@
-import { findInstanceOperator, parseAuditActor, SILENT_SUSPENSIONS } from "@millionsend/core";
-import { schema } from "@millionsend/db";
+import { findInstanceOperator, parseAuditActor, SILENT_SUSPENSIONS } from "@posta/core";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, notInArray } from "drizzle-orm";
 import { z } from "zod";

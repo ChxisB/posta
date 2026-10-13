@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
 import type { PGlite } from "@electric-sql/pglite";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { type AcceptEmailPayload, acceptEmail } from "../src/accept-email.js";

@@ -1,7 +1,7 @@
-import { recountSegment, segmentFilterSchema } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { recountSegment, segmentFilterSchema } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildSegmentFilter, filterToRows, sameFilter } from "@/lib/segment-builder";
@@ -10,8 +10,8 @@ import { createCaller } from "@/server/routers";
 const TEST_KEK = Buffer.alloc(32, 7).toString("base64");
 process.env.MASTER_ENCRYPTION_KEY = TEST_KEK;
 
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@posta/db")>();
   return { ...mod, getDb: () => db };
 });
 

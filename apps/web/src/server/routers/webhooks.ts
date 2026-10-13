@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import {
   clearWebhookEndpointNotifications,
   decryptWebhookSigningSecrets,
@@ -15,8 +15,8 @@ import {
   WEBHOOK_EVENT_TYPES,
   WEBHOOK_ROTATION_DEFAULT_OVERLAP_HOURS,
   WEBHOOK_ROTATION_MAX_OVERLAP_HOURS,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { z } from "zod";

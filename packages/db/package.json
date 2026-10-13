@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/db",
+  "name": "@posta/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@millionsend/config": "workspace:*",
+    "@posta/config": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.7",
     "tsx": "^4.23.13"

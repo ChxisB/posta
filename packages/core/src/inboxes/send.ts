@@ -1,6 +1,6 @@
-import { env } from "@millionsend/config";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { env } from "@posta/config";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, notInArray, sql } from "drizzle-orm";
 import { simpleParser } from "mailparser";
 import {

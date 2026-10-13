@@ -1,4 +1,4 @@
-import { getDb, schema } from "@millionsend/db";
+import { getDb, schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";

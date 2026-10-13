@@ -1,8 +1,5 @@
-import { env } from "@millionsend/config";
-import {
-  apiBaseUrl as apiBaseUrlFor,
-  mcpResourceUrl as mcpResourceUrlFor,
-} from "@millionsend/core";
+import { env } from "@posta/config";
+import { apiBaseUrl as apiBaseUrlFor, mcpResourceUrl as mcpResourceUrlFor } from "@posta/core";
 
 /**
  * Better Auth rejects sign-ins from origins outside its trusted set. Production

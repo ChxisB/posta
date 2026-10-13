@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/smtp",
+  "name": "@posta/smtp",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,11 +9,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@millionsend/config": "workspace:*",
-    "@millionsend/core": "workspace:*",
-    "@millionsend/db": "workspace:*",
-    "@millionsend/queue": "workspace:*",
-    "@millionsend/ses": "workspace:*",
+    "@posta/config": "workspace:*",
+    "@posta/core": "workspace:*",
+    "@posta/db": "workspace:*",
+    "@posta/queue": "workspace:*",
+    "@posta/ses": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "mailparser": "^3.9.26",
     "smtp-server": "^3.19.12",
@@ -21,7 +21,7 @@
     "zod": "^4.6.3"
   },
   "devDependencies": {
-    "@millionsend/test-utils": "workspace:*",
+    "@posta/test-utils": "workspace:*",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.20.5",
     "@types/nodemailer": "^8.0.1",

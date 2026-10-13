@@ -1,6 +1,6 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { TeamFlagDetail } from "@millionsend/db/schema";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { TeamFlagDetail } from "@posta/db/schema";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { MONITOR_FLAG_RISK_DEFAULT, monitorSamplesByTeam, riskAt } from "./abuse-monitor.js";
 import { fetchAccountScore } from "./account-score.js";

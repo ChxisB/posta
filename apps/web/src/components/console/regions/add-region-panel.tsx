@@ -128,7 +128,7 @@ export function AddRegionPanel({
           <h4 style={h4}>{t("step1")}</h4>
           <p style={p}>{t("step1Body")}</p>
           <pre className="ms-mono" style={codeBlock}>
-            {"$ npx @millionsend/setup\n"}
+            {"$ npx @tack-labs/posta-setup\n"}
             <span style={muted}>{t("cliRegion")}</span>
             {`  ${region}  `}
             <span style={faint}>{domains(`regions.${region}`)}</span>

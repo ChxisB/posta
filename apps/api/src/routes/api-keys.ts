@@ -9,9 +9,9 @@ import {
   MAX_ACTIVE_API_KEYS,
   recordAudit,
   recordInboxActivity,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
 import { type Env, errorBody, keysetPage } from "../app.js";
 import {

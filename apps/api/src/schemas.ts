@@ -24,7 +24,7 @@ import {
   WEBHOOK_EVENT_TYPES,
   WEBHOOK_ROTATION_DEFAULT_OVERLAP_HOURS,
   WEBHOOK_ROTATION_MAX_OVERLAP_HOURS,
-} from "@millionsend/core";
+} from "@posta/core";
 
 /**
  * Wire-compatible with Resend's documented /emails surface
@@ -552,7 +552,7 @@ const scoreBandEnum = z.enum(["excellent", "good", "needs_attention", "at_risk"]
 
 // GET /emails/{id}/insights: the pre-send best-practice report computed when
 // the email was sent. Check ids, severities, statuses and bands are the frozen
-// wire enums from @millionsend/core CHECKS.
+// wire enums from @posta/core CHECKS.
 export const emailInsightsResponseSchema = z
   .object({
     object: z.literal("email_insights"),
@@ -565,7 +565,7 @@ export const emailInsightsResponseSchema = z
     computed_at: z.string(),
     checks: z.array(
       z.object({
-        id: z.string().describe("Check id from the @millionsend/core check catalog"),
+        id: z.string().describe("Check id from the @posta/core check catalog"),
         severity: z.enum(["critical", "major", "minor", "info"]),
         status: z.enum(["pass", "fail", "passed_by_design", "not_applicable", "unknown"]),
         penalty: z.number().describe("Points deducted from the score; 0 unless status is fail"),
@@ -1274,7 +1274,7 @@ export const cancelBroadcastResponseSchema = z
 /**
  * Segments (MillionSend extension, docs/resend-compatibility.md). A segment
  * is a saved filter over the team's contacts. The filter's field/operator
- * semantics are validated by @millionsend/core's `segmentFilterSchema` in the
+ * semantics are validated by @posta/core's `segmentFilterSchema` in the
  * handler (422 on a bad shape); this schema only pins the wire structure for
  * OpenAPI and basic type checks.
  */
@@ -1800,7 +1800,7 @@ export {
   SUPPRESSION_ORIGIN_BY_REASON,
   type SuppressionOrigin,
   type SuppressionReason,
-} from "@millionsend/core";
+} from "@posta/core";
 
 const suppressionOriginSchema = z.enum(["bounce", "complaint", "manual", "unsubscribe"]);
 

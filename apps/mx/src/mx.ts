@@ -23,7 +23,7 @@ import {
   rcptResponseSchema,
   type SmtpReply,
   smtpReplySchema,
-} from "@millionsend/core/receiving-protocol";
+} from "@posta/core/receiving-protocol";
 import { authenticate, type DNSResolver } from "mailauth";
 import { SMTPServer, type SMTPServerSession } from "smtp-server";
 import type { MxEnv } from "./env.js";

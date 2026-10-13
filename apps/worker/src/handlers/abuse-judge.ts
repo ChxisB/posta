@@ -31,10 +31,10 @@ import {
   utcDay,
   type VerdictOutcome,
   verdictClearsDestinations,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { type EmailSendPriority, emailSendPriority } from "@millionsend/queue";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { type EmailSendPriority, emailSendPriority } from "@posta/queue";
 import { and, eq } from "drizzle-orm";
 import {
   type MediaRead,

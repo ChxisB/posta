@@ -4,8 +4,8 @@ import {
   APIError,
   APIUserAbortError,
 } from "@anthropic-ai/bedrock-sdk/core/error";
-import type { AbuseVisionConfig } from "@millionsend/config";
-import { VISION_REPORT_JSON_SCHEMA, visionReportSchema } from "@millionsend/core";
+import type { AbuseVisionConfig } from "@posta/config";
+import { VISION_REPORT_JSON_SCHEMA, visionReportSchema } from "@posta/core";
 
 /**
  * The image reader: Claude Haiku 5.5 on Amazon Bedrock writes down what an

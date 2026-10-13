@@ -12,7 +12,7 @@ import { useTRPC } from "@/lib/trpc";
 const CONTENT_WEIGHT = 0.4;
 const OUTCOME_WEIGHT = 0.6;
 /* The outcome ramps, as drawn: where each penalty starts and where it maxes.
-   Mirrors outcomePenaltyTenths in @millionsend/core. */
+   Mirrors outcomePenaltyTenths in @posta/core. */
 const COMPLAINT_LINES = [
   { rate: 0.001, penaltyTenths: 0 },
   { rate: 0.003, penaltyTenths: 60 },

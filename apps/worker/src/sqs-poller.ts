@@ -4,8 +4,8 @@ import {
   ReceiveMessageCommand,
   type ReceiveMessageCommandOutput,
 } from "@aws-sdk/client-sqs";
-import type { SerializedSesEvent } from "@millionsend/queue";
-import { parseSesEvent, snsMessageSchema } from "@millionsend/ses";
+import type { SerializedSesEvent } from "@posta/queue";
+import { parseSesEvent, snsMessageSchema } from "@posta/ses";
 
 /**
  * SES event ingestion for deployments SNS cannot push to: SES → SNS topic →

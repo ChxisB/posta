@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import type { MonitorSettingsRow } from "./monitor-settings.js";
 
 export interface InstanceSettings extends MonitorSettingsRow {

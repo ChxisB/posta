@@ -1,4 +1,4 @@
-import type { InboxSafety } from "@millionsend/db/schema";
+import type { InboxSafety } from "@posta/db/schema";
 import { z } from "zod";
 import { asciiHostname } from "../org-domain.js";
 import { parseMailbox, routableAddress } from "../sender-address.js";

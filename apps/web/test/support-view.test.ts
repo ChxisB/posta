@@ -12,10 +12,10 @@ import {
   type SystemMailMessage,
   type SystemMailOptions,
   sendSystemMail,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { asc, eq, isNull, like } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -71,8 +71,8 @@ vi.mock("@/server/system-mail", async (importOriginal) => {
 });
 // The route handlers (tRPC, export) resolve the db, the session and the
 // cookies themselves; the same PGlite and a scripted cookie jar stand in.
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 vi.mock("@/server/auth", () => ({

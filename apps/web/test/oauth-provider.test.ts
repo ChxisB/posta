@@ -1,8 +1,8 @@
 import { createHash, createPublicKey, type JsonWebKey, randomBytes, verify } from "node:crypto";
-import type { SystemMailMessage } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { SystemMailMessage } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, createAuth } from "@/server/auth";

@@ -1,5 +1,5 @@
-import { bulkShare, type RegionBulkCounts, type RegionCapacity } from "@millionsend/core";
-import type { SesAccountOverview } from "@millionsend/ses";
+import { bulkShare, type RegionBulkCounts, type RegionCapacity } from "@posta/core";
+import type { SesAccountOverview } from "@posta/ses";
 import { createTokenBucket } from "./send-email.js";
 import { createSesQuotaGate, type SendQuotaControls } from "./ses-quota.js";
 

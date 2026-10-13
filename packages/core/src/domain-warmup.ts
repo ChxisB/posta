@@ -1,6 +1,6 @@
-import { env } from "@millionsend/config";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { env } from "@posta/config";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, gte, inArray, isNull, lt, ne, or, type SQL, sql } from "drizzle-orm";
 import {
   loadMonitorState,

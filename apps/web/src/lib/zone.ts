@@ -1,4 +1,4 @@
-import { normalizeHostname, registrableDomain } from "@millionsend/core/org-domain";
+import { normalizeHostname, registrableDomain } from "@posta/core/org-domain";
 
 /**
  * The record name as a DNS provider's Name field expects it: relative to the

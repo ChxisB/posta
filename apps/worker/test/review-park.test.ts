@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { acceptEmail, EnvKeyring, encryptEmailBody, suspendTeam } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { acceptEmail, EnvKeyring, encryptEmailBody, suspendTeam } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { drainQuotaParked } from "../src/handlers/cron.js";

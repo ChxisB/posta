@@ -1,6 +1,6 @@
 "use client";
 
-import type { InboxSafety } from "@millionsend/db/schema";
+import type { InboxSafety } from "@posta/db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";

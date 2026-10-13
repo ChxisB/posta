@@ -1,7 +1,7 @@
 import { isUtf8 } from "node:buffer";
 import { createHash } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { asc, eq, getTableColumns, inArray } from "drizzle-orm";
 import {
   type AddressObject,

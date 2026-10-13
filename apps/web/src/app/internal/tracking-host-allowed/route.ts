@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
-import { env } from "@millionsend/config";
-import { getDb, schema } from "@millionsend/db";
+import { env } from "@posta/config";
+import { getDb, schema } from "@posta/db";
 import { trackingHostIs } from "@/server/tracking-host";
 
 // The tracking edge (a Caddy box doing on-demand TLS) calls this before issuing

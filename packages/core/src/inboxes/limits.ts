@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, count, eq, gt, isNull, min, or, type SQL } from "drizzle-orm";
 import type { Plan } from "../plans.js";
 import { MAX_RECEIVED_MESSAGE_BYTES } from "../receiving/protocol.js";

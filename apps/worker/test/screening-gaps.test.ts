@@ -11,10 +11,10 @@ import {
   releaseWaitingEmails,
   SCREEN_OUTSTANDING_MAX,
   sealAttachments,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, desc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import { judgeSample } from "../src/handlers/abuse-judge.js";

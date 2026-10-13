@@ -1,6 +1,6 @@
 import { isIP } from "node:net";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, exists, inArray, isNull, lt, ne, notExists, or } from "drizzle-orm";
 import { errorSummary } from "./error-summary.js";
 import { ABUSE_SUSPENSIONS } from "./team-standing.js";

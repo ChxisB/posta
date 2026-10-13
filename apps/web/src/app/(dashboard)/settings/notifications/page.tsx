@@ -1,4 +1,4 @@
-import { env, receivingEnabled } from "@millionsend/config";
+import { env, receivingEnabled } from "@posta/config";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { SettingsTabs } from "../settings-tabs";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProbeKey } from "@millionsend/core";
+import type { ProbeKey } from "@posta/core";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import type { Period } from "@/components/console/chart-dialog";

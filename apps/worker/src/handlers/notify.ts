@@ -1,4 +1,4 @@
-import { accountEmailFrom } from "@millionsend/config";
+import { accountEmailFrom } from "@posta/config";
 import {
   type AccountMailKind,
   accountLocale,
@@ -41,9 +41,9 @@ import {
   WEBHOOK_BACKLOG_COUNT,
   WEBHOOK_FAILING_STREAK,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import {
   and,
   eq,

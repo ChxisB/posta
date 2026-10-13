@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProbeKey } from "@millionsend/core";
+import type { ProbeKey } from "@posta/core";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";

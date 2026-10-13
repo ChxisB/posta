@@ -1,5 +1,5 @@
-import { sharedInboxDomain } from "@millionsend/config";
-import { type Db, schema } from "@millionsend/db";
+import { sharedInboxDomain } from "@posta/config";
+import { type Db, schema } from "@posta/db";
 import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { parseSingleSender } from "./sender-address.js";
 

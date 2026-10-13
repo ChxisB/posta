@@ -1,8 +1,8 @@
-import type { SystemMailMessage } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SimpleEmail } from "@millionsend/ses";
-import { createTestDb } from "@millionsend/test-utils";
+import type { SystemMailMessage } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SimpleEmail } from "@posta/ses";
+import { createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAuth } from "@/server/auth";

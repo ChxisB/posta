@@ -1,4 +1,4 @@
-import { UPDATES_SOURCES } from "@millionsend/core";
+import { UPDATES_SOURCES } from "@posta/core";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import styles from "@/components/auth/auth.module.css";

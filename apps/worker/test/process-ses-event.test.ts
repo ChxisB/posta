@@ -1,8 +1,8 @@
-import { hashRecipient } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SerializedSesEvent } from "@millionsend/queue";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { hashRecipient } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SerializedSesEvent } from "@posta/queue";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { processSesEvent } from "../src/handlers/process-ses-event.js";

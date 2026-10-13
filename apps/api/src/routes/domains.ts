@@ -1,5 +1,5 @@
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
-import { trackingCnameTarget } from "@millionsend/config";
+import { trackingCnameTarget } from "@posta/config";
 import {
   apiRequestActor,
   associateDomainTenant,
@@ -19,14 +19,14 @@ import {
   recordAudit,
   SILENT_SUSPENSIONS,
   setDomainReceiving,
-} from "@millionsend/core";
+} from "@posta/core";
 import {
   combineRecordStatus,
   type RecordStatus,
   sesGateFromRecordStatus,
-} from "@millionsend/core/domain-status";
-import { registrableDomain } from "@millionsend/core/org-domain";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core/domain-status";
+import { registrableDomain } from "@posta/core/org-domain";
+import { type Db, schema } from "@posta/db";
 import {
   checkDnsRecordsDetailed,
   checkReceivingMx,
@@ -47,7 +47,7 @@ import {
   SES_REGIONS,
   type SesIdentityClient,
   verificationDbPatch,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { type ApiDeps, type Env, errorBody, isUniqueViolation, keysetPage } from "../app.js";
 import {

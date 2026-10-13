@@ -1,4 +1,4 @@
-import { getDb } from "@millionsend/db";
+import { getDb } from "@posta/db";
 import { cookies } from "next/headers";
 import { getAuth } from "@/server/auth";
 import { buildExport } from "@/server/exports";

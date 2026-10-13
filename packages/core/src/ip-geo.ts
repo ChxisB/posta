@@ -1,8 +1,8 @@
 import { isIP } from "node:net";
 import { promisify } from "node:util";
 import { gunzip } from "node:zlib";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { inArray } from "drizzle-orm";
 import { type AsnResponse, type CountryResponse, Reader } from "mmdb-lib";
 import { errorSummary } from "./error-summary.js";

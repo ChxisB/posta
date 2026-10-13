@@ -1,1 +1,1 @@
-export { isInstanceOperator } from "@millionsend/core";
+export { isInstanceOperator } from "@posta/core";

@@ -1,4 +1,4 @@
-import type { CampaignFingerprintKind } from "@millionsend/db/schema";
+import type { CampaignFingerprintKind } from "@posta/db/schema";
 import { getDomainWithoutSuffix } from "tldts";
 import { decodeEntities, stripHiddenElements } from "./abuse-judge/body.js";
 import { stripInvisible } from "./customer-text.js";

@@ -88,12 +88,12 @@ import {
   verifySenderDomain,
   type WebhookEnqueue,
   wireLastEvent,
-} from "@millionsend/core";
-import { captureError } from "@millionsend/core/error-tracking-node";
-import type { Db } from "@millionsend/db";
-import { keysetCursorWhere, schema } from "@millionsend/db";
-import type { SegmentFilter } from "@millionsend/db/schema";
-import type { SerializedSesEvent } from "@millionsend/queue";
+} from "@posta/core";
+import { captureError } from "@posta/core/error-tracking-node";
+import type { Db } from "@posta/db";
+import { keysetCursorWhere, schema } from "@posta/db";
+import type { SegmentFilter } from "@posta/db/schema";
+import type { SerializedSesEvent } from "@posta/queue";
 import {
   type CertFetcher,
   isAllowedSnsUrl,
@@ -101,7 +101,7 @@ import {
   type SnsMessage,
   snsMessageSchema,
   verifySnsMessage,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import {
   and,
   asc,

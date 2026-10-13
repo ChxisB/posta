@@ -8,9 +8,9 @@ import {
   WEBHOOK_MAX_ATTEMPTS,
   WEBHOOK_MAX_RATE_PER_SECOND,
   WEBHOOK_RETRY_SCHEDULE_MS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, eq, inArray, isNotNull, lte, type SQL, sql } from "drizzle-orm";
 import { createTokenBucket } from "./send-email.js";
 

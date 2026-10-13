@@ -1,4 +1,4 @@
-import { env, isCloudDeployment, OPEN_PREFETCH_WINDOW_SECONDS_DEFAULT } from "@millionsend/config";
+import { env, isCloudDeployment, OPEN_PREFETCH_WINDOW_SECONDS_DEFAULT } from "@posta/config";
 import {
   applyStatusCas,
   bumpHourlyUsage,
@@ -11,8 +11,8 @@ import {
   utcDay,
   type WebhookEmailFacts,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { and, asc, desc, eq, gt, inArray, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { trustedProxies } from "../../server/trusted-proxies";

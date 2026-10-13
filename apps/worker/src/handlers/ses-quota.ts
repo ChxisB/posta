@@ -1,4 +1,4 @@
-import { SES_QUOTA_MARGIN } from "@millionsend/core";
+import { SES_QUOTA_MARGIN } from "@posta/core";
 
 export { SES_QUOTA_MARGIN };
 

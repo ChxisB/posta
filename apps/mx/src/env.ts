@@ -1,10 +1,10 @@
 import {
   MAX_DELIVER_RECIPIENTS,
   MX_INGEST_SECRET_MIN_LENGTH,
-} from "@millionsend/core/receiving-protocol";
+} from "@posta/core/receiving-protocol";
 
 /**
- * The MX parses its own environment rather than importing @millionsend/config:
+ * The MX parses its own environment rather than importing @posta/config:
  * that module validates the app's variables (DATABASE_URL,
  * MASTER_ENCRYPTION_KEY, ...) when it is imported, and this process holds no
  * database and no keys. It boots with nothing but the MX_* variables below.

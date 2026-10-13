@@ -1,8 +1,8 @@
 name: release-setup
 
-# Publishes packages/setup (@millionsend/setup) at its current version to npm
+# Publishes packages/setup (@tack-labs/posta-setup) at its current version to npm
 # via Trusted Publishing (OIDC): configure npmjs.com → package
-# @millionsend/setup → Settings → Trusted Publisher → GitHub Actions, repo
+# @tack-labs/posta-setup → Settings → Trusted Publisher → GitHub Actions, repo
 # MillionSend/millionsend, workflow release-setup.yml. No token stored.
 on:
   workflow_dispatch:
@@ -27,8 +27,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # The wizard's source lives in packages/ses; gate on its tests plus the
       # wrapper's own typecheck before anything reaches the registry.
-      - run: pnpm --filter @millionsend/ses test
-      - run: pnpm --filter @millionsend/setup typecheck
+      - run: pnpm --filter @posta/ses test
+      - run: pnpm --filter @tack-labs/posta-setup typecheck
       # npm ≥ 11.5.1 exchanges the OIDC token itself; publish runs
       # prepublishOnly (esbuild bundle).
       - run: npm install -g npm@11.8.0

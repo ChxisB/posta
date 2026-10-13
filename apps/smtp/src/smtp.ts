@@ -17,7 +17,7 @@ import {
   SHARED_REPLY_ONLY_MESSAGE,
   sendRefusalError,
   verifySenderDomain,
-} from "@millionsend/core";
+} from "@posta/core";
 import { type AddressObject, type ParsedMail, simpleParser } from "mailparser";
 import { SMTPServer, type SMTPServerDataStream, type SMTPServerSession } from "smtp-server";
 

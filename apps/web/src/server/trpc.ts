@@ -1,7 +1,7 @@
-import { receivingEnabled } from "@millionsend/config";
-import { recordSupportViewRead, type WebhookEnqueue } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { getDb } from "@millionsend/db";
+import { receivingEnabled } from "@posta/config";
+import { recordSupportViewRead, type WebhookEnqueue } from "@posta/core";
+import type { Db } from "@posta/db";
+import { getDb } from "@posta/db";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { cookies } from "next/headers";
 import superjson from "superjson";

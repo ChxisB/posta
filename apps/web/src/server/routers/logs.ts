@@ -1,4 +1,4 @@
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";

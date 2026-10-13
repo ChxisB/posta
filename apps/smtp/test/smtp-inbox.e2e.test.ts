@@ -1,8 +1,8 @@
 import type { AddressInfo } from "node:net";
-import { generateApiKey, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb } from "@millionsend/test-utils";
+import { generateApiKey, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import nodemailer, { type SendMailOptions } from "nodemailer";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

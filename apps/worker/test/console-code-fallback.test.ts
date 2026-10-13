@@ -10,11 +10,11 @@ import {
   replaceConsoleCodeRow,
   SYSTEM_MAIL_TAG,
   sendSystemMail,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SerializedSesEvent } from "@millionsend/queue";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SerializedSesEvent } from "@posta/queue";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq, like } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { processSesEvent } from "../src/handlers/process-ses-event.js";

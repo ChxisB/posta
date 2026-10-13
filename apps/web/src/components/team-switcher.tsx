@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_TEXT_MAX } from "@millionsend/core/customer-text";
+import { CUSTOMER_TEXT_MAX } from "@posta/core/customer-text";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useCallback, useRef, useState } from "react";

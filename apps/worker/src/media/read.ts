@@ -14,9 +14,9 @@ import {
   postFailureCode,
   sealMediaReview,
   sha256Hex,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, isNull } from "drizzle-orm";
 import sharp, { type Sharp } from "sharp";
 import { MEDIA_IMAGE_MAX_PIXELS, MEDIA_SHARP_TIMEOUT, type ParsedFile } from "./pool.js";

@@ -7,7 +7,7 @@ const h = vi.hoisted(() => ({
   contextError: undefined as Error | undefined,
 }));
 
-vi.mock("@millionsend/core/error-tracking-node", () => ({
+vi.mock("@posta/core/error-tracking-node", () => ({
   captureError: h.captureError,
   initErrorTracking: vi.fn(async () => {}),
 }));

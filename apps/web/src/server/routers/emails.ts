@@ -6,8 +6,8 @@ import {
   fetchEmailInsights,
   hashRecipient,
   utcDay,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import {
   and,

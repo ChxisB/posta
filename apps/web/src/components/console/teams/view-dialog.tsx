@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  SUPPORT_VIEW_REASONS,
-  type SupportViewReason,
-} from "@millionsend/core/support-view-reasons";
+import { SUPPORT_VIEW_REASONS, type SupportViewReason } from "@posta/core/support-view-reasons";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { Breakable } from "@/components/breakable";

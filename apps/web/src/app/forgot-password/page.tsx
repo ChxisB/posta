@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";

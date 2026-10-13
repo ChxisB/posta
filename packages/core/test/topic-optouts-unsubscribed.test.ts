@@ -1,5 +1,5 @@
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { findTopicOptOuts } from "../src/topics.js";
 

@@ -361,7 +361,7 @@ export const env = createEnv({
 
     // Public origin of the API, when a reverse proxy serves it somewhere other
     // than port 3001 of the dashboard host (the compose default the derivation
-    // in @millionsend/core assumes). Only what the app PRINTS and what MCP
+    // in @posta/core assumes). Only what the app PRINTS and what MCP
     // tokens are bound to; the listen port stays PORT.
     PUBLIC_API_URL: z.url().optional(),
 

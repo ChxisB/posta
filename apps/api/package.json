@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/api",
+  "name": "@posta/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,11 +17,11 @@
   "dependencies": {
     "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.6.3",
-    "@millionsend/config": "workspace:*",
-    "@millionsend/core": "workspace:*",
-    "@millionsend/db": "workspace:*",
-    "@millionsend/queue": "workspace:*",
-    "@millionsend/ses": "workspace:*",
+    "@posta/config": "workspace:*",
+    "@posta/core": "workspace:*",
+    "@posta/db": "workspace:*",
+    "@posta/queue": "workspace:*",
+    "@posta/ses": "workspace:*",
     "@modelcontextprotocol/server": "2.0.0",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.13.7",
@@ -29,7 +29,7 @@
     "tsx": "^4.23.13"
   },
   "devDependencies": {
-    "@millionsend/test-utils": "workspace:*",
+    "@posta/test-utils": "workspace:*",
     "@modelcontextprotocol/client": "2.3.1",
     "@types/node": "^22.20.5",
     "@types/nodemailer": "^8.0.1",

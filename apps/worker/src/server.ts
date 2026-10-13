@@ -5,7 +5,7 @@ import {
   purgeStripeEvents,
   reconcileTeamPlan,
   reportOverage,
-} from "@millionsend/billing";
+} from "@posta/billing";
 import {
   ABUSE_JUDGE_TIMEOUT_MS_DEFAULT,
   abuseJudgeConfig,
@@ -20,7 +20,7 @@ import {
   trackingCnameTarget,
   trackingSubdomainsSupported,
   unsubscribeBaseUrl,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   anyYoungLinkDomain,
   committedDailyVolume,
@@ -61,16 +61,16 @@ import {
   refreshIpGeoDatabases,
   regionBulkCounts,
   sesEventsHealth,
-} from "@millionsend/core";
-import { captureError, initErrorTracking } from "@millionsend/core/error-tracking-node";
-import { getDb, schema } from "@millionsend/db";
+} from "@posta/core";
+import { captureError, initErrorTracking } from "@posta/core/error-tracking-node";
+import { getDb, schema } from "@posta/db";
 import {
   EMAIL_SEND_PRIORITY,
   type EmailSendPriority,
   type EnqueueEmailSends,
   JUDGE_PRIORITY,
   Queue,
-} from "@millionsend/queue";
+} from "@posta/queue";
 import {
   createKeyringFromEnv,
   createSesAccountClient,
@@ -80,7 +80,7 @@ import {
   getSesComplaintRate,
   nodeDnsResolver,
   type SesIdentityClient,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { and, eq } from "drizzle-orm";
 import { createAbuseJudge } from "./abuse-judge/index.js";
 import { judgeSample } from "./handlers/abuse-judge.js";
@@ -213,7 +213,7 @@ const reputationClients = new Map(
 );
 // The buckets are the messages/second control; worker concurrency is not a
 // rate limit and must never be treated as one. In-memory ⇒ single worker
-// process only (see SES_MAX_SEND_RATE in @millionsend/config); each process
+// process only (see SES_MAX_SEND_RATE in @posta/config); each process
 // takes its share of the rate, so WORKER_REPLICAS keeps N processes at the
 // account's total. A region's rate is its own MaxSendRate under the ceiling
 // the db-backed instance setting (else env) sets — a sandbox region paces

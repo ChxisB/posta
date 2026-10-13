@@ -1,4 +1,4 @@
-import { getDb } from "@millionsend/db";
+import { getDb } from "@posta/db";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";

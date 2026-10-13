@@ -1,4 +1,4 @@
-import { endSupportView, liveSupportViewOfOperator } from "@millionsend/core";
+import { endSupportView, liveSupportViewOfOperator } from "@posta/core";
 import { protectedProcedure, router } from "../trpc";
 
 export const supportRouter = router({

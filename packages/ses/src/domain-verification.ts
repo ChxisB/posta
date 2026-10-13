@@ -1,13 +1,13 @@
-// The pure subpath, never the barrel: the @millionsend/core index pulls modules
-// that import @millionsend/config (env validation at import time), which this
+// The pure subpath, never the barrel: the @posta/core index pulls modules
+// that import @posta/config (env validation at import time), which this
 // package and the worker cron must not require just to compute a status.
 import {
   type DomainStatus,
   type LiveDnsStatus,
   recordCheck,
   strictDomainStatus,
-} from "@millionsend/core/domain-status";
-import { registrableDomain } from "@millionsend/core/org-domain";
+} from "@posta/core/domain-status";
+import { registrableDomain } from "@posta/core/org-domain";
 import { type DmarcLookup, type DmarcPolicy, lookupDmarc } from "./dmarc.js";
 import { checkDnsRecordsDetailed, type DnsResolver } from "./dns-check.js";
 import {

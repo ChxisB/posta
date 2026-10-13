@@ -1,6 +1,6 @@
-import { type PlanRungKey, rungByKey } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { type PlanRungKey, rungByKey } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { eq, sql } from "drizzle-orm";
 import { overageLookupKey, resolvePriceId, rungLookupKey } from "./prices.js";
 import type { BillingStripe } from "./stripe.js";

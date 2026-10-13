@@ -1,6 +1,6 @@
 "use client";
 
-import type { ErrorTrackingConfig } from "@millionsend/config";
+import type { ErrorTrackingConfig } from "@posta/config";
 import { useEffect } from "react";
 import { startClientErrorTracking } from "@/lib/client-errors";
 

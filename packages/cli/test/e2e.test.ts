@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import { count, eq } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

@@ -1,6 +1,6 @@
-import { accountMailPhrase, MAIL_LOCALES, type SystemMailMessage } from "@millionsend/core";
-import { unescapeHtml } from "@millionsend/core/html";
-import { LURE_NAMES, mailLinks, REAL_NAMES, readable } from "@millionsend/test-utils";
+import { accountMailPhrase, MAIL_LOCALES, type SystemMailMessage } from "@posta/core";
+import { unescapeHtml } from "@posta/core/html";
+import { LURE_NAMES, mailLinks, REAL_NAMES, readable } from "@posta/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DOCS_URL } from "@/lib/docs-links";
 import { typedEmail } from "@/lib/email-input";

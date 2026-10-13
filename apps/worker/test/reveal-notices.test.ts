@@ -1,7 +1,7 @@
-import { CONTENT_REVEAL_WINDOW_MS } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { CONTENT_REVEAL_WINDOW_MS } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { desc, eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { runRevealNotices } from "../src/handlers/reveal-notices.js";

@@ -3,10 +3,10 @@ import {
   hashRecipient,
   makeUnsubscribeToken,
   PLAN_CONTACT_LIMIT,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseCsvContacts } from "@/lib/csv";
@@ -19,8 +19,8 @@ process.env.MASTER_ENCRYPTION_KEY = TEST_KEK;
 
 // The route handler resolves its connection through getDb(); point it at the
 // per-test PGlite while keeping schema and types real.
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@posta/db")>();
   return { ...mod, getDb: () => db };
 });
 

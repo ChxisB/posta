@@ -11,10 +11,10 @@ import {
   type SuppressionEventRow,
   utcDay,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SerializedSesEvent } from "@millionsend/queue";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SerializedSesEvent } from "@posta/queue";
 import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 
 /**

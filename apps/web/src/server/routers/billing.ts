@@ -5,8 +5,8 @@ import {
   createPortalSession,
   hasLiveSubscription,
   setOverage as setSubscriptionOverage,
-} from "@millionsend/billing";
-import { env, receivingEnabled } from "@millionsend/config";
+} from "@posta/billing";
+import { env, receivingEnabled } from "@posta/config";
 import {
   PLAN_INBOX_LIMIT,
   PLAN_RUNG_KEYS,
@@ -20,9 +20,9 @@ import {
   teamRung,
   upgradesHeld,
   utcDay,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";

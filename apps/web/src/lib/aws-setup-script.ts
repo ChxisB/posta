@@ -5,7 +5,7 @@ import {
   SETUP_NAMES,
   snsTopicPolicy,
   sqsQueuePolicy,
-} from "@millionsend/ses/setup-constants";
+} from "@posta/ses/setup-constants";
 
 export const CFN_DEPLOY_COMMAND =
   "aws cloudformation deploy --template-file infra/millionsend-ses.cfn.yaml --stack-name millionsend --capabilities CAPABILITY_NAMED_IAM";

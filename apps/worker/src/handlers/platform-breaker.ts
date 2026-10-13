@@ -4,8 +4,8 @@ import {
   findInstanceOperator,
   type RegionDecision,
   recordSesComplaintRates,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
 import {
   type MailContent,
   regionPausedMail,

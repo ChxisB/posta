@@ -1,6 +1,6 @@
-import { ipGeolocationEnabled } from "@millionsend/config";
-import { type IpGeo, lookupIpGeo, type SuspensionReason } from "@millionsend/core";
-import { schema } from "@millionsend/db";
+import { ipGeolocationEnabled } from "@posta/config";
+import { type IpGeo, lookupIpGeo, type SuspensionReason } from "@posta/core";
+import { schema } from "@posta/db";
 import { and, asc, desc, eq, inArray, isNotNull, ne, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { disposableAddressTest } from "../../disposable-email";

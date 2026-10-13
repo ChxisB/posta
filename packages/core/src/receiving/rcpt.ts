@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import { firstRow, isUniqueViolation } from "../driver-result.js";
 import { INBOX_FLOOD_PER_HOUR } from "../inboxes/limits.js";

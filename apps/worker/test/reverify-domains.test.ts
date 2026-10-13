@@ -1,8 +1,8 @@
-import { verifySenderDomain } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { DnsResolver, SesIdentityClient } from "@millionsend/ses";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { verifySenderDomain } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { DnsResolver, SesIdentityClient } from "@posta/ses";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { reverifyDomains } from "../src/handlers/cron.js";

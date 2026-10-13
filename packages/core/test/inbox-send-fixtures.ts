@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { createTransport, type SendMailOptions } from "nodemailer";
 import { EnvKeyring } from "../src/crypto/keyring.js";

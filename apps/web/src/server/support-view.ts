@@ -1,7 +1,7 @@
-import { supportViewEnabled } from "@millionsend/config";
-import { findLiveSupportView } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { supportViewEnabled } from "@posta/config";
+import { findLiveSupportView } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { httpOrigin } from "@/lib/http-url";
 import { uploadsEnabled } from "./storage";

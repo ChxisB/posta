@@ -1,4 +1,4 @@
-import { PAID_RUNGS, rungByKey } from "@millionsend/core";
+import { PAID_RUNGS, rungByKey } from "@posta/core";
 import type Stripe from "stripe";
 import { beforeEach, describe, expect, it } from "vitest";
 import {

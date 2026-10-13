@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { BillingStripe } from "@millionsend/billing";
-import { recordAudit, upgradesHeld, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { BillingStripe } from "@posta/billing";
+import { recordAudit, upgradesHeld, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, desc, eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { setRegionAccountDeps } from "@/server/console/ses-regions";

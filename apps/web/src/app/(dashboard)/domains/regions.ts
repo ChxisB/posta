@@ -1,7 +1,7 @@
-import type { SesRegion } from "@millionsend/ses";
+import type { SesRegion } from "@posta/ses";
 
 /**
- * Offered SES regions. Mirrors SES_REGIONS in @millionsend/ses — restated
+ * Offered SES regions. Mirrors SES_REGIONS in @posta/ses — restated
  * here because that package's entry point is server-only (node:crypto) and
  * this list must reach the client bundle. The `satisfies` check keeps the
  * values within the canonical set.

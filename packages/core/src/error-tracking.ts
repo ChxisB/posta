@@ -1,4 +1,4 @@
-import type { ErrorTrackingConfig } from "@millionsend/config";
+import type { ErrorTrackingConfig } from "@posta/config";
 import type { Breadcrumb, ErrorEvent, StreamedSpanJSON } from "@sentry/core";
 import { API_KEY_PATTERN, MASK, maskEmailLocalParts } from "./mask.js";
 

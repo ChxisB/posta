@@ -21,7 +21,7 @@ import { topics } from "./topics.js";
 
 /**
  * Status values are ordered: updates apply only when the incoming status ranks
- * higher than the stored one (compare-and-set in @millionsend/core), so
+ * higher than the stored one (compare-and-set in @posta/core), so
  * out-of-order SES events can never regress a delivered email to "sent".
  *
  * "failed" is strictly terminal: retryable send errors keep the email in

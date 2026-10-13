@@ -1,6 +1,6 @@
 "use client";
 
-import { AUDIT_ACTIONS } from "@millionsend/core/audit-actions";
+import { AUDIT_ACTIONS } from "@posta/core/audit-actions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { Fragment, useCallback, useState } from "react";

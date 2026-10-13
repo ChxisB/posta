@@ -1,6 +1,6 @@
-import { accountMailDeliverable, env } from "@millionsend/config";
-import { acceptEmail, SILENT_SUSPENSIONS } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+import { accountMailDeliverable, env } from "@posta/config";
+import { acceptEmail, SILENT_SUSPENSIONS } from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";

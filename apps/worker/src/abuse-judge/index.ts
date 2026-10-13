@@ -1,5 +1,5 @@
-import type { AbuseJudgeConfig } from "@millionsend/config";
-import type { AbuseJudge } from "@millionsend/core";
+import type { AbuseJudgeConfig } from "@posta/config";
+import type { AbuseJudge } from "@posta/core";
 import { createTypesafeJudge } from "./typesafe.js";
 
 /** The judge the env names, or null when the monitor is off. */

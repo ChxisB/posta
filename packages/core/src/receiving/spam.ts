@@ -1,4 +1,4 @@
-import type { ReceivedAuthentication, ReceivedHiddenText } from "@millionsend/db/schema";
+import type { ReceivedAuthentication, ReceivedHiddenText } from "@posta/db/schema";
 import { SHORTENER_HOSTS } from "../email-insights.js";
 import type { SenderTrust, SpamVerdict } from "../inboxes/types.js";
 import type { BodyLink } from "../links.js";

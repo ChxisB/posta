@@ -3,8 +3,8 @@ import {
   emitSuppressionEvents,
   hashRecipient,
   recordContactActivity,
-} from "@millionsend/core";
-import { type Db, getDb, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, getDb, schema } from "@posta/db";
 import { and, eq, sql } from "drizzle-orm";
 import { unsubscribeBaseUrl } from "@/lib/api-base-url";
 import { enqueueWebhookDeliveries } from "@/server/queue";

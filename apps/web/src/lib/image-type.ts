@@ -1,4 +1,4 @@
-import type { ImageType } from "@millionsend/core";
+import type { ImageType } from "@posta/core";
 
 /** Formats accepted for team logos. SVG is deliberately excluded: it can carry
  * scripts, and logos are served from the public storage bucket. */

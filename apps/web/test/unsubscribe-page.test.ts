@@ -1,6 +1,6 @@
-import { deriveUnsubscribeKey, hashRecipient, makeUnsubscribeToken } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { deriveUnsubscribeKey, hashRecipient, makeUnsubscribeToken } from "@posta/core";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -15,8 +15,8 @@ const secretKey = deriveUnsubscribeKey(Buffer.from(KEY_B64, "base64"));
 
 // getDb() inside the route handler must hit the per-test PGlite db.
 const h = vi.hoisted(() => ({ db: undefined as unknown as Db }));
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 

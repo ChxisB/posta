@@ -1,6 +1,6 @@
-import { env } from "@millionsend/config";
-import { hashRecipient, type WebhookEnqueue } from "@millionsend/core";
-import { EMAIL_SEND_PRIORITY, Queue } from "@millionsend/queue";
+import { env } from "@posta/config";
+import { hashRecipient, type WebhookEnqueue } from "@posta/core";
+import { EMAIL_SEND_PRIORITY, Queue } from "@posta/queue";
 
 let instance: Promise<Queue> | undefined;
 

@@ -2,6 +2,21 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { randomBytes } from "node:crypto";
 import { type OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+  type AuthInfo,
+  bearerAuthChallengeResponse,
+  type CallToolResult,
+  createMcpHandler,
+  getOAuthProtectedResourceMetadataUrl,
+  McpServer,
+  OAuthError,
+  OAuthErrorCode,
+  type OAuthTokenVerifier,
+  type ServerContext,
+  type StandardSchemaWithJSON,
+  type ToolCallback,
+  verifyBearerToken,
+} from "@modelcontextprotocol/server";
+import {
   ADMIN_MCP_SCOPES,
   ALL_TEAMS_GRANT,
   type ApiKeyAuth,
@@ -17,24 +32,9 @@ import {
   readReceived,
   type TeamRole,
   THREAD_FOLDERS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import {
-  type AuthInfo,
-  bearerAuthChallengeResponse,
-  type CallToolResult,
-  createMcpHandler,
-  getOAuthProtectedResourceMetadataUrl,
-  McpServer,
-  OAuthError,
-  OAuthErrorCode,
-  type OAuthTokenVerifier,
-  type ServerContext,
-  type StandardSchemaWithJSON,
-  type ToolCallback,
-  verifyBearerToken,
-} from "@modelcontextprotocol/server";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, eq } from "drizzle-orm";
 import { createRemoteJWKSet, type JWTVerifyGetKey, jwtVerify } from "jose";
 import { type ApiDeps, type Env, errorBody } from "./app.js";

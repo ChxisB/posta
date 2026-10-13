@@ -1,4 +1,4 @@
-import { getDb } from "@millionsend/db";
+import { getDb } from "@posta/db";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { DEVICE_THEME_SCRIPT } from "@/lib/theme";

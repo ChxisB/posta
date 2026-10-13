@@ -13,7 +13,7 @@ import {
   type DeliverEnvelope,
   decodeEnvelopeHeader,
   MX_ENVELOPE_HEADER,
-} from "@millionsend/core/receiving-protocol";
+} from "@posta/core/receiving-protocol";
 import { type DNSResolver, dkimSign } from "mailauth";
 import nodemailer from "nodemailer";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";

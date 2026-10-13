@@ -7,7 +7,7 @@ import {
   sesTenantsEnabled,
   trackingCnameTarget,
   trackingSubdomainsSupported,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   associateDomainTenant,
   clearTrackingClock,
@@ -24,9 +24,9 @@ import {
   PLAN_DOMAIN_LIMIT,
   setDomainReceiving,
   warmupCap,
-} from "@millionsend/core";
-import { registrableDomain } from "@millionsend/core/org-domain";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { registrableDomain } from "@posta/core/org-domain";
+import { type Db, schema } from "@posta/db";
 import {
   checkDnsRecords,
   checkReceivingMx,
@@ -46,7 +46,7 @@ import {
   receivingDnsRecord,
   type SesIdentityClient,
   verificationDbPatch,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";

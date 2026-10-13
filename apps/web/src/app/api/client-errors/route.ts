@@ -1,4 +1,4 @@
-import { errorTrackingConfig } from "@millionsend/config";
+import { errorTrackingConfig } from "@posta/config";
 import { getEnvelopeEndpointWithUrlEncodedAuth, makeDsn } from "@sentry/core";
 
 /** A common ingest cap on one event; a browser report is a fraction of it. */

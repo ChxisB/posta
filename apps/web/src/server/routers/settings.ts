@@ -1,4 +1,4 @@
-import { cancelTeamSubscription } from "@millionsend/billing";
+import { cancelTeamSubscription } from "@posta/billing";
 import {
   accountEmailFrom,
   disposableEmailsBlocked,
@@ -7,7 +7,7 @@ import {
   isCloudDeployment,
   notificationsEmailFrom,
   receivingEnabled,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   accountLocale,
   createFixedWindowLimiter,
@@ -37,15 +37,15 @@ import {
   teamQuota,
   utcDay,
   verifyInviteToken,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import {
   createSesv2Client,
   deleteDomainIdentity,
   deleteTenant,
   disassociateIdentity,
   SES_REGIONS,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 import {
   and,

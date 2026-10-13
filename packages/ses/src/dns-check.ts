@@ -4,7 +4,7 @@ import {
   resolveMx as dnsResolveMx,
   resolveTxt as dnsResolveTxt,
 } from "node:dns/promises";
-import type { LiveDnsStatus } from "@millionsend/core/domain-status";
+import type { LiveDnsStatus } from "@posta/core/domain-status";
 
 /** DNS access seam so callers inject a fake and tests hit no network. */
 export interface DnsResolver {

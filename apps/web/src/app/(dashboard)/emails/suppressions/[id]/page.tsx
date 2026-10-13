@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveBounceGuidance, resolveComplaintGuidance } from "@millionsend/core/bounce-guidance";
+import { resolveBounceGuidance, resolveComplaintGuidance } from "@posta/core/bounce-guidance";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

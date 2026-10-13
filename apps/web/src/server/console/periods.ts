@@ -1,4 +1,4 @@
-import { DAY_MS, utcDay } from "@millionsend/core";
+import { DAY_MS, utcDay } from "@posta/core";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 

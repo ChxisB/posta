@@ -5,7 +5,7 @@ import {
   env,
   isCloudDeployment,
   signupOpen,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   ALL_TEAMS_GRANT,
   CUSTOMER_TEXT_MAX,
@@ -19,8 +19,8 @@ import {
   recordSignup,
   removeSystemContact,
   stripInvisible,
-} from "@millionsend/core";
-import { type Db, getDb, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, getDb, schema } from "@posta/db";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";

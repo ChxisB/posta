@@ -6,10 +6,10 @@ import {
   probeHistory,
   pruneProbes,
   recordProbes,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { runInstanceProbes } from "../src/handlers/instance-probes.js";

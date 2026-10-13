@@ -2,12 +2,12 @@ import { parseArgs } from "node:util";
 import Stripe from "stripe";
 import { dryRunStripe, provision } from "../src/provision.js";
 
-const USAGE = `Usage: STRIPE_SECRET_KEY=sk_... pnpm --filter @millionsend/billing provision \\
+const USAGE = `Usage: STRIPE_SECRET_KEY=sk_... pnpm --filter @posta/billing provision \\
   [--webhook-url https://app.example.com/api/billing/webhook] [--portal] [--app-url https://app.example.com] \
   [--move-legacy] [--dry-run]
 
 Creates the products, the overage meter, one price per rung and one metered
-overage price per monthly rung, from the ladder in @millionsend/core
+overage price per monthly rung, from the ladder in @posta/core
 (packages/core/src/plans.ts), and archives the pre-ladder prices.
 Idempotent: re-running changes nothing; a changed amount in the ladder
 rotates the price behind the same lookup key. --move-legacy moves every

@@ -1,6 +1,6 @@
-import { type Env, isCloudDeployment } from "@millionsend/config";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { type Env, isCloudDeployment } from "@posta/config";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 
 /**
  * The content monitor's sampling rates, caps and thresholds. Each is a

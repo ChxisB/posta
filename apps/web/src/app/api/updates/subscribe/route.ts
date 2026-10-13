@@ -1,6 +1,6 @@
-import { isCloudDeployment } from "@millionsend/config";
-import { createFixedWindowLimiter, forwardedClientIp, UPDATES_SOURCES } from "@millionsend/core";
-import { getDb } from "@millionsend/db";
+import { isCloudDeployment } from "@posta/config";
+import { createFixedWindowLimiter, forwardedClientIp, UPDATES_SOURCES } from "@posta/core";
+import { getDb } from "@posta/db";
 import { z } from "zod";
 import { appBaseUrl } from "@/lib/api-base-url";
 import { localeFromHeaders } from "@/server/locale";

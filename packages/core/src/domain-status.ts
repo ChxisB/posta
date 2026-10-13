@@ -1,4 +1,4 @@
-import type { domainStatusEnum } from "@millionsend/db/schema";
+import type { domainStatusEnum } from "@posta/db/schema";
 
 /** The stored `domains.status` the send gate keys off (verifySenderDomain). */
 export type DomainStatus = (typeof domainStatusEnum.enumValues)[number];

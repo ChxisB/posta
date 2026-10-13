@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { extractAddrSpec } from "./suppressions.js";
 

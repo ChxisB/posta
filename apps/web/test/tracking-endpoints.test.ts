@@ -1,11 +1,11 @@
-import { deriveTrackingKey, makeClickToken, makeOpenToken } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+import { deriveTrackingKey, makeClickToken, makeOpenToken } from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import {
   createTeam,
   createTestDb,
   createWebhookEndpoint,
   legacyClickToken,
-} from "@millionsend/test-utils";
+} from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import en from "../messages/en/common.json";
@@ -19,8 +19,8 @@ const secretKey = deriveTrackingKey(Buffer.from(KEY_B64, "base64"));
 
 // getDb() inside the route handlers must hit the per-test PGlite db.
 const h = vi.hoisted(() => ({ db: undefined as unknown as Db }));
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 // Delivery rows are asserted on directly; nothing here drains them.

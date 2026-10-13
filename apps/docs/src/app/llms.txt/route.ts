@@ -21,7 +21,7 @@ export function GET(): Response {
     "Every page is available as raw markdown by appending `.md` to its URL.",
     `The full documentation in one file: ${absoluteUrl("/llms-full.txt")}`,
     `The API's OpenAPI 3.1 spec (generated from code): ${absoluteUrl("/openapi.json")}`,
-    `Moving an account from Resend: \`npx @millionsend/cli migrate --from resend\` (read-only against Resend; reference at ${absoluteUrl("/cli.md")}).`,
+    `Moving an account from Resend: \`npx @tack-labs/posta-cli migrate --from resend\` (read-only against Resend; reference at ${absoluteUrl("/cli.md")}).`,
     `A complete agent prompt for that migration, from inventory to cutover: ${absoluteUrl("/prompts/migrate-from-resend.md")}`,
     "",
     "## Pages",

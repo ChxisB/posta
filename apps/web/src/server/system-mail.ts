@@ -5,7 +5,7 @@ import {
   isCloudDeployment,
   notificationsEmailFrom,
   servedRegions,
-} from "@millionsend/config";
+} from "@posta/config";
 import {
   type AccountMailKind,
   accountMailCard,
@@ -16,9 +16,9 @@ import {
   type SystemMailMessage,
   type SystemMailOptions,
   sendSystemMail,
-} from "@millionsend/core";
-import { type Db, getDb, schema } from "@millionsend/db";
-import { createSesSendClient, sendSimpleEmail } from "@millionsend/ses";
+} from "@posta/core";
+import { type Db, getDb, schema } from "@posta/db";
+import { createSesSendClient, sendSimpleEmail } from "@posta/ses";
 import { and, eq, gt, like, ne } from "drizzle-orm";
 import { appBaseUrl } from "@/lib/api-base-url";
 import { DOCS_URL } from "@/lib/docs-links";

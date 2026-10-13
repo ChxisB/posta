@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import type { ApiKeyAuth } from "../api-key-auth.js";
 
 /** Who acted on an inbox. An api_key with an inboxId is an inbox-scoped key. */

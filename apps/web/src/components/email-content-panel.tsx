@@ -1,6 +1,6 @@
 "use client";
 
-import type { EmailCheckResult, ScoreBand } from "@millionsend/core";
+import type { EmailCheckResult, ScoreBand } from "@posta/core";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { CodeHighlight } from "@/components/code-highlight";

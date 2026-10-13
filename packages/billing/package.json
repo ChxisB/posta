@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/billing",
+  "name": "@posta/billing",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,13 +15,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@millionsend/core": "workspace:*",
-    "@millionsend/db": "workspace:*",
+    "@posta/core": "workspace:*",
+    "@posta/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "stripe": "^22.6.2"
   },
   "devDependencies": {
-    "@millionsend/test-utils": "workspace:*",
+    "@posta/test-utils": "workspace:*",
     "@types/node": "^22.20.5",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",

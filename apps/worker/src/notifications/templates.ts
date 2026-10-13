@@ -8,7 +8,7 @@ import {
   SES_COMPLAINT_ALERT_RATE,
   SES_COMPLAINT_PAUSE_RATE,
   SES_COMPLAINT_REVIEW_RATE,
-} from "@millionsend/core";
+} from "@posta/core";
 
 export type { MailContent };
 

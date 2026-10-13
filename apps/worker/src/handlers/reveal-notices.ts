@@ -1,6 +1,6 @@
-import { CONTENT_REVEAL_NOTICE_DAYS, grantDisclosureFields } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { CONTENT_REVEAL_NOTICE_DAYS, grantDisclosureFields } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, isNull, lte, or, sql } from "drizzle-orm";
 
 export interface RevealNoticeDeps {

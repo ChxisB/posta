@@ -1,6 +1,6 @@
 "use client";
 
-import { MAIL_PREFERENCE_GROUPS, type MailPreferenceKey } from "@millionsend/core/mail-preferences";
+import { MAIL_PREFERENCE_GROUPS, type MailPreferenceKey } from "@posta/core/mail-preferences";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/skeleton";

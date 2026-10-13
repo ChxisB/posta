@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import type { BillingStripe } from "@millionsend/billing";
+import type { BillingStripe } from "@posta/billing";
 import {
   DAY_MS,
   defaultSafety,
@@ -8,10 +8,10 @@ import {
   type PlanRungKey,
   rungByKey,
   type SystemMailMessage,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

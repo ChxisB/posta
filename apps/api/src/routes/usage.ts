@@ -7,8 +7,8 @@ import {
   readPeriodUsage,
   teamQuota,
   utcDay,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { and, eq } from "drizzle-orm";
 import type { ApiDeps, Env } from "../app.js";
 import { errorSchema, usageResponseSchema } from "../schemas.js";

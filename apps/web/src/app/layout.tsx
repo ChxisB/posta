@@ -2,7 +2,7 @@ import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/700.css";
 import "@/styles/globals.css";
-import { env, errorTrackingConfig } from "@millionsend/config";
+import { env, errorTrackingConfig } from "@posta/config";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";

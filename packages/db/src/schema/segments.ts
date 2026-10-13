@@ -14,7 +14,7 @@ import { teams } from "./teams.js";
 /**
  * A saved filter over the team's contacts. `all` = AND, `any` = OR; empty
  * `conditions` matches every contact. The shape lives here (the DB layer) so
- * `@millionsend/core`'s zod validator can annotate against it without a
+ * `@posta/core`'s zod validator can annotate against it without a
  * core→db→core import cycle — core is the only place values are validated
  * before they reach SQL.
  */

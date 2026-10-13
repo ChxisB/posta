@@ -1,9 +1,9 @@
-import { DAY_MS, INVITE_MAX_SENDS, INVITE_TTL_MS, SUSPENSION_REASONS } from "@millionsend/core";
-import { unescapeHtml } from "@millionsend/core/html";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SimpleEmail } from "@millionsend/ses";
-import { createTeam, createTestDb, readable } from "@millionsend/test-utils";
+import { DAY_MS, INVITE_MAX_SENDS, INVITE_TTL_MS, SUSPENSION_REASONS } from "@posta/core";
+import { unescapeHtml } from "@posta/core/html";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SimpleEmail } from "@posta/ses";
+import { createTeam, createTestDb, readable } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TeamRole } from "@/server/membership";

@@ -6,7 +6,7 @@ renders the final terminal screens as HTML for a before/after review page.
 
 ```sh
 pnpm build                                                  # this branch's bundle
-(cd scripts/preview/before-pkg && npm pack @millionsend/cli@<version> && tar xzf *.tgz)
+(cd scripts/preview/before-pkg && npm pack @tack-labs/posta-cli@<version> && tar xzf *.tgz)
 SKIP_ENV_VALIDATION=1 pnpm exec tsx scripts/preview/capture.mjs before after   # ~25 min
 node scripts/preview/build-page.mjs                         # → out/cli-before-after.html
 ```

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { isMainThread, parentPort, Worker, workerData } from "node:worker_threads";
-import type { AttachmentFlag } from "@millionsend/core";
+import type { AttachmentFlag } from "@posta/core";
 import {
   readZipDirectory,
   readZipEntry,
@@ -9,7 +9,7 @@ import {
   sniffImageType,
   type ZipDirectory,
   type ZipEntry,
-} from "@millionsend/core/file-type";
+} from "@posta/core/file-type";
 
 /**
  * The parsing threads. mupdf and zxing are WASM that runs synchronously, and

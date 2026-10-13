@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/queue",
+  "name": "@posta/queue",
   "version": "0.0.0",
   "private": true,
   "type": "module",

@@ -1,6 +1,6 @@
 "use client";
 
-import type { MediaLinkSource } from "@millionsend/core";
+import type { MediaLinkSource } from "@posta/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { Modal } from "@/components/modal";

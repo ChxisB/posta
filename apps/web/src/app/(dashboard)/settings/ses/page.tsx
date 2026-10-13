@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";

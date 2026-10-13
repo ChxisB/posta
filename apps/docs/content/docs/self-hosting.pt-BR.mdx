@@ -22,7 +22,7 @@ Um comando, em um diretório vazio (Node 18+):
 
 ```sh
 mkdir millionsend && cd millionsend
-npx @millionsend/setup
+npx @tack-labs/posta-setup
 ```
 
 O assistente detecta o que já existe e oferece cada etapa — criar o `.env` a
@@ -107,10 +107,10 @@ O `docker-compose.yml` da raiz constrói a imagem localmente a partir do
 `docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up -d`.
 
 Sem Docker (Node 24+, pnpm 11, Postgres local): `pnpm install`, aponte
-`DATABASE_URL` para o seu Postgres, `pnpm --filter @millionsend/db db:migrate`,
-depois rode `pnpm --filter @millionsend/api dev`,
-`pnpm --filter @millionsend/worker dev` e
-`pnpm --filter @millionsend/web dev` em terminais separados.
+`DATABASE_URL` para o seu Postgres, `pnpm --filter @posta/db db:migrate`,
+depois rode `pnpm --filter @posta/api dev`,
+`pnpm --filter @posta/worker dev` e
+`pnpm --filter @posta/web dev` em terminais separados.
 
 ## Referência de ambiente
 
@@ -223,7 +223,7 @@ do TLS, então só defina essas para um MX em outro host.
 
 ## Configuração da AWS
 
-A etapa de AWS do `npx @millionsend/setup` cria tudo de que o MillionSend
+A etapa de AWS do `npx @tack-labs/posta-setup` cria tudo de que o MillionSend
 precisa na AWS — política IAM + usuário + chave de acesso, o tópico SNS de
 eventos, a fila SQS de eventos (`millionsend-events`) que o worker consome por
 long polling e o configuration set do SES. Um `APP_BASE_URL` HTTPS recebe
@@ -236,7 +236,7 @@ linhas `AWS_*` no `.env` do diretório atual (sem `.env` lá → imprime para
 você colar onde o MillionSend roda). `--dry-run` imprime o plano completo e
 sai.
 
-`npx @millionsend/setup teardown` apaga tudo que o setup criou, incluindo
+`npx @tack-labs/posta-setup teardown` apaga tudo que o setup criou, incluindo
 todas as chaves de acesso do usuário IAM `millionsend`, então um servidor em
 execução para de enviar. Repetir o setup é seguro, mas cada execução gera uma
 nova chave de acesso — apague as antigas no console do IAM.
@@ -267,14 +267,14 @@ deploy, ou no servidor pela imagem, com credenciais de administrador de curta du
 no ambiente (nada fica gravado):
 
 ```sh
-npx @millionsend/setup add-region us-east-1
+npx @tack-labs/posta-setup add-region us-east-1
 # ou, no servidor, a partir do diretório de deploy:
 docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms \
   -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
   -v "$PWD":/work -w /work ghcr.io/millionsend/millionsend:latest setup add-region us-east-1
 ```
 
-`npx @millionsend/setup add-region` precisa do `@millionsend/setup` 0.9.0 ou
+`npx @tack-labs/posta-setup add-region` precisa do `@tack-labs/posta-setup` 0.9.0 ou
 mais novo; a imagem já o traz. Sem terminal (stdin via pipe), o argumento de
 região é obrigatório e a confirmação precisa de uma linha `yes` explícita: o
 comando se recusa a adivinhar uma região, e uma resposta vazia vale não.
@@ -801,7 +801,7 @@ descadastro quando a marca do MillionSend está oculta. UM conjunto de
 credenciais `S3_*` é compartilhado com o job de backup abaixo — cada recurso
 é então habilitado pela sua própria variável de bucket.
 
-A etapa de armazenamento do `npx @millionsend/setup` pergunta o endpoint e as
+A etapa de armazenamento do `npx @tack-labs/posta-setup` pergunta o endpoint e as
 chaves, cria (ou adota) os dois buckets — `millionsend-storage` e
 `millionsend-backups` por padrão — e escreve as linhas `S3_*` no `.env`. A
 única coisa que ela não consegue fazer pela API S3 é tornar público o bucket

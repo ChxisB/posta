@@ -1,4 +1,4 @@
-import { env } from "@millionsend/config";
+import { env } from "@posta/config";
 import {
   type AttachmentFlag,
   type AttachmentRejection,
@@ -15,9 +15,9 @@ import {
   registrableDomain,
   resolveMonitorSettings,
   resultRows,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { inArray, sql } from "drizzle-orm";
 import { readMediaForJudge } from "./read.js";
 import type { MediaDeps } from "./scan.js";

@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { sha256Hex } from "./hash.js";
 import { GMAIL_DOMAINS } from "./mailbox-providers.js";

@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, count, eq, inArray, lte, max, notInArray, sql } from "drizzle-orm";
 import { recordAudit } from "../audit.js";
 import { isPlainName } from "../customer-text.js";

@@ -1,4 +1,4 @@
-import { env, parseCommaList } from "@millionsend/config";
+import { env, parseCommaList } from "@posta/config";
 
 /** Under SKIP_ENV_VALIDATION the env proxy carries the raw string, not the parsed list. */
 export function trustedProxies(): string[] {

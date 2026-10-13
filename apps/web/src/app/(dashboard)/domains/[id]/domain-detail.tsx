@@ -1,6 +1,6 @@
 "use client";
 
-import { registrableDomain } from "@millionsend/core/org-domain";
+import { registrableDomain } from "@posta/core/org-domain";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -1,5 +1,5 @@
-import { verifyOpenToken } from "@millionsend/core";
-import { getDb } from "@millionsend/db";
+import { verifyOpenToken } from "@posta/core";
+import { getDb } from "@posta/db";
 import { enqueueWebhookDeliveries } from "../../../../server/queue";
 import { engagementHit, recordEngagement, trackingKey } from "../../record";
 

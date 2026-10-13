@@ -1,5 +1,5 @@
-import { schema } from "@millionsend/db";
-import type { SegmentFilter } from "@millionsend/db/schema";
+import { schema } from "@posta/db";
+import type { SegmentFilter } from "@posta/db/schema";
 import { and, or, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";
 

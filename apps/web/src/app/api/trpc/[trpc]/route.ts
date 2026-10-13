@@ -1,4 +1,4 @@
-import { captureError } from "@millionsend/core/error-tracking-node";
+import { captureError } from "@posta/core/error-tracking-node";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appOrigin } from "@/lib/api-base-url";
 import { isCrossOriginMutation } from "@/lib/http-url";

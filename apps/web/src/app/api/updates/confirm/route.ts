@@ -1,4 +1,4 @@
-import { getDb } from "@millionsend/db";
+import { getDb } from "@posta/db";
 import { appBaseUrl } from "@/lib/api-base-url";
 import { localeFromHeaders } from "@/server/locale";
 import { confirmUpdatesSubscription } from "@/server/updates";

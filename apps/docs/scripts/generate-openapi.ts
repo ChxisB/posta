@@ -1,6 +1,6 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { type ApiDeps, createApi } from "@millionsend/api";
+import { type ApiDeps, createApi } from "@posta/api";
 import { generateFiles } from "fumadocs-openapi";
 import { openapi } from "../src/lib/openapi";
 
@@ -9,9 +9,9 @@ import { openapi } from "../src/lib/openapi";
  * renders one MDX page per operation, so the reference can never drift from
  * the code.
  *
- * Importing @millionsend/api opens no connections (queue/db/keyring live in
+ * Importing @posta/api opens no connections (queue/db/keyring live in
  * its server entrypoint, src/server.ts), but it transitively imports
- * @millionsend/config, which validates env at import time — so this script
+ * @posta/config, which validates env at import time — so this script
  * must run with SKIP_ENV_VALIDATION=1, the same escape hatch apps/web's build
  * uses. The deps below are never dereferenced: createApi only registers
  * routes, and serving /openapi.json executes no route handler.

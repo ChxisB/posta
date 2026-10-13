@@ -1,4 +1,4 @@
-# @millionsend/cli
+# @tack-labs/posta-cli
 
 Moves an email account to [MillionSend](https://github.com/MillionSend/millionsend):
 contacts, segments, topics, properties, templates, webhooks, domains and
@@ -7,11 +7,11 @@ instance (Cloud or self-hosted), and is safe to run again — a second run right
 before cutover syncs what changed since the first.
 
 ```sh
-npx @millionsend/cli migrate --from resend                    # interactive: connect, choose, plan, confirm, apply, summary
-npx @millionsend/cli migrate plan --from resend --out plan.json   # read-only; exit 0 nothing to do, 2 changes, 1 error
-npx @millionsend/cli migrate apply plan.json --yes
-npx @millionsend/cli migrate status
-npx @millionsend/cli migrate rollback                         # deletes only what the tool created
+npx @tack-labs/posta-cli migrate --from resend                    # interactive: connect, choose, plan, confirm, apply, summary
+npx @tack-labs/posta-cli migrate plan --from resend --out plan.json   # read-only; exit 0 nothing to do, 2 changes, 1 error
+npx @tack-labs/posta-cli migrate apply plan.json --yes
+npx @tack-labs/posta-cli migrate status
+npx @tack-labs/posta-cli migrate rollback                         # deletes only what the tool created
 ```
 
 Node 18 or newer; no dependencies.

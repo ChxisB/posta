@@ -1,4 +1,4 @@
-import type { ErrorTrackingConfig } from "@millionsend/config";
+import type { ErrorTrackingConfig } from "@posta/config";
 
 type Sdk = typeof import("./client-errors-sdk");
 

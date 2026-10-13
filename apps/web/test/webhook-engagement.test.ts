@@ -1,5 +1,5 @@
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb, createWebhookEndpoint } from "@millionsend/test-utils";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb, createWebhookEndpoint } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { recordEngagement } from "@/app/t/record";

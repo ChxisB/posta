@@ -1,6 +1,6 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb, LURE_NAMES, mailLinks } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb, LURE_NAMES, mailLinks } from "@posta/test-utils";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { runPlatformBreaker } from "../src/handlers/platform-breaker.js";
 import { regionPausedMail } from "../src/notifications/templates.js";

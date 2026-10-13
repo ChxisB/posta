@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { EnvKeyring, generateApiKey } from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { EnvKeyring, generateApiKey } from "@posta/core";
+import { type Db, schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { createApi } from "../src/app.js";
 
 const h = vi.hoisted(() => ({ captureError: vi.fn(async () => {}) }));
-vi.mock("@millionsend/core/error-tracking-node", () => ({ captureError: h.captureError }));
+vi.mock("@posta/core/error-tracking-node", () => ({ captureError: h.captureError }));
 
 let db: Db;
 let close: () => Promise<void>;

@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
-import { generateApiKey, SHARED_REPLY_ONLY_MESSAGE, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTestDb, createWebhookEndpoint } from "@millionsend/test-utils";
+import { generateApiKey, SHARED_REPLY_ONLY_MESSAGE, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb, createWebhookEndpoint } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -253,7 +253,7 @@ describe("POST /emails/receiving/{id}/reply and /forward", () => {
         { filename: "q.pdf", content: Buffer.from("%PDF-1.4 q"), contentType: "application/pdf" },
       ],
     });
-    const { sealReceivedRaw } = await import("@millionsend/core");
+    const { sealReceivedRaw } = await import("@posta/core");
     const id = randomUUID();
     const sealed = await sealReceivedRaw(raw, w.deps.keyring, { teamId: w.teamId, rowId: id });
     const messageId = `<${id}@outside.example>`;

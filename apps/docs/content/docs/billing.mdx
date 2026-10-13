@@ -308,7 +308,7 @@ One idempotent script creates everything the API can create. Amounts come
 from the ladder, not from flags:
 
 ```sh
-STRIPE_SECRET_KEY=sk_test_… pnpm --filter @millionsend/billing provision \
+STRIPE_SECRET_KEY=sk_test_… pnpm --filter @posta/billing provision \
   --webhook-url https://app.example.com/api/billing/webhook \
   --portal --app-url https://app.example.com
 ```

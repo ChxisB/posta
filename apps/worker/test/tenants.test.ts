@@ -1,7 +1,7 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import type { SesIdentityClient, SesTenantClient } from "@millionsend/ses";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SesIdentityClient, SesTenantClient } from "@posta/ses";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq, isNotNull } from "drizzle-orm";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { abandonTenantStatus, retryTenantStatus, syncTenants } from "../src/handlers/tenants.js";

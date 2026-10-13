@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type ServerType, serve } from "@hono/node-server";
+import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import {
   acquireWaitSlot,
   DAY_MS,
@@ -19,11 +20,10 @@ import {
   mcpResourceUrl,
   type TeamRole,
   WAITS_PER_TEAM_PER_PROCESS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
-import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { exportJWK, generateKeyPair, SignJWT } from "jose";

@@ -1,5 +1,5 @@
 {
-  "name": "@millionsend/config",
+  "name": "@posta/config",
   "version": "0.0.0",
   "private": true,
   "type": "module",

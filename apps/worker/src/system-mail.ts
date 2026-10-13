@@ -1,4 +1,4 @@
-import { accountEmailFrom, env, notificationsEmailFrom, servedRegions } from "@millionsend/config";
+import { accountEmailFrom, env, notificationsEmailFrom, servedRegions } from "@posta/config";
 import {
   type AccountMailKind,
   accountLocale,
@@ -12,10 +12,10 @@ import {
   type SystemMailKind,
   type SystemMailMessage,
   sendSystemMail,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { EMAIL_SEND_PRIORITY, type EmailSendPriority } from "@millionsend/queue";
-import { createSesSendClient, sendSimpleEmail } from "@millionsend/ses";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { EMAIL_SEND_PRIORITY, type EmailSendPriority } from "@posta/queue";
+import { createSesSendClient, sendSimpleEmail } from "@posta/ses";
 
 export interface SystemMailer {
   send(to: string, message: Omit<SystemMailMessage, "from" | "to">): Promise<void>;

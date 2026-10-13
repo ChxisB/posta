@@ -8,14 +8,10 @@ import {
   SES_TRANSACTIONAL_RESERVE_DEFAULT,
   servedRegions,
   trackingSubdomainsSupported,
-} from "@millionsend/config";
-import { committedDailyVolume, getInstanceSettings, sesEventsHealth } from "@millionsend/core";
-import { schema } from "@millionsend/db";
-import {
-  createSesAccountClient,
-  getAccountOverview,
-  type SesAccountClient,
-} from "@millionsend/ses";
+} from "@posta/config";
+import { committedDailyVolume, getInstanceSettings, sesEventsHealth } from "@posta/core";
+import { schema } from "@posta/db";
+import { createSesAccountClient, getAccountOverview, type SesAccountClient } from "@posta/ses";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { isAwsCredentialError } from "@/lib/aws-errors";

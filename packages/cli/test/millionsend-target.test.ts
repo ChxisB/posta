@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AuthError, createHttp } from "../src/http.js";

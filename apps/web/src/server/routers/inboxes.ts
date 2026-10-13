@@ -1,8 +1,4 @@
-import {
-  EMAIL_RETENTION_DAYS_DEFAULT,
-  isCloudDeployment,
-  sharedInboxDomain,
-} from "@millionsend/config";
+import { EMAIL_RETENTION_DAYS_DEFAULT, isCloudDeployment, sharedInboxDomain } from "@posta/config";
 import {
   createInbox,
   createLabel,
@@ -41,8 +37,8 @@ import {
   updateInboxSafety,
   updateLabel,
   updateThread,
-} from "@millionsend/core";
-import { type Db, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, gt, inArray, max, sql } from "drizzle-orm";
 import { z } from "zod";

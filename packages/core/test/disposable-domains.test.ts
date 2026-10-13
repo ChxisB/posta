@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { createTestDb } from "@posta/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   DISPOSABLE_LIST_URL,

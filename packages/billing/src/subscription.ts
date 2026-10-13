@@ -1,6 +1,6 @@
-import { DAY_MS, type PlanRung, type PlanRungKey, rungByKey } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import { DAY_MS, type PlanRung, type PlanRungKey, rungByKey } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, sql } from "drizzle-orm";
 import type Stripe from "stripe";
 import type { BillingDeps } from "./checkout.js";

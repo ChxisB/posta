@@ -33,8 +33,8 @@ import {
   updateThread,
   type VerificationCodeWire,
   waitForReceived,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import type { Context, MiddlewareHandler } from "hono";
 import { type ApiDeps, type Env, errorBody } from "../app.js";

@@ -21,9 +21,9 @@ import {
   runAfterCommit,
   utcDay,
   type WebhookEnqueue,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, eq, sql } from "drizzle-orm";
 import { JUDGE_THROTTLE_RETRIES } from "./abuse-judge.js";
 

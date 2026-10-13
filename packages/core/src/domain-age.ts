@@ -1,6 +1,6 @@
 import { connect } from "node:net";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, eq, isNull, lt, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
 import { normalizeHostname, ownerDomain } from "./org-domain.js";

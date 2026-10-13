@@ -6,10 +6,10 @@ import {
   EnvKeyring,
   ingestReceivedEmail,
   verifyReceivedDownload,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SessionRole } from "@/server/membership";
@@ -22,8 +22,8 @@ const core = vi.hoisted(() => ({
   releaseQuarantined: vi.fn(),
   deleteReceivedEmail: vi.fn(),
 }));
-vi.mock("@millionsend/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@millionsend/core")>()),
+vi.mock("@posta/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@posta/core")>()),
   ...core,
 }));
 vi.mock("@/server/queue", () => ({

@@ -3,7 +3,7 @@ import {
   ABUSE_JUDGE_QUESTIONS,
   INBOUND_JUDGE_POLICY,
   INBOUND_JUDGE_QUESTIONS,
-} from "@millionsend/core";
+} from "@posta/core";
 import { expect, it } from "vitest";
 import { createAbuseJudge } from "../src/abuse-judge/index.js";
 import { createTypesafeJudge, type FetchLike } from "../src/abuse-judge/typesafe.js";

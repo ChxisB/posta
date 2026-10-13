@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, desc, eq, gt, isNotNull, ne, type SQL, sql } from "drizzle-orm";
 import type { Keyring } from "../crypto/keyring.js";
 import { type InboxActor, recordInboxActivity } from "../inboxes/activity.js";

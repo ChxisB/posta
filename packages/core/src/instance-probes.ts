@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, desc, gte, lt, lte, sql } from "drizzle-orm";
 import { resultRows } from "./driver-result.js";
 import { DAY_MS } from "./utc-day.js";

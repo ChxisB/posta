@@ -1,6 +1,6 @@
 "use client";
 
-import { httpsOrigin, SES_IAM_POLICY_JSON } from "@millionsend/ses/setup-constants";
+import { httpsOrigin, SES_IAM_POLICY_JSON } from "@posta/ses/setup-constants";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -454,7 +454,7 @@ export function SesSetupView() {
                 <span className="ms-badge ms-badge-success">{t("setup.recommended")}</span>
               </div>
               <p style={{ margin: "12px 0 0" }}>
-                <CopyChip value="npx @millionsend/setup" />
+                <CopyChip value="npx @tack-labs/posta-setup" />
               </p>
               <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--ms-muted)" }}>
                 {t.rich("setup.cliNote", codeRichTags)}

@@ -1,5 +1,5 @@
-import { sniffImageType } from "@millionsend/core";
-import { getDb, schema } from "@millionsend/db";
+import { sniffImageType } from "@posta/core";
+import { getDb, schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { appOrigin } from "@/lib/api-base-url";
 import { isCrossOriginMutation } from "@/lib/http-url";

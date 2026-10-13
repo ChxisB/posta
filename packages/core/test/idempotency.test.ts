@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { Db } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   beginIdempotent,

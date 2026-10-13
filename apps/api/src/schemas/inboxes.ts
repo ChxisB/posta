@@ -11,7 +11,7 @@ import {
   SENDER_TRUSTS,
   THREAD_FOLDERS,
   type ThreadFolder,
-} from "@millionsend/core";
+} from "@posta/core";
 
 /**
  * Resend's Inboxes beta (/inboxes/**), plus MillionSend's extension keys.

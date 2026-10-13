@@ -1,5 +1,5 @@
-import { cardFingerprints, handleWebhook, isLiveKey } from "@millionsend/billing";
-import { accountEmailFrom, env, notificationsEmailFrom } from "@millionsend/config";
+import { cardFingerprints, handleWebhook, isLiveKey } from "@posta/billing";
+import { accountEmailFrom, env, notificationsEmailFrom } from "@posta/config";
 import {
   type AccountMailKind,
   accountMailPhrase,
@@ -20,8 +20,8 @@ import {
   raisesQuota,
   recordAudit,
   teamQuota,
-} from "@millionsend/core";
-import { type Db, getDb, schema } from "@millionsend/db";
+} from "@posta/core";
+import { type Db, getDb, schema } from "@posta/db";
 import { eq } from "drizzle-orm";
 import { appBaseUrl } from "@/lib/api-base-url";
 import { BILLING_PATH, getStripe, mailPlanMove } from "@/server/billing";

@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
-import { env, sharedInboxDomain } from "@millionsend/config";
-import { deriveInboxKeys } from "@millionsend/core";
-import { getDb } from "@millionsend/db";
-import { EMAIL_SEND_PRIORITY, Queue } from "@millionsend/queue";
-import { createKeyringFromEnv } from "@millionsend/ses";
+import { env, sharedInboxDomain } from "@posta/config";
+import { deriveInboxKeys } from "@posta/core";
+import { getDb } from "@posta/db";
+import { EMAIL_SEND_PRIORITY, Queue } from "@posta/queue";
+import { createKeyringFromEnv } from "@posta/ses";
 import { createSmtpServer } from "./smtp.js";
 
 // Throws on missing encryption configuration, so boot fails before any

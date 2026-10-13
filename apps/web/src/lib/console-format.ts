@@ -2,7 +2,7 @@ import type { Period } from "@/components/console/chart-dialog";
 
 /**
  * Pure helpers for the operator console. The plan ladder lives in
- * @millionsend/core/plans, whose barrel is server-only; the few facts the
+ * @posta/core/plans, whose barrel is server-only; the few facts the
  * console dialogs print (prices, daily limits, the volume format) are
  * restated here and must match PLAN_RUNGS.
  */
@@ -71,7 +71,7 @@ export function periodDayKeys(period: Period, now: Date = new Date()): string[] 
   return out;
 }
 
-/** "100K", "1M", "1.5M": mirrors formatVolume in @millionsend/core/plans. */
+/** "100K", "1M", "1.5M": mirrors formatVolume in @posta/core/plans. */
 export function formatVolume(n: number): string {
   if (n >= 1_000_000) return `${n / 1_000_000}M`;
   if (n >= 1_000) return `${n / 1_000}K`;

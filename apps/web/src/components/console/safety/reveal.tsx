@@ -6,7 +6,7 @@ import {
   CONTENT_REVEAL_ONE_MESSAGE_REASONS,
   CONTENT_REVEAL_REASONS,
   type ContentRevealReason,
-} from "@millionsend/core/content-reveal";
+} from "@posta/core/content-reveal";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useId, useState } from "react";

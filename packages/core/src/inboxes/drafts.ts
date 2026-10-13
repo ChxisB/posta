@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Db } from "@millionsend/db";
-import { keysetCursorWhere, schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { keysetCursorWhere, schema } from "@posta/db";
 import { and, asc, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { recordAudit } from "../audit.js";
 import { decryptPayload, type EmailAttachment, encryptPayload } from "../crypto/envelope.js";

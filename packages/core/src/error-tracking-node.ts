@@ -1,4 +1,4 @@
-import { errorTrackingConfig } from "@millionsend/config";
+import { errorTrackingConfig } from "@posta/config";
 import { errorTrackingOptions } from "./error-tracking.js";
 
 export type ServerProcess = "web" | "api" | "worker";

@@ -1,4 +1,4 @@
-import type { ReceivedHiddenText } from "@millionsend/db/schema";
+import type { ReceivedHiddenText } from "@posta/db/schema";
 import { plainTextDiffers } from "../abuse-judge/block.js";
 import {
   IMPLIED_END,

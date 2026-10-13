@@ -2,7 +2,7 @@
  * Pure helpers behind the segment filter builder UI. Kept out of the React
  * component so the wire-shape mapping is unit-testable and the page and tests
  * agree on exactly what a builder row becomes. This is UI shape only — the
- * authoritative validation and the SQL predicate live in @millionsend/core
+ * authoritative validation and the SQL predicate live in @posta/core
  * (segmentFilterSchema / segmentWhere), which this must never re-implement.
  * The wire shape is the pinned contract: { match, conditions: [{ field, op, value }] }.
  */

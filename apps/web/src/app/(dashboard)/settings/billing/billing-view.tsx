@@ -1,6 +1,6 @@
 "use client";
 
-import type { RungChange } from "@millionsend/billing";
+import type { RungChange } from "@posta/billing";
 import {
   formatVolume,
   PLAN_CONTACT_LIMIT,
@@ -10,7 +10,7 @@ import {
   type PlanRung,
   type PlanRungKey,
   planLabel,
-} from "@millionsend/core/plans";
+} from "@posta/core/plans";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { type CSSProperties, useState } from "react";

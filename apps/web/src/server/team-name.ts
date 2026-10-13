@@ -1,4 +1,4 @@
-import { CUSTOMER_TEXT_MAX, isPlainName } from "@millionsend/core";
+import { CUSTOMER_TEXT_MAX, isPlainName } from "@posta/core";
 import { z } from "zod";
 
 /** A team name as creating or renaming a team stores it: a plain name (isPlainName). */

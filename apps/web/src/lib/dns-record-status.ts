@@ -1,4 +1,4 @@
-// Pure record-status logic lives in @millionsend/core (client-safe subpath) so
+// Pure record-status logic lives in @posta/core (client-safe subpath) so
 // the web verify mutation and the worker cron share one source of truth. This
 // re-export keeps the client-component import path (dns-records-table) stable.
 export {
@@ -7,4 +7,4 @@ export {
   type RecordStatus,
   type SesGate,
   sesGateFromRecordStatus,
-} from "@millionsend/core/domain-status";
+} from "@posta/core/domain-status";

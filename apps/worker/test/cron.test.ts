@@ -1,7 +1,7 @@
-import { DAY_MS, dailyCeiling, SYSTEM_MAIL_TAG, teamRung, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { DAY_MS, dailyCeiling, SYSTEM_MAIL_TAG, teamRung, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import {

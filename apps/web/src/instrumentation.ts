@@ -6,7 +6,7 @@ import type { Instrumentation } from "next";
 // pulls @sentry/node (node:child_process) into a bundle that cannot load it.
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { initErrorTracking } = await import("@millionsend/core/error-tracking-node");
+    const { initErrorTracking } = await import("@posta/core/error-tracking-node");
     await initErrorTracking("web");
   }
 }
@@ -19,7 +19,7 @@ export async function register(): Promise<void> {
  */
 export const onRequestError: Instrumentation.onRequestError = async (error, _request, context) => {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { captureError } = await import("@millionsend/core/error-tracking-node");
+    const { captureError } = await import("@posta/core/error-tracking-node");
     const digest =
       typeof error === "object" && error && "digest" in error ? error.digest : undefined;
     await captureError(error, {

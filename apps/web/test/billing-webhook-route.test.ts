@@ -1,7 +1,7 @@
-import type { SystemMailMessage } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import type { SystemMailMessage } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,8 +15,8 @@ const h = vi.hoisted(() => ({
   sent: [] as SystemMailMessage[],
 }));
 
-vi.mock("@millionsend/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/db")>();
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
   return { ...actual, getDb: () => h.db };
 });
 vi.mock("@/server/queue", () => ({ getQueue: async () => ({ runCronNow: h.runCronNow }) }));
@@ -24,8 +24,8 @@ vi.mock("@/server/system-mail", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/server/system-mail")>();
   return { ...actual, sendAccountMail: (m: SystemMailMessage) => void h.sent.push(m) };
 });
-vi.mock("@millionsend/billing", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/billing")>();
+vi.mock("@posta/billing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/billing")>();
   return {
     ...actual,
     handleWebhook: async (...args: Parameters<typeof actual.handleWebhook>) => {

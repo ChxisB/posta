@@ -1,4 +1,4 @@
-import { clamavHost, env, receivingMxHost, sharedInboxDomain } from "@millionsend/config";
+import { clamavHost, env, receivingMxHost, sharedInboxDomain } from "@posta/config";
 import {
   deleteReceivedEmail,
   deriveReceivedDownloadKey,
@@ -15,8 +15,8 @@ import {
   releaseQuarantined,
   replyToReceivedEmail,
   signReceivedDownload,
-} from "@millionsend/core";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, asc, count, desc, eq, gte, inArray, or, type SQL, sql } from "drizzle-orm";
 import { z } from "zod";

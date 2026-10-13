@@ -1,7 +1,7 @@
 "use client";
 
-import type { RevealSpan } from "@millionsend/core/content-reveal";
-import type { TeamFlagDetail } from "@millionsend/db/schema";
+import type { RevealSpan } from "@posta/core/content-reveal";
+import type { TeamFlagDetail } from "@posta/db/schema";
 import { useLocale, useTranslations } from "next-intl";
 import { type DomainRegion, regionFlag } from "@/app/(dashboard)/domains/regions";
 import { Tooltip } from "@/components/tooltip";

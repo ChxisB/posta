@@ -1,4 +1,4 @@
-import { env, servedRegions } from "@millionsend/config";
+import { env, servedRegions } from "@posta/config";
 import {
   createRegionAccountCache,
   createSesAccountClient,
@@ -6,7 +6,7 @@ import {
   type RegionAccountCache,
   type RegionAccountDeps,
   regionAccountWithin,
-} from "@millionsend/ses";
+} from "@posta/ses";
 
 export type { RegionAccount, RegionAccountDeps };
 

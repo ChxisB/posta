@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
 import type { AddressInfo } from "node:net";
-import { EnvKeyring, generateApiKey, utcDay } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { EnvKeyring, generateApiKey, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { afterAll, beforeAll, expect, it } from "vitest";

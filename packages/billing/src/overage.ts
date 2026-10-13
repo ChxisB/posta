@@ -1,5 +1,5 @@
-import { DAY_MS, teamRung } from "@millionsend/core";
-import { schema } from "@millionsend/db";
+import { DAY_MS, teamRung } from "@posta/core";
+import { schema } from "@posta/db";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import type { BillingDeps } from "./checkout.js";
 import { METER_EVENT_NAME } from "./prices.js";

@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_TEXT_MAX } from "@millionsend/core/customer-text";
+import { CUSTOMER_TEXT_MAX } from "@posta/core/customer-text";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

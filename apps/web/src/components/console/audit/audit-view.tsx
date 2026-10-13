@@ -1,6 +1,6 @@
 "use client";
 
-import { AUDIT_ACTIONS, type AuditAction } from "@millionsend/core/audit-actions";
+import { AUDIT_ACTIONS, type AuditAction } from "@posta/core/audit-actions";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";

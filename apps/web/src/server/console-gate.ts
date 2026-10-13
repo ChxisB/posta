@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { getDb } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { getDb } from "@posta/db";
 import { getAuth } from "./auth";
 import { isInstanceOperator } from "./instance-operator";
 

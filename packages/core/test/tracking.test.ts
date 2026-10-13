@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { legacyClickToken } from "@millionsend/test-utils";
+import { legacyClickToken } from "@posta/test-utils";
 import { describe, expect, it } from "vitest";
 import {
   deriveTrackingKey,

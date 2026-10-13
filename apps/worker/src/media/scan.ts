@@ -23,7 +23,7 @@ import {
   UNNAMED_ATTACHMENT,
   urlsInText,
   visibleText,
-} from "@millionsend/core";
+} from "@posta/core";
 import { MediaPool, MediaPoolError, type ParseDepth, type ParsedFile } from "./pool.js";
 
 /**

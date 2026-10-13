@@ -1,5 +1,5 @@
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";

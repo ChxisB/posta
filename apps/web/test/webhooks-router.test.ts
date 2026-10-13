@@ -1,7 +1,7 @@
-import { WEBHOOK_EVENT_TYPES as CORE_WEBHOOK_EVENT_TYPES } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { WEBHOOK_EVENT_TYPES as CORE_WEBHOOK_EVENT_TYPES } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {

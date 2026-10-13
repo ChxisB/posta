@@ -30,10 +30,10 @@ import {
   WEBHOOK_MAX_AGE_MS,
   type WebhookEnqueue,
   warmupCap,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { affectedRows, keysetCursorWhere, schema } from "@millionsend/db";
-import { type EnqueueEmailSends, emailSendPriority } from "@millionsend/queue";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { affectedRows, keysetCursorWhere, schema } from "@posta/db";
+import { type EnqueueEmailSends, emailSendPriority } from "@posta/queue";
 import {
   checkDnsRecords,
   computeDomainVerification,
@@ -43,7 +43,7 @@ import {
   getDomainVerification,
   type SesIdentityClient,
   verificationDbPatch,
-} from "@millionsend/ses";
+} from "@posta/ses";
 import {
   and,
   asc,

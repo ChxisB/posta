@@ -1,4 +1,4 @@
-import { DOCS_URL, DOMAINS_DOCS_URL } from "@millionsend/core/docs-links";
+import { DOCS_URL, DOMAINS_DOCS_URL } from "@posta/core/docs-links";
 
 export { DOCS_URL };
 export const MCP_DOCS_URL = `${DOCS_URL}/mcp`;

@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { EnvKeyring, type MediaReview, sealMediaReview } from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import { EnvKeyring, type MediaReview, sealMediaReview } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";

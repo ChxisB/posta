@@ -1,8 +1,8 @@
-import type { Db } from "@millionsend/db";
+import type { Db } from "@posta/db";
 // Schema via the clean subpath, never the package barrel: the barrel pulls the
 // postgres driver (node:net), which breaks any client bundle that imports this
 // module's thresholds. The type-only Db import above is erased.
-import * as schema from "@millionsend/db/schema";
+import * as schema from "@posta/db/schema";
 import { and, eq, gte, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { DAY_MS, utcDay } from "./utc-day.js";

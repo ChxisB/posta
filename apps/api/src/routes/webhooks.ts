@@ -11,9 +11,9 @@ import {
   rotatedWebhookSecretColumns,
   rotationOverlapEnd,
   WEBHOOK_ROTATION_DEFAULT_OVERLAP_HOURS,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { type Env, errorBody, keysetPage } from "../app.js";
 import {

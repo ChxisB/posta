@@ -1,5 +1,5 @@
-import type { schema } from "@millionsend/db";
-import type { ReceivedHiddenText } from "@millionsend/db/schema";
+import type { schema } from "@posta/db";
+import type { ReceivedHiddenText } from "@posta/db/schema";
 import { formatMailbox } from "../sender-address.js";
 import type {
   DraftListItemWire,

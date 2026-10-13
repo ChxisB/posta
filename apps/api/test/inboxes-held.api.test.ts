@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import * as core from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+import * as core from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApi } from "../src/app.js";
 
@@ -12,8 +12,8 @@ import { createApi } from "../src/app.js";
  * faked here; their own tests cover what they do.
  */
 
-vi.mock("@millionsend/core", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@millionsend/core")>();
+vi.mock("@posta/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/core")>();
   return {
     ...actual,
     releaseQuarantined: vi.fn(),

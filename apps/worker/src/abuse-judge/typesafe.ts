@@ -1,4 +1,4 @@
-import type { AbuseJudgeConfig } from "@millionsend/config";
+import type { AbuseJudgeConfig } from "@posta/config";
 import {
   ABUSE_JUDGE_QUESTIONS,
   type AbuseJudge,
@@ -10,7 +10,7 @@ import {
   JudgeError,
   type JudgeVerdict,
   judgeState,
-} from "@millionsend/core";
+} from "@posta/core";
 
 export type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 

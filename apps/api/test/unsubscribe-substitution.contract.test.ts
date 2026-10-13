@@ -5,14 +5,14 @@ import {
   EnvKeyring,
   generateApiKey,
   verifyUnsubscribeToken,
-} from "@millionsend/core";
-import type { Db } from "@millionsend/db";
-import { schema } from "@millionsend/db";
-import { createTeam, createTestDb } from "@millionsend/test-utils";
+} from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
 import { Resend } from "resend";
 import { afterAll, beforeAll, expect, it } from "vitest";
 // The fan-out that performs the substitution lives in the worker; imported by
-// path because @millionsend/worker is an app without a package export map.
+// path because @posta/worker is an app without a package export map.
 import { sendBroadcast } from "../../worker/src/handlers/send-broadcast.js";
 import { createApi } from "../src/app.js";
 

@@ -1,16 +1,16 @@
-# @millionsend/setup
+# @tack-labs/posta-setup
 
 The self-hosting setup wizard for
 [MillionSend](https://github.com/MillionSend/millionsend). One command in an
 empty directory takes you from nothing to a running instance. Not to be
-confused with `@millionsend/cli`, the end-user CLI that talks to the
+confused with `@tack-labs/posta-cli`, the end-user CLI that talks to the
 MillionSend API (migrations from other providers).
 
 ```sh
-npx @millionsend/setup            # the wizard
-npx @millionsend/setup --dry-run  # print the full plan, touch nothing
-npx @millionsend/setup teardown   # delete the AWS resources it created
-npx @millionsend/setup add-region us-east-1   # a further SES region on an existing install
+npx @tack-labs/posta-setup            # the wizard
+npx @tack-labs/posta-setup --dry-run  # print the full plan, touch nothing
+npx @tack-labs/posta-setup teardown   # delete the AWS resources it created
+npx @tack-labs/posta-setup add-region us-east-1   # a further SES region on an existing install
 ```
 
 On an install that is already set up, a terminal run opens on a menu of next

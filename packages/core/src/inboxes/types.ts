@@ -1,4 +1,4 @@
-import { schema } from "@millionsend/db";
+import { schema } from "@posta/db";
 import type { InboxSafety } from "./safety.js";
 
 export const INBOX_NOT_FOUND_MESSAGE = "Inbox not found.";

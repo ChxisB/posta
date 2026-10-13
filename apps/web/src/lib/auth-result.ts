@@ -1,4 +1,4 @@
-import type { ReceivedAuthDetail } from "@millionsend/db/schema";
+import type { ReceivedAuthDetail } from "@posta/db/schema";
 import type { BadgeTone } from "@/components/status-badge";
 
 /** The checks the MX runs on every received message, in display order. */

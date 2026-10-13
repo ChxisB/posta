@@ -50,7 +50,7 @@ describe("tsx boot resolution (start.mjs spawn contract)", () => {
     }, 90_000);
   }
 
-  // The SDK is imported only once a DSN is set, from @millionsend/core's
+  // The SDK is imported only once a DSN is set, from @posta/core's
   // directory: resolve it the way production does. Nothing listens on the
   // DSN's port, so the boot failure it reports goes nowhere.
   for (const { pkg, entry } of ENTRYPOINTS.slice(0, 2)) {

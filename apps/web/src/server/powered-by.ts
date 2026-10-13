@@ -1,5 +1,5 @@
-import { isCloudDeployment } from "@millionsend/config";
-import { effectivePlan, type Plan, planCanHidePoweredBy } from "@millionsend/core";
+import { isCloudDeployment } from "@posta/config";
+import { effectivePlan, type Plan, planCanHidePoweredBy } from "@posta/core";
 
 /**
  * Whether "Powered by MillionSend" is forced onto the team's hosted

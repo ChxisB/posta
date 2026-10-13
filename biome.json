@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/dist", "!**/.next", "!**/drizzle/meta"]
+    "includes": ["**", "!**/dist", "!**/.next", "!**/drizzle/meta", "!packages/sdk"]
   },
   "formatter": {
     "enabled": true,
