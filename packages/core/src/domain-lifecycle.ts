@@ -1,4 +1,5 @@
 import { sharedInboxDomain } from "@posta/config";
+import { SITE_DOMAIN } from "@posta/config/site";
 import { type Db, schema } from "@posta/db";
 import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { parseSingleSender } from "./sender-address.js";
@@ -35,7 +36,7 @@ export const PUBLIC_MAILBOX_DOMAINS = [
 ] as const;
 
 /** The hosted product's own domain; a cloud tenant must never hold its SES identity. */
-export const PLATFORM_DOMAIN = "millionsend.com";
+export const PLATFORM_DOMAIN = SITE_DOMAIN;
 
 /** Creates per team per hour before the dashboard/API answer 429. */
 export const DOMAIN_CREATE_LIMIT_PER_HOUR = 10;

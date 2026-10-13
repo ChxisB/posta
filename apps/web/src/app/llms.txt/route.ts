@@ -1,10 +1,12 @@
+import { DOCS_URL, SITE_URL } from "@posta/config/site";
+
 const BODY = `# MillionSend
 
 > This host is the MillionSend dashboard (sign-in required). Documentation and product information live on the public hosts below.
 
-- Documentation index: https://docs.millionsend.com/llms.txt
-- Full documentation in one file: https://docs.millionsend.com/llms-full.txt
-- Product site: https://millionsend.com/llms.txt
+- Documentation index: ${DOCS_URL}/llms.txt
+- Full documentation in one file: ${DOCS_URL}/llms-full.txt
+- Product site: ${SITE_URL}/llms.txt
 `;
 
 export function GET(): Response {

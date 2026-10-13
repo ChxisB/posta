@@ -389,7 +389,7 @@ describe("domains.create", () => {
     await caller.domains.create({ name: "mail.ms-ops.dev", region: "us-east-1" });
 
     vi.stubEnv("IS_CLOUD", "true");
-    for (const name of ["millionsend.com", "app.millionsend.com", "mail.ms-ops.dev"]) {
+    for (const name of ["posta.example", "app.posta.example", "mail.ms-ops.dev"]) {
       await expect(caller.domains.create({ name, region: "us-east-1" })).rejects.toMatchObject({
         code: "BAD_REQUEST",
       });

@@ -1,3 +1,4 @@
+import { CLOUD_APP_URL } from "@posta/config/site";
 import { DOCS_URL, DOMAINS_DOCS_URL } from "@posta/core/docs-links";
 
 export { DOCS_URL };
@@ -7,6 +8,6 @@ export const SMTP_DOCS_URL = `${DOCS_URL}/smtp`;
 export const OPEN_TRACKING_DOCS_URL = `${DOMAINS_DOCS_URL}#open-rate-accuracy`;
 export const CONTENT_MONITORING_DOCS_URL = `${DOCS_URL}/self-hosting#content-monitoring-optional`;
 /** Public opt-in for product updates on the hosted cloud; a self-hosted instance only links here, tagged as such. */
-export const UPDATES_URL = "https://app.millionsend.com/updates?source=self-host";
+export const UPDATES_URL = `${CLOUD_APP_URL}/updates?source=self-host`;
 /** DB-IP, whose free databases give the console's IP networks and countries; CC BY 4.0 asks for this credit link. */
 export const IP_GEO_SOURCE_URL = "https://db-ip.com";

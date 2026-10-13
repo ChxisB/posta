@@ -63,4 +63,4 @@ not licensed under the AGPL.
 
 ## Community
 
-Questions, ideas and roadmap talk live in the [Discussions](https://github.com/orgs/MillionSend/discussions).
+Questions, ideas and roadmap talk live in the [Discussions](https://github.com/ChxisB/posta/discussions).

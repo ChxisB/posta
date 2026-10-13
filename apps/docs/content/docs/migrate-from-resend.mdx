@@ -16,7 +16,7 @@ guardrails (Resend read-only, keys never in files, ask before applying).
 
 <CopyPrompt href="/prompts/migrate-from-resend.md" copied="Copied">Copy the migration prompt</CopyPrompt>
 
-Or point the agent at it: `https://docs.millionsend.com/prompts/migrate-from-resend.md`.
+Or point the agent at it: `https://docs.posta.example/prompts/migrate-from-resend.md`.
 
 ## 1. Move your account
 
@@ -123,7 +123,7 @@ environment lines — no code changes:
 
 ```sh
 RESEND_API_KEY=ms_...
-RESEND_BASE_URL=https://api.millionsend.com
+RESEND_BASE_URL=https://api.posta.example
 ```
 
 Self-hosted, use your instance's API origin instead.
@@ -150,7 +150,7 @@ languages with the same surface:
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.millionsend.com" });
+const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
 ```
 
 ## 3. Finish what the CLI lists
@@ -176,7 +176,7 @@ it is verified (**Enable receiving** on its page), then choose which addresses
 take mail. Resend receives at every address of the domain; here that is
 **Catch-all**, on the same page (a paid plan on MillionSend Cloud), or else
 an [inbox](/concepts/inboxes) per address. Then change the domain's MX
-record from the one Resend gave you to `mx.millionsend-dns.com`
+record from the one Resend gave you to `mx.posta-dns.example`
 (self-hosted: your instance's `RECEIVING_MX_HOST`). Mail goes to the MX
 record with the lowest priority number, so that change is the cutover; what
 Resend already received stays there. Code calling

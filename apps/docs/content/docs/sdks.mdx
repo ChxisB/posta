@@ -5,8 +5,8 @@ description: Official MillionSend SDKs for nine languages, published under MIT.
 
 Every SDK mirrors the shape of the corresponding official Resend SDK, so
 migrating is mostly a find-and-replace: swap the import/class and point the
-base URL at MillionSend. All SDKs are MIT-licensed and live in their own
-repositories under the [MillionSend GitHub org](https://github.com/MillionSend).
+base URL at MillionSend. All SDKs are MIT-licensed and live in the main
+repository, under [`packages/sdk`](https://github.com/ChxisB/posta/tree/main/packages/sdk).
 
 Since the API is Resend wire-compatible, the official Resend SDKs also work —
 point them at MillionSend via their base-URL option (e.g. `RESEND_BASE_URL`).
@@ -18,7 +18,7 @@ From 0.9.0, every MillionSend SDK also covers
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`api.millionsend.com` — what every example on this page uses, and the default from SDK 0.5.0: with no base URL configured, an SDK talks to Cloud.
+`api.posta.example` — what every example on this page uses, and the default from SDK 0.5.0: with no base URL configured, an SDK talks to Cloud.
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -53,7 +53,7 @@ npm install millionsend
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_123", { baseUrl: "https://api.millionsend.com" });
+const ms = new MillionSend("ms_123", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
@@ -75,7 +75,7 @@ pip install millionsend
 import millionsend
 
 millionsend.api_key = "ms_123"
-millionsend.base_url = "https://api.millionsend.com"
+millionsend.base_url = "https://api.posta.example"
 
 email = millionsend.Emails.send({
     "from": "Acme <onboarding@acme.dev>",
@@ -87,15 +87,15 @@ email = millionsend.Emails.send({
 
 ## Go
 
-[`millionsend-go`](https://github.com/MillionSend/millionsend-go) — Go 1.21+.
+[`millionsend-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go) — Go 1.21+.
 
 ```sh
-go get github.com/MillionSend/millionsend-go
+go get github.com/ChxisB/posta/packages/sdk/go
 ```
 
 ```go
 client := millionsend.NewClient("ms_123")
-client.BaseURL = "https://api.millionsend.com"
+client.BaseURL = "https://api.posta.example"
 
 sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
     From:    "Acme <onboarding@acme.dev>",
@@ -117,7 +117,7 @@ gem install millionsend
 require "millionsend"
 
 Millionsend.api_key  = "ms_123"
-Millionsend.base_url = "https://api.millionsend.com"
+Millionsend.base_url = "https://api.posta.example"
 
 email = Millionsend::Emails.send(
   from: "Acme <onboarding@acme.dev>",
@@ -138,7 +138,7 @@ composer require millionsend/millionsend-php
 ```php
 use MillionSend\MillionSend;
 
-$ms = MillionSend::client('ms_123', 'https://api.millionsend.com');
+$ms = MillionSend::client('ms_123', 'https://api.posta.example');
 
 $email = $ms->emails->send([
     'from' => 'Acme <onboarding@acme.dev>',
@@ -162,7 +162,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```rust
 use millionsend::{MillionSend, SendEmailOptions};
 
-let ms = MillionSend::with_base_url("ms_123", "https://api.millionsend.com");
+let ms = MillionSend::with_base_url("ms_123", "https://api.posta.example");
 
 let sent = ms.emails.send(&SendEmailOptions {
     from: "Acme <onboarding@acme.dev>".into(),
@@ -186,7 +186,7 @@ let sent = ms.emails.send(&SendEmailOptions {
 ```
 
 ```java
-MillionSend ms = new MillionSend("ms_123", "https://api.millionsend.com");
+MillionSend ms = new MillionSend("ms_123", "https://api.posta.example");
 
 CreateEmailResponse sent = ms.emails().send(
     CreateEmailOptions.builder()
@@ -208,7 +208,7 @@ dotnet add package MillionSend
 ```csharp
 using MillionSend;
 
-var client = new MillionSendClient("ms_123", "https://api.millionsend.com");
+var client = new MillionSendClient("ms_123", "https://api.posta.example");
 
 var res = await client.EmailSendAsync(new EmailMessage
 {
@@ -233,7 +233,7 @@ end
 ```elixir
 config :millionsend, MillionSend.Client,
   api_key: System.get_env("POSTA_API_KEY"),
-  base_url: "https://api.millionsend.com"
+  base_url: "https://api.posta.example"
 
 {:ok, email} =
   MillionSend.Emails.send(%{

@@ -5,6 +5,6 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: "MillionSend Docs",
     },
-    githubUrl: "https://github.com/MillionSend/millionsend",
+    githubUrl: "https://github.com/ChxisB/posta",
   };
 }

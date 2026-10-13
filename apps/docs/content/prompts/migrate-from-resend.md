@@ -4,9 +4,9 @@ You are migrating an application from Resend to MillionSend. MillionSend's REST 
 
 ## Facts you can rely on
 
-- Cloud API base URL: `https://api.millionsend.com`. Self-hosted: the instance's own API origin (ask if it is not in the repo).
+- Cloud API base URL: `https://api.posta.example`. Self-hosted: the instance's own API origin (ask if it is not in the repo).
 - API keys start with `ms_` and are created in the dashboard under **API keys**. Use a full-access key for the migration and sending-access keys for production senders.
-- Documentation: https://docs.millionsend.com — append `.md` to any page URL for markdown, `/llms-full.txt` is everything in one file, `/openapi.json` is the OpenAPI 3.1 spec. The migration guide is https://docs.millionsend.com/migrate-from-resend.md and the CLI reference is https://docs.millionsend.com/cli.md.
+- Documentation: https://docs.posta.example — append `.md` to any page URL for markdown, `/llms-full.txt` is everything in one file, `/openapi.json` is the OpenAPI 3.1 spec. The migration guide is https://docs.posta.example/migrate-from-resend.md and the CLI reference is https://docs.posta.example/cli.md.
 - The migration CLI (`@tack-labs/posta-cli`) only ever reads from Resend (`GET` requests), keeps keys in memory, writes them to no file, and sends no telemetry.
 - Ids differ between providers: contacts are matched by email, everything else by name, key, alias or endpoint. The CLI's report carries an id map for topics and segments.
 
@@ -31,7 +31,7 @@ Plan first (read-only; exit code 2 means there are changes, 0 nothing to do, 1 a
 ```sh
 export RESEND_API_KEY=re_...
 export POSTA_API_KEY=ms_...
-export POSTA_BASE_URL=https://api.millionsend.com   # or the instance's URL
+export POSTA_BASE_URL=https://api.posta.example   # or the instance's URL
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
 ```
@@ -53,10 +53,10 @@ Choose one of the two, with the user:
 1. **Keep the Resend SDK.** Official Resend SDKs honor a base URL. Set, in every environment that sends:
    ```sh
    RESEND_API_KEY=ms_...
-   RESEND_BASE_URL=https://api.millionsend.com
+   RESEND_BASE_URL=https://api.posta.example
    ```
    Confirm the installed SDK version reads `RESEND_BASE_URL` (or its base URL constructor option) and replace any hardcoded `https://api.resend.com`.
-2. **Switch to the MillionSend SDK** for the language (npm `millionsend`, PyPI `millionsend`, Go `github.com/millionsend/millionsend-go`, Packagist `millionsend/millionsend`, RubyGems `millionsend`, Maven `com.millionsend:millionsend`, NuGet `MillionSend`, Hex `millionsend`). Each mirrors the Resend SDK's surface: swap the import and class name, pass the base URL through its option (`baseUrl`, `base_url`, `BaseURL`, ...). Details per language: https://docs.millionsend.com/sdks.md.
+2. **Switch to the MillionSend SDK** for the language (npm `millionsend`, PyPI `millionsend`, Go `github.com/ChxisB/posta/packages/sdk/go`, Packagist `millionsend/millionsend`, RubyGems `millionsend`, Maven `com.millionsend:millionsend`, NuGet `MillionSend`, Hex `millionsend`). Each mirrors the Resend SDK's surface: swap the import and class name, pass the base URL through its option (`baseUrl`, `base_url`, `BaseURL`, ...). Details per language: https://docs.posta.example/sdks.md.
    PHP: `MillionSend::client()` returns a `Client` that keeps its `HttpClient` private. For a request the SDK has no method for, construct `HttpClient` yourself with the same arguments the factory passes (read `MillionSend::client()` in the package): same package, same behavior, one level lower.
 
 Then fix what the report lists:
@@ -65,14 +65,14 @@ Then fix what the report lists:
 - Templates: MillionSend templates do not store `from` or `reply_to`; pass them on each send.
 - Webhooks: endpoint, events and signing secret were copied, so the existing receiver keeps verifying the `svix-*` headers. Event types MillionSend doesn't send (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) were dropped per webhook and are listed; remove or replace handlers for them. MillionSend sends `inbox.*` events only to endpoints that name them, never to "all events".
 - API keys cannot be migrated (Resend exposes their names only). Create one per name the report lists, in the dashboard, and place them in the matching environments.
-- Receiving: a receiving domain here takes mail only at its inboxes' addresses unless its **Catch-all** is on (domain page, or `PATCH /domains/{id}` with `{"receiving_catch_all": true}`; a paid plan on Cloud). If the code receives at arbitrary addresses, as on Resend, the user turns catch-all on before the MX cutover; otherwise each address needs an inbox. Ask which. Docs: https://docs.millionsend.com/concepts/receiving.md.
-- Inboxes: the account move does not create inboxes. Recreate each inbox the code uses with the same address (`POST /inboxes`), after its domain receives here. Inboxes created through a Resend SDK default to `kind: "agent"` (quarantine, screening, reply-only sending); inboxes read by people need `kind: "human"`, set over plain HTTP or in the dashboard. A reply, forward or draft send can answer `202` with a draft (`object: "inbox_draft"`) when the inbox's rules hold it: make the code handle that. Docs: https://docs.millionsend.com/concepts/inboxes.md.
+- Receiving: a receiving domain here takes mail only at its inboxes' addresses unless its **Catch-all** is on (domain page, or `PATCH /domains/{id}` with `{"receiving_catch_all": true}`; a paid plan on Cloud). If the code receives at arbitrary addresses, as on Resend, the user turns catch-all on before the MX cutover; otherwise each address needs an inbox. Ask which. Docs: https://docs.posta.example/concepts/receiving.md.
+- Inboxes: the account move does not create inboxes. Recreate each inbox the code uses with the same address (`POST /inboxes`), after its domain receives here. Inboxes created through a Resend SDK default to `kind: "agent"` (quarantine, screening, reply-only sending); inboxes read by people need `kind: "human"`, set over plain HTTP or in the dashboard. A reply, forward or draft send can answer `202` with a draft (`object: "inbox_draft"`) when the inbox's rules hold it: make the code handle that. Docs: https://docs.posta.example/concepts/inboxes.md.
 
 ## Step 4 — DNS, done by the user
 
 MillionSend uses its own DKIM keypair, so every domain needs new DNS records even if it already sends through Resend. The records are in the report and under **Domains** in the dashboard. Both providers can stay verified side by side. Do not switch traffic until each domain reads **Verified**.
 
-A domain that receives mail moves with its MX record: once receiving is on here and catch-all or the inboxes are set up (step 3), the user points the MX at `mx.millionsend-dns.com` (self-hosted: the instance's `RECEIVING_MX_HOST`). That change is the receiving cutover; mail Resend already received stays there.
+A domain that receives mail moves with its MX record: once receiving is on here and catch-all or the inboxes are set up (step 3), the user points the MX at `mx.posta-dns.example` (self-hosted: the instance's `RECEIVING_MX_HOST`). That change is the receiving cutover; mail Resend already received stays there.
 
 ## Step 5 — Cut over and verify
 

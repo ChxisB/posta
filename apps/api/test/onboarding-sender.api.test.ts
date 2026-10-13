@@ -11,7 +11,7 @@ const RESERVED = {
   statusCode: 422,
   name: "reserved_sender",
   message:
-    "hello@ms.example is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: https://docs.millionsend.com/concepts/domains",
+    "hello@ms.example is reserved for MillionSend's own onboarding email. Add and verify a domain to send your own emails: https://docs.posta.example/concepts/domains",
 };
 
 let db: Db;

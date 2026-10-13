@@ -178,7 +178,7 @@ ativar o recebimento é recusado com `422`.
 
 Com o recebimento ligado, `records[]` inclui uma linha `Receiving`: um
 registro MX no próprio nome do domínio apontando para
-`mx.millionsend-dns.com` (na auto-hospedagem, o `RECEIVING_MX_HOST` da
+`mx.posta-dns.example` (na auto-hospedagem, o `RECEIVING_MX_HOST` da
 instância), prioridade `10`.
 
 ```json
@@ -188,7 +188,7 @@ instância), prioridade `10`.
   "type": "MX",
   "ttl": "Auto",
   "status": "verified",
-  "value": "mx.millionsend-dns.com",
+  "value": "mx.posta-dns.example",
   "priority": 10,
   "live": "found"
 }

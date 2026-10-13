@@ -61,7 +61,7 @@ function makeApp(overrides: Partial<ApiDeps> = {}) {
     },
     publicApiUrl: API_BASE,
     receivedDownloadKey: downloadKey,
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: SECRET },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: SECRET },
     inboxKeys,
     ...overrides,
   });

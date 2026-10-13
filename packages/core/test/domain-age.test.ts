@@ -209,7 +209,7 @@ describe("WHOIS from the registry IANA refers to", () => {
     const { r, web } = resolver(
       {
         "https://crt.sh/?q=google.de&output=json": {
-          body: fixture("crt.sh-millionsend.com.json"),
+          body: fixture("crt.sh-example.com.json"),
         },
       },
       { ...IANA, "whois.denic.de google.de": fixture("whois-google.de.txt") },
@@ -237,7 +237,7 @@ describe("WHOIS from the registry IANA refers to", () => {
 
 describe("Certificate Transparency", () => {
   it("takes the first certificate and spaces crt.sh requests", async () => {
-    const ct = { body: fixture("crt.sh-millionsend.com.json") };
+    const ct = { body: fixture("crt.sh-example.com.json") };
     const { r, slept } = resolver(
       {
         "https://crt.sh/?q=google.de&output=json": ct,
@@ -429,7 +429,7 @@ describe("recordDomainAge", () => {
     const rdapUrl = "https://rdap.verisign.com/com/v1/domain/example.com";
     const routes: Record<string, Route> = {
       [rdapUrl]: { body: fixture("rdap-example.com.json") },
-      "https://crt.sh/?q=example.com&output=json": { body: fixture("crt.sh-millionsend.com.json") },
+      "https://crt.sh/?q=example.com&output=json": { body: fixture("crt.sh-example.com.json") },
     };
     const { r } = resolver(routes, {});
     await recordDomainAge(db, r, domain.id, new Date("2026-10-09T13:00:00Z"));

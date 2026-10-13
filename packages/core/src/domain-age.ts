@@ -1,4 +1,5 @@
 import { connect } from "node:net";
+import { SITE_URL } from "@posta/config/site";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, asc, eq, isNull, lt, sql } from "drizzle-orm";
@@ -17,7 +18,7 @@ import { DAY_MS } from "./utc-day.js";
  */
 
 /** Names MillionSend to every registry and log it asks. */
-export const DOMAIN_AGE_USER_AGENT = "Posta-domain-age/1.0 (+https://posta.example)";
+export const DOMAIN_AGE_USER_AGENT = `Posta-domain-age/1.0 (+${SITE_URL})`;
 
 export const RDAP_BOOTSTRAP_URL = "https://data.iana.org/rdap/dns.json";
 

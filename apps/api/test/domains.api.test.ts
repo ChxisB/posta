@@ -506,7 +506,7 @@ describe("POST /domains in cloud (shared AWS account)", () => {
   it("422s public mailbox providers everywhere and platform/system-mail domains in cloud", async () => {
     const authEmailFrom = "MillionSend <no-reply@mail.ms-ops.dev>";
     const cloud = makeApp({ ...fakeSes(), isCloud: true, authEmailFrom });
-    for (const name of ["gmail.com", "millionsend.com", "mail.ms-ops.dev"]) {
+    for (const name of ["gmail.com", "posta.example", "mail.ms-ops.dev"]) {
       const res = await call(cloud, fullKey, "POST", "/domains", { name });
       expect(res.status, name).toBe(422);
     }
@@ -1215,7 +1215,7 @@ describe("DELETE /domains/{id}", () => {
 });
 
 describe("capabilities.receiving", () => {
-  const receiving = { mxHost: "mx.millionsend.test", ingestSecret: "s".repeat(32) };
+  const receiving = { mxHost: "mx.posta.test", ingestSecret: "s".repeat(32) };
   const verify = (id: string) =>
     db.update(schema.domains).set({ status: "verified" }).where(eq(schema.domains.id, id));
   const receivingRecord = (body: { records: { record: string }[] }) =>
@@ -1264,7 +1264,7 @@ describe("capabilities.receiving", () => {
       type: "MX",
       ttl: "Auto",
       status: "not_started",
-      value: "mx.millionsend.test",
+      value: "mx.posta.test",
       priority: 10,
       live: "missing",
       detail: "No MX record at this name.",
@@ -1273,7 +1273,7 @@ describe("capabilities.receiving", () => {
     // Another MX ahead of ours means mail never reaches it.
     mx = [
       { priority: 5, exchange: "aspmx.l.google.com" },
-      { priority: 10, exchange: "mx.millionsend.test" },
+      { priority: 10, exchange: "mx.posta.test" },
     ];
     const shadowed = (await (await call(app, fullKey, "GET", `/domains/${id}`)).json()) as {
       records: { record: string }[];
@@ -1281,10 +1281,10 @@ describe("capabilities.receiving", () => {
     expect(receivingRecord(shadowed)).toMatchObject({
       status: "failed",
       live: "mismatch",
-      detail: expect.stringContaining("5 aspmx.l.google.com, 10 mx.millionsend.test"),
+      detail: expect.stringContaining("5 aspmx.l.google.com, 10 mx.posta.test"),
     });
 
-    mx = [{ priority: 10, exchange: "MX.millionsend.test." }];
+    mx = [{ priority: 10, exchange: "MX.posta.test." }];
     const live = (await (await call(app, fullKey, "POST", `/domains/${id}/verify`)).json()) as {
       records: { record: string }[];
     };
@@ -1432,7 +1432,7 @@ describe("POST /domains and teams suspended for phishing", () => {
 });
 
 describe("receiving_catch_all", () => {
-  const receiving = { mxHost: "mx.millionsend.test", ingestSecret: "s".repeat(32) };
+  const receiving = { mxHost: "mx.posta.test", ingestSecret: "s".repeat(32) };
   const receivingDomain = async (app: ReturnType<typeof createApi>, name: string) => {
     const { id } = await createDomain(app, name);
     await db

@@ -17,7 +17,7 @@ O endpoint MCP (Streamable HTTP) fica em `/mcp` na origem da API:
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`https://api.millionsend.com/mcp`
+`https://api.posta.example/mcp`
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -35,7 +35,7 @@ exata em **Configurações → MCP**.
 <Tab value="Claude Code">
 
 ```sh
-claude mcp add --transport http posta https://api.millionsend.com/mcp
+claude mcp add --transport http posta https://api.posta.example/mcp
 ```
 
 Isso registra o servidor só no projeto atual; adicione `--scope user` para
@@ -57,7 +57,7 @@ então o `mcp-remote` faz a ponte para o endpoint HTTP:
   "mcpServers": {
     "posta": {
       "command": "npx",
-      "args": ["-y", "mcp-remote@0.8.2", "https://api.millionsend.com/mcp"]
+      "args": ["-y", "mcp-remote@0.8.2", "https://api.posta.example/mcp"]
     }
   }
 }
@@ -70,7 +70,7 @@ então o `mcp-remote` faz a ponte para o endpoint HTTP:
 {
   "mcpServers": {
     "posta": {
-      "url": "https://api.millionsend.com/mcp"
+      "url": "https://api.posta.example/mcp"
     }
   }
 }
@@ -86,7 +86,7 @@ Salve no projeto, ou em `~/.cursor/mcp.json` para todos os projetos.
   "servers": {
     "posta": {
       "type": "http",
-      "url": "https://api.millionsend.com/mcp"
+      "url": "https://api.posta.example/mcp"
     }
   }
 }
@@ -95,7 +95,7 @@ Salve no projeto, ou em `~/.cursor/mcp.json` para todos os projetos.
 </Tab>
 </Tabs>
 
-Auto-hospedado: troque `https://api.millionsend.com/mcp` pela URL do servidor
+Auto-hospedado: troque `https://api.posta.example/mcp` pela URL do servidor
 da sua instância, mostrada acima.
 
 ## Autenticação
@@ -136,7 +136,7 @@ segredo fica na configuração do cliente.
   pela API REST.
 - O servidor MCP está disponível em todos os planos, inclusive o Free.
 
-Dúvidas ou problemas ao conectar um cliente: [support@millionsend.com](mailto:support@millionsend.com).
+Dúvidas ou problemas ao conectar um cliente: [support@posta.example](mailto:support@posta.example).
 
 ## Ferramentas
 

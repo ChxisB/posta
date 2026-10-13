@@ -220,7 +220,7 @@ describe("system mail catalogs and customer text", () => {
           const mail = buildAccountMail({ kind, locale, url, values });
           const where = `${locale} ${kind} ${JSON.stringify(lure)}`;
           expect(
-            mailLinks(mail).filter((link) => link !== url && link !== "https://millionsend.com"),
+            mailLinks(mail).filter((link) => link !== url && link !== "https://posta.example"),
             where,
           ).toEqual([]);
           expect(`${mail.subject}${mail.html}${mail.text}`, where).not.toMatch(
@@ -278,7 +278,7 @@ describe("system mail catalogs and customer text", () => {
         '"Newsletter 09/10/2026" was handed to 2 contacts of Turma 2025-2026;',
       );
     }
-    expect(mailLinks(mail).sort()).toEqual([url, "https://millionsend.com"].sort());
+    expect(mailLinks(mail).sort()).toEqual([url, "https://posta.example"].sort());
   });
 
   it("reads a domain-like team name as written", () => {
@@ -293,7 +293,7 @@ describe("system mail catalogs and customer text", () => {
     expect(readable(mail.text)).toContain("a member of acme.dev.");
     expect(readable(mail.html)).toContain("a member of acme.dev.");
     expect(mailLinks(mail).sort()).toEqual(
-      ["https://app.example/settings", "https://millionsend.com"].sort(),
+      ["https://app.example/settings", "https://posta.example"].sort(),
     );
   });
 });

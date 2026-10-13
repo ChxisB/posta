@@ -19,23 +19,23 @@ it("receiving exists only when RECEIVING_MX_HOST is set", () => {
   expect(receivingMxHost(fakeEnv({}))).toBeUndefined();
   // Under SKIP_ENV_VALIDATION an empty value arrives as "".
   expect(receivingEnabled(fakeEnv({ RECEIVING_MX_HOST: "" }))).toBe(false);
-  const on = fakeEnv({ RECEIVING_MX_HOST: "mx.millionsend-dns.com", MX_INGEST_SECRET: SECRET });
+  const on = fakeEnv({ RECEIVING_MX_HOST: "mx.posta-dns.example", MX_INGEST_SECRET: SECRET });
   expect(receivingEnabled(on)).toBe(true);
-  expect(receivingMxHost(on)).toBe("mx.millionsend-dns.com");
+  expect(receivingMxHost(on)).toBe("mx.posta-dns.example");
 });
 
 it("boots with receiving fully configured or not at all", () => {
   expect(() => assertEnvConsistency(fakeEnv({}))).not.toThrow();
   expect(() =>
     assertEnvConsistency(
-      fakeEnv({ RECEIVING_MX_HOST: "mx.millionsend-dns.com", MX_INGEST_SECRET: SECRET }),
+      fakeEnv({ RECEIVING_MX_HOST: "mx.posta-dns.example", MX_INGEST_SECRET: SECRET }),
     ),
   ).not.toThrow();
 });
 
 it("rejects a partial receiving configuration either way round", () => {
   expect(() =>
-    assertEnvConsistency(fakeEnv({ RECEIVING_MX_HOST: "mx.millionsend-dns.com" })),
+    assertEnvConsistency(fakeEnv({ RECEIVING_MX_HOST: "mx.posta-dns.example" })),
   ).toThrow("RECEIVING_MX_HOST and MX_INGEST_SECRET must be set together");
   expect(() => assertEnvConsistency(fakeEnv({ MX_INGEST_SECRET: SECRET }))).toThrow(
     "RECEIVING_MX_HOST and MX_INGEST_SECRET must be set together",
@@ -45,7 +45,7 @@ it("rejects a partial receiving configuration either way round", () => {
 it("rejects an ingest secret under 32 characters and an MX host that is not a hostname", () => {
   expect(() =>
     assertEnvConsistency(
-      fakeEnv({ RECEIVING_MX_HOST: "mx.millionsend-dns.com", MX_INGEST_SECRET: SECRET.slice(1) }),
+      fakeEnv({ RECEIVING_MX_HOST: "mx.posta-dns.example", MX_INGEST_SECRET: SECRET.slice(1) }),
     ),
   ).toThrow("MX_INGEST_SECRET must be at least 32 characters");
   for (const host of ["https://mx.example.com", "MX.example.com", "mx", "mx.example.com."]) {
@@ -56,7 +56,7 @@ it("rejects an ingest secret under 32 characters and an MX host that is not a ho
 });
 
 describe("the shared inbox domain", () => {
-  const receiving = { RECEIVING_MX_HOST: "mx.millionsend-dns.com", MX_INGEST_SECRET: SECRET };
+  const receiving = { RECEIVING_MX_HOST: "mx.posta-dns.example", MX_INGEST_SECRET: SECRET };
   const cloud = {
     IS_CLOUD: true,
     KMS_KEY_ID: "key",
@@ -93,10 +93,10 @@ describe("the shared inbox domain", () => {
       ).toThrow("SHARED_INBOX_DOMAIN must be a lowercase hostname");
     }
     for (const domain of [
-      "millionsend.com",
-      "agents.millionsend.com",
-      "millionsend-dns.com",
-      "a.millionsend-dns.com",
+      "posta.example",
+      "agents.posta.example",
+      "posta-dns.example",
+      "a.posta-dns.example",
     ]) {
       expect(() =>
         assertEnvConsistency(fakeEnv({ ...receiving, ...cloud, SHARED_INBOX_DOMAIN: domain })),
@@ -104,9 +104,7 @@ describe("the shared inbox domain", () => {
     }
     // A self-host operator may run it anywhere it owns.
     expect(() =>
-      assertEnvConsistency(
-        fakeEnv({ ...receiving, SHARED_INBOX_DOMAIN: "agents.millionsend.com" }),
-      ),
+      assertEnvConsistency(fakeEnv({ ...receiving, SHARED_INBOX_DOMAIN: "agents.posta.example" })),
     ).not.toThrow();
   });
 });

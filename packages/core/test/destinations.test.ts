@@ -38,13 +38,13 @@ describe("a message's destinations", () => {
           '<a href="https://shop.pages.dev/">free host</a>',
           '<a href="https://other.pages.dev/">another on it</a>',
           '<a href="mailto:help@acme.com.br">mail</a>',
-          '<a href="https://app.millionsend.com/unsubscribe/t">unsubscribe</a>',
+          '<a href="https://app.posta.example/unsubscribe/t">unsubscribe</a>',
           '<a href="/relative">relative</a>',
         ].join(""),
         text: "Or open https://bit.ly/abc today.",
         replyTo: ["Support <help@reply-desk.io>"],
         verifiedDomains: ["mail.acme.com.br"],
-        ignore: new Set(["millionsend.com"]),
+        ignore: new Set(["posta.example"]),
       }),
     ).toEqual(["bit.ly", "evil-pay.com", "other.pages.dev", "reply-desk.io", "shop.pages.dev"]);
   });

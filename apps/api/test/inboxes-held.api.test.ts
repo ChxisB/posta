@@ -99,7 +99,7 @@ beforeAll(async () => {
     keyring: core.EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
     isCloud: true,
     enqueueEmailSend: async () => {},
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: "s".repeat(40) },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: "s".repeat(40) },
   });
 });
 afterAll(() => close());

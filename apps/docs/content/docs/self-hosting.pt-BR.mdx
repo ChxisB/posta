@@ -7,7 +7,7 @@ O MillionSend auto-hospedado envia pela sua própria conta AWS SES. Uma
 implantação são dois contêineres: Postgres e um contêiner de app rodando a
 API (porta 3001), o worker e o painel web (porta 3000). Um terceiro contêiner
 opcional roda o relay SMTP (porta 2587). (Prefere não operar infraestrutura?
-O [MillionSend Cloud](https://millionsend.com) é a mesma plataforma,
+O [MillionSend Cloud](https://posta.example) é a mesma plataforma,
 hospedada.)
 
 **Pré-requisitos:** Docker com Compose; uma conta AWS com acesso ao SES na
@@ -104,8 +104,8 @@ Atualizações automáticas, para um host que só consegue sair para a internet
 Para quem contribui, ou quando você quer modificar o código:
 
 ```sh
-git clone https://github.com/MillionSend/millionsend.git
-cd millionsend
+git clone https://github.com/ChxisB/posta.git
+cd posta
 cp .env.example .env   # preencha como no início rápido
 docker compose up --build -d
 ```
@@ -527,7 +527,7 @@ verificado, ligue o pega-tudo dele ou crie uma caixa de entrada nele, publique
 o registro MX dele e mande uma mensagem para ele.
 
 Para rodar o MX em outro host, use o
-[`deploy/mx`](https://github.com/MillionSend/millionsend/tree/main/deploy/mx)
+[`deploy/mx`](https://github.com/ChxisB/posta/tree/main/deploy/mx)
 do repositório com `MX_INGEST_URL` (a origem da sua API mais
 `/internal/mx`), `MX_HOSTNAME` e o mesmo `MX_INGEST_SECRET`. Aí as entregas
 chegam à API pelo seu proxy reverso: uma mensagem pode ter 40 MB, então o
@@ -1023,13 +1023,13 @@ cadastro por senha não recebe sessão até o link enviado ser aberto; contas
 anteriores confirmam no próximo login. Onde a instância confirma e-mails, o
 e-mail do onboarding só vai para um proprietário que confirmou.
 
-Nada em uma instância auto-hospedada contata millionsend.com por conta
+Nada em uma instância auto-hospedada contata posta.example por conta
 própria. O assistente de configuração oferece, uma vez e só de forma
 interativa, inscrever o e-mail do operador nas notas de lançamento do
 MillionSend; é o assistente na sua máquina enviando a sua resposta, e um link
 de confirmação chega antes de qualquer coisa ser armazenada. Quando não
-consegue alcançar millionsend.com, ele imprime a página,
-[app.millionsend.com/updates?source=self-host](https://app.millionsend.com/updates?source=self-host), e **Configurações →
+consegue alcançar posta.example, ele imprime a página,
+[app.posta.example/updates?source=self-host](https://app.posta.example/updates?source=self-host), e **Configurações →
 Instância** leva à mesma página; o `source` marca você como auto-hospedado
 nos dois casos.
 

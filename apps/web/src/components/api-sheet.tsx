@@ -1,5 +1,6 @@
 "use client";
 
+import { CLOUD_API_URL } from "@posta/config/site";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {
@@ -327,7 +328,7 @@ MillionSend.Emails.send(client, %{
    language tabs; the rest have no SDK surface to document, so they carry
    copy-ready `curl` calls (paths mirror apps/api exactly: /contact-properties,
    /domains, /api-keys, /webhooks). */
-const API_BASE = "https://api.millionsend.com";
+const API_BASE = CLOUD_API_URL;
 const AUTH = `-H "Authorization: Bearer ms_xxxxxxxxx"`;
 const JSON_CT = `-H "Content-Type: application/json"`;
 const SAMPLE_ID = "4ef9a417-02e9-4d39-ad75-9611e0fcc33c";

@@ -34,7 +34,7 @@ export default async function Page(props: PageParams) {
       <PageActions
         markdownUrl={markdownUrl}
         markdownHref={absoluteUrl(markdownUrl)}
-        githubUrl={`https://github.com/MillionSend/millionsend/blob/main/apps/docs/content/docs/${page.path}`}
+        githubUrl={`https://github.com/ChxisB/posta/blob/main/apps/docs/content/docs/${page.path}`}
         labels={pageActionLabels(lang)}
       />
       <DocsBody>

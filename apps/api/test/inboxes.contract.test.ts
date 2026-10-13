@@ -44,7 +44,7 @@ beforeAll(async () => {
     keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
     isCloud: true,
     enqueueEmailSend: async () => {},
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: "c".repeat(40) },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: "c".repeat(40) },
     inboxKeys: deriveInboxKeys(randomBytes(32)),
   });
   await new Promise<void>((resolve) => {

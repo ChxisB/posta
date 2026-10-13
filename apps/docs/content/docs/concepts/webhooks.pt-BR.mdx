@@ -238,7 +238,7 @@ Resend o retorna em `GET /webhooks/{id}`) e crie o endpoint aqui com o mesmo
 valor:
 
 ```sh
-curl -X POST "https://api.millionsend.com/webhooks" \
+curl -X POST "https://api.posta.example/webhooks" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -264,7 +264,7 @@ assina. `0` descarta o antigo na hora, para um segredo vazado.
 e uma segunda rotação dentro da janela substitui o segredo anterior.
 
 ```sh
-curl -X POST "https://api.millionsend.com/webhooks/{id}/rotate" \
+curl -X POST "https://api.posta.example/webhooks/{id}/rotate" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -d '{ "overlap_hours": 24 }'

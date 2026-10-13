@@ -88,7 +88,7 @@ const PORTS = {
 };
 const API = `http://127.0.0.1:${PORTS.api}`;
 const APP_BASE_URL = `http://127.0.0.1:${PORTS.app}`;
-const MX_HOST = "mx.millionsend-dns.com";
+const MX_HOST = "mx.posta-dns.example";
 const PG_CONTAINER = "ms-recv-e2e-pg";
 const DATABASE_URL = `postgres://posta:e2e@127.0.0.1:${PORTS.pg}/posta`;
 const KMS_KEY_ID = "arn:aws:kms:us-east-1:000000000000:key/00000000-0000-4000-8000-0000000e2e00";
@@ -903,13 +903,13 @@ try {
     "mx boots with only MX_* variables; EHLO offers STARTTLS and SIZE, no AUTH",
     async (note) => {
       note(`mx env keys: ${Object.keys(mxEnv).sort().join(", ")}`);
-      assert.match(logs.mx, /"event":"tls_loaded","subject":"CN=mx\.millionsend-dns\.com"/);
+      assert.match(logs.mx, /"event":"tls_loaded","subject":"CN=mx\.posta-dns\.example"/);
       assert.doesNotMatch(logs.mx, /migrat/i, "the mx container runs no migrations");
       const s = await dialog();
       note(`greeting: ${s.greeting}`);
       const ehlo = await s.cmd(`EHLO client.${SENDER}`);
       note(`EHLO: ${ehlo.replace(/\r?\n/g, " | ")}`);
-      assert.match(s.greeting, /^220 mx\.millionsend-dns\.com/);
+      assert.match(s.greeting, /^220 mx\.posta-dns\.example/);
       assert.match(ehlo, /STARTTLS/);
       assert.match(ehlo, new RegExp(`SIZE ${MAX_RECEIVED_MESSAGE_BYTES}`));
       assert.doesNotMatch(ehlo, /AUTH/);

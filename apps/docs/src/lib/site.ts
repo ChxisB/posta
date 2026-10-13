@@ -8,7 +8,7 @@ type DocsPage = InferPageType<typeof source>;
 // Every absolute URL (metadata, sitemap, llms.txt) derives from this rather
 // than the incoming request: the production proxy forwards Host as
 // localhost:<port>, so request.url would leak that into public links.
-export const DOCS_ORIGIN = "https://docs.millionsend.com";
+export const DOCS_ORIGIN = "https://docs.posta.example";
 
 export function absoluteUrl(path: string): string {
   return new URL(path, DOCS_ORIGIN).href;

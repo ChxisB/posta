@@ -193,7 +193,7 @@ it("names contributing teams called like lures with no link but the console's", 
     url,
   });
   expect(
-    mailLinks(mail).filter((link) => link !== url && link !== "https://millionsend.com"),
+    mailLinks(mail).filter((link) => link !== url && link !== "https://posta.example"),
   ).toEqual([]);
 });
 

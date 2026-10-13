@@ -3,7 +3,7 @@ title: Início rápido
 description: Obtenha o MillionSend e envie seu primeiro e-mail em poucos minutos.
 ---
 
-O MillionSend funciona igual no [MillionSend Cloud](https://millionsend.com)
+O MillionSend funciona igual no [MillionSend Cloud](https://posta.example)
 e na sua própria infraestrutura — mesmo painel, mesma API, mesmos SDKs.
 Escolha sua implantação abaixo; as abas lembram sua escolha em toda a
 documentação.
@@ -13,10 +13,10 @@ documentação.
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-Cadastre-se em [millionsend.com](https://millionsend.com). Só isso — sem
+Cadastre-se em [posta.example](https://posta.example). Só isso — sem
 infraestrutura, sem conta AWS. O painel fica em
-[millionsend.com](https://millionsend.com) e a API em
-`api.millionsend.com`.
+[posta.example](https://posta.example) e a API em
+`api.posta.example`.
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -75,7 +75,7 @@ Sua URL base da API:
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`https://api.millionsend.com`
+`https://api.posta.example`
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -91,7 +91,7 @@ exemplos abaixo usam a URL da Nuvem; troque pela sua.
 Com curl:
 
 ```sh
-curl -X POST https://api.millionsend.com/emails \
+curl -X POST https://api.posta.example/emails \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -107,7 +107,7 @@ Ou com o SDK de Node (`npm install millionsend`):
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.millionsend.com" });
+const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",

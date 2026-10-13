@@ -13,7 +13,7 @@ código. A especificação bruta está em [/openapi.json](/openapi.json)
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`https://api.millionsend.com`
+`https://api.posta.example`
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -170,7 +170,7 @@ deliberadas e explícitas:
   `@` é rejeitado, e endereços aceitos voltam na forma canônica
   `Nome <usuario@host>`.
 - O remetente de onboarding da instância (`ONBOARDING_EMAIL_FROM`;
-  `hello@mail.millionsend.com` na nuvem) leva só o e-mail de onboarding do
+  `hello@mail.posta.example` na nuvem) leva só o e-mail de onboarding do
   próprio MillionSend: como `from` em `POST /emails`, `POST /emails/batch` ou
   no envio de uma transmissão ele é recusado com `422 reserved_sender`, com
   qualquer caixa de letras e qualquer nome de exibição. Envie de um domínio que

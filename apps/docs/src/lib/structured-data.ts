@@ -16,7 +16,7 @@ const WEBSITE = {
 const PUBLISHER = {
   "@type": "Organization",
   name: "MillionSend",
-  url: "https://millionsend.com",
+  url: "https://posta.example",
 };
 
 /** schema.org entities for a page: WebSite on the home, TechArticle + BreadcrumbList elsewhere. */

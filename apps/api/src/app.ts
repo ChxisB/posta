@@ -1,5 +1,6 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { CLOUD_API_URL } from "@posta/config/site";
 import {
   type AcceptEmailPayload,
   type AcceptEmailResult,
@@ -3429,7 +3430,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     // Servers drive the docs playground's target picker: Cloud first (docs
     // convention), then a variable entry self-hosters point at their origin.
     servers: [
-      { url: "https://api.millionsend.com", description: "MillionSend Cloud" },
+      { url: CLOUD_API_URL, description: "MillionSend Cloud" },
       {
         url: "{baseUrl}",
         description: "Self-hosted instance",

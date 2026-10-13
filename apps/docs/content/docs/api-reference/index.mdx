@@ -12,7 +12,7 @@ definitions at build time, so they always reflect the code. The raw spec is at
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`https://api.millionsend.com`
+`https://api.posta.example`
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -161,7 +161,7 @@ remaining deltas are deliberate and loud:
   must be a single mailbox — a display name containing `@` is rejected, and
   accepted addresses read back in canonical `Name <user@host>` form.
 - The instance's onboarding sender (`ONBOARDING_EMAIL_FROM`;
-  `hello@mail.millionsend.com` on the cloud) carries only MillionSend's own
+  `hello@mail.posta.example` on the cloud) carries only MillionSend's own
   onboarding email: as `from` on `POST /emails`, `POST /emails/batch` or a
   broadcast send it is refused with `422 reserved_sender`, in any letter case
   and with any display name. Send from a domain you

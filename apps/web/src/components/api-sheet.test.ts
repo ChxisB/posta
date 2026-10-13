@@ -44,7 +44,7 @@ describe("RESOURCE_SHEETS", () => {
       it(`${resource}: every curl snippet is an authenticated call to the public API`, () => {
         for (const section of sheet.sections) {
           const code = sheet.curl[section];
-          expect(code, `${resource}.${section}`).toContain("https://api.millionsend.com/");
+          expect(code, `${resource}.${section}`).toContain("https://api.posta.example/");
           expect(code, `${resource}.${section}`).toContain("Authorization: Bearer ms_");
         }
       });

@@ -44,7 +44,7 @@ const goldenTarget: TargetState = {
     limits: { emailsPerDay: 100, emailsPerMonth: null, domains: 1, contacts: 1000 },
     today: { emailsSent: 0 },
     period: null,
-    appUrl: "https://app.millionsend.com",
+    appUrl: "https://app.posta.example",
   },
   domains: [
     { id: "d1", name: "example.com", region: "us-east-1", status: "verified", records: [] },
@@ -86,7 +86,7 @@ const options = (overrides: Partial<PlanOptions> = {}): PlanOptions => ({
   freshWebhookSecrets: false,
   rps: 8,
   sourceRequestsSpent: 40,
-  baseUrl: "https://api.millionsend.com",
+  baseUrl: "https://api.posta.example",
   now: new Date("2026-09-01T12:00:00Z"),
   ...overrides,
 });
@@ -173,7 +173,7 @@ describe("buildPlan + renderPlan (golden)", () => {
       version: 1,
       createdAt: "2026-09-01T12:00:00.000Z",
       source: "resend",
-      target: { baseUrl: "https://api.millionsend.com", cloud: true, plan: "free" },
+      target: { baseUrl: "https://api.posta.example", cloud: true, plan: "free" },
       rps: 8,
     });
     expect(plan.manual).toHaveLength(11);

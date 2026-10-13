@@ -25,8 +25,7 @@ afterEach(() => {
 /** Links a mail carries that are not the instance's own pages, docs or wordmark. */
 function foreignLinks(mail: SystemMailMessage): string[] {
   return mailLinks(mail).filter(
-    (link) =>
-      !link.startsWith(`${BASE}/`) && link !== DOCS_URL && link !== "https://millionsend.com",
+    (link) => !link.startsWith(`${BASE}/`) && link !== DOCS_URL && link !== "https://posta.example",
   );
 }
 

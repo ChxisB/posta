@@ -62,7 +62,7 @@ millionsend --help | --version
 | `--from <provider>` | Source provider. Only `resend` exists. |
 | `--from-key-stdin` | Read the source API key from stdin (first line). |
 | `--from-key <key>` | Source API key as an argument. Visible in process lists; the tool warns. Prefer the env var. |
-| `--to-url <url>` | API URL of a self-hosted MillionSend instance. Unset, the target is MillionSend Cloud (`https://api.millionsend.com`), like the SDKs. |
+| `--to-url <url>` | API URL of a self-hosted MillionSend instance. Unset, the target is MillionSend Cloud (`https://api.posta.example`), like the SDKs. |
 | `--to-key-stdin` | Read the MillionSend API key from stdin (second line when both stdin flags are set). |
 | `--to-key <key>` | MillionSend API key as an argument. Same caveat. |
 | `--rps <n>` | Requests per second against the source; default 8. Resend's team limit is 10, shared with your production sending; the CLI prints the limit it detects on connect, paces under it, and warns when the rate is above it. Values above 10 (up to 100) are for a limit Resend raised on request. |
@@ -151,7 +151,7 @@ Pass keys through the environment or stdin, never as arguments:
 ```sh
 export RESEND_API_KEY=re_...
 export POSTA_API_KEY=ms_...
-export POSTA_BASE_URL=https://api.millionsend.com   # or your instance's URL
+export POSTA_BASE_URL=https://api.posta.example   # or your instance's URL
 
 millionsend migrate plan --from resend --out plan.json
 # exit 2 when there is something to apply

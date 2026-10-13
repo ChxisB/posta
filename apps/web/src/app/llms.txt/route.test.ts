@@ -6,7 +6,7 @@ describe("crawler entry points", () => {
   it("llms.txt points agents at the public docs host", async () => {
     const res = GET();
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain("https://docs.millionsend.com/llms.txt");
+    expect(await res.text()).toContain("https://docs.posta.example/llms.txt");
   });
 
   it("robots keeps crawlers off everything but the auth pages", () => {

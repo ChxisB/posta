@@ -27,7 +27,7 @@ let db: Db;
 let close: () => Promise<void>;
 const keyring = EnvKeyring.fromBase64(randomBytes(32).toString("base64"));
 const DAY = 86_400_000;
-const PLATFORM = new Set(["millionsend.test"]);
+const PLATFORM = new Set(["posta.test"]);
 const unsubscribeSecretKey = deriveUnsubscribeKey(randomBytes(32));
 let sesCalls: string[];
 let mails: { kind: string; text: string }[];
@@ -63,7 +63,7 @@ const sendDeps: SendDeps = {
   },
   monitor,
   platformDomains: PLATFORM,
-  unsubscribe: { secretKey: unsubscribeSecretKey, baseUrl: "https://app.millionsend.test" },
+  unsubscribe: { secretKey: unsubscribeSecretKey, baseUrl: "https://app.posta.test" },
 };
 
 const verdict = (score: number, phishing = true): AbuseJudge => ({
@@ -288,7 +288,7 @@ it("judges a broadcast copy whose contact fields add a destination its HTML lack
   const broadcastDeps: BroadcastDeps = {
     keyring,
     unsubscribeSecretKey,
-    unsubscribeBaseUrl: "https://app.millionsend.test",
+    unsubscribeBaseUrl: "https://app.posta.test",
     isCloud: false,
     enqueueEmailSends: async () => {},
     monitor,
@@ -330,7 +330,7 @@ it("holds a team past new's broadcast for a new destination in its HTML, and par
   const broadcastDeps: BroadcastDeps = {
     keyring,
     unsubscribeSecretKey,
-    unsubscribeBaseUrl: "https://app.millionsend.test",
+    unsubscribeBaseUrl: "https://app.posta.test",
     isCloud: false,
     enqueueEmailSends: async () => {},
     monitor,

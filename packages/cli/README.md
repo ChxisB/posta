@@ -1,6 +1,6 @@
 # @tack-labs/posta-cli
 
-Moves an email account to [MillionSend](https://github.com/MillionSend/millionsend):
+Moves an email account to [MillionSend](https://github.com/ChxisB/posta):
 contacts, segments, topics, properties, templates, webhooks, domains and
 suppressions. Reads from the source provider, writes to your MillionSend
 instance (Cloud or self-hosted), and is safe to run again — a second run right
@@ -37,7 +37,7 @@ Audiences (deprecated in Resend) are skipped — segments cover them.
 | --- | --- |
 | `RESEND_API_KEY` | Source key (full access; the tool only ever reads). Alternatives: `--from-key-stdin`, or a masked prompt in a terminal. |
 | `POSTA_API_KEY` | MillionSend key (full access). Alternatives: `--to-key-stdin`, or a masked prompt. |
-| `POSTA_BASE_URL` | API URL of a self-hosted MillionSend instance. Same as `--to-url`. Unset, the target is MillionSend Cloud (`https://api.millionsend.com`), like the SDKs; a terminal asks. |
+| `POSTA_BASE_URL` | API URL of a self-hosted MillionSend instance. Same as `--to-url`. Unset, the target is MillionSend Cloud (`https://api.posta.example`), like the SDKs; a terminal asks. |
 | `NO_COLOR` | Disables ANSI colors. |
 | `DO_NOT_TRACK` | Honored as a no-op: the tool sends no telemetry, never phones home and never checks for updates. |
 

@@ -63,7 +63,7 @@ nunca envia um bounce por conta própria.
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-Domínios de recebimento apontam o registro MX para `mx.millionsend-dns.com`.
+Domínios de recebimento apontam o registro MX para `mx.posta-dns.example`.
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
@@ -102,7 +102,7 @@ então as respostas podem sair dos mesmos endereços.
 Abra o domínio e ligue **Ativar recebimento**, ou use a API:
 
 ```sh
-curl -X PATCH "https://api.millionsend.com/domains/{id}" \
+curl -X PATCH "https://api.posta.example/domains/{id}" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -d '{ "capabilities": { "receiving": "enabled" } }'
@@ -120,9 +120,9 @@ Adicione-a no seu provedor de DNS:
 
 | Tipo | Nome | Valor | Prioridade |
 | --- | --- | --- | --- |
-| MX | `inbound.example.com` | `mx.millionsend-dns.com` | `10` |
+| MX | `inbound.example.com` | `mx.posta-dns.example` | `10` |
 
-A linha fica verificada quando o DNS público lista `mx.millionsend-dns.com`
+A linha fica verificada quando o DNS público lista `mx.posta-dns.example`
 entre os registros MX do nome com o menor número de prioridade. O número em
 si é só uma sugestão; o que importa é que nenhum outro registro MX desse nome
 tenha um número menor. A checagem é feita ao vivo e nunca afeta o status de
@@ -250,7 +250,7 @@ entregues nela.
 ```ts
 import { Resend } from "resend";
 
-// RESEND_API_KEY=ms_...  RESEND_BASE_URL=https://api.millionsend.com
+// RESEND_API_KEY=ms_...  RESEND_BASE_URL=https://api.posta.example
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { data: page } = await resend.emails.receiving.list({ limit: 20 });
@@ -279,7 +279,7 @@ o `limit`) e um cursor `after` ou `before`, como toda
 | `quarantined=true` | Só os retidos. |
 
 ```sh
-curl "https://api.millionsend.com/emails/receiving?limit=20" \
+curl "https://api.posta.example/emails/receiving?limit=20" \
   -H "Authorization: Bearer ms_..."
 ```
 
@@ -351,7 +351,7 @@ lista vazia. Ele funciona junto com os filtros acima, então um agente pode
 esperar a próxima mensagem para uma caixa, de um remetente:
 
 ```sh
-curl "https://api.millionsend.com/emails/receiving?inbox_id=7eeb9517-aed7-40d7-ad65-500be42ed147&from=example.org&wait=30" \
+curl "https://api.posta.example/emails/receiving?inbox_id=7eeb9517-aed7-40d7-ad65-500be42ed147&from=example.org&wait=30" \
   -H "Authorization: Bearer ms_..."
 ```
 
@@ -403,7 +403,7 @@ autenticação e um link de download da mensagem original:
   "authentication": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
   "message_id": "<CAF1x7Qm9@mail.example.org>",
   "raw": {
-    "download_url": "https://api.millionsend.com/receiving/raw/4ef9a417-02e9-4d39-ad75-9611e0fcc33c?expires=1791733061&signature=…",
+    "download_url": "https://api.posta.example/receiving/raw/4ef9a417-02e9-4d39-ad75-9611e0fcc33c?expires=1791733061&signature=…",
     "expires_at": "2026-10-11T15:37:41.000Z"
   },
   "attachments": [
@@ -561,7 +561,7 @@ com um link de download novo:
   "size": 48213,
   "content_type": "application/pdf",
   "content_disposition": "attachment",
-  "download_url": "https://api.millionsend.com/receiving/attachments/4ef9a417-02e9-4d39-ad75-9611e0fcc33c/b344102e-962e-8943-aef6-271c7743e1dd?expires=1791733061&signature=…",
+  "download_url": "https://api.posta.example/receiving/attachments/4ef9a417-02e9-4d39-ad75-9611e0fcc33c/b344102e-962e-8943-aef6-271c7743e1dd?expires=1791733061&signature=…",
   "expires_at": "2026-10-11T15:37:41.000Z"
 }
 ```
@@ -634,7 +634,7 @@ await resend.emails.send({
 fazem isso numa chamada só, com os cabeçalhos da conversa já preenchidos:
 
 ```sh
-curl -X POST "https://api.millionsend.com/emails/receiving/4ef9a417-02e9-4d39-ad75-9611e0fcc33c/reply" \
+curl -X POST "https://api.posta.example/emails/receiving/4ef9a417-02e9-4d39-ad75-9611e0fcc33c/reply" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: order-1042-reply" \

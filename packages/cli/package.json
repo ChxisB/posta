@@ -14,10 +14,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MillionSend/millionsend.git",
+    "url": "git+https://github.com/ChxisB/posta.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/MillionSend/millionsend/tree/main/packages/cli#readme",
+  "homepage": "https://github.com/ChxisB/posta/tree/main/packages/cli#readme",
   "engines": {
     "node": ">=18"
   },

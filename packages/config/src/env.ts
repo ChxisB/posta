@@ -1,5 +1,6 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
+import { DNS_DOMAIN, SITE_DOMAIN } from "./site.js";
 
 const boolFromString = z
   .enum(["true", "false", "1", "0"])
@@ -420,7 +421,7 @@ export const env = createEnv({
     ALLOW_TRACKING_SUBDOMAINS: boolFromString,
 
     // Host a customer's branded tracking subdomain CNAMEs at. Set to a
-    // dedicated tracking edge (e.g. track.millionsend-dns.com — a small box
+    // dedicated tracking edge (e.g. track.posta-dns.example — a small box
     // that terminates TLS per customer hostname and proxies /t/* here) when
     // this app itself cannot hold a certificate for customer hostnames, as on
     // a multi-tenant cloud behind a CDN. Unset: the CNAME targets this app's
@@ -432,7 +433,7 @@ export const env = createEnv({
 
     // Inbound mail. Receiving exists on this instance only when this names
     // the MX host customers point their MX records at (the cloud's is
-    // mx.millionsend-dns.com); unset, every receiving surface is hidden and
+    // mx.posta-dns.example); unset, every receiving surface is hidden and
     // the internal MX endpoints answer 404. Read through receivingMxHost().
     RECEIVING_MX_HOST: z.string().optional(),
     // Bearer secret the MX (PROCESS=mx) sends to the internal MX endpoints.
@@ -733,10 +734,9 @@ export function clamavHost(e: Env = env): string | undefined {
   return e.CLAMAV_HOST || undefined;
 }
 
-// PLATFORM_DOMAIN mirrors packages/core/src/domain-lifecycle.ts (this
-// package cannot import core); millionsend-dns.com holds the cloud's MX and
-// tracking hosts.
-const PLATFORM_DOMAINS = ["millionsend.com", "millionsend-dns.com"] as const;
+// The product domain (core's PLATFORM_DOMAIN) and the one holding the
+// cloud's MX and tracking hosts.
+const PLATFORM_DOMAINS = [SITE_DOMAIN, DNS_DOMAIN] as const;
 
 // Mirrors MX_INGEST_SECRET_MIN_LENGTH in packages/core/src/receiving/protocol.ts
 // (this package cannot import core).

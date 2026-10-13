@@ -157,7 +157,7 @@ beforeAll(async () => {
       regions: ["sa-east-1"],
     },
     receivedDownloadKey: randomBytes(32),
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: INGEST_SECRET },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: INGEST_SECRET },
     inboxKeys: deriveInboxKeys(randomBytes(32)),
   });
 });

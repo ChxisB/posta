@@ -1,4 +1,5 @@
 // The plans subpath keeps the provision script free of the app env schema, so it runs from any checkout with only a Stripe key.
+import { SITE_URL } from "@posta/config/site";
 import { PAID_RUNGS, PLAN_NAME, type Plan, type PlanRung } from "@posta/core/plans";
 import Stripe from "stripe";
 import {
@@ -371,8 +372,8 @@ function portalFeatures(): Stripe.BillingPortal.ConfigurationCreateParams.Featur
 
 /** The legal links the portal shows; the marketing site hosts them. */
 const PORTAL_BUSINESS_PROFILE = {
-  terms_of_service_url: "https://millionsend.com/terms",
-  privacy_policy_url: "https://millionsend.com/privacy",
+  terms_of_service_url: `${SITE_URL}/terms`,
+  privacy_policy_url: `${SITE_URL}/privacy`,
 } as const;
 
 async function ensurePortal(

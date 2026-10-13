@@ -203,7 +203,7 @@ const spam = (overrides: Partial<SpamInput> = {}) =>
     tier: "external",
     authentication: PASS,
     helo: "mail.sender.example",
-    mxHost: "mx.millionsend.example",
+    mxHost: "mx.posta.example",
     recipientDomains: ["inbound.acme.example"],
     mailFrom: "bounces@sender.example",
     report: false,

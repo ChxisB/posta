@@ -432,6 +432,9 @@ importers:
 
   packages/billing:
     dependencies:
+      '@posta/config':
+        specifier: workspace:*
+        version: link:../config
       '@posta/core':
         specifier: workspace:*
         version: link:../core

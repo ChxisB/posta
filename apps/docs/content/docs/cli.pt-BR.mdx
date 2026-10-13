@@ -62,7 +62,7 @@ millionsend --help | --version
 | `--from <provider>` | Provedor de origem. Só existe `resend`. |
 | `--from-key-stdin` | Lê a chave de API de origem do stdin (primeira linha). |
 | `--from-key <key>` | Chave de API de origem como argumento. Visível em listas de processos; a ferramenta avisa. Prefira a variável de ambiente. |
-| `--to-url <url>` | URL da API de uma instância auto-hospedada do MillionSend. Sem ela, o destino é o MillionSend Cloud (`https://api.millionsend.com`), como nos SDKs. |
+| `--to-url <url>` | URL da API de uma instância auto-hospedada do MillionSend. Sem ela, o destino é o MillionSend Cloud (`https://api.posta.example`), como nos SDKs. |
 | `--to-key-stdin` | Lê a chave de API do MillionSend do stdin (segunda linha quando as duas flags de stdin estão presentes). |
 | `--to-key <key>` | Chave de API do MillionSend como argumento. Mesma ressalva. |
 | `--rps <n>` | Requisições por segundo contra a origem; padrão 8. O limite da equipe no Resend é 10, compartilhado com o seu envio em produção; a CLI mostra ao conectar o limite que detecta, se mantém abaixo dele e avisa quando o ritmo passa dele. Valores acima de 10 (até 100) são para um limite que o Resend aumentou sob pedido. |
@@ -158,7 +158,7 @@ stdin, nunca como argumentos:
 ```sh
 export RESEND_API_KEY=re_...
 export POSTA_API_KEY=ms_...
-export POSTA_BASE_URL=https://api.millionsend.com   # ou a URL da sua instância
+export POSTA_BASE_URL=https://api.posta.example   # ou a URL da sua instância
 
 millionsend migrate plan --from resend --out plan.json
 # saída 2 quando há algo a aplicar

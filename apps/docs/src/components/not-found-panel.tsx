@@ -27,7 +27,7 @@ export function NotFoundPanel() {
           Go to the docs
         </Link>
         <a
-          href="https://app.millionsend.com"
+          href="https://app.posta.example"
           className="inline-flex h-[30px] items-center rounded-md border border-fd-border bg-fd-accent px-2.5 font-semibold text-fd-foreground text-sm hover:opacity-[.88]"
         >
           Open the dashboard

@@ -133,8 +133,8 @@ only when its image changed.
 For contributors, or when you want to modify the code:
 
 ```sh
-git clone https://github.com/MillionSend/millionsend.git
-cd millionsend
+git clone https://github.com/ChxisB/posta.git
+cd posta
 cp .env.example .env   # fill it as in the quickstart
 docker compose up --build -d
 ```
@@ -580,10 +580,10 @@ account removes the contact and scrubs the address from that team's history. A c
 verification is on whenever `AUTH_EMAIL_FROM` and SES credentials are set; earlier accounts
 verify at their next sign-in.
 
-Nothing on the instance contacts millionsend.com on its own. The wizard offers, once and
+Nothing on the instance contacts posta.example on its own. The wizard offers, once and
 interactively, to subscribe your address to release notes (a confirmation link comes first);
-when it cannot reach millionsend.com it prints the page instead,
-<https://app.millionsend.com/updates?source=self-host>, and **Settings → Instance** links to
+when it cannot reach posta.example it prints the page instead,
+<https://app.posta.example/updates?source=self-host>, and **Settings → Instance** links to
 the same page. Full text: docs, "Account mail, contacts and product updates".
 
 </details>

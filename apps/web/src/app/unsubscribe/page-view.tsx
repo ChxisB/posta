@@ -1,3 +1,4 @@
+import { SITE_URL } from "@posta/config/site";
 import { Fragment } from "react";
 import type { UnsubscribeMessages } from "@/lib/unsubscribe-locales";
 import {
@@ -72,7 +73,7 @@ const BRAND_MARK_URL = "/logo/millionsend-favicon.svg";
 function PoweredBy({ template }: { template: string }) {
   return (
     <a
-      href="https://millionsend.com"
+      href={SITE_URL}
       target="_blank"
       rel="noopener noreferrer"
       style={{

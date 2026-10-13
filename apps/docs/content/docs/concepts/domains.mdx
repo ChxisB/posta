@@ -166,7 +166,7 @@ doesn't receive mail at all, every domain reads `disabled` and turning it on
 is refused with `422`.
 
 While receiving is on, `records[]` includes a `Receiving` row: an MX record
-at the domain's own name pointing at `mx.millionsend-dns.com` (self-hosted,
+at the domain's own name pointing at `mx.posta-dns.example` (self-hosted,
 the instance's `RECEIVING_MX_HOST`), priority `10`.
 
 ```json
@@ -176,7 +176,7 @@ the instance's `RECEIVING_MX_HOST`), priority `10`.
   "type": "MX",
   "ttl": "Auto",
   "status": "verified",
-  "value": "mx.millionsend-dns.com",
+  "value": "mx.posta-dns.example",
   "priority": 10,
   "live": "found"
 }

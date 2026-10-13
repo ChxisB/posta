@@ -913,8 +913,7 @@ it("a team, its people and its endpoint named like lures get every notice with n
     const links = mailLinks({ subject: mail.subject, text: mail.text, html: mail.html ?? "" });
     expect(
       links.filter(
-        (link) =>
-          !link.startsWith("https://app.example.test/") && link !== "https://millionsend.com",
+        (link) => !link.startsWith("https://app.example.test/") && link !== "https://posta.example",
       ),
       mail.subject,
     ).toEqual([]);

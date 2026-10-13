@@ -1,3 +1,5 @@
+import { SITE_URL } from "@posta/config/site";
+
 /** Escape a string for safe interpolation into HTML text or a "-quoted attribute. */
 export function escapeHtml(value: string): string {
   return value
@@ -116,8 +118,8 @@ export function visibleText(html: string): string {
  * enough that Gmail for Android, which recolours images drawn at 64×64 CSS px
  * or smaller, leaves them alone.
  */
-export const EMAIL_WORDMARK_INK_URL = "https://millionsend.com/email/wordmark-ink.png";
-export const EMAIL_WORDMARK_BONE_URL = "https://millionsend.com/email/wordmark-bone.png";
+export const EMAIL_WORDMARK_INK_URL = `${SITE_URL}/email/wordmark-ink.png`;
+export const EMAIL_WORDMARK_BONE_URL = `${SITE_URL}/email/wordmark-bone.png`;
 
 /**
  * A solid white tile: the Gmail button's fill. Gmail for Android darkens
@@ -126,7 +128,7 @@ export const EMAIL_WORDMARK_BONE_URL = "https://millionsend.com/email/wordmark-b
  * never repaints an image, so the one white surface that survives there is
  * a picture of white.
  */
-export const EMAIL_WHITE_TILE_URL = "https://millionsend.com/email/white.png";
+export const EMAIL_WHITE_TILE_URL = `${SITE_URL}/email/white.png`;
 
 /**
  * Fills `{key}` placeholders. A replacer function, not a replacement string:
@@ -178,7 +180,7 @@ const STYLE = [
   "u + .body .ms-gmail{display:inline-block !important}",
 ].join("\n");
 
-const WORDMARK = `<a href="https://millionsend.com" style="display:block;margin:0 0 24px;line-height:0">
+const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;line-height:0">
       <img class="ms-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="MillionSend" style="display:block;height:24px;width:auto;border:0">
       <!--[if !mso]><!--><img class="ms-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="MillionSend" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
     </a>`;

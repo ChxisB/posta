@@ -316,8 +316,8 @@ describe("provision", () => {
     expect(portal?.features.subscription_cancel.mode).toBe("at_period_end");
     expect(portal?.features.subscription_cancel.cancellation_reason.enabled).toBe(true);
     expect(portal?.business_profile).toEqual({
-      terms_of_service_url: "https://millionsend.com/terms",
-      privacy_policy_url: "https://millionsend.com/privacy",
+      terms_of_service_url: "https://posta.example/terms",
+      privacy_policy_url: "https://posta.example/privacy",
     });
     expect(portal?.default_return_url).toBeNull();
     expect(log.some((l) => l.startsWith("Dashboard-only steps"))).toBe(true);

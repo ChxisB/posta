@@ -93,13 +93,13 @@ beforeAll(async () => {
     enqueueEmailSend: async () => {},
     publicApiUrl: base,
     receivedDownloadKey: randomBytes(32),
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: SECRET },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: SECRET },
     ses: {
       clientForRegion: () => fakeSes,
       dns: {
         resolveTxt: async () => [],
         resolveMx: async (name: string) =>
-          name === "inbound.acme.dev" ? [{ priority: 10, exchange: "mx.millionsend.test" }] : [],
+          name === "inbound.acme.dev" ? [{ priority: 10, exchange: "mx.posta.test" }] : [],
         resolveCname: async () => [],
       },
       regions: ["us-east-1"],
@@ -249,7 +249,7 @@ describe("official resend SDK: receiving", () => {
     const got = await resend.domains.get(id);
     expect(got.data?.capabilities).toEqual({ sending: "enabled", receiving: "enabled" });
     expect(got.data?.records).toContainEqual(
-      expect.objectContaining({ record: "Receiving", type: "MX", value: "mx.millionsend.test" }),
+      expect.objectContaining({ record: "Receiving", type: "MX", value: "mx.posta.test" }),
     );
   });
 });

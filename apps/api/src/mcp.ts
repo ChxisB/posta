@@ -16,6 +16,7 @@ import {
   type ToolCallback,
   verifyBearerToken,
 } from "@modelcontextprotocol/server";
+import { SITE_URL } from "@posta/config/site";
 import {
   ADMIN_MCP_SCOPES,
   ALL_TEAMS_GRANT,
@@ -498,7 +499,7 @@ function buildServer(
       name: "posta",
       title: "Posta",
       version: "1.0.0",
-      websiteUrl: "https://millionsend.com",
+      websiteUrl: SITE_URL,
       icons: [
         {
           src: `${appBaseUrl}/logo/millionsend-avatar-512.png`,

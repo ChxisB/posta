@@ -47,7 +47,7 @@ function makeApp(overrides: Partial<ApiDeps> = {}) {
     enqueueEmailSend: async () => {},
     publicApiUrl: API_BASE,
     receivedDownloadKey: randomBytes(32),
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: SECRET },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: SECRET },
     inboxKeys: deriveInboxKeys(randomBytes(32)),
     ...overrides,
   });

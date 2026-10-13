@@ -1,3 +1,4 @@
+import { DOCS_URL } from "@posta/config/site";
 import type { NextConfig } from "next";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -23,7 +24,7 @@ const config: NextConfig = {
     return [
       {
         source: "/llms-full.txt",
-        destination: "https://docs.millionsend.com/llms-full.txt",
+        destination: `${DOCS_URL}/llms-full.txt`,
         permanent: true,
       },
       // Received mail moved from the Emails page to Inboxes; old links and

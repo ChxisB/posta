@@ -76,7 +76,7 @@ email history, event payloads and API logs, the same as
 MillionSend extension, also exposed as the `delete_contacts` MCP tool.
 
 ```sh
-curl -X POST "https://api.millionsend.com/contacts/batch/remove" \
+curl -X POST "https://api.posta.example/contacts/batch/remove" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -d '{ "emails": ["old-list-1@example.com", "old-list-2@example.com"] }'
@@ -110,7 +110,7 @@ message prefix, nothing written) or `permissive` (the valid subset is written
 and failures are listed in `errors`).
 
 ```sh
-curl -X POST "https://api.millionsend.com/contacts/batch?on_conflict=upsert" \
+curl -X POST "https://api.posta.example/contacts/batch?on_conflict=upsert" \
   -H "Authorization: Bearer ms_..." \
   -H "Content-Type: application/json" \
   -H "x-batch-validation: permissive" \

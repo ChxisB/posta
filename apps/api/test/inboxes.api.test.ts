@@ -33,7 +33,7 @@ function makeApp(overrides: Partial<ApiDeps> = {}) {
     enqueueWebhookDeliveries: async (rows) => {
       queued.push(...rows.map((r) => r.endpointId));
     },
-    receiving: { mxHost: "mx.millionsend.test", ingestSecret: "s".repeat(40) },
+    receiving: { mxHost: "mx.posta.test", ingestSecret: "s".repeat(40) },
     sharedInboxDomain: SHARED,
     ...overrides,
   });

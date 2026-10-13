@@ -4,9 +4,9 @@ Você está migrando uma aplicação do Resend para o MillionSend. A API REST do
 
 ## Fatos em que você pode confiar
 
-- URL base da API do MillionSend Cloud: `https://api.millionsend.com`. Auto-hospedado: a origem da API da própria instância (pergunte se não estiver no repositório).
+- URL base da API do MillionSend Cloud: `https://api.posta.example`. Auto-hospedado: a origem da API da própria instância (pergunte se não estiver no repositório).
 - Chaves de API começam com `ms_` e são criadas no painel em **Chaves de API**. Use uma chave de acesso total para a migração e chaves de acesso de envio para os remetentes de produção.
-- Documentação: https://docs.millionsend.com — acrescente `.md` à URL de qualquer página para obter markdown, `/llms-full.txt` é tudo em um arquivo, `/openapi.json` é a especificação OpenAPI 3.1. O guia de migração está em https://docs.millionsend.com/pt-BR/migrate-from-resend.md e a referência da CLI em https://docs.millionsend.com/pt-BR/cli.md.
+- Documentação: https://docs.posta.example — acrescente `.md` à URL de qualquer página para obter markdown, `/llms-full.txt` é tudo em um arquivo, `/openapi.json` é a especificação OpenAPI 3.1. O guia de migração está em https://docs.posta.example/pt-BR/migrate-from-resend.md e a referência da CLI em https://docs.posta.example/pt-BR/cli.md.
 - A CLI de migração (`@tack-labs/posta-cli`) só lê do Resend (requisições `GET`), mantém as chaves em memória, não as grava em arquivo algum e não envia telemetria.
 - Os ids diferem entre os provedores: contatos são casados por e-mail, o restante por nome, chave, alias ou endpoint. O relatório da CLI traz um mapa de ids para tópicos e segmentos.
 
@@ -31,7 +31,7 @@ Primeiro o plano (somente leitura; código de saída 2 significa que há mudanç
 ```sh
 export RESEND_API_KEY=re_...
 export POSTA_API_KEY=ms_...
-export POSTA_BASE_URL=https://api.millionsend.com   # ou a URL da instância
+export POSTA_BASE_URL=https://api.posta.example   # ou a URL da instância
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
 ```
@@ -53,10 +53,10 @@ Escolha uma das duas opções, com o usuário:
 1. **Mantenha o SDK do Resend.** Os SDKs oficiais do Resend respeitam uma URL base. Defina, em todo ambiente que envia:
    ```sh
    RESEND_API_KEY=ms_...
-   RESEND_BASE_URL=https://api.millionsend.com
+   RESEND_BASE_URL=https://api.posta.example
    ```
    Confirme que a versão instalada do SDK lê `RESEND_BASE_URL` (ou a opção de URL base do construtor) e substitua qualquer `https://api.resend.com` fixo no código.
-2. **Troque para o SDK do MillionSend** da linguagem (npm `millionsend`, PyPI `millionsend`, Go `github.com/millionsend/millionsend-go`, Packagist `millionsend/millionsend`, RubyGems `millionsend`, Maven `com.millionsend:millionsend`, NuGet `MillionSend`, Hex `millionsend`). Cada um espelha a superfície do SDK do Resend: troque o import e o nome da classe e passe a URL base pela opção correspondente (`baseUrl`, `base_url`, `BaseURL`, ...). Detalhes por linguagem: https://docs.millionsend.com/pt-BR/sdks.md.
+2. **Troque para o SDK do MillionSend** da linguagem (npm `millionsend`, PyPI `millionsend`, Go `github.com/ChxisB/posta/packages/sdk/go`, Packagist `millionsend/millionsend`, RubyGems `millionsend`, Maven `com.millionsend:millionsend`, NuGet `MillionSend`, Hex `millionsend`). Cada um espelha a superfície do SDK do Resend: troque o import e o nome da classe e passe a URL base pela opção correspondente (`baseUrl`, `base_url`, `BaseURL`, ...). Detalhes por linguagem: https://docs.posta.example/pt-BR/sdks.md.
    PHP: `MillionSend::client()` devolve um `Client` que mantém o `HttpClient` privado. Para uma requisição sem método no SDK, construa o `HttpClient` você mesmo com os mesmos argumentos que a factory passa (leia `MillionSend::client()` no pacote): mesmo pacote, mesmo comportamento, um nível abaixo.
 
 Então resolva o que o relatório lista:
@@ -65,14 +65,14 @@ Então resolva o que o relatório lista:
 - Templates: templates do MillionSend não armazenam `from` nem `reply_to`; passe-os em cada envio.
 - Webhooks: endpoint, eventos e segredo de assinatura foram copiados, então o receptor existente continua verificando os cabeçalhos `svix-*`. Tipos de evento que o MillionSend não envia (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) foram descartados por webhook e estão listados; remova ou substitua os handlers deles. O MillionSend só envia eventos `inbox.*` para endpoints que os escolhem pelo nome, nunca para "todos os eventos".
 - Chaves de API não podem ser migradas (o Resend expõe apenas os nomes). Crie uma para cada nome que o relatório lista, no painel, e coloque-as nos ambientes correspondentes.
-- Recebimento: aqui um domínio de recebimento só recebe nos endereços das caixas de entrada dele, a não ser que o **Pega-tudo** esteja ligado (página do domínio, ou `PATCH /domains/{id}` com `{"receiving_catch_all": true}`; um plano pago na nuvem). Se o código recebe em endereços quaisquer, como no Resend, o usuário liga o pega-tudo antes de trocar o MX; senão, cada endereço precisa de uma caixa. Pergunte qual. Documentação: https://docs.millionsend.com/pt-BR/concepts/receiving.md.
-- Caixas de entrada: a migração da conta não cria caixas. Crie de novo cada caixa que o código usa, com o mesmo endereço (`POST /inboxes`), depois que o domínio dela recebe aqui. As caixas criadas por um SDK do Resend têm `kind: "agent"` por padrão (quarentena, análise, envio só em respostas); as caixas lidas por pessoas precisam de `kind: "human"`, definido por HTTP direto ou no painel. Uma resposta, um encaminhamento ou um envio de rascunho pode responder `202` com um rascunho (`object: "inbox_draft"`) quando as regras da caixa o retêm: faça o código tratar isso. Documentação: https://docs.millionsend.com/pt-BR/concepts/inboxes.md.
+- Recebimento: aqui um domínio de recebimento só recebe nos endereços das caixas de entrada dele, a não ser que o **Pega-tudo** esteja ligado (página do domínio, ou `PATCH /domains/{id}` com `{"receiving_catch_all": true}`; um plano pago na nuvem). Se o código recebe em endereços quaisquer, como no Resend, o usuário liga o pega-tudo antes de trocar o MX; senão, cada endereço precisa de uma caixa. Pergunte qual. Documentação: https://docs.posta.example/pt-BR/concepts/receiving.md.
+- Caixas de entrada: a migração da conta não cria caixas. Crie de novo cada caixa que o código usa, com o mesmo endereço (`POST /inboxes`), depois que o domínio dela recebe aqui. As caixas criadas por um SDK do Resend têm `kind: "agent"` por padrão (quarentena, análise, envio só em respostas); as caixas lidas por pessoas precisam de `kind: "human"`, definido por HTTP direto ou no painel. Uma resposta, um encaminhamento ou um envio de rascunho pode responder `202` com um rascunho (`object: "inbox_draft"`) quando as regras da caixa o retêm: faça o código tratar isso. Documentação: https://docs.posta.example/pt-BR/concepts/inboxes.md.
 
 ## Passo 4 — DNS, feito pelo usuário
 
 O MillionSend usa seu próprio par de chaves DKIM, então todo domínio precisa de novos registros DNS mesmo que já envie pelo Resend. Os registros estão no relatório e em **Domínios** no painel. Os dois provedores podem ficar verificados lado a lado. Não mude o tráfego até cada domínio aparecer como **Verificado**.
 
-Um domínio que recebe e-mails muda junto com o registro MX: depois que o recebimento estiver ligado aqui e o pega-tudo ou as caixas estiverem prontos (passo 3), o usuário aponta o MX para `mx.millionsend-dns.com` (na auto-hospedagem: o `RECEIVING_MX_HOST` da instância). Essa troca é a virada do recebimento; o que o Resend já recebeu fica lá.
+Um domínio que recebe e-mails muda junto com o registro MX: depois que o recebimento estiver ligado aqui e o pega-tudo ou as caixas estiverem prontos (passo 3), o usuário aponta o MX para `mx.posta-dns.example` (na auto-hospedagem: o `RECEIVING_MX_HOST` da instância). Essa troca é a virada do recebimento; o que o Resend já recebeu fica lá.
 
 ## Passo 5 — Faça a virada e verifique
 

@@ -29,8 +29,8 @@ describe("isReservedSenderDomain", () => {
 
   it("reserves the platform and system-mail domains only in cloud", () => {
     const authEmailFrom = "MillionSend <no-reply@mail.ms-ops.dev>";
-    expect(isReservedSenderDomain("millionsend.com", { isCloud: true })).toBe(true);
-    expect(isReservedSenderDomain("app.millionsend.com", { isCloud: true })).toBe(true);
+    expect(isReservedSenderDomain("posta.example", { isCloud: true })).toBe(true);
+    expect(isReservedSenderDomain("app.posta.example", { isCloud: true })).toBe(true);
     expect(isReservedSenderDomain("mail.ms-ops.dev", { isCloud: true, authEmailFrom })).toBe(true);
     expect(isReservedSenderDomain("ms-ops.dev", { isCloud: true, authEmailFrom })).toBe(false);
     const onboardingEmailFrom = "onboarding@hello.ms-ops.dev";
@@ -45,14 +45,14 @@ describe("isReservedSenderDomain", () => {
     expect(isReservedSenderDomain("mail.ms-ops.dev", { isCloud: false, authEmailFrom })).toBe(
       false,
     );
-    expect(isReservedSenderDomain("millionsend.com", { isCloud: false })).toBe(false);
+    expect(isReservedSenderDomain("posta.example", { isCloud: false })).toBe(false);
   });
 
   it("lets the operator send from the platform domain, but never a public provider", () => {
-    expect(isReservedSenderDomain("mail.millionsend.com", { isCloud: true })).toBe(true);
-    expect(
-      isReservedSenderDomain("mail.millionsend.com", { isCloud: true, isOperator: true }),
-    ).toBe(false);
+    expect(isReservedSenderDomain("mail.posta.example", { isCloud: true })).toBe(true);
+    expect(isReservedSenderDomain("mail.posta.example", { isCloud: true, isOperator: true })).toBe(
+      false,
+    );
     expect(isReservedSenderDomain("gmail.com", { isCloud: true, isOperator: true })).toBe(true);
   });
 

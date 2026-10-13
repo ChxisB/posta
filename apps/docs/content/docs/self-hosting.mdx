@@ -7,7 +7,7 @@ Self-hosted MillionSend sends through your own AWS SES account. A deployment
 is two containers: Postgres and one app container running the API (port
 3001), the worker, and the web dashboard (port 3000). An optional third
 container runs the SMTP relay (port 2587). (Prefer not to run
-infrastructure? [MillionSend Cloud](https://millionsend.com) is the same
+infrastructure? [MillionSend Cloud](https://posta.example) is the same
 platform, hosted.)
 
 **Prerequisites:** Docker with Compose; an AWS account with SES access in your
@@ -100,8 +100,8 @@ only when its image changed.
 For contributors, or when you want to modify the code:
 
 ```sh
-git clone https://github.com/MillionSend/millionsend.git
-cd millionsend
+git clone https://github.com/ChxisB/posta.git
+cd posta
 cp .env.example .env   # fill it as in the quickstart
 docker compose up --build -d
 ```
@@ -513,7 +513,7 @@ domain, switch on its catch-all or create an inbox on it, publish its MX
 record and send it a message.
 
 To run the MX on another host, use
-[`deploy/mx`](https://github.com/MillionSend/millionsend/tree/main/deploy/mx)
+[`deploy/mx`](https://github.com/ChxisB/posta/tree/main/deploy/mx)
 from the repository with `MX_INGEST_URL` (your API's origin plus
 `/internal/mx`), `MX_HOSTNAME` and the same `MX_INGEST_SECRET`. Its
 deliveries then reach the API through your reverse proxy: a message can be
@@ -1004,12 +1004,12 @@ On an instance upgrading to this release, domains already verified and
 day-old audit rows are marked as told, but a domain that is demoted at the
 moment of the upgrade is reported as lost on the first sweep.
 
-Nothing on a self-hosted instance contacts millionsend.com on its own. The
+Nothing on a self-hosted instance contacts posta.example on its own. The
 setup wizard offers, once and interactively, to subscribe the operator's
 address to MillionSend release notes; that is the wizard on your machine
 posting your answer, and a confirmation link is sent before anything is
-stored. When it cannot reach millionsend.com it prints the page instead,
-[app.millionsend.com/updates?source=self-host](https://app.millionsend.com/updates?source=self-host), and **Settings →
+stored. When it cannot reach posta.example it prints the page instead,
+[app.posta.example/updates?source=self-host](https://app.posta.example/updates?source=self-host), and **Settings →
 Instance** links to the same page; the `source` tags you as a self-hoster
 either way.
 

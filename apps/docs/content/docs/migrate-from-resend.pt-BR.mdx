@@ -17,7 +17,7 @@ em arquivos, perguntar antes de aplicar).
 
 <CopyPrompt href="/pt-BR/prompts/migrate-from-resend.md" copied="Copiado">Copiar o prompt de migração</CopyPrompt>
 
-Ou aponte o agente para ele: `https://docs.millionsend.com/pt-BR/prompts/migrate-from-resend.md`.
+Ou aponte o agente para ele: `https://docs.posta.example/pt-BR/prompts/migrate-from-resend.md`.
 
 ## 1. Mova sua conta
 
@@ -126,7 +126,7 @@ duas linhas de ambiente — nenhuma mudança de código:
 
 ```sh
 RESEND_API_KEY=ms_...
-RESEND_BASE_URL=https://api.millionsend.com
+RESEND_BASE_URL=https://api.posta.example
 ```
 
 Auto-hospedado, use a origem da API da sua instância.
@@ -154,7 +154,7 @@ cobrem nove linguagens com a mesma superfície:
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.millionsend.com" });
+const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
 ```
 
 ## 3. Conclua o que a CLI lista
@@ -182,7 +182,7 @@ quais endereços recebem. O Resend recebe em qualquer endereço do domínio;
 aqui isso é o **Pega-tudo**, na mesma página (um plano pago no MillionSend
 Cloud), ou então uma [caixa de entrada](/pt-BR/concepts/inboxes) por
 endereço. Depois troque o registro MX do domínio, do que o Resend passou para
-`mx.millionsend-dns.com` (na auto-hospedagem: o `RECEIVING_MX_HOST` da sua
+`mx.posta-dns.example` (na auto-hospedagem: o `RECEIVING_MX_HOST` da sua
 instância). O e-mail vai para o registro MX com o menor número de prioridade,
 então essa troca é a virada; o que o Resend já recebeu fica lá. Código que
 chama `resend.emails.receiving.*` e handlers de `email.received` não precisam
