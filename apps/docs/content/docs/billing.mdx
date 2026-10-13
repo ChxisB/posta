@@ -143,15 +143,15 @@ open to every domain.
 ## The Stripe model
 
 - One **product** per paid plan (Starter, Pro, Scale), found again by
-  `metadata.millionsend_plan`.
-- One recurring **price** per rung, lookup key `millionsend_<rung>_monthly`
-  (`millionsend_pro_100k_monthly`, …), carrying
-  `metadata.millionsend_rung = <rung>` plus the plan, included volume, period
+  `metadata.posta_plan`.
+- One recurring **price** per rung, lookup key `posta_<rung>_monthly`
+  (`posta_pro_100k_monthly`, …), carrying
+  `metadata.posta_rung = <rung>` plus the plan, included volume, period
   and overage rate.
 - One **meter**, event name `emails_over_quota`, summing `value` per
   `stripe_customer_id`.
 - One metered **overage price** per monthly rung, lookup key
-  `millionsend_<rung>_overage`, on that meter, priced per 1,000 emails rounded
+  `posta_<rung>_overage`, on that meter, priced per 1,000 emails rounded
   up (`transform_quantity: { divide_by: 1000, round: "up" }`).
 
 Prices are found by lookup key, never by price id, so the same build runs
@@ -228,11 +228,11 @@ The rung is derived from the subscription **re-fetched** from Stripe at
 webhook time, so out-of-order deliveries converge on Stripe's current state.
 The subscription's non-metered item names the rung, tried in this order:
 
-1. the price's `metadata.millionsend_rung`;
-2. the price's lookup key (`millionsend_<rung>_monthly`);
-3. the product's `metadata.millionsend_plan`, landing on that plan's first
+1. the price's `metadata.posta_rung`;
+2. the price's lookup key (`posta_<rung>_monthly`);
+3. the product's `metadata.posta_plan`, landing on that plan's first
    rung — this is how the two prices sold before the ladder resolve
-   (`millionsend_pro_monthly` → `pro_100k`, `millionsend_scale_monthly` →
+   (`posta_pro_monthly` → `pro_100k`, `posta_scale_monthly` →
    `scale_500k`).
 
 | Re-fetched subscription status | `plan`, `plan_quota` | `plan_status` |
@@ -323,7 +323,7 @@ STRIPE_SECRET_KEY=sk_test_… pnpm --filter @posta/billing provision \
 
 What it does, and why re-running is safe:
 
-- **Products** are found by `metadata.millionsend_plan` (`starter` / `pro` /
+- **Products** are found by `metadata.posta_plan` (`starter` / `pro` /
   `scale`), created with the Stripe Tax code for SaaS business use.
 - **The meter** is found by its event name, `emails_over_quota`.
 - **Prices** are found by lookup key. A changed amount in the ladder creates
@@ -331,7 +331,7 @@ What it does, and why re-running is safe:
   existing subscriptions keep their old price (still resolved by its
   metadata), new checkouts get the new one. Metadata alone is refreshed in
   place. Prices are `tax_behavior: exclusive`.
-- **Legacy prices** `millionsend_pro_monthly` and `millionsend_scale_monthly`
+- **Legacy prices** `posta_pro_monthly` and `posta_scale_monthly`
   are archived, not deleted: subscriptions still on them keep working,
   resolved to the plan's first rung through the product's metadata, until
   each is moved; only new checkouts stop seeing them.

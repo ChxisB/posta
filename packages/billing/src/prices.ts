@@ -3,9 +3,9 @@ import type Stripe from "stripe";
 import type { BillingStripe } from "./stripe.js";
 
 /** Products are found again by this metadata key, never by name (names are free to change). */
-export const PRODUCT_METADATA_KEY = "millionsend_plan";
+export const PRODUCT_METADATA_KEY = "posta_plan";
 /** Price metadata naming the rung: the durable link from a subscription item back to the ladder. */
-export const RUNG_METADATA_KEY = "millionsend_rung";
+export const RUNG_METADATA_KEY = "posta_rung";
 /** The Stripe meter sends past the included volume are reported to. */
 export const METER_EVENT_NAME = "emails_over_quota";
 
@@ -13,8 +13,8 @@ export const METER_EVENT_NAME = "emails_over_quota";
  * Prices are addressed by lookup key so the same code runs against any
  * Stripe account (test/live) without per-environment price ids.
  */
-export const rungLookupKey = (rung: PlanRung): string => `millionsend_${rung.key}_monthly`;
-export const overageLookupKey = (rung: PlanRung): string => `millionsend_${rung.key}_overage`;
+export const rungLookupKey = (rung: PlanRung): string => `posta_${rung.key}_monthly`;
+export const overageLookupKey = (rung: PlanRung): string => `posta_${rung.key}_overage`;
 
 /** The metadata every ladder price carries; the rung key is what the code reads back. */
 export function priceMetadata(rung: PlanRung): Record<string, string> {

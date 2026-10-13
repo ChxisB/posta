@@ -10,7 +10,6 @@ import {
 } from "../src/prices.js";
 import {
   dryRunStripe,
-  PORTAL_METADATA,
   type ProvisionStripe,
   provision,
   SAAS_BUSINESS_TAX_CODE,
@@ -278,7 +277,7 @@ describe("provision", () => {
     for (const rung of PAID_RUNGS) {
       expect(state.prices.find((p) => p.id === result.prices[rung.key])).toMatchObject({
         active: true,
-        lookup_key: `millionsend_${rung.key}_monthly`,
+        lookup_key: `posta_${rung.key}_monthly`,
         unit_amount: rung.priceCents,
         product: result.products[rung.plan],
         recurring: { usage_type: "licensed", meter: null },
@@ -291,7 +290,7 @@ describe("provision", () => {
       }
       expect(state.prices.find((p) => p.id === result.overagePrices[rung.key])).toMatchObject({
         active: true,
-        lookup_key: `millionsend_${rung.key}_overage`,
+        lookup_key: `posta_${rung.key}_overage`,
         unit_amount: rung.overageCentsPer1k,
         product: result.products[rung.plan],
         recurring: { usage_type: "metered", meter: result.meter },
@@ -308,7 +307,8 @@ describe("provision", () => {
     expect(log).toContain(`webhook: STRIPE_WEBHOOK_SECRET=${result.webhook?.secret}`);
 
     const [portal] = state.portals;
-    expect(portal?.metadata).toEqual(PORTAL_METADATA);
+    // The marker re-runs find the configuration by: changing it duplicates the portal.
+    expect(portal?.metadata).toEqual({ posta: "portal" });
     expect(result.portalConfiguration).toBe(portal?.id);
     expect(portal?.features.subscription_update.enabled).toBe(false);
     // Sent as the empty string: the API's way to clear a stale product list.
@@ -373,7 +373,7 @@ describe("provision", () => {
     expect(old).toMatchObject({ active: false, lookup_key: null });
     expect(state.prices.find((p) => p.id === second.prices.pro_100k)).toMatchObject({
       active: true,
-      lookup_key: "millionsend_pro_100k_monthly",
+      lookup_key: "posta_pro_100k_monthly",
       unit_amount: rungByKey("pro_100k").priceCents,
       product: first.products.pro,
       metadata: priceMetadata(rungByKey("pro_100k")),
@@ -403,13 +403,13 @@ describe("provision", () => {
 
   it("archives the pre-ladder prices but leaves their lookup keys in place", async () => {
     const { stripe, state, seedPrice } = fakeStripe();
-    const pro = seedPrice({ lookup_key: "millionsend_pro_monthly", unit_amount: 2000 });
-    const scale = seedPrice({ lookup_key: "millionsend_scale_monthly", unit_amount: 10_000 });
+    const pro = seedPrice({ lookup_key: "posta_pro_monthly", unit_amount: 2000 });
+    const scale = seedPrice({ lookup_key: "posta_scale_monthly", unit_amount: 10_000 });
 
     await provision(stripe, opts({ portal: false }));
-    expect(pro).toMatchObject({ active: false, lookup_key: "millionsend_pro_monthly" });
-    expect(scale).toMatchObject({ active: false, lookup_key: "millionsend_scale_monthly" });
-    expect(log).toContain(`price millionsend_pro_monthly: ${pro.id} (archived)`);
+    expect(pro).toMatchObject({ active: false, lookup_key: "posta_pro_monthly" });
+    expect(scale).toMatchObject({ active: false, lookup_key: "posta_scale_monthly" });
+    expect(log).toContain(`price posta_pro_monthly: ${pro.id} (archived)`);
     // Both keys still resolve to a price, so subscriptions on them keep their rung.
     expect(state.prices.filter((p) => p.lookup_key?.endsWith("_monthly"))).toHaveLength(
       PAID_RUNGS.length + 2,
@@ -418,7 +418,7 @@ describe("provision", () => {
     state.calls.length = 0;
     await provision(stripe, opts({ portal: false }));
     expect(state.calls.filter((c) => c.startsWith("prices.update"))).toEqual([]);
-    expect(log).toContain(`price millionsend_scale_monthly: ${scale.id} (already archived)`);
+    expect(log).toContain(`price posta_scale_monthly: ${scale.id} (already archived)`);
   });
 
   it("re-syncs a webhook endpoint whose events drifted", async () => {
@@ -468,17 +468,17 @@ describe("--move-legacy", () => {
   it("moves a subscription on a pre-ladder price to its rung, adds the metered item, keeps going idempotently", async () => {
     const { stripe, state, seedSubscription } = fakeStripe();
     const product = await stripe.products.create({
-      name: "MillionSend Scale",
+      name: "Posta Scale",
       metadata: { [PRODUCT_METADATA_KEY]: "scale" },
     });
     const legacy =
-      state.prices.find((p) => p.lookup_key === "millionsend_scale_monthly") ??
+      state.prices.find((p) => p.lookup_key === "posta_scale_monthly") ??
       (await stripe.prices.create({
         product: product.id,
         currency: "usd",
         unit_amount: 5000,
         recurring: { interval: "month" },
-        lookup_key: "millionsend_scale_monthly",
+        lookup_key: "posta_scale_monthly",
       }));
     // The rung resolves through the product's metadata, which only an
     // expanded list carries; the stored price keeps the id, like Stripe.

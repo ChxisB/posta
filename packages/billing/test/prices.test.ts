@@ -14,22 +14,18 @@ const scaleProduct = legacyProduct("scale");
 describe("rungFromPrice", () => {
   it("reads the rung from metadata before the lookup key", () => {
     expect(
-      rungFromPrice(
-        price("millionsend_pro_100k_monthly", { metadata: { millionsend_rung: "scale_1m" } }),
-      ),
+      rungFromPrice(price("posta_pro_100k_monthly", { metadata: { posta_rung: "scale_1m" } })),
     ).toBe(rungByKey("scale_1m"));
     // Unknown metadata falls through to the key.
     expect(
-      rungFromPrice(
-        price("millionsend_pro_200k_monthly", { metadata: { millionsend_rung: "bogus" } }),
-      ),
+      rungFromPrice(price("posta_pro_200k_monthly", { metadata: { posta_rung: "bogus" } })),
     ).toBe(rungByKey("pro_200k"));
   });
 
   it("reads the lookup key, then the product's plan", () => {
-    expect(rungFromPrice(price("millionsend_starter_monthly"))).toBe(rungByKey("starter"));
-    expect(rungFromPrice(price("millionsend_scale_2_5m_monthly"))).toBe(rungByKey("scale_2_5m"));
-    expect(rungFromPrice(price("millionsend_scale_1m_overage"))).toBe(rungByKey("scale_1m"));
+    expect(rungFromPrice(price("posta_starter_monthly"))).toBe(rungByKey("starter"));
+    expect(rungFromPrice(price("posta_scale_2_5m_monthly"))).toBe(rungByKey("scale_2_5m"));
+    expect(rungFromPrice(price("posta_scale_1m_overage"))).toBe(rungByKey("scale_1m"));
     expect(rungFromPrice(price(null, { product: scaleProduct }))).toBe(rungByKey("scale_500k"));
     expect(rungFromPrice(price("someone_elses_price", { product: scaleProduct }))).toBe(
       rungByKey("scale_500k"),
@@ -37,14 +33,14 @@ describe("rungFromPrice", () => {
   });
 
   it("product metadata lands a pre-ladder price on the plan's first rung", () => {
-    expect(rungFromPrice(price("millionsend_pro_monthly", { product: legacyProduct("pro") }))).toBe(
+    expect(rungFromPrice(price("posta_pro_monthly", { product: legacyProduct("pro") }))).toBe(
       rungByKey("pro_100k"),
     );
-    expect(rungFromPrice(price("millionsend_scale_monthly", { product: scaleProduct }))).toBe(
+    expect(rungFromPrice(price("posta_scale_monthly", { product: scaleProduct }))).toBe(
       rungByKey("scale_500k"),
     );
     // The key alone links to nothing.
-    expect(rungFromPrice(price("millionsend_pro_monthly"))).toBeNull();
+    expect(rungFromPrice(price("posta_pro_monthly"))).toBeNull();
   });
 
   it("is null for a price nothing links to the ladder", () => {
@@ -56,8 +52,8 @@ describe("rungFromPrice", () => {
 
 describe("subscriptionItems", () => {
   it("splits the plan item from the metered one", () => {
-    const both = subscription("sub_1", "cus_1", "active", "millionsend_pro_100k_monthly", {
-      overageKey: "millionsend_pro_100k_overage",
+    const both = subscription("sub_1", "cus_1", "active", "posta_pro_100k_monthly", {
+      overageKey: "posta_pro_100k_overage",
     });
     expect(subscriptionItems(both)).toEqual({
       base: both.items.data[0],
@@ -77,8 +73,8 @@ describe("subscriptionItems", () => {
 describe("pendingRungOf", () => {
   const current = rungByKey("pro_200k");
   const withSchedule = (items: unknown[]) =>
-    subscription("sub_1", "cus_1", "active", "millionsend_pro_200k_monthly", {
-      overageKey: "millionsend_pro_200k_overage",
+    subscription("sub_1", "cus_1", "active", "posta_pro_200k_monthly", {
+      overageKey: "posta_pro_200k_overage",
       schedule: schedule(items),
     });
 
@@ -89,8 +85,8 @@ describe("pendingRungOf", () => {
     expect(
       pendingRungOf(
         withSchedule([
-          price("millionsend_pro_200k_monthly"),
-          price("millionsend_pro_200k_overage", { metered: true }),
+          price("posta_pro_200k_monthly"),
+          price("posta_pro_200k_overage", { metered: true }),
         ]),
         current,
       ),
@@ -102,15 +98,13 @@ describe("pendingRungOf", () => {
     expect(
       pendingRungOf(
         withSchedule([
-          price("millionsend_pro_100k_monthly"),
-          price("millionsend_pro_100k_overage", { metered: true }),
+          price("posta_pro_100k_monthly"),
+          price("posta_pro_100k_overage", { metered: true }),
         ]),
         current,
       ),
     ).toBe("pro_100k");
-    expect(pendingRungOf(withSchedule([price("millionsend_starter_monthly")]), current)).toBe(
-      "starter",
-    );
+    expect(pendingRungOf(withSchedule([price("posta_starter_monthly")]), current)).toBe("starter");
   });
 
   it("skips metered items and deleted prices to find the plan price", () => {
@@ -118,16 +112,16 @@ describe("pendingRungOf", () => {
     expect(
       pendingRungOf(
         withSchedule([
-          price("millionsend_pro_100k_overage", { metered: true }),
+          price("posta_pro_100k_overage", { metered: true }),
           deleted,
-          price("millionsend_pro_100k_monthly"),
+          price("posta_pro_100k_monthly"),
         ]),
         current,
       ),
     ).toBe("pro_100k");
     expect(
       pendingRungOf(
-        withSchedule([price("millionsend_pro_100k_overage", { metered: true }), deleted]),
+        withSchedule([price("posta_pro_100k_overage", { metered: true }), deleted]),
         current,
       ),
     ).toBeNull();
@@ -137,14 +131,14 @@ describe("pendingRungOf", () => {
 describe("priceMetadata", () => {
   it("carries the rung key, plan, volume, period and overage rate", () => {
     expect(priceMetadata(rungByKey("pro_100k"))).toEqual({
-      millionsend_rung: "pro_100k",
+      posta_rung: "pro_100k",
       plan: "pro",
       included_emails: "100000",
       period: "month",
       overage_cents_per_1k: "30",
     });
     expect(priceMetadata(rungByKey("starter"))).toEqual({
-      millionsend_rung: "starter",
+      posta_rung: "starter",
       plan: "starter",
       included_emails: "1500",
       period: "day",

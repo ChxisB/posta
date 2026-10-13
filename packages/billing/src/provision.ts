@@ -55,7 +55,7 @@ export interface ProvisionStripe {
 }
 
 /** Portal configurations carry this marker so re-runs update rather than duplicate. */
-export const PORTAL_METADATA = { millionsend: "portal" } as const;
+export const PORTAL_METADATA = { posta: "portal" } as const;
 /** Stripe Tax code "Software as a service (SaaS) — business use". */
 export const SAAS_BUSINESS_TAX_CODE = "txcd_10103001";
 
@@ -122,7 +122,7 @@ async function ensureProduct(
     return existing.id;
   }
   const created = await stripe.products.create({
-    name: `MillionSend ${PLAN_NAME[plan]}`,
+    name: `Posta ${PLAN_NAME[plan]}`,
     metadata: { [PRODUCT_METADATA_KEY]: plan },
     tax_code: SAAS_BUSINESS_TAX_CODE,
   });
@@ -225,7 +225,7 @@ async function ensurePrice(
  * still on them keep working (resolving to the plan's first rung through the
  * product's metadata) until each is moved; only new checkouts stop seeing them.
  */
-const LEGACY_PRICE_LOOKUP_KEYS = ["millionsend_pro_monthly", "millionsend_scale_monthly"];
+const LEGACY_PRICE_LOOKUP_KEYS = ["posta_pro_monthly", "posta_scale_monthly"];
 
 async function archiveLegacyPrices(
   stripe: ProvisionStripe,
@@ -326,7 +326,7 @@ async function ensureWebhook(
     url,
     enabled_events: [...WEBHOOK_EVENTS],
     api_version: Stripe.API_VERSION,
-    description: "MillionSend billing",
+    description: "Posta billing",
   });
   log(`webhook: ${created.id} (created)`);
   if (created.secret) {
@@ -387,7 +387,7 @@ async function ensurePortal(
     ...(appUrl ? { default_return_url: `${appUrl.replace(/\/+$/, "")}/settings/billing` } : {}),
   };
   const { data } = await stripe.billingPortal.configurations.list({ active: true, limit: 100 });
-  const existing = data.find((c) => c.metadata?.millionsend === PORTAL_METADATA.millionsend);
+  const existing = data.find((c) => c.metadata?.posta === PORTAL_METADATA.posta);
   if (existing) {
     await stripe.billingPortal.configurations.update(existing.id, settings);
     log(`portal: ${existing.id} (existing, settings refreshed)`);

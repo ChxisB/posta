@@ -147,15 +147,15 @@ pega-tudo vale para qualquer domínio.
 ## O modelo no Stripe
 
 - Um **produto** por plano pago (Starter, Pro, Scale), localizado por
-  `metadata.millionsend_plan`.
-- Um **preço** recorrente por faixa, lookup key `millionsend_<faixa>_monthly`
-  (`millionsend_pro_100k_monthly`, …), com
-  `metadata.millionsend_rung = <faixa>` mais plano, volume incluído, período
+  `metadata.posta_plan`.
+- Um **preço** recorrente por faixa, lookup key `posta_<faixa>_monthly`
+  (`posta_pro_100k_monthly`, …), com
+  `metadata.posta_rung = <faixa>` mais plano, volume incluído, período
   e taxa de excedente.
 - Um **medidor**, evento `emails_over_quota`, que soma `value` por
   `stripe_customer_id`.
 - Um **preço de excedente** medido por faixa mensal, lookup key
-  `millionsend_<faixa>_overage`, nesse medidor, cobrado por 1.000 e-mails
+  `posta_<faixa>_overage`, nesse medidor, cobrado por 1.000 e-mails
   arredondando para cima (`transform_quantity: { divide_by: 1000, round: "up" }`).
 
 Os preços são localizados por lookup key, nunca por id de preço, então o
@@ -235,11 +235,11 @@ A faixa deriva da assinatura **buscada de novo** no Stripe no momento do webhook
 então entregas fora de ordem convergem para o estado atual do Stripe. O item
 não medido da assinatura nomeia a faixa, nesta ordem:
 
-1. o `metadata.millionsend_rung` do preço;
-2. a lookup key do preço (`millionsend_<faixa>_monthly`);
-3. o `metadata.millionsend_plan` do produto, caindo na primeira faixa desse
+1. o `metadata.posta_rung` do preço;
+2. a lookup key do preço (`posta_<faixa>_monthly`);
+3. o `metadata.posta_plan` do produto, caindo na primeira faixa desse
    plano — é assim que os dois preços vendidos antes da tabela de planos atual resolvem
-   (`millionsend_pro_monthly` → `pro_100k`, `millionsend_scale_monthly` →
+   (`posta_pro_monthly` → `pro_100k`, `posta_scale_monthly` →
    `scale_500k`).
 
 | Status da assinatura buscada de novo | `plan`, `plan_quota` | `plan_status` |
@@ -330,7 +330,7 @@ STRIPE_SECRET_KEY=sk_test_… pnpm --filter @posta/billing provision \
 
 O que ele faz, e por que rodar de novo é seguro:
 
-- **Produtos** são localizados por `metadata.millionsend_plan` (`starter` /
+- **Produtos** são localizados por `metadata.posta_plan` (`starter` /
   `pro` / `scale`), criados com o código do Stripe Tax para SaaS de uso
   empresarial.
 - **O medidor** é localizado pelo nome do evento, `emails_over_quota`.
@@ -339,7 +339,7 @@ O que ele faz, e por que rodar de novo é seguro:
   assinaturas existentes mantêm o preço antigo (ainda resolvido pelo
   metadata), novos checkouts recebem o novo. Só o metadata é atualizado no
   lugar. Os preços são `tax_behavior: exclusive`.
-- **Preços legados** `millionsend_pro_monthly` e `millionsend_scale_monthly`
+- **Preços legados** `posta_pro_monthly` e `posta_scale_monthly`
   são arquivados, não excluídos: assinaturas ainda neles continuam
   funcionando, resolvidas para a primeira faixa do plano pelo metadata do
   produto, até cada uma ser movida; só os novos checkouts deixam de vê-los.

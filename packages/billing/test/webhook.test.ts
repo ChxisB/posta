@@ -122,8 +122,8 @@ describe("handleWebhook", () => {
       "sub_1",
       "cus_1",
       "trialing",
-      "millionsend_scale_500k_monthly",
-      { overageKey: "millionsend_scale_500k_overage" },
+      "posta_scale_500k_monthly",
+      { overageKey: "posta_scale_500k_overage" },
     );
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(await team(teamId)).toEqual({
@@ -152,37 +152,22 @@ describe("handleWebhook", () => {
       stripeOverageItemId: "si_sub_1_overage",
     });
 
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_starter_monthly",
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_starter_monthly");
     await deliver(subEvent("customer.subscription.updated", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({ plan: "starter", planQuota: null });
   });
 
   it("pre-ladder prices land on the first rung of their product's plan", async () => {
     const teamId = await customerTeam();
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_scale_monthly",
-      { product: legacyProduct("scale") },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_scale_monthly", {
+      product: legacyProduct("scale"),
+    });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({ plan: "scale", planQuota: 500_000 });
 
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_pro_monthly",
-      {
-        product: legacyProduct("pro"),
-      },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_pro_monthly", {
+      product: legacyProduct("pro"),
+    });
     await deliver(subEvent("customer.subscription.updated", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({ plan: "pro", planQuota: 100_000 });
   });
@@ -190,16 +175,13 @@ describe("handleWebhook", () => {
   it("mirrors a scheduled downgrade in pending_rung and clears it once the schedule is gone", async () => {
     const teamId = await customerTeam();
     const pending = schedule([
-      price("millionsend_pro_100k_monthly"),
-      price("millionsend_pro_100k_overage", { metered: true }),
+      price("posta_pro_100k_monthly"),
+      price("posta_pro_100k_overage", { metered: true }),
     ]);
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_pro_200k_monthly",
-      { overageKey: "millionsend_pro_200k_overage", schedule: pending },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_pro_200k_monthly", {
+      overageKey: "posta_pro_200k_overage",
+      schedule: pending,
+    });
     await deliver(subEvent("customer.subscription.updated", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({ planQuota: 200_000, pendingRung: "pro_100k" });
 
@@ -216,13 +198,9 @@ describe("handleWebhook", () => {
 
   it("price metadata names the rung ahead of the lookup key", async () => {
     const teamId = await customerTeam();
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_pro_100k_monthly",
-      { metadata: { millionsend_rung: "scale_1m" } },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_pro_100k_monthly", {
+      metadata: { posta_rung: "scale_1m" },
+    });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({ plan: "scale", planQuota: 1_000_000 });
   });
@@ -230,7 +208,7 @@ describe("handleWebhook", () => {
   it("resolves a rotated (key-less) price through the product's plan metadata", async () => {
     const teamId = await customerTeam();
     state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", null, {
-      product: { id: "prod_scale", object: "product", metadata: { millionsend_plan: "scale" } },
+      product: { id: "prod_scale", object: "product", metadata: { posta_plan: "scale" } },
     });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(await team(teamId)).toMatchObject({
@@ -242,18 +220,14 @@ describe("handleWebhook", () => {
 
   it("re-points a metered item priced for another rung", async () => {
     const teamId = await customerTeam();
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_pro_200k_monthly",
-      { overageKey: "millionsend_pro_100k_overage" },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_pro_200k_monthly", {
+      overageKey: "posta_pro_100k_overage",
+    });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(state.itemUpdates).toEqual([
       [
         "si_sub_1_overage",
-        { price: priceId("millionsend_pro_200k_overage"), proration_behavior: "none" },
+        { price: priceId("posta_pro_200k_overage"), proration_behavior: "none" },
       ],
     ]);
     expect(await team(teamId)).toMatchObject({
@@ -269,13 +243,10 @@ describe("handleWebhook", () => {
 
   it("leaves a rotated (key-less) metered price alone when its metadata names the plan's rung", async () => {
     const teamId = await customerTeam();
-    state.subscriptions.sub_1 = subscription(
-      "sub_1",
-      "cus_1",
-      "active",
-      "millionsend_pro_200k_monthly",
-      { overageKey: null, overageMetadata: { millionsend_rung: "pro_200k" } },
-    );
+    state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", "posta_pro_200k_monthly", {
+      overageKey: null,
+      overageMetadata: { posta_rung: "pro_200k" },
+    });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     expect(state.itemUpdates).toEqual([]);
     expect(await team(teamId)).toMatchObject({
@@ -288,7 +259,7 @@ describe("handleWebhook", () => {
   it("meters the unreported tail while the row still names a metered item that is going", async () => {
     const teamId = await customerTeam();
     state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", undefined, {
-      overageKey: "millionsend_pro_100k_overage",
+      overageKey: "posta_pro_100k_overage",
     });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     await db
@@ -319,7 +290,7 @@ describe("handleWebhook", () => {
   it("past_due keeps the plan as a grace period; unpaid and canceled drop to free", async () => {
     const teamId = await customerTeam();
     state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", undefined, {
-      overageKey: "millionsend_pro_100k_overage",
+      overageKey: "posta_pro_100k_overage",
     });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
 
@@ -430,7 +401,7 @@ describe("handleWebhook", () => {
       "sub_new",
       "cus_1",
       "active",
-      "millionsend_scale_500k_monthly",
+      "posta_scale_500k_monthly",
     );
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_new));
     await deliver(subEvent("customer.subscription.deleted", state.subscriptions.sub_old));
@@ -505,7 +476,7 @@ describe("reconcileTeamPlan", () => {
       "sub_new",
       "cus_1",
       "active",
-      "millionsend_scale_500k_monthly",
+      "posta_scale_500k_monthly",
     );
     await reconcileTeamPlan(deps(), teamId);
     // Expansions ride on the retrieve: a list nests them one level deeper than Stripe allows.
@@ -531,7 +502,7 @@ describe("cancelTeamSubscription", () => {
     expect(state.cancels).toEqual([]);
 
     state.subscriptions.sub_1 = subscription("sub_1", "cus_1", "active", undefined, {
-      overageKey: "millionsend_pro_100k_overage",
+      overageKey: "posta_pro_100k_overage",
     });
     await deliver(subEvent("customer.subscription.created", state.subscriptions.sub_1));
     await cancelTeamSubscription(deps(), teamId);

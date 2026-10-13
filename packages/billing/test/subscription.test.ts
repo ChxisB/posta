@@ -57,8 +57,8 @@ async function subscribedTeam(sub: Stripe.Subscription, accepted = 0): Promise<s
 }
 
 const withOverage = (
-  lookupKey = "millionsend_pro_100k_monthly",
-  overageKey = "millionsend_pro_100k_overage",
+  lookupKey = "posta_pro_100k_monthly",
+  overageKey = "posta_pro_100k_overage",
   extra: { schedule?: Stripe.SubscriptionSchedule } = {},
 ) => subscription("sub_1", "cus_1", "active", lookupKey, { overageKey, ...extra });
 
@@ -85,8 +85,8 @@ describe("changeRung up", () => {
         "sub_1",
         {
           items: [
-            { id: "si_sub_1", price: priceId("millionsend_pro_200k_monthly") },
-            { id: "si_sub_1_overage", price: priceId("millionsend_pro_200k_overage") },
+            { id: "si_sub_1", price: priceId("posta_pro_200k_monthly") },
+            { id: "si_sub_1_overage", price: priceId("posta_pro_200k_overage") },
           ],
           proration_behavior: "create_prorations",
         },
@@ -110,8 +110,8 @@ describe("changeRung up", () => {
 
   it("drops a pending downgrade before moving up", async () => {
     const teamId = await subscribedTeam(
-      withOverage("millionsend_pro_200k_monthly", "millionsend_pro_200k_overage", {
-        schedule: schedule([price("millionsend_pro_100k_monthly")]),
+      withOverage("posta_pro_200k_monthly", "posta_pro_200k_overage", {
+        schedule: schedule([price("posta_pro_100k_monthly")]),
       }),
     );
     expect(await team(teamId)).toMatchObject({ planQuota: 200_000, pendingRung: "pro_100k" });
@@ -127,7 +127,7 @@ describe("changeRung up", () => {
 
   it("adds the metered item to a pre-ladder subscription that has none", async () => {
     const teamId = await subscribedTeam(
-      subscription("sub_1", "cus_1", "active", "millionsend_pro_monthly", {
+      subscription("sub_1", "cus_1", "active", "posta_pro_monthly", {
         product: legacyProduct("pro"),
       }),
     );
@@ -135,8 +135,8 @@ describe("changeRung up", () => {
     await changeRung(deps(), { teamId, rung: "pro_200k" });
     expect(state.meterEvents).toEqual([]);
     expect(state.updates[0]?.[1].items).toEqual([
-      { id: "si_sub_1", price: priceId("millionsend_pro_200k_monthly") },
-      { price: priceId("millionsend_pro_200k_overage") },
+      { id: "si_sub_1", price: priceId("posta_pro_200k_monthly") },
+      { price: priceId("posta_pro_200k_overage") },
     ]);
     expect(await team(teamId)).toMatchObject({
       planQuota: 200_000,
@@ -152,7 +152,7 @@ describe("changeRung up", () => {
 });
 
 describe("changeRung down", () => {
-  const pro200k = () => withOverage("millionsend_pro_200k_monthly", "millionsend_pro_200k_overage");
+  const pro200k = () => withOverage("posta_pro_200k_monthly", "posta_pro_200k_overage");
 
   it("schedules the cheaper rung for the period end and keeps the paid volume until then", async () => {
     const teamId = await subscribedTeam(pro200k(), 180_000);
@@ -171,8 +171,8 @@ describe("changeRung down", () => {
           phases: [
             {
               items: [
-                { price: priceId("millionsend_pro_200k_monthly"), quantity: 1 },
-                { price: priceId("millionsend_pro_200k_overage") },
+                { price: priceId("posta_pro_200k_monthly"), quantity: 1 },
+                { price: priceId("posta_pro_200k_overage") },
               ],
               start_date: PERIOD_START,
               end_date: PERIOD_END,
@@ -180,8 +180,8 @@ describe("changeRung down", () => {
             },
             {
               items: [
-                { price: priceId("millionsend_pro_100k_monthly"), quantity: 1 },
-                { price: priceId("millionsend_pro_100k_overage") },
+                { price: priceId("posta_pro_100k_monthly"), quantity: 1 },
+                { price: priceId("posta_pro_100k_overage") },
               ],
               duration: { interval: "month", interval_count: 1 },
               proration_behavior: "none",
@@ -223,7 +223,7 @@ describe("changeRung down", () => {
     expect(state.scheduleCreates).toHaveLength(1);
     expect(state.scheduleUpdates.map(([id]) => id)).toEqual(["sched_1", "sched_1"]);
     expect(state.scheduleUpdates[1]?.[1].phases?.[1]?.items).toEqual([
-      { price: priceId("millionsend_starter_monthly"), quantity: 1 },
+      { price: priceId("posta_starter_monthly"), quantity: 1 },
     ]);
     expect(await team(teamId)).toMatchObject({ planQuota: 200_000, pendingRung: "starter" });
   });
@@ -244,7 +244,7 @@ describe("setOverage", () => {
     const teamId = await subscribedTeam(subscription("sub_1", "cus_1", "active"));
     await setOverage(deps(), { teamId, enabled: true });
     expect(state.itemCreates).toEqual([
-      { subscription: "sub_1", price: priceId("millionsend_pro_100k_overage") },
+      { subscription: "sub_1", price: priceId("posta_pro_100k_overage") },
     ]);
     expect(await team(teamId)).toMatchObject({
       plan: "pro",
@@ -273,7 +273,7 @@ describe("setOverage", () => {
 
   it("is refused on a daily plan", async () => {
     const teamId = await subscribedTeam(
-      subscription("sub_1", "cus_1", "active", "millionsend_starter_monthly"),
+      subscription("sub_1", "cus_1", "active", "posta_starter_monthly"),
     );
     await expect(setOverage(deps(), { teamId, enabled: true })).rejects.toThrow(
       "monthly plans only",

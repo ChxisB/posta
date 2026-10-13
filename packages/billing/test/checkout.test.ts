@@ -36,8 +36,8 @@ describe("createCheckoutSession", () => {
       customer: "cus_1",
       client_reference_id: teamId,
       line_items: [
-        { price: priceId("millionsend_pro_100k_monthly"), quantity: 1 },
-        { price: priceId("millionsend_pro_100k_overage") },
+        { price: priceId("posta_pro_100k_monthly"), quantity: 1 },
+        { price: priceId("posta_pro_100k_overage") },
       ],
       payment_method_options: { card: { request_three_d_secure: "any" } },
     });
@@ -49,7 +49,7 @@ describe("createCheckoutSession", () => {
     );
     expect(state.customers).toHaveLength(1);
     expect(state.checkouts[1]?.line_items).toEqual([
-      { price: priceId("millionsend_starter_monthly"), quantity: 1 },
+      { price: priceId("posta_starter_monthly"), quantity: 1 },
     ]);
   });
 

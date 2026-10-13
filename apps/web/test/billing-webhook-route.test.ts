@@ -177,7 +177,7 @@ describe("owner mail", () => {
   let teamId: string;
 
   beforeEach(async () => {
-    vi.stubEnv("AUTH_EMAIL_FROM", "MillionSend <account@mail.example.com>");
+    vi.stubEnv("AUTH_EMAIL_FROM", "Posta <account@mail.example.com>");
     teamId = await subscribedTeam();
     await addOwner(teamId, "ada", "ada@example.com");
     // A plain member hears nothing about billing.
@@ -195,7 +195,7 @@ describe("owner mail", () => {
   });
 
   it("reports an activation once, however often and however parallel Stripe delivers the events", async () => {
-    vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "MillionSend <notices@mail.example.com>");
+    vi.stubEnv("NOTIFICATIONS_EMAIL_FROM", "Posta <notices@mail.example.com>");
     h.afterEvent = { plan: "pro", currentPeriodEnd: PERIOD_END };
     // A checkout's three events arrive together; each request snapshots the
     // free plan before any of them is applied.
@@ -207,7 +207,7 @@ describe("owner mail", () => {
     await send("evt_2", "customer.subscription.created");
     expect(kinds()).toEqual(["billing.plan_activated"]);
     expect(h.sent[0]).toMatchObject({
-      from: "MillionSend <notices@mail.example.com>",
+      from: "Posta <notices@mail.example.com>",
       to: "ada@example.com",
       subject: "Your team is on Pro 100K",
     });

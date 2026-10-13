@@ -20,7 +20,7 @@ const isOverageKey = (key: string) => key.endsWith("_overage");
 export const legacyProduct = (plan: string) => ({
   id: `prod_${plan}`,
   object: "product",
-  metadata: { millionsend_plan: plan },
+  metadata: { posta_plan: plan },
 });
 
 export function price(
@@ -70,7 +70,7 @@ export function subscription(
   id: string,
   customer: string,
   status: Stripe.Subscription.Status,
-  lookupKey: string | null = "millionsend_pro_100k_monthly",
+  lookupKey: string | null = "posta_pro_100k_monthly",
   opts: {
     product?: unknown;
     metadata?: Record<string, string>;
