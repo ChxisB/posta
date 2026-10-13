@@ -25,7 +25,7 @@ export const CONTACTS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> =
   node: {
     list: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 const { data, error } = await ms.contacts.list({ limit: 20 });`,
     create: `await ms.contacts.create({
@@ -41,7 +41,7 @@ const { data, error } = await ms.contacts.list({ limit: 20 });`,
   python: {
     list: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 contacts = millionsend.Contacts.list(limit=20)`,
     create: `millionsend.Contacts.create({
@@ -55,7 +55,7 @@ contacts = millionsend.Contacts.list(limit=20)`,
 })`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $contacts = $ms->contacts->list(['limit' => 20]);`,
     create: `$ms->contacts->create([
@@ -69,7 +69,7 @@ $contacts = $ms->contacts->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "ms_xxxxxxxxx"
+    list: `Millionsend.api_key = "po_xxxxxxxxx"
 
 contacts = Millionsend::Contacts.list(limit: 20)`,
     create: `Millionsend::Contacts.create(
@@ -83,7 +83,7 @@ contacts = Millionsend::Contacts.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    list: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 contacts, err := client.Contacts.List(&millionsend.ListOptions{Limit: 20})`,
     create: `contact, err := client.Contacts.Create(&millionsend.CreateContactRequest{
@@ -99,7 +99,7 @@ updated, err := client.Contacts.Update(&millionsend.UpdateContactRequest{
 })`,
   },
   rust: {
-    list: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    list: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let contacts = ms
     .contacts
@@ -124,7 +124,7 @@ ms.contacts.create(&contact).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 ListResponse<Contact> contacts = ms.contacts().list(
     ListOptions.builder().limit(20).build()
@@ -140,7 +140,7 @@ ListResponse<Contact> contacts = ms.contacts().list(
     .build());`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 var contacts = await ms.ContactListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.ContactAddAsync(new ContactCreateOptions
@@ -156,7 +156,7 @@ var contacts = await ms.ContactListAsync(new ListOptions { Limit = 20 });`,
 });`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 {:ok, contacts} = MillionSend.Contacts.list(client, limit: 20)`,
     create: `MillionSend.Contacts.create(client, %{
@@ -175,7 +175,7 @@ export const SEGMENTS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> =
   node: {
     list: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 const { data, error } = await ms.segments.list({ limit: 20 });`,
     create: `await ms.segments.create({
@@ -192,7 +192,7 @@ const { data, error } = await ms.segments.list({ limit: 20 });`,
   python: {
     list: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 segments = millionsend.Segments.list(limit=20)`,
     create: `millionsend.Segments.create({
@@ -210,7 +210,7 @@ segments = millionsend.Segments.list(limit=20)`,
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $segments = $ms->segments->list(['limit' => 20]);`,
     create: `$ms->segments->create([
@@ -227,7 +227,7 @@ $segments = $ms->segments->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "ms_xxxxxxxxx"
+    list: `Millionsend.api_key = "po_xxxxxxxxx"
 
 segments = Millionsend::Segments.list(limit: 20)`,
     create: `Millionsend::Segments.create(
@@ -245,7 +245,7 @@ segments = Millionsend::Segments.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    list: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 segments, err := client.Segments.List(&millionsend.ListOptions{Limit: 20})`,
     create: `segment, err := client.Segments.Create(&millionsend.CreateSegmentRequest{
@@ -263,7 +263,7 @@ segments, err := client.Segments.List(&millionsend.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    list: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let segments = ms
     .segments
@@ -296,7 +296,7 @@ ms.segments.create(&segment).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 ListResponse<Segment> segments = ms.segments().list(
     ListOptions.builder().limit(20).build()
@@ -314,7 +314,7 @@ ListResponse<Segment> segments = ms.segments().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.SegmentAddAsync(new SegmentCreateOptions
@@ -335,7 +335,7 @@ var segments = await ms.SegmentListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 {:ok, segments} = MillionSend.Segments.list(client, limit: 20)`,
     create: `MillionSend.Segments.create(client, %{
@@ -357,7 +357,7 @@ export const TOPICS_SNIPPETS: ResourceSnippets<"list" | "create" | "get"> = {
   node: {
     list: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 const { data, error } = await ms.topics.list();`,
     create: `await ms.topics.create({
@@ -372,7 +372,7 @@ const { data, error } = await ms.topics.list();`,
   python: {
     list: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 topics = millionsend.Topics.list()`,
     create: `millionsend.Topics.create({
@@ -385,7 +385,7 @@ topics = millionsend.Topics.list()`,
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $topics = $ms->topics->list();`,
     create: `$ms->topics->create([
@@ -398,7 +398,7 @@ $topics = $ms->topics->list();`,
 );`,
   },
   ruby: {
-    list: `Millionsend.api_key = "ms_xxxxxxxxx"
+    list: `Millionsend.api_key = "po_xxxxxxxxx"
 
 topics = Millionsend::Topics.list`,
     create: `Millionsend::Topics.create(
@@ -411,7 +411,7 @@ topics = Millionsend::Topics.list`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    list: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 topics, err := client.Topics.List()`,
     create: `topic, err := client.Topics.Create(&millionsend.CreateTopicRequest{
@@ -424,7 +424,7 @@ topics, err := client.Topics.List()`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    list: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let topics = ms.topics.list().await?;`,
     create: `let mut topic = CreateTopicOptions::new(
@@ -440,7 +440,7 @@ ms.topics.create(&topic).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 DataResponse<Topic> topics = ms.topics().list();`,
     create: `ms.topics().create(CreateTopicOptions.builder()
@@ -453,7 +453,7 @@ DataResponse<Topic> topics = ms.topics().list();`,
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 var topics = await ms.TopicListAsync();`,
     create: `await ms.TopicAddAsync(new TopicCreateOptions
@@ -467,7 +467,7 @@ var topics = await ms.TopicListAsync();`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 {:ok, topics} = MillionSend.Topics.list(client)`,
     create: `MillionSend.Topics.create(client, %{
@@ -486,7 +486,7 @@ export const BROADCASTS_SNIPPETS: ResourceSnippets<"list" | "create" | "send"> =
   node: {
     list: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 const { data, error } = await ms.broadcasts.list({ limit: 20 });`,
     create: `await ms.broadcasts.create({
@@ -503,7 +503,7 @@ const { data, error } = await ms.broadcasts.list({ limit: 20 });`,
   python: {
     list: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 broadcasts = millionsend.Broadcasts.list(limit=20)`,
     create: `millionsend.Broadcasts.create({
@@ -519,7 +519,7 @@ broadcasts = millionsend.Broadcasts.list(limit=20)`,
 )`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $broadcasts = $ms->broadcasts->list(['limit' => 20]);`,
     create: `$ms->broadcasts->create([
@@ -534,7 +534,7 @@ $broadcasts = $ms->broadcasts->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "ms_xxxxxxxxx"
+    list: `Millionsend.api_key = "po_xxxxxxxxx"
 
 broadcasts = Millionsend::Broadcasts.list(limit: 20)`,
     create: `Millionsend::Broadcasts.create(
@@ -550,7 +550,7 @@ broadcasts = Millionsend::Broadcasts.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    list: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 broadcasts, err := client.Broadcasts.List(&millionsend.ListOptions{Limit: 20})`,
     create: `broadcast, err := client.Broadcasts.Create(&millionsend.CreateBroadcastRequest{
@@ -566,7 +566,7 @@ broadcasts, err := client.Broadcasts.List(&millionsend.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    list: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let broadcasts = ms
     .broadcasts
@@ -589,7 +589,7 @@ ms.broadcasts.create(&broadcast).await?;`,
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 ListResponse<Broadcast> broadcasts = ms.broadcasts().list(
     ListOptions.builder().limit(20).build()
@@ -607,7 +607,7 @@ ListResponse<Broadcast> broadcasts = ms.broadcasts().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 var broadcasts = await ms.BroadcastListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.BroadcastAddAsync(new BroadcastCreateOptions
@@ -624,7 +624,7 @@ var broadcasts = await ms.BroadcastListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 {:ok, broadcasts} = MillionSend.Broadcasts.list(client, limit: 20)`,
     create: `MillionSend.Broadcasts.create(client, %{
@@ -646,7 +646,7 @@ export const WEBHOOKS_SNIPPETS: ResourceSnippets<"list" | "create" | "update"> =
   node: {
     list: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 const { data, error } = await ms.webhooks.list({ limit: 20 });`,
     create: `await ms.webhooks.create({
@@ -660,7 +660,7 @@ const { data, error } = await ms.webhooks.list({ limit: 20 });`,
   python: {
     list: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 webhooks = millionsend.Webhooks.list(limit=20)`,
     create: `millionsend.Webhooks.create({
@@ -673,7 +673,7 @@ webhooks = millionsend.Webhooks.list(limit=20)`,
 })`,
   },
   php: {
-    list: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    list: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $webhooks = $ms->webhooks->list(['limit' => 20]);`,
     create: `$ms->webhooks->create([
@@ -685,7 +685,7 @@ $webhooks = $ms->webhooks->list(['limit' => 20]);`,
 ]);`,
   },
   ruby: {
-    list: `Millionsend.api_key = "ms_xxxxxxxxx"
+    list: `Millionsend.api_key = "po_xxxxxxxxx"
 
 webhooks = Millionsend::Webhooks.list(limit: 20)`,
     create: `Millionsend::Webhooks.create(
@@ -698,7 +698,7 @@ webhooks = Millionsend::Webhooks.list(limit: 20)`,
 )`,
   },
   go: {
-    list: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    list: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 webhooks, err := client.Webhooks.List(&millionsend.ListOptions{Limit: 20})`,
     create: `webhook, err := client.Webhooks.Create(&millionsend.CreateWebhookRequest{
@@ -711,7 +711,7 @@ webhooks, err := client.Webhooks.List(&millionsend.ListOptions{Limit: 20})`,
 )`,
   },
   rust: {
-    list: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    list: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let webhooks = ms
     .webhooks
@@ -735,7 +735,7 @@ let webhooks = ms
     .await?;`,
   },
   java: {
-    list: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    list: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 ListResponse<Webhook> webhooks = ms.webhooks().list(
     ListOptions.builder().limit(20).build()
@@ -750,7 +750,7 @@ ListResponse<Webhook> webhooks = ms.webhooks().list(
 );`,
   },
   dotnet: {
-    list: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    list: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 var webhooks = await ms.WebhookListAsync(new ListOptions { Limit = 20 });`,
     create: `await ms.WebhookCreateAsync(new WebhookCreateOptions
@@ -764,7 +764,7 @@ var webhooks = await ms.WebhookListAsync(new ListOptions { Limit = 20 });`,
 );`,
   },
   elixir: {
-    list: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    list: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 {:ok, webhooks} = MillionSend.Webhooks.list(client, limit: 20)`,
     create: `MillionSend.Webhooks.create(client, %{

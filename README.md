@@ -17,7 +17,7 @@ means changing two environment variables, not rewriting your integration.
 | --- | --- | --- |
 | Emails API (Resend-compatible) | ✅ | Send, batch, get, cancel — same request/response shapes as Resend. |
 | Idempotency | ✅ | `Idempotency-Key` header dedupes retried sends. |
-| API keys | ✅ | Create and revoke `ms_` keys from the dashboard, with last-used tracking. |
+| API keys | ✅ | Create and revoke `po_` keys from the dashboard, with last-used tracking. |
 | Suppression list | ✅ | Hard bounces and complaints suppressed automatically; review and remove per address, or manage via `/suppressions` (batch add/remove up to 1000). |
 | Metrics | ✅ | Daily sends with bounce and complaint rates tracked against SES thresholds. |
 | Webhooks (Standard Webhooks) | ✅ | Signed event deliveries (`webhook-*` and `svix-*` headers) with per-endpoint event selection, a delivery log, and bring-your-own `whsec_` secret. |

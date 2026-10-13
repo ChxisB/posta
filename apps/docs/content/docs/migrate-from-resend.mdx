@@ -20,7 +20,7 @@ Or point the agent at it: `https://docs.posta.example/prompts/migrate-from-resen
 
 ## 1. Move your account
 
-Create an `ms_` API key with full access under **API keys** (MillionSend
+Create a `po_` API key with full access under **API keys** (MillionSend
 Cloud, or your own [self-hosted](/self-hosting) instance), then run, on your
 machine:
 
@@ -122,7 +122,7 @@ The official Resend SDKs honor `RESEND_BASE_URL`, so the migration is two
 environment lines — no code changes:
 
 ```sh
-RESEND_API_KEY=ms_...
+RESEND_API_KEY=po_...
 RESEND_BASE_URL=https://api.posta.example
 ```
 
@@ -150,7 +150,7 @@ languages with the same surface:
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
+const ms = new MillionSend("po_...", { baseUrl: "https://api.posta.example" });
 ```
 
 ## 3. Finish what the CLI lists

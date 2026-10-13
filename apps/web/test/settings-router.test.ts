@@ -272,7 +272,7 @@ describe("settings.team.delete", () => {
     await db.insert(schema.apiKeys).values({
       teamId,
       name: "k",
-      tokenPrefix: "ms_",
+      tokenPrefix: "po_",
       last4: "abcd",
       keyHash: "h",
       permission: "full_access",
@@ -398,8 +398,8 @@ describe("settings.smtp", () => {
     expect(smtp.port).toBe(2587);
     expect(smtp.host.length).toBeGreaterThan(0);
     expect(smtp.passwordPlaceholder).toBe("YOUR_API_KEY");
-    // No field may carry an ms_ API key.
-    expect(JSON.stringify(smtp)).not.toMatch(/ms_/);
+    // No field may carry a po_ API key.
+    expect(JSON.stringify(smtp)).not.toMatch(/po_/);
   });
 
   it("derives TLS flags from env — both paths required, and never ships the paths", async () => {

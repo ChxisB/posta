@@ -681,7 +681,7 @@ it("a new API key is reported once to the owners and to the person who created i
     .values({
       teamId,
       name: "ci",
-      tokenPrefix: "ms_live_abc",
+      tokenPrefix: "po_live_abc",
       keyHash: "h1",
       last4: "wxyz",
       permission: "sending_access",
@@ -697,7 +697,7 @@ it("a new API key is reported once to the owners and to the person who created i
   expect(sends.map((s) => s.to).sort()).toEqual(["ada@example.com", "owner@example.com"]);
   expect(sends[0]?.subject).toBe("A new API key was created");
   expect(readable(sends[0]?.text)).toContain(
-    'Ada created the API key "ci" (ms_live_abc…wxyz, sending access, limited to mail.acme.dev) in notify-team.',
+    'Ada created the API key "ci" (po_live_abc…wxyz, sending access, limited to mail.acme.dev) in notify-team.',
   );
   expect(sends[0]?.text).toContain("https://app.example.test/api-keys");
   await sweepNotifications(db, deps(false));
@@ -707,7 +707,7 @@ it("a new API key is reported once to the owners and to the person who created i
   await db.delete(schema.teamMembers).where(eq(schema.teamMembers.userId, "adm"));
   const [later] = await db
     .insert(schema.apiKeys)
-    .values({ teamId, name: "later", tokenPrefix: "ms_live_ghi", keyHash: "h3", last4: "5678" })
+    .values({ teamId, name: "later", tokenPrefix: "po_live_ghi", keyHash: "h3", last4: "5678" })
     .returning({ id: schema.apiKeys.id });
   await audit("api_key.created", {
     actor: "user:adm",
@@ -721,7 +721,7 @@ it("a new API key is reported once to the owners and to the person who created i
   // A key minted by another key names no person; the owner is the only reader.
   const [minted] = await db
     .insert(schema.apiKeys)
-    .values({ teamId, name: "child", tokenPrefix: "ms_live_def", keyHash: "h2", last4: "1234" })
+    .values({ teamId, name: "child", tokenPrefix: "po_live_def", keyHash: "h2", last4: "1234" })
     .returning({ id: schema.apiKeys.id });
   await audit("api_key.created", {
     actor: `api_key:${key?.id}`,
@@ -731,7 +731,7 @@ it("a new API key is reported once to the owners and to the person who created i
   await sweepNotifications(db, deps(false));
   expect(sends).toHaveLength(4);
   expect(sends[3]?.text).toContain(
-    'an API key created the API key "child" (ms_live_def…1234, full access) in',
+    'an API key created the API key "child" (po_live_def…1234, full access) in',
   );
 });
 
@@ -858,7 +858,7 @@ it("an owner who turned a notice off is skipped for it, and still gets a securit
   expect(sends).toEqual([]);
   const [key] = await db
     .insert(schema.apiKeys)
-    .values({ teamId, name: "ci", tokenPrefix: "ms_live_abc", keyHash: "h1", last4: "wxyz" })
+    .values({ teamId, name: "ci", tokenPrefix: "po_live_abc", keyHash: "h1", last4: "wxyz" })
     .returning({ id: schema.apiKeys.id });
   await audit("api_key.created", {
     target: `api_key:${key?.id}`,
@@ -883,7 +883,7 @@ it("a team, its people and its endpoint named like lures get every notice with n
   await domain();
   const [key] = await db
     .insert(schema.apiKeys)
-    .values({ teamId, name: keyName, tokenPrefix: "ms_live_abc", keyHash: "h1", last4: "wxyz" })
+    .values({ teamId, name: keyName, tokenPrefix: "po_live_abc", keyHash: "h1", last4: "wxyz" })
     .returning({ id: schema.apiKeys.id });
   await audit("api_key.created", {
     target: `api_key:${key?.id}`,

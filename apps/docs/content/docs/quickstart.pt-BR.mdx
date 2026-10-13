@@ -64,7 +64,7 @@ O MillionSend só envia a partir de domínios que você verificou.
 
 ## 3. Crie uma chave de API
 
-Vá em **Chaves de API** e crie uma. O token `ms_` é exibido uma única vez —
+Vá em **Chaves de API** e crie uma. O token `po_` é exibido uma única vez —
 copie agora. Chaves podem ter acesso total ou somente envio, e opcionalmente
 ficar restritas a um único domínio.
 
@@ -92,7 +92,7 @@ Com curl:
 
 ```sh
 curl -X POST https://api.posta.example/emails \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{
     "from": "Acme <onboarding@acme.dev>",
@@ -107,7 +107,7 @@ Ou com o SDK de Node (`npm install millionsend`):
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
+const ms = new MillionSend("po_...", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
@@ -132,7 +132,7 @@ Na Nuvem eles fluem automaticamente.
 </Callout>
 
 Já usa o Resend? Aponte o SDK oficial do Resend para o MillionSend — defina
-`RESEND_BASE_URL` com a sua URL base e use sua chave `ms_`. O formato da
+`RESEND_BASE_URL` com a sua URL base e use sua chave `po_`. O formato da
 API é idêntico.
 
 ## Testes

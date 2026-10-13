@@ -229,7 +229,7 @@ describe("createProgress (tty)", () => {
     try {
       const keys = {
         RESEND_API_KEY: "re_x",
-        POSTA_API_KEY: "ms_x",
+        POSTA_API_KEY: "po_x",
         POSTA_BASE_URL: "http://127.0.0.1:1",
       };
       const json = parseConfig(["migrate", "plan", "--from", "resend", "--json"], keys, true);

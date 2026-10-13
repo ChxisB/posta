@@ -86,7 +86,7 @@ describe("POST /api-keys", () => {
     const res = await call(fullKey, "POST", "/api-keys", { name: "ci" });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { id: string; token: string };
-    expect(body.token).toMatch(/^ms_/);
+    expect(body.token).toMatch(/^po_/);
 
     const [row] = await db.select().from(schema.apiKeys).where(eq(schema.apiKeys.id, body.id));
     expect(row).toMatchObject({ teamId, name: "ci", permission: "full_access", domainId: null });
@@ -111,6 +111,11 @@ describe("POST /api-keys", () => {
       expect(created?.responseBody).toMatchObject({ id: body.id, token: "[redacted]" });
       expect(JSON.stringify(logs)).not.toContain(body.token);
     });
+  });
+
+  it("refuses a valid key presented in the old ms_ scheme", async () => {
+    const res = await call(`ms_${fullKey.slice("po_".length)}`, "GET", "/api-keys");
+    expect(res.status).toBe(401);
   });
 
   it("records which key minted the new one", async () => {

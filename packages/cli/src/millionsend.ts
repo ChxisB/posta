@@ -189,8 +189,8 @@ export function createMillionSendTarget(http: Http, log: Logger, baseUrl = "the 
       if (error instanceof AuthError) {
         error.message =
           error.status === 403
-            ? `MillionSend rejected the API key (403): it is a sending-only key. Migration needs a full-access key (ms_…) for your MillionSend instance in ${TARGET_KEY_ENV}.`
-            : `MillionSend rejected the API key (401). Check ${TARGET_KEY_ENV}: it must be a full-access key (ms_…) of your MillionSend instance.`;
+            ? `MillionSend rejected the API key (403): it is a sending-only key. Migration needs a full-access key (po_…) for your MillionSend instance in ${TARGET_KEY_ENV}.`
+            : `MillionSend rejected the API key (401). Check ${TARGET_KEY_ENV}: it must be a full-access key (po_…) of your MillionSend instance.`;
       }
       if (error instanceof ApiError && error.status === 404) {
         throw new Error(

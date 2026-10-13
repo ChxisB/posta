@@ -15,7 +15,7 @@ import { teams } from "./teams.js";
 export const apiKeyPermissionEnum = pgEnum("api_key_permission", ["full_access", "sending_access"]);
 
 /**
- * The secret is never stored: only its SHA-256. `tokenPrefix` (e.g. "ms_live_a1b2c3")
+ * The secret is never stored: only its SHA-256. `tokenPrefix` (e.g. "po_live_a1b2c3")
  * is the indexed lookup handle; verification re-hashes the presented key and
  * compares in constant time. High-entropy machine secrets use a fast hash by design —
  * bcrypt/argon2 are for low-entropy passwords.

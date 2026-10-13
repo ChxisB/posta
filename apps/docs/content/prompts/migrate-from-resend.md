@@ -5,7 +5,7 @@ You are migrating an application from Resend to MillionSend. MillionSend's REST 
 ## Facts you can rely on
 
 - Cloud API base URL: `https://api.posta.example`. Self-hosted: the instance's own API origin (ask if it is not in the repo).
-- API keys start with `ms_` and are created in the dashboard under **API keys**. Use a full-access key for the migration and sending-access keys for production senders.
+- API keys start with `po_` and are created in the dashboard under **API keys**. Use a full-access key for the migration and sending-access keys for production senders.
 - Documentation: https://docs.posta.example — append `.md` to any page URL for markdown, `/llms-full.txt` is everything in one file, `/openapi.json` is the OpenAPI 3.1 spec. The migration guide is https://docs.posta.example/migrate-from-resend.md and the CLI reference is https://docs.posta.example/cli.md.
 - The migration CLI (`@tack-labs/posta-cli`) only ever reads from Resend (`GET` requests), keeps keys in memory, writes them to no file, and sends no telemetry.
 - Ids differ between providers: contacts are matched by email, everything else by name, key, alias or endpoint. The CLI's report carries an id map for topics and segments.
@@ -30,7 +30,7 @@ Plan first (read-only; exit code 2 means there are changes, 0 nothing to do, 1 a
 
 ```sh
 export RESEND_API_KEY=re_...
-export POSTA_API_KEY=ms_...
+export POSTA_API_KEY=po_...
 export POSTA_BASE_URL=https://api.posta.example   # or the instance's URL
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
@@ -52,7 +52,7 @@ Choose one of the two, with the user:
 
 1. **Keep the Resend SDK.** Official Resend SDKs honor a base URL. Set, in every environment that sends:
    ```sh
-   RESEND_API_KEY=ms_...
+   RESEND_API_KEY=po_...
    RESEND_BASE_URL=https://api.posta.example
    ```
    Confirm the installed SDK version reads `RESEND_BASE_URL` (or its base URL constructor option) and replace any hardcoded `https://api.resend.com`.

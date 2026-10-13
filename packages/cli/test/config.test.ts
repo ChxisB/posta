@@ -4,7 +4,7 @@ import { CLOUD_API_URL, TRADEMARK_NOTICE } from "../src/meta.js";
 
 const env = {
   RESEND_API_KEY: "re_x",
-  POSTA_API_KEY: "ms_y",
+  POSTA_API_KEY: "po_y",
   POSTA_BASE_URL: "https://api.example.com/",
 };
 
@@ -15,7 +15,7 @@ describe("parseConfig", () => {
       command: "migrate",
       from: "resend",
       fromKey: { source: "env", value: "re_x" },
-      toKey: { source: "env", value: "ms_y" },
+      toKey: { source: "env", value: "po_y" },
       toUrl: "https://api.example.com",
       rps: 8,
       onConflict: "upsert",
@@ -97,7 +97,7 @@ describe("parseConfig", () => {
         "resend",
         "--from-key-stdin",
         "--to-key",
-        "ms_k",
+        "po_k",
         "--to-url",
         "http://localhost:3001",
       ],
@@ -105,7 +105,7 @@ describe("parseConfig", () => {
       false,
     );
     expect(config.fromKey).toEqual({ source: "stdin", value: null });
-    expect(config.toKey).toEqual({ source: "flag", value: "ms_k" });
+    expect(config.toKey).toEqual({ source: "flag", value: "po_k" });
     expect(config.warnings).toEqual([
       "--to-key is visible to other users in process lists; prefer POSTA_API_KEY or --to-key-stdin.",
     ]);
@@ -160,7 +160,7 @@ describe("parseConfig", () => {
     expect(
       parseConfig(
         ["migrate", "--from", "resend", "--yes"],
-        { RESEND_API_KEY: "re_x", POSTA_API_KEY: "ms_y" },
+        { RESEND_API_KEY: "re_x", POSTA_API_KEY: "po_y" },
         false,
       ).toUrl,
     ).toBe(CLOUD_API_URL);

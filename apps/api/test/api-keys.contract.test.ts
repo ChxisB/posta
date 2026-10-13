@@ -55,7 +55,7 @@ describe("official resend SDK: apiKeys", () => {
     const created = await resend.apiKeys.create({ name: "ci-key" });
     expect(created.error).toBeNull();
     expect(created.data?.id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(created.data?.token).toMatch(/^ms_/);
+    expect(created.data?.token).toMatch(/^po_/);
     createdId = created.data?.id ?? "";
 
     // The new token authenticates in its own right.
@@ -71,7 +71,7 @@ describe("official resend SDK: apiKeys", () => {
     expect(listed.data?.has_more).toBe(false);
     const row = listed.data?.data.find((k) => k.id === createdId);
     expect(row).toMatchObject({ name: "ci-key", created_at: expect.any(String) });
-    expect(JSON.stringify(listed.data)).not.toContain("ms_");
+    expect(JSON.stringify(listed.data)).not.toContain("po_");
 
     const page = await resend.apiKeys.list({ limit: 1 });
     expect(page.data?.data).toHaveLength(1);

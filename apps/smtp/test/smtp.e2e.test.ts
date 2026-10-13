@@ -178,7 +178,7 @@ describe("smtp relay", () => {
 
   it("rejects a wrong password with 535", async () => {
     await expect(
-      transport({ user: SMTP_USERNAME, pass: "ms_live_definitelywrongkey000000" }).verify(),
+      transport({ user: SMTP_USERNAME, pass: "po_live_definitelywrongkey000000" }).verify(),
     ).rejects.toMatchObject({ responseCode: 535 });
   });
 

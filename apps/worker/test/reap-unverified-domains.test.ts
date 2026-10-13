@@ -200,7 +200,7 @@ it("revokes domain-scoped api keys so the delete is not blocked (FK is restrict)
     .values({
       teamId,
       name: "scoped",
-      tokenPrefix: "ms_test_reap01",
+      tokenPrefix: "po_test_reap01",
       keyHash: "hash-reap-test",
       last4: "ap01",
       domainId: id,

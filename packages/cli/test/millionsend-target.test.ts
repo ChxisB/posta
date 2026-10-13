@@ -105,14 +105,14 @@ describe("probe", () => {
       .catch((e: unknown) => e);
     expect(restricted).toBeInstanceOf(AuthError);
     expect((restricted as AuthError).status).toBe(403);
-    expect((restricted as Error).message).toContain("full-access key (ms_…)");
+    expect((restricted as Error).message).toContain("full-access key (po_…)");
     expect((restricted as Error).message).toContain("POSTA_API_KEY");
 
-    const wrong = await targetFor(cloud, "ms_not_a_key")
+    const wrong = await targetFor(cloud, "po_not_a_key")
       .probe()
       .catch((e: unknown) => e);
     expect(wrong).toMatchObject({ status: 401 });
-    expect((wrong as Error).message).toContain("full-access key (ms_…)");
+    expect((wrong as Error).message).toContain("full-access key (po_…)");
   });
 
   it("names the URL and the upgrade path when the instance has no GET /usage", async () => {
@@ -123,7 +123,7 @@ describe("probe", () => {
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
     const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     try {
-      const error = (await targetFor({ baseUrl, apiKey: "ms_x" })
+      const error = (await targetFor({ baseUrl, apiKey: "po_x" })
         .probe()
         .catch((e: unknown) => e)) as Error;
       expect(error.message).toBe(

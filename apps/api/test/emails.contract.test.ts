@@ -90,7 +90,7 @@ describe("official resend SDK against MillionSend", () => {
   });
 
   it("rejects a bad key the way the SDK expects", async () => {
-    const bad = new Resend("ms_test_definitelywrongkey12345678901", {
+    const bad = new Resend("po_test_definitelywrongkey12345678901", {
       baseUrl: resend.baseUrl as string,
     });
     const res = await bad.emails.send({

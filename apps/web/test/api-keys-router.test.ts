@@ -57,11 +57,11 @@ describe("apiKeys.create", () => {
       code: "FORBIDDEN",
     });
   });
-  it("returns an ms_-prefixed token that verifies against the stored hash", async () => {
+  it("returns a po_-prefixed token that verifies against the stored hash", async () => {
     const teamId = await createTeam(db, "team-a");
     const { id, token } = await callerFor(teamId).apiKeys.create({ name: "Production" });
 
-    expect(token).toMatch(/^ms_[A-Za-z0-9_-]/);
+    expect(token).toMatch(/^po_[A-Za-z0-9_-]/);
     const row = await keyRow(id);
     expect(row.teamId).toBe(teamId);
     expect(token.startsWith(row.tokenPrefix)).toBe(true);
@@ -96,10 +96,10 @@ describe("apiKeys.create", () => {
     );
   });
 
-  it("mints tokens in the ms_ scheme", async () => {
+  it("mints tokens in the po_ scheme", async () => {
     const teamId = await createTeam(db, "team-a");
     const { token } = await callerFor(teamId).apiKeys.create({ name: "CI" });
-    expect(token).toMatch(/^ms_[A-Za-z0-9_-]{32}$/);
+    expect(token).toMatch(/^po_[A-Za-z0-9_-]{32}$/);
   });
 
   it("defaults to full access and any domain", async () => {

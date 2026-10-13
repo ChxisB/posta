@@ -237,7 +237,7 @@ here with the same value:
 
 ```sh
 curl -X POST "https://api.posta.example/webhooks" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{
     "endpoint": "https://example.com/webhooks/email",
@@ -262,7 +262,7 @@ and a second rotation inside the window replaces the previous secret.
 
 ```sh
 curl -X POST "https://api.posta.example/webhooks/{id}/rotate" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "overlap_hours": 24 }'
 # → { "object": "webhook", "id": "...", "signing_secret": "whsec_...", "previous_secret_expires_at": "..." }

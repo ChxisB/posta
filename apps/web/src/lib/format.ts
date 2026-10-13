@@ -177,11 +177,11 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * "ms_••••••••abcd" — drops the 6 indexed secret chars the stored
+ * "po_••••••••abcd" — drops the 6 indexed secret chars the stored
  * tokenPrefix carries; the mask shows only the scheme and the last 4.
  */
 export function maskApiKey(tokenPrefix: string, last4: string): string {
-  const scheme = tokenPrefix.startsWith("ms_") ? "ms_" : tokenPrefix;
+  const scheme = tokenPrefix.startsWith("po_") ? "po_" : tokenPrefix;
   return `${scheme}••••••••${last4}`;
 }
 

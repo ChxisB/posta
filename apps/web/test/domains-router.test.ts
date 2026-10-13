@@ -920,7 +920,7 @@ describe("domains.delete", () => {
       .values({
         teamId,
         name: "scoped",
-        tokenPrefix: "ms_live_scoped",
+        tokenPrefix: "po_live_scoped",
         keyHash: "hash-scoped",
         last4: "abcd",
         domainId: id,

@@ -125,7 +125,7 @@ atual; a ferramenta avisa uma vez.
   `millionsend-cli/<versão>`. Escritas vão apenas para a sua API do
   MillionSend.
 - **As chaves ficam em memória.** Nunca são gravadas em arquivo e são
-  mascaradas em toda linha de log (`re_…`, `ms_…`, `whsec_…` e headers
+  mascaradas em toda linha de log (`re_…`, `po_…`, `whsec_…` e headers
   `Authorization`).
 - **Dois hosts, nenhum terceiro.** A ferramenta contata `api.resend.com` e a
   URL da API do MillionSend que você informou. Sem telemetria, sem
@@ -157,7 +157,7 @@ stdin, nunca como argumentos:
 
 ```sh
 export RESEND_API_KEY=re_...
-export POSTA_API_KEY=ms_...
+export POSTA_API_KEY=po_...
 export POSTA_BASE_URL=https://api.posta.example   # ou a URL da sua instância
 
 millionsend migrate plan --from resend --out plan.json

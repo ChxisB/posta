@@ -309,7 +309,7 @@ Connection details:
   host's loopback interface by default).
 - Port: `2587` (`SMTP_PORT` to change).
 - Username: `posta` (fixed).
-- Password: an `ms_` API key from the dashboard.
+- Password: a `po_` API key from the dashboard.
 - Encryption: STARTTLS is offered (and required before AUTH) when
   `SMTP_TLS_CERT_PATH` and `SMTP_TLS_KEY_PATH` point at a PEM keypair. Without
   one, the relay refuses to start unless `SMTP_ALLOW_INSECURE_AUTH=true` is explicitly set
@@ -348,7 +348,7 @@ import nodemailer from "nodemailer";
 const transport = nodemailer.createTransport({
   host: "localhost",
   port: 2587,
-  auth: { user: "posta", pass: "ms_..." },
+  auth: { user: "posta", pass: "po_..." },
 });
 
 await transport.sendMail({
@@ -1338,7 +1338,7 @@ written with a scheme or as a bare `www.` host — is reduced to its scheme, its
 of path, with the query and the fragment dropped entirely, so a one-time
 link cannot be followed; anything shaped like a
 credential (a JWT, 32 or more hex characters, 40 or more of base64, one of
-this instance's own `ms_` API keys) is masked, as is a 4-to-8-digit run
+this instance's own `po_` API keys) is masked, as is a 4-to-8-digit run
 in the 40 characters after a word like *code*, *código*, *OTP*, *PIN*, *token*,
 *senha*, *password* or *verification*.
 Never the raw HTML, the recipient addresses, the headers, the attachment
@@ -1521,7 +1521,7 @@ cookie, or header other than the user agent (`Authorization`, `x-api-key`
 and `Cookie` included); no user and no IP address; no local variables; no
 tRPC input or job payload. In messages, exception values, extra data,
 contexts and breadcrumbs, email addresses keep only their domain
-(`••••••@example.com`), `ms_` API keys are masked, and URL paths lose every
+(`••••••@example.com`), `po_` API keys are masked, and URL paths lose every
 segment that could be a token or an address (an unsubscribe or invite link
 carries its capability there), keeping route words and ids. Server events
 name the route pattern (`/invite/[token]`), never the request's path. The

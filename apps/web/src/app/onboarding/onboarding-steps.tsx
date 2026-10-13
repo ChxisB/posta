@@ -256,7 +256,7 @@ export function OnboardingSteps({
     ? maskApiKey(token, token.slice(-4))
     : bankedKey
       ? maskApiKey(bankedKey.tokenPrefix, bankedKey.last4)
-      : "ms_…";
+      : "po_…";
 
   const snippetBase = {
     apiUrl,

@@ -51,7 +51,7 @@ export async function getLLMText(page: InferPageType<typeof source>): Promise<st
       : "";
     return `# ${method?.toUpperCase() ?? ""} ${page.data.title} (${page.url})${description}
 
-MillionSend API operation. Base URL https://api.posta.example (self-hosted: the instance's own API origin); authenticate with \`Authorization: Bearer ms_...\`. The wire format is Resend-compatible. Full OpenAPI 3.1 spec: /openapi.json.${spec}`;
+MillionSend API operation. Base URL https://api.posta.example (self-hosted: the instance's own API origin); authenticate with \`Authorization: Bearer po_...\`. The wire format is Resend-compatible. Full OpenAPI 3.1 spec: /openapi.json.${spec}`;
   }
 
   const processed = await page.data.getText("processed");

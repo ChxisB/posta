@@ -13,7 +13,7 @@ export const MASK = "••••••";
  * and global: use it with replace or matchAll only, since test and exec leave
  * lastIndex behind for the next caller.
  */
-export const API_KEY_PATTERN = /\bms_[A-Za-z0-9_-]{20,}/g;
+export const API_KEY_PATTERN = /\bpo_[A-Za-z0-9_-]{20,}/g;
 
 /**
  * The local part of an address: RFC 5322 atext and dots, Unicode letters and

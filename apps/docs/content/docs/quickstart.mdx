@@ -60,7 +60,7 @@ MillionSend only sends from domains you have verified.
 
 ## 3. Create an API key
 
-Go to **API keys** and create one. The `ms_` token is shown once — copy it
+Go to **API keys** and create one. The `po_` token is shown once — copy it
 now. Keys can be scoped to full access or sending-only, and optionally pinned
 to a single domain.
 
@@ -88,7 +88,7 @@ With curl:
 
 ```sh
 curl -X POST https://api.posta.example/emails \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{
     "from": "Acme <onboarding@acme.dev>",
@@ -103,7 +103,7 @@ Or with the Node SDK (`npm install millionsend`):
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
+const ms = new MillionSend("po_...", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
@@ -127,7 +127,7 @@ On Cloud they flow automatically.
 </Callout>
 
 Already on Resend? Point the official Resend SDK at MillionSend instead — set
-`RESEND_BASE_URL` to your base URL and use your `ms_` key. The wire format is
+`RESEND_BASE_URL` to your base URL and use your `po_` key. The wire format is
 identical.
 
 ## Testing

@@ -55,7 +55,7 @@ npm install millionsend
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_123", { baseUrl: "https://api.posta.example" });
+const ms = new MillionSend("po_123", { baseUrl: "https://api.posta.example" });
 
 const { data, error } = await ms.emails.send({
   from: "Acme <onboarding@acme.dev>",
@@ -76,7 +76,7 @@ pip install millionsend
 ```python
 import millionsend
 
-millionsend.api_key = "ms_123"
+millionsend.api_key = "po_123"
 millionsend.base_url = "https://api.posta.example"
 
 email = millionsend.Emails.send({
@@ -96,7 +96,7 @@ go get github.com/ChxisB/posta/packages/sdk/go
 ```
 
 ```go
-client := millionsend.NewClient("ms_123")
+client := millionsend.NewClient("po_123")
 client.BaseURL = "https://api.posta.example"
 
 sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
@@ -118,7 +118,7 @@ gem install millionsend
 ```ruby
 require "millionsend"
 
-Millionsend.api_key  = "ms_123"
+Millionsend.api_key  = "po_123"
 Millionsend.base_url = "https://api.posta.example"
 
 email = Millionsend::Emails.send(
@@ -140,7 +140,7 @@ composer require millionsend/millionsend-php
 ```php
 use MillionSend\MillionSend;
 
-$ms = MillionSend::client('ms_123', 'https://api.posta.example');
+$ms = MillionSend::client('po_123', 'https://api.posta.example');
 
 $email = $ms->emails->send([
     'from' => 'Acme <onboarding@acme.dev>',
@@ -164,7 +164,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```rust
 use millionsend::{MillionSend, SendEmailOptions};
 
-let ms = MillionSend::with_base_url("ms_123", "https://api.posta.example");
+let ms = MillionSend::with_base_url("po_123", "https://api.posta.example");
 
 let sent = ms.emails.send(&SendEmailOptions {
     from: "Acme <onboarding@acme.dev>".into(),
@@ -188,7 +188,7 @@ let sent = ms.emails.send(&SendEmailOptions {
 ```
 
 ```java
-MillionSend ms = new MillionSend("ms_123", "https://api.posta.example");
+MillionSend ms = new MillionSend("po_123", "https://api.posta.example");
 
 CreateEmailResponse sent = ms.emails().send(
     CreateEmailOptions.builder()
@@ -210,7 +210,7 @@ dotnet add package MillionSend
 ```csharp
 using MillionSend;
 
-var client = new MillionSendClient("ms_123", "https://api.posta.example");
+var client = new MillionSendClient("po_123", "https://api.posta.example");
 
 var res = await client.EmailSendAsync(new EmailMessage
 {
@@ -268,7 +268,7 @@ e trabalha com as [caixas de entrada](/pt-BR/concepts/inboxes), com a mesma
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_123");
+const ms = new MillionSend("po_123");
 
 // Espera até 30 segundos pelo próximo e-mail entregue numa caixa.
 const { data: page } = await ms.emails.receiving.list({ inboxId: "7eeb9517-aed7-40d7-ad65-500be42ed147", wait: 30 });

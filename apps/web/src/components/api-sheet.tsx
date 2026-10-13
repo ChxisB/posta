@@ -64,7 +64,7 @@ const SNIPPETS: Record<Lang, Snippets> = {
   node: {
     send: `import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_xxxxxxxxx");
+const ms = new MillionSend("po_xxxxxxxxx");
 
 await ms.emails.send({
   from: "Acme <onboarding@yourdomain.com>",
@@ -93,7 +93,7 @@ await ms.emails.send({
   python: {
     send: `import millionsend
 
-millionsend.api_key = "ms_xxxxxxxxx"
+millionsend.api_key = "po_xxxxxxxxx"
 
 millionsend.Emails.send({
     "from": "Acme <onboarding@yourdomain.com>",
@@ -120,7 +120,7 @@ millionsend.Emails.send({
 )`,
   },
   php: {
-    send: `$ms = MillionSend\\MillionSend::client('ms_xxxxxxxxx');
+    send: `$ms = MillionSend\\MillionSend::client('po_xxxxxxxxx');
 
 $ms->emails->send([
     'from' => 'Acme <onboarding@yourdomain.com>',
@@ -147,7 +147,7 @@ $ms->emails->send([
 );`,
   },
   ruby: {
-    send: `Millionsend.api_key = "ms_xxxxxxxxx"
+    send: `Millionsend.api_key = "po_xxxxxxxxx"
 
 Millionsend::Emails.send(
   from: "Acme <onboarding@yourdomain.com>",
@@ -174,7 +174,7 @@ Millionsend::Emails.send(
 )`,
   },
   go: {
-    send: `client := millionsend.NewClient("ms_xxxxxxxxx")
+    send: `client := millionsend.NewClient("po_xxxxxxxxx")
 
 sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
     From:    "Acme <onboarding@yourdomain.com>",
@@ -201,7 +201,7 @@ sent, err := client.Emails.Send(&millionsend.SendEmailRequest{
 )`,
   },
   rust: {
-    send: `let ms = MillionSend::new("ms_xxxxxxxxx");
+    send: `let ms = MillionSend::new("po_xxxxxxxxx");
 
 let email = CreateEmailBaseOptions::new(
     "Acme <onboarding@yourdomain.com>",
@@ -233,7 +233,7 @@ ms.batch.send(emails).await?;`,
     .await?;`,
   },
   java: {
-    send: `MillionSend ms = new MillionSend("ms_xxxxxxxxx");
+    send: `MillionSend ms = new MillionSend("po_xxxxxxxxx");
 
 CreateEmailOptions email = CreateEmailOptions.builder()
     .from("Acme <onboarding@yourdomain.com>")
@@ -262,7 +262,7 @@ ms.emails().send(email);`,
 );`,
   },
   dotnet: {
-    send: `var ms = new MillionSendClient("ms_xxxxxxxxx");
+    send: `var ms = new MillionSendClient("po_xxxxxxxxx");
 
 await ms.EmailSendAsync(new EmailMessage
 {
@@ -293,7 +293,7 @@ await ms.EmailSendAsync(new EmailMessage
 );`,
   },
   elixir: {
-    send: `client = MillionSend.client(api_key: "ms_xxxxxxxxx")
+    send: `client = MillionSend.client(api_key: "po_xxxxxxxxx")
 
 MillionSend.Emails.send(client, %{
   from: "Acme <onboarding@yourdomain.com>",
@@ -329,7 +329,7 @@ MillionSend.Emails.send(client, %{
    copy-ready `curl` calls (paths mirror apps/api exactly: /contact-properties,
    /domains, /api-keys, /webhooks). */
 const API_BASE = CLOUD_API_URL;
-const AUTH = `-H "Authorization: Bearer ms_xxxxxxxxx"`;
+const AUTH = `-H "Authorization: Bearer po_xxxxxxxxx"`;
 const JSON_CT = `-H "Content-Type: application/json"`;
 const SAMPLE_ID = "4ef9a417-02e9-4d39-ad75-9611e0fcc33c";
 

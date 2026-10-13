@@ -11,7 +11,7 @@ const options: SelectOption[] = [
   {
     value: "api_key:k1",
     label: "Production",
-    hint: "ms_live_…ab12",
+    hint: "po_live_…ab12",
     group: "API keys",
     badge: { label: "revoked", tone: "neutral" },
   },
@@ -66,7 +66,7 @@ describe("Select option groups", () => {
 
   it("renders the hint and badge inside the option row", () => {
     const html = render(options);
-    expect(html).toContain("ms_live_…ab12");
+    expect(html).toContain("po_live_…ab12");
     expect(html).toContain('class="ms-badge ms-badge-neutral"');
     expect(html).toContain("revoked");
   });

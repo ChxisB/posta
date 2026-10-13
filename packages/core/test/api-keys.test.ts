@@ -4,8 +4,8 @@ import { extractTokenPrefix, generateApiKey, hashApiKey, verifyApiKey } from "..
 describe("api keys", () => {
   it("generates the documented shape", () => {
     const key = generateApiKey();
-    expect(key.token).toMatch(/^ms_[A-Za-z0-9_-]{32}$/);
-    expect(key.tokenPrefix).toBe(key.token.slice(0, "ms_".length + 6));
+    expect(key.token).toMatch(/^po_[A-Za-z0-9_-]{32}$/);
+    expect(key.tokenPrefix).toBe(key.token.slice(0, "po_".length + 6));
     expect(key.last4).toBe(key.token.slice(-4));
     expect(key.keyHash).toBe(hashApiKey(key.token));
   });
@@ -21,13 +21,20 @@ describe("api keys", () => {
   });
 
   it("rejects malformed stored hashes without throwing", () => {
-    expect(verifyApiKey("ms_whatever", "notahex")).toBe(false);
+    expect(verifyApiKey("po_whatever", "notahex")).toBe(false);
   });
 
   it("extracts lookup prefixes only from well-formed tokens", () => {
     const key = generateApiKey();
     expect(extractTokenPrefix(key.token)).toBe(key.tokenPrefix);
     expect(extractTokenPrefix("sk_live_abcdef123")).toBeNull();
-    expect(extractTokenPrefix("ms_ab")).toBeNull();
+    expect(extractTokenPrefix("po_ab")).toBeNull();
+  });
+
+  it("does not accept keys in the old ms_ scheme", () => {
+    // Keys minted before the rename are not carried over (no shim), so a
+    // well-formed ms_ token has no lookup prefix and never authenticates.
+    const { token } = generateApiKey();
+    expect(extractTokenPrefix(`ms_${token.slice("po_".length)}`)).toBeNull();
   });
 });

@@ -5,7 +5,7 @@ export type LogLevel = "error" | "warn" | "info" | "debug";
 
 const RANK: Record<LogLevel, number> = { error: 0, warn: 1, info: 2, debug: 3 };
 
-const TOKEN_RE = /\b(?:re|ms|whsec)_[A-Za-z0-9+/=_-]+/g;
+const TOKEN_RE = /\b(?:re|po|whsec)_[A-Za-z0-9+/=_-]+/g;
 const AUTHORIZATION_RE = /(authorization["']?\s*[:=]\s*["']?)(?:bearer\s+)?[^\s"',}]+/gi;
 
 /** Replaces API keys, webhook secrets and Authorization values with `***`. */

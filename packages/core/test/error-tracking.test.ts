@@ -107,7 +107,7 @@ describe("scrubEvent", () => {
       job: { url: "https://hooks.example.com/services/••••••/••••••/••••••" },
     });
     expect(scrubbed.breadcrumbs).toEqual([{ category: "fetch", data: { url: "/api/trpc/x" } }]);
-    expect(JSON.stringify(scrubbed)).not.toMatch(/ana@|bob@|carol@|ms_|secret|Bearer|eyJ/);
+    expect(JSON.stringify(scrubbed)).not.toMatch(/ana@|bob@|carol@|po_|secret|Bearer|eyJ/);
   });
 });
 

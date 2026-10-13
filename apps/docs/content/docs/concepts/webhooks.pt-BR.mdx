@@ -239,7 +239,7 @@ valor:
 
 ```sh
 curl -X POST "https://api.posta.example/webhooks" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{
     "endpoint": "https://example.com/webhooks/email",
@@ -265,7 +265,7 @@ e uma segunda rotação dentro da janela substitui o segredo anterior.
 
 ```sh
 curl -X POST "https://api.posta.example/webhooks/{id}/rotate" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "overlap_hours": 24 }'
 ```

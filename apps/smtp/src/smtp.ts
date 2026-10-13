@@ -228,7 +228,7 @@ async function handleMessage(
 /**
  * SMTP relay speaking the same accept pipeline as POST /emails. AUTH
  * PLAIN/LOGIN is required on every session (no open relay): username
- * "posta", password an ms_ API key.
+ * "posta", password a po_ API key.
  */
 export function createSmtpServer(deps: SmtpDeps): SMTPServer {
   const maxMessageBytes = deps.maxMessageBytes ?? MAX_MESSAGE_BYTES;

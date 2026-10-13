@@ -51,7 +51,7 @@ Mail carrying a virus is quarantined in every inbox, whatever its kind.
 
 ```sh
 curl -X POST "https://api.posta.example/inboxes" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{
     "email_address": "orders@inbound.example.com",
@@ -122,7 +122,7 @@ With Resend's preview SDK:
 ```ts
 import { Resend } from "resend"; // resend@6.32.1-preview-inboxes.6
 
-// RESEND_API_KEY=ms_...  RESEND_BASE_URL=https://api.posta.example
+// RESEND_API_KEY=po_...  RESEND_BASE_URL=https://api.posta.example
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { data } = await resend.inboxes.create({
@@ -283,7 +283,7 @@ without invisible characters, and `html` exactly as received.
 
 ```sh
 curl -X POST "https://api.posta.example/inboxes/{id}/threads/{thread_id}/emails/{email_id}/reply" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: order-1042-reply" \
   -d '{ "text": "Thanks, your order ships today." }'
@@ -377,7 +377,7 @@ them and answers the whole set:
 
 ```sh
 curl -X PATCH "https://api.posta.example/inboxes/{id}/safety" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "accept_from": "allowlist", "allowlist": ["*@billing.example.net", "maria@example.org"] }'
 ```
@@ -438,7 +438,7 @@ sign-in link the inbox received, so an agent never has to read HTML:
 
 ```sh
 curl "https://api.posta.example/inboxes/{id}/codes/latest?from=example.org&wait=30" \
-  -H "Authorization: Bearer ms_..."
+  -H "Authorization: Bearer po_..."
 ```
 
 ```json
@@ -486,7 +486,7 @@ Give each agent a key that reaches only its own inbox:
 
 ```sh
 curl -X POST "https://api.posta.example/api-keys" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "name": "orders agent", "permission": "full_access", "inbox_id": "7eeb9517-aed7-40d7-ad65-500be42ed147" }'
 ```

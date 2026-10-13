@@ -30,7 +30,7 @@ sanctioned exception is the touch text-field size (Controls).
   Uppercase only in 11px `.ms-microlabel` ("EMAILS DELIVERED").
 - Empty states state the count: "0 API keys."
 - Data rendered as data: full addresses, real UUIDs, masked keys
-  (`ms_••••••••abcd`), mono DNS values. Never truncate a value an engineer
+  (`po_••••••••abcd`), mono DNS values. Never truncate a value an engineer
   might paste — give it a copy button (`.ms-chip`) instead.
 - Timestamps compact and relative: "24min ago", "1h ago" — the exact local
   stamp shows on hover (`RelativeTime`), never inline.

@@ -66,7 +66,7 @@ describe("audit.list", () => {
       { action: "api_key.created", target: `api_key:${keyId}`, data: { name: "CI" } },
     ]);
     // Key material never reaches the trail.
-    expect(JSON.stringify(page.items)).not.toMatch(/ms_/);
+    expect(JSON.stringify(page.items)).not.toMatch(/po_/);
   });
 
   it("paginates by cursor", async () => {

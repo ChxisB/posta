@@ -871,7 +871,7 @@ export function createSettingsRouter(
     smtp: router({
       // Read-only connection facts. The password is deliberately the literal
       // placeholder, never a real key: the SMTP relay authenticates with any
-      // ms_ API key, which the operator mints on the API keys screen.
+      // po_ API key, which the operator mints on the API keys screen.
       get: teamProcedure.query(() => {
         // Same gate as the tab and the page: on cloud an unexposed relay has no
         // connection details to hand out, only a hostname that cannot answer.

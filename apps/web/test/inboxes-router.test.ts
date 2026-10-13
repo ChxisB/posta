@@ -450,7 +450,7 @@ describe("activity", () => {
       .values({
         teamId: acme,
         name: "Agent key",
-        tokenPrefix: "ms_actkey",
+        tokenPrefix: "po_actkey",
         keyHash: "h",
         last4: "abcd",
       })
@@ -906,7 +906,7 @@ describe("inbox-scoped API keys", () => {
       Array.from({ length: 25 }, (_, i) => ({
         teamId: acme,
         name: `team ${i}`,
-        tokenPrefix: `ms_t${i}`,
+        tokenPrefix: `po_t${i}`,
         keyHash: `team-${i}`,
         last4: "0000",
       })),

@@ -80,7 +80,7 @@ massa; é uma extensão do MillionSend, também exposta como a ferramenta MCP
 
 ```sh
 curl -X POST "https://api.posta.example/contacts/batch/remove" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "emails": ["lista-antiga-1@example.com", "lista-antiga-2@example.com"] }'
 ```
@@ -114,7 +114,7 @@ subconjunto válido é gravado e as falhas são listadas em `errors`).
 
 ```sh
 curl -X POST "https://api.posta.example/contacts/batch?on_conflict=upsert" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -H "x-batch-validation: permissive" \
   -d '[

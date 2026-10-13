@@ -70,11 +70,11 @@ describe("utc timestamps", () => {
 
 describe("maskApiKey", () => {
   it("masks everything after the scheme, keeping the last 4", () => {
-    expect(maskApiKey("ms_abc123", "wxyz")).toBe("ms_••••••••wxyz");
+    expect(maskApiKey("po_abc123", "wxyz")).toBe("po_••••••••wxyz");
   });
 
   it("is unaffected by underscores inside the base64url secret chars", () => {
-    expect(maskApiKey("ms_ab_c1d", "wxyz")).toBe("ms_••••••••wxyz");
+    expect(maskApiKey("po_ab_c1d", "wxyz")).toBe("po_••••••••wxyz");
   });
 
   it("falls back to the whole prefix when the scheme is unrecognized", () => {

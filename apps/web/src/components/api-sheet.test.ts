@@ -36,7 +36,7 @@ describe("RESOURCE_SHEETS", () => {
           // Client setup convention: the first section constructs the client
           // with the placeholder key the keyHint tells users to replace.
           expect(sdk[lang][sheet.sections[0] ?? ""], `${resource}.${lang} setup`).toContain(
-            "ms_xxxxxxxxx",
+            "po_xxxxxxxxx",
           );
         }
       });
@@ -45,7 +45,7 @@ describe("RESOURCE_SHEETS", () => {
         for (const section of sheet.sections) {
           const code = sheet.curl[section];
           expect(code, `${resource}.${section}`).toContain("https://api.posta.example/");
-          expect(code, `${resource}.${section}`).toContain("Authorization: Bearer ms_");
+          expect(code, `${resource}.${section}`).toContain("Authorization: Bearer po_");
         }
       });
     }

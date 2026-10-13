@@ -16,10 +16,10 @@ const PREFIX_SECRET_CHARS = 6;
 /** 24 random bytes → 32 base64url chars → 192 bits of entropy. */
 export function generateApiKey(): GeneratedApiKey {
   const secret = randomBytes(24).toString("base64url");
-  const token = `ms_${secret}`;
+  const token = `po_${secret}`;
   return {
     token,
-    tokenPrefix: `ms_${secret.slice(0, PREFIX_SECRET_CHARS)}`,
+    tokenPrefix: `po_${secret.slice(0, PREFIX_SECRET_CHARS)}`,
     keyHash: hashApiKey(token),
     last4: token.slice(-4),
   };
@@ -31,7 +31,7 @@ export function hashApiKey(token: string): string {
 
 /** Lookup handle for a presented token; null when the shape is not ours. */
 export function extractTokenPrefix(token: string): string | null {
-  const match = /^ms_[A-Za-z0-9_-]{6}/.exec(token);
+  const match = /^po_[A-Za-z0-9_-]{6}/.exec(token);
   return match ? match[0] : null;
 }
 

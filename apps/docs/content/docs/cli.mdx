@@ -122,7 +122,7 @@ directory; the tool says so once.
   documented endpoint, sent with the `User-Agent`
   `millionsend-cli/<version>`. Writes go to your MillionSend API only.
 - **Keys stay in memory.** They are never written to any file and are
-  redacted from every log line (`re_…`, `ms_…`, `whsec_…` and
+  redacted from every log line (`re_…`, `po_…`, `whsec_…` and
   `Authorization` headers).
 - **Two hosts, no third party.** The tool contacts `api.resend.com` and the
   MillionSend API URL you named. No telemetry, no update check.
@@ -150,7 +150,7 @@ Pass keys through the environment or stdin, never as arguments:
 
 ```sh
 export RESEND_API_KEY=re_...
-export POSTA_API_KEY=ms_...
+export POSTA_API_KEY=po_...
 export POSTA_BASE_URL=https://api.posta.example   # or your instance's URL
 
 millionsend migrate plan --from resend --out plan.json

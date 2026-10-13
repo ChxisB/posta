@@ -106,7 +106,7 @@ it("holds an inbox to a domain, and a draft's thread and target together", async
   // An inbox-scoped key keeps its inbox from being deleted until it is revoked.
   await client.query(
     `insert into api_keys (team_id, name, token_prefix, key_hash, last4, inbox_id)
-     values ($1, 'agent', 'ms_live_x', 'hash', 'abcd', $2)`,
+     values ($1, 'agent', 'po_live_x', 'hash', 'abcd', $2)`,
     [team, inbox],
   );
   await expect(client.query("delete from inboxes where id = $1", [inbox])).rejects.toThrow(

@@ -103,7 +103,7 @@ Abra o domínio e ligue **Ativar recebimento**, ou use a API:
 
 ```sh
 curl -X PATCH "https://api.posta.example/domains/{id}" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -d '{ "capabilities": { "receiving": "enabled" } }'
 ```
@@ -250,7 +250,7 @@ entregues nela.
 ```ts
 import { Resend } from "resend";
 
-// RESEND_API_KEY=ms_...  RESEND_BASE_URL=https://api.posta.example
+// RESEND_API_KEY=po_...  RESEND_BASE_URL=https://api.posta.example
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { data: page } = await resend.emails.receiving.list({ limit: 20 });
@@ -280,7 +280,7 @@ o `limit`) e um cursor `after` ou `before`, como toda
 
 ```sh
 curl "https://api.posta.example/emails/receiving?limit=20" \
-  -H "Authorization: Bearer ms_..."
+  -H "Authorization: Bearer po_..."
 ```
 
 ```json
@@ -352,7 +352,7 @@ esperar a próxima mensagem para uma caixa, de um remetente:
 
 ```sh
 curl "https://api.posta.example/emails/receiving?inbox_id=7eeb9517-aed7-40d7-ad65-500be42ed147&from=example.org&wait=30" \
-  -H "Authorization: Bearer ms_..."
+  -H "Authorization: Bearer po_..."
 ```
 
 - Ele devolve e-mails mais novos que o `before`, o cursor desta listagem em
@@ -635,7 +635,7 @@ fazem isso numa chamada só, com os cabeçalhos da conversa já preenchidos:
 
 ```sh
 curl -X POST "https://api.posta.example/emails/receiving/4ef9a417-02e9-4d39-ad75-9611e0fcc33c/reply" \
-  -H "Authorization: Bearer ms_..." \
+  -H "Authorization: Bearer po_..." \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: order-1042-reply" \
   -d '{ "text": "Thanks, we are on it." }'

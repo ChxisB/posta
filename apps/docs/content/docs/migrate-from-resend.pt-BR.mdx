@@ -21,7 +21,7 @@ Ou aponte o agente para ele: `https://docs.posta.example/pt-BR/prompts/migrate-f
 
 ## 1. Mova sua conta
 
-Crie uma chave de API `ms_` com acesso total em **Chaves de API** (MillionSend
+Crie uma chave de API `po_` com acesso total em **Chaves de API** (MillionSend
 Cloud, ou sua própria instância [auto-hospedada](/pt-BR/self-hosting)) e rode,
 na sua máquina:
 
@@ -125,7 +125,7 @@ Os SDKs oficiais do Resend respeitam `RESEND_BASE_URL`, então a migração são
 duas linhas de ambiente — nenhuma mudança de código:
 
 ```sh
-RESEND_API_KEY=ms_...
+RESEND_API_KEY=po_...
 RESEND_BASE_URL=https://api.posta.example
 ```
 
@@ -154,7 +154,7 @@ cobrem nove linguagens com a mesma superfície:
 ```ts
 import { MillionSend } from "millionsend";
 
-const ms = new MillionSend("ms_...", { baseUrl: "https://api.posta.example" });
+const ms = new MillionSend("po_...", { baseUrl: "https://api.posta.example" });
 ```
 
 ## 3. Conclua o que a CLI lista

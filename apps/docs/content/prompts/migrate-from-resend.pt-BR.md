@@ -5,7 +5,7 @@ Você está migrando uma aplicação do Resend para o MillionSend. A API REST do
 ## Fatos em que você pode confiar
 
 - URL base da API do MillionSend Cloud: `https://api.posta.example`. Auto-hospedado: a origem da API da própria instância (pergunte se não estiver no repositório).
-- Chaves de API começam com `ms_` e são criadas no painel em **Chaves de API**. Use uma chave de acesso total para a migração e chaves de acesso de envio para os remetentes de produção.
+- Chaves de API começam com `po_` e são criadas no painel em **Chaves de API**. Use uma chave de acesso total para a migração e chaves de acesso de envio para os remetentes de produção.
 - Documentação: https://docs.posta.example — acrescente `.md` à URL de qualquer página para obter markdown, `/llms-full.txt` é tudo em um arquivo, `/openapi.json` é a especificação OpenAPI 3.1. O guia de migração está em https://docs.posta.example/pt-BR/migrate-from-resend.md e a referência da CLI em https://docs.posta.example/pt-BR/cli.md.
 - A CLI de migração (`@tack-labs/posta-cli`) só lê do Resend (requisições `GET`), mantém as chaves em memória, não as grava em arquivo algum e não envia telemetria.
 - Os ids diferem entre os provedores: contatos são casados por e-mail, o restante por nome, chave, alias ou endpoint. O relatório da CLI traz um mapa de ids para tópicos e segmentos.
@@ -30,7 +30,7 @@ Primeiro o plano (somente leitura; código de saída 2 significa que há mudanç
 
 ```sh
 export RESEND_API_KEY=re_...
-export POSTA_API_KEY=ms_...
+export POSTA_API_KEY=po_...
 export POSTA_BASE_URL=https://api.posta.example   # ou a URL da instância
 
 npx @tack-labs/posta-cli migrate plan --from resend --out plan.json
@@ -52,7 +52,7 @@ Escolha uma das duas opções, com o usuário:
 
 1. **Mantenha o SDK do Resend.** Os SDKs oficiais do Resend respeitam uma URL base. Defina, em todo ambiente que envia:
    ```sh
-   RESEND_API_KEY=ms_...
+   RESEND_API_KEY=po_...
    RESEND_BASE_URL=https://api.posta.example
    ```
    Confirme que a versão instalada do SDK lê `RESEND_BASE_URL` (ou a opção de URL base do construtor) e substitua qualquer `https://api.resend.com` fixo no código.

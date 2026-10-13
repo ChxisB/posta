@@ -4,7 +4,7 @@ import { setColorMode } from "../src/theme.js";
 
 describe("redact", () => {
   it("masks every key shape and Authorization values, leaves the rest", () => {
-    expect(redact("key re_AbC123_xyz and ms_9f8e7d-6c and whsec_a1B2+c3/d4= here")).toBe(
+    expect(redact("key re_AbC123_xyz and po_9f8e7d-6c and whsec_a1B2+c3/d4= here")).toBe(
       "key *** and *** and *** here",
     );
     expect(redact("Authorization: Bearer abc.def")).toBe("Authorization: ***");

@@ -95,7 +95,7 @@ it("throttles repeated authentication failures per client IP (cloud reads cf-con
   });
   const fail = (ip: string) =>
     cloudApp.request("/emails", {
-      headers: { authorization: "Bearer ms_nopenopenopenope", "cf-connecting-ip": ip },
+      headers: { authorization: "Bearer po_nopenopenopenope", "cf-connecting-ip": ip },
     });
   let last: Response | undefined;
   for (let i = 0; i < 20; i++) {
