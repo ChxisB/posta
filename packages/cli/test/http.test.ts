@@ -32,7 +32,7 @@ function http(fetchMock: ReturnType<typeof vi.fn>, lines: string[] = [], extra =
   return createHttp({
     baseUrl: "https://api.resend.com/",
     token: "re_secret_123456789",
-    userAgent: "millionsend-cli/test",
+    userAgent: "posta-cli/test",
     rps: 1000,
     name: "Resend",
     log: logTo(lines),
@@ -63,7 +63,7 @@ describe("createHttp", () => {
     expect(url.toString()).toBe("https://api.resend.com/contacts?limit=100&segment_id=s1");
     expect(init.headers).toMatchObject({
       authorization: "Bearer re_secret_123456789",
-      "user-agent": "millionsend-cli/test",
+      "user-agent": "posta-cli/test",
     });
     expect(lines).toEqual([
       expect.stringMatching(/^GET \/contacts\?limit=100&segment_id=s1 → 200 \(\d+ ms\)$/),
@@ -211,13 +211,13 @@ describe("createHttp", () => {
 
     const target = http(fetchMock, [], {
       maxAttempts: 1,
-      name: "MillionSend",
+      name: "Posta",
       baseUrl: "https://mail.example.com",
     }).get("/usage");
     target.catch(() => {});
     await vi.runAllTimersAsync();
     await expect(target).rejects.toThrow(
-      "MillionSend: GET /usage failed 1 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / POSTA_BASE_URL",
+      "Posta: GET /usage failed 1 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / POSTA_BASE_URL",
     );
   });
 

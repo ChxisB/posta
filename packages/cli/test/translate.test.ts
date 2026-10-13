@@ -181,7 +181,7 @@ describe("translateWebhookEvents", () => {
     expect(translateWebhookEvents(all)).toEqual({ events: all, dropped: [] });
   });
 
-  it("carries Resend's inbox events over, but not the assignment ones MillionSend never emits", () => {
+  it("carries Resend's inbox events over, but not the assignment ones Posta never emits", () => {
     expect(
       translateWebhookEvents(["inbox.email.received", "inbox.thread.assigned", "inbox.draft.sent"]),
     ).toEqual({

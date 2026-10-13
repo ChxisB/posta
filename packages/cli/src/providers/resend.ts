@@ -18,7 +18,7 @@ export const RESEND_BASE_URL = "https://api.resend.com";
 /**
  * Overrides the API host (the e2e points it at a fake server). Deliberately
  * not RESEND_BASE_URL: that is what users set in their app to point Resend
- * SDKs at MillionSend, and it must never redirect this tool's Resend key.
+ * SDKs at Posta, and it must never redirect this tool's Resend key.
  */
 export const RESEND_BASE_URL_ENV = "POSTA_CLI_RESEND_URL";
 

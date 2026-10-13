@@ -114,7 +114,7 @@ export interface HttpOptions {
   /** Attempts for 429 (wait per retry-after / ratelimit-reset, 2s without either). */
   rateLimitAttempts?: number | undefined;
   log: Logger;
-  /** Names the side in messages: "Resend" / "MillionSend". */
+  /** Names the side in messages: "Resend" / "Posta". */
   name: string;
   /** Refuse every non-GET method — the guarantee that the source is never written. */
   readOnly?: boolean | undefined;
@@ -277,7 +277,7 @@ export function createHttp(options: HttpOptions): HttpClient {
         failures += 1;
         if (failures >= maxAttempts) {
           const hint =
-            name === "MillionSend"
+            name === "Posta"
               ? "check --to-url / POSTA_BASE_URL"
               : `check your network to ${url.host}`;
           throw new ApiError(

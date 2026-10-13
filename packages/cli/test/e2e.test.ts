@@ -150,9 +150,9 @@ beforeAll(async () => {
     startFakeResend(realisticAccount()),
     startLiveApi({ isCloud: true, appBaseUrl: "https://app.example.test", slug: "cloud" }),
   ]);
-  cwd = mkdtempSync(join(tmpdir(), "millionsend-e2e-"));
+  cwd = mkdtempSync(join(tmpdir(), "posta-e2e-"));
   writeFileSync(join(cwd, ".gitignore"), "node_modules\n");
-  // What the team already has on MillionSend: a verified sender (so drafts
+  // What the team already has on Posta: a verified sender (so drafts
   // from it can be imported), an unrelated domain (pushing the Free plan's
   // 3-domain cap), and a topic whose description differs (an update).
   const verified = await post<{ id: string }>(cloud, "/domains", {
@@ -174,13 +174,13 @@ afterAll(async () => {
   await Promise.all([fake.close(), cloud.stop()]);
 });
 
-describe("millionsend (built bundle)", () => {
+describe("posta (built bundle)", () => {
   it(
     "--help and --version",
     async () => {
       const help = await run(["--help"], { env: { NO_COLOR: "1" } });
       expect(help.code).toBe(0);
-      expect(help.stdout).toContain("millionsend migrate --from resend");
+      expect(help.stdout).toContain("posta migrate --from resend");
       expect(help.stdout).toContain("migrate rollback [--yes]");
       expect(help.stdout).toContain("DO_NOT_TRACK");
       expect(help.stdout).toContain("Resend is a trademark of Plus Five Five, Inc.");
@@ -201,7 +201,7 @@ describe("millionsend (built bundle)", () => {
       expect(plan.target).toEqual({ baseUrl: cloud.baseUrl, cloud: true, plan: "free" });
       expect(plan.counts).toEqual({ create: 22, update: 2, unchanged: 1, manual: 12, skip: 3 });
       expect(stderr).toMatch(new RegExp(`✓ Contacts\\s+${CONTACT_COUNT.toLocaleString("en-US")}`));
-      expect(stderr).toMatch(/✓ MillionSend\s+current state read/);
+      expect(stderr).toMatch(/✓ Posta\s+current state read/);
 
       const item = (resource: string, key: string) =>
         plan.items.find((i) => i.resource === resource && i.key === key);
@@ -272,7 +272,7 @@ describe("millionsend (built bundle)", () => {
       expect(fake.writes).toBe(0);
       for (const request of fake.requests) {
         expect(request.method).toBe("GET");
-        expect(request.userAgent).toMatch(new RegExp(`^millionsend-cli/${VERSION} \\(\\+https://`));
+        expect(request.userAgent).toMatch(new RegExp(`^posta-cli/${VERSION} \\(\\+https://`));
       }
       expect(fake.requests.some((r) => r.path.startsWith("/audiences"))).toBe(false);
     },
@@ -329,7 +329,7 @@ describe("millionsend (built bundle)", () => {
       ]);
       expect(code).toBe(1);
       expect(stderr).toContain("Resend rejected the API key (401)");
-      expect(stdout).toContain("Added .millionsend/ to .gitignore.");
+      expect(stdout).toContain("Added .posta/ to .gitignore.");
       const n = CONTACT_COUNT.toLocaleString("en-US");
       expect(stdout).toMatch(new RegExp(`✓ Contacts\\s+${n}/${n}`));
       const state = readState();
@@ -373,11 +373,9 @@ describe("millionsend (built bundle)", () => {
       expect(code).toBe(0);
       expect(fake.writes).toBe(0);
 
-      expect(stdout).toContain(
-        `millionsend ${VERSION} — Moves your Resend account into MillionSend.`,
-      );
+      expect(stdout).toContain(`posta ${VERSION} — Moves your Resend account into Posta.`);
       expect(stdout).toContain("✓ Resend · connected");
-      expect(stdout).toContain("✓ MillionSend Cloud · plan Free");
+      expect(stdout).toContain("✓ Posta Cloud · plan Free");
       expect(stdout).toContain("0 of 1 domains will be created; the rest are listed as manual.");
       expect(stdout).toContain("Resend was only read; nothing there was changed.");
       expect(stdout).toContain(`${CONTACT_COUNT.toLocaleString("en-US")}  contacts updated`);
@@ -391,7 +389,7 @@ describe("millionsend (built bundle)", () => {
       expect(stdout).toContain(
         "[ ] replace Resend topic and segment ids in your code (id map below)",
       );
-      expect(stdout).toContain("Id map (Resend → MillionSend; full pairs in migrate-report.md):");
+      expect(stdout).toContain("Id map (Resend → Posta; full pairs in migrate-report.md):");
       expect(stdout).toMatch(
         new RegExp(`topics/${TOPICS[0].name}\\n    [0-9a-f]{8}… → [0-9a-f-]{36}`),
       );
@@ -399,7 +397,7 @@ describe("millionsend (built bundle)", () => {
       expect(stdout).toMatch(/\n {2}TXT {2}\S+\n {4}\S/);
       // Prose wraps at the layout width (80 on a pipe).
       expect(stdout.replace(/\n/g, " ")).toContain(
-        "Run `millionsend migrate --from resend` again right before cutover to sync new contacts.",
+        "Run `posta migrate --from resend` again right before cutover to sync new contacts.",
       );
       expect(stdout.replace(/\n/g, " ")).toContain(
         `On Resend you sent ${EMAILS_SENT_30D.toLocaleString("en-US")} emails in the last 30 days (~1,374/day). Free allows 3,000/month; Starter (45,000/month, 10 domains) fits. Upgrade: https://app.example.test/settings/billing`,
@@ -522,7 +520,7 @@ describe("millionsend (built bundle)", () => {
         .where(eq(schema.segmentMembers.contactId, overlapping?.id ?? ""));
       expect(overlap?.n).toBe(2);
 
-      // Webhooks keep Resend's signing secret and every event MillionSend emits.
+      // Webhooks keep Resend's signing secret and every event Posta emits.
       for (const id of state.created.webhooks ?? []) {
         const hook = await api<{ endpoint: string; events: string[]; signing_secret: string }>(
           cloud,
@@ -666,7 +664,7 @@ describe("millionsend (built bundle)", () => {
     "self-hosted target via --to-url: neutral copy, no offer, fresh webhook secrets shown once",
     async () => {
       const self = await startLiveApi({ isCloud: false, slug: "selfhost" });
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-e2e-self-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-e2e-self-"));
       try {
         const { code, stdout, stderr } = await run(
           [
@@ -684,7 +682,7 @@ describe("millionsend (built bundle)", () => {
         );
         expect(stderr).toBe("");
         expect(code).toBe(0);
-        expect(stdout).toContain(`✓ MillionSend · ${self.baseUrl} (self-hosted)`);
+        expect(stdout).toContain(`✓ Posta · ${self.baseUrl} (self-hosted)`);
         expect(stdout).not.toContain("Cloud");
         expect(stdout).not.toContain("Upgrade");
         expect(stdout).not.toContain("plan Free");

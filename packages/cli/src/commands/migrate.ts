@@ -6,7 +6,6 @@ import {
   RESOURCE_LABEL,
 } from "../apply.js";
 import type { Context } from "../context.js";
-import type { MillionSendTarget } from "../millionsend.js";
 import {
   type MigrateState,
   type Plan,
@@ -19,6 +18,7 @@ import {
 } from "../model.js";
 import { ensureGitignored, migratePaths, readJson, writePrivateJson } from "../paths.js";
 import { buildPlan, capDomainCreates, planHash, renderPlan } from "../plan.js";
+import type { PostaTarget } from "../posta.js";
 import type { Provider, Source } from "../providers/index.js";
 import { providers } from "../providers/index.js";
 import { buildReport, printSummary, type Report, writeReport } from "../report.js";
@@ -36,7 +36,7 @@ import { formatNumber, pluralize } from "../utils.js";
 export interface Prepared {
   provider: Provider;
   source: Source;
-  target: MillionSendTarget;
+  target: PostaTarget;
   usage: TargetUsage;
   baseUrl: string;
   snapshot: Snapshot;
@@ -155,20 +155,20 @@ export async function prepare(ctx: Context, providerId: ProviderId): Promise<Pre
   const label = providers[providerId].label;
   printHeader(
     ctx,
-    `Moves your ${label} account into MillionSend. Reads only; nothing on ${label} is changed.`,
+    `Moves your ${label} account into Posta. Reads only; nothing on ${label} is changed.`,
   );
   const { provider, source } = await connectSource(ctx, providerId);
   const { target, usage, baseUrl } = await connectTarget(ctx);
   const include = includeSet(config);
   out.write(`\n${heading(`Reading ${label}`)}\n`);
-  ctx.progress.section([...[...include].map((r) => RESOURCE_LABEL[r]), "MillionSend"]);
+  ctx.progress.section([...[...include].map((r) => RESOURCE_LABEL[r]), "Posta"]);
   const snapshot = await source.readShallow({
     include,
     includeSent: config.includeSent,
     onProgress: bridgeProgress(ctx.progress),
   });
   if (usage.cloud) snapshot.metrics = await source.readMetrics();
-  const step = ctx.progress.step("MillionSend");
+  const step = ctx.progress.step("Posta");
   const targetState = await target.readState();
   step.done("current state read");
   const chosen =
@@ -290,7 +290,7 @@ export async function execute(ctx: Context, prepared: Prepared): Promise<number>
   const state = loadState(ctx, prepared.baseUrl, hash);
   const save = (s: MigrateState): void => writePrivateJson(paths.state, s);
   save(state);
-  if (ensureGitignored(ctx.cwd)) out.write("Added .millionsend/ to .gitignore.\n");
+  if (ensureGitignored(ctx.cwd)) out.write("Added .posta/ to .gitignore.\n");
   out.write(`\n${heading("Applying")}\n`);
   // Per-resource write totals, so the `n/total` counters share a right edge.
   const totals = new Map<Resource, number>();

@@ -44,7 +44,7 @@ npx @tack-labs/posta-cli migrate apply plan.json --yes
 
 Flags que valem conhecer: `--rps <n>` reduz a taxa de leitura contra o Resend (padrão 8; o Resend permite 10 por equipe, compartilhados com o envio em produção); `--skip enrichment` pula a segunda passagem por contato para propriedades e tópicos; `--include-sent` importa também broadcasts enviados como rascunhos; `--fresh-webhook-secrets` gera novos segredos de webhook em vez de copiá-los; `--on-conflict skip|error` muda como contatos já existentes são tratados (padrão upsert).
 
-Depois leia `.millionsend/migrate-report.md`: contagens por recurso, o checklist de itens manuais, os registros DNS por domínio e o mapa de ids. A ferramenta acrescenta `.millionsend/` ao `.gitignore` quando existe um; confirme que fez isso.
+Depois leia `.posta/migrate-report.md`: contagens por recurso, o checklist de itens manuais, os registros DNS por domínio e o mapa de ids. A ferramenta acrescenta `.posta/` ao `.gitignore` quando existe um; confirme que fez isso.
 
 ## Passo 3 — Aponte o código para o MillionSend
 

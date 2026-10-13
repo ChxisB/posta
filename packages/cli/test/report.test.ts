@@ -131,7 +131,7 @@ describe("printSummary layout", () => {
       "\nDNS records for news.example.com:\n  TXT  ms._domainkey.news.example.com\n    v=DKIM1\n\n  MX  news.example.com  priority 10\n    mx.example\n",
     );
     expect(text).toContain(
-      `\nId map (Resend → MillionSend; full pairs in migrate-report.md):\n  topics/Product updates\n    05cda767… → ${UUID}\n`,
+      `\nId map (Resend → Posta; full pairs in migrate-report.md):\n  topics/Product updates\n    05cda767… → ${UUID}\n`,
     );
     expect(text).toContain(
       "\nManual notes:\n  ! topics/T — from domain x is not verified here\n  ! 4 broadcasts — from domain x is not verified here\n    A, B … and 2 more\n  ! broadcasts/E — something else\n",
@@ -139,7 +139,7 @@ describe("printSummary layout", () => {
     // Prose wraps at the layout width (80 here); the words and their order are what matter.
     const prose = text.replace(/\n/g, " ");
     expect(prose).toContain(
-      " Run `millionsend migrate --from resend` again right before cutover to sync new contacts. ",
+      " Run `posta migrate --from resend` again right before cutover to sync new contacts. ",
     );
     expect(prose).toContain("Upgrade: https://app.example.test:3000/settings/billing ");
     for (const l of text.split("\n")) expect(l.length).toBeLessThanOrEqual(80);

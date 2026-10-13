@@ -1,10 +1,4 @@
 import type { Logger } from "./log.js";
-import {
-  BATCH_MAX,
-  type ContactBatchItem,
-  type MillionSendTarget,
-  type WriteResult,
-} from "./millionsend.js";
 import type {
   DnsRecord,
   MigrateState,
@@ -23,6 +17,7 @@ import type {
   TopicPayload,
   WebhookPayload,
 } from "./plan.js";
+import { BATCH_MAX, type ContactBatchItem, type PostaTarget, type WriteResult } from "./posta.js";
 import type { Progress, StepHandle } from "./progress.js";
 import type { EnrichFacet, Source } from "./providers/index.js";
 import { cutoverReadyLines } from "./report.js";
@@ -65,7 +60,7 @@ export interface ApplyInput {
   /** Resources this run covers; the cutover-ready block needs contacts, domains and suppressions among them. */
   include?: ReadonlySet<Resource> | undefined;
   source: Source;
-  target: MillionSendTarget;
+  target: PostaTarget;
   state: MigrateState;
   onConflict: "upsert" | "skip" | "error";
   progress: Progress;

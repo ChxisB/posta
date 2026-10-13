@@ -96,7 +96,7 @@ const OPTIONS = {
 
 const SUBCOMMANDS = ["plan", "apply", "status", "rollback"] as const;
 const GRAMMAR =
-  "millionsend migrate --from resend | migrate plan | migrate apply [plan.json] | migrate status | migrate rollback";
+  "posta migrate --from resend | migrate plan | migrate apply [plan.json] | migrate status | migrate rollback";
 
 function resourceList(flag: string, value: string | undefined): Resource[] | null {
   if (value === undefined) return null;
@@ -145,7 +145,7 @@ function apiUrl(value: string): string {
     throw new ConfigError(`Not a URL: ${value}. Expected e.g. ${CLOUD_API_URL}`);
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") {
-    throw new ConfigError(`The MillionSend API URL must be http(s): ${value}`);
+    throw new ConfigError(`The Posta API URL must be http(s): ${value}`);
   }
   return stripTrailingSlashes(value);
 }
@@ -170,7 +170,7 @@ export function parseConfig(
     }));
   } catch (error) {
     const reason = (error as Error).message.split(". ")[0] ?? "Bad arguments";
-    throw new ConfigError(`${reason}. See millionsend --help`);
+    throw new ConfigError(`${reason}. See posta --help`);
   }
 
   if (values.version === true) return minimal("version");
@@ -208,7 +208,7 @@ export function parseConfig(
   const needsSource = command === "migrate" || command === "plan" || command === "apply";
   if (needsSource && from === null && planFile === null) {
     throw new ConfigError(
-      `Missing --from <provider>. Only \`resend\` is supported: millionsend migrate${sub === undefined ? "" : ` ${sub}`} --from resend`,
+      `Missing --from <provider>. Only \`resend\` is supported: posta migrate${sub === undefined ? "" : ` ${sub}`} --from resend`,
     );
   }
 
@@ -240,10 +240,10 @@ export function parseConfig(
     }
     if (toKey.source === "prompt") {
       throw new ConfigError(
-        `Missing MillionSend API key. Set ${TARGET_KEY_ENV} or pass --to-key-stdin (non-interactive mode never prompts).`,
+        `Missing Posta API key. Set ${TARGET_KEY_ENV} or pass --to-key-stdin (non-interactive mode never prompts).`,
       );
     }
-    // Like the SDKs, the target is MillionSend Cloud unless an instance URL is named;
+    // Like the SDKs, the target is Posta Cloud unless an instance URL is named;
     // a terminal still asks, since a self-hoster's key against Cloud is only a 401.
     if (toUrl === null) toUrl = CLOUD_API_URL;
     // Decided here, before any network call: the confirmation would only come after the whole source is read.
@@ -336,23 +336,23 @@ function minimal(command: "help" | "version"): Config {
 }
 
 export function helpText(): string {
-  return `millionsend ${VERSION} — move an email account to MillionSend
+  return `posta ${VERSION} — move an email account to Posta
 
 Usage
-  millionsend migrate --from resend                          connect, choose resources, plan, confirm, apply, summary
-  millionsend migrate plan --from resend [--out plan.json]   read-only; exit 0 nothing to do, 2 changes, 1 error
-  millionsend migrate apply [plan.json] [--yes]              apply a saved plan, or plan and apply in one go
-  millionsend migrate status                                 what the last run created and what is left
-  millionsend migrate rollback [--yes]                       delete only what this tool created
-  millionsend --help | --version
+  posta migrate --from resend                          connect, choose resources, plan, confirm, apply, summary
+  posta migrate plan --from resend [--out plan.json]   read-only; exit 0 nothing to do, 2 changes, 1 error
+  posta migrate apply [plan.json] [--yes]              apply a saved plan, or plan and apply in one go
+  posta migrate status                                 what the last run created and what is left
+  posta migrate rollback [--yes]                       delete only what this tool created
+  posta --help | --version
 
 Options
   --from <provider>          source provider; only \`resend\` exists
   --from-key-stdin           read the source API key from stdin (first line)
   --from-key <key>           source API key as an argument (visible in process lists; prefer the env var)
-  --to-url <url>             MillionSend API URL of a self-hosted instance (default ${CLOUD_API_URL}; a terminal asks)
-  --to-key-stdin             read the MillionSend API key from stdin (second line when both stdin flags are set)
-  --to-key <key>             MillionSend API key as an argument (same caveat)
+  --to-url <url>             Posta API URL of a self-hosted instance (default ${CLOUD_API_URL}; a terminal asks)
+  --to-key-stdin             read the Posta API key from stdin (second line when both stdin flags are set)
+  --to-key <key>             Posta API key as an argument (same caveat)
   --rps <n>                  requests per second against the source (default ${DEFAULT_RPS}). Resend's team limit is ${MAX_RPS}, shared
                              with your production sending; the CLI prints the limit it detects and warns above it.
                              Go past ${MAX_RPS} only after Resend raised your limit (up to ${RPS_CEILING})
@@ -378,15 +378,15 @@ Resources
 
 Environment
   RESEND_API_KEY             source API key (full access; the tool only reads from Resend)
-  ${TARGET_KEY_ENV}        MillionSend API key (full access)
-  ${TARGET_URL_ENV}       MillionSend API URL, same as --to-url
+  ${TARGET_KEY_ENV}              Posta API key (full access)
+  ${TARGET_URL_ENV}             Posta API URL, same as --to-url
   NO_COLOR                   disable colors
   FORCE_COLOR                colors even when piped, same as --color always
   DO_NOT_TRACK               honored, as a no-op: this tool sends no telemetry, never phones home and never checks for updates
 
 Files (mode 0600, never a key)
-  .millionsend/migrate-state.json    ids created, resume cursors, plan hash
-  .millionsend/migrate-report.json   the last run's report, also as migrate-report.md
+  .posta/migrate-state.json    ids created, resume cursors, plan hash
+  .posta/migrate-report.json   the last run's report, also as migrate-report.md
 
 Exit codes
   0 ok · 1 error · 2 plan has changes (plan only) · 3 partial, some items failed (details in the report)

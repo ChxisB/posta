@@ -9,8 +9,8 @@ import {
 import type { Context } from "./context.js";
 import { AuthError, createHttp } from "./http.js";
 import { CLOUD_API_URL, USER_AGENT, VERSION } from "./meta.js";
-import { createMillionSendTarget, type MillionSendTarget } from "./millionsend.js";
 import { type ProviderId, RESOURCES, type Resource, type TargetUsage } from "./model.js";
+import { createPostaTarget, type PostaTarget } from "./posta.js";
 import type { Progress, StepHandle } from "./progress.js";
 import { type OnProgress, type Provider, providers, type Source } from "./providers/index.js";
 import { RESEND_BASE_URL_ENV } from "./providers/resend.js";
@@ -18,7 +18,7 @@ import { dim, ok, SYM, wrapIndent } from "./theme.js";
 import { banner, pickBannerTier, secretPrompt, selectPrompt, textPrompt } from "./tty-ui.js";
 import { capitalize, formatNumber, stripTrailingSlashes } from "./utils.js";
 
-/** MillionSend allows 600 requests per minute per key; batch endpoints keep the real rate far below. */
+/** Posta allows 600 requests per minute per key; batch endpoints keep the real rate far below. */
 export const TARGET_RPS = 10;
 
 export interface SourceSession {
@@ -27,7 +27,7 @@ export interface SourceSession {
 }
 
 export interface TargetSession {
-  target: MillionSendTarget;
+  target: PostaTarget;
   usage: TargetUsage;
   baseUrl: string;
 }
@@ -37,7 +37,7 @@ export function printHeader(ctx: Context, text: string): void {
   const { out } = ctx;
   const tier = pickBannerTier(out.columns ?? 0, out.isTTY === true);
   if (tier === "plain") {
-    out.write(`${wrapIndent(`millionsend ${VERSION} — ${text}`, { hanging: "  " })}\n\n`);
+    out.write(`${wrapIndent(`posta ${VERSION} — ${text}`, { hanging: "  " })}\n\n`);
     return;
   }
   for (const line of banner(tier)) out.write(`${line}\n`);
@@ -69,7 +69,7 @@ export async function connectSource(ctx: Context, id: ProviderId): Promise<Sourc
   const baseUrl = provider.baseUrl(ctx.env);
   if (ctx.config.toUrl !== null && new URL(baseUrl).host === new URL(ctx.config.toUrl).host) {
     throw new Error(
-      `${provider.label} API URL ${baseUrl} is the MillionSend host; the ${provider.label} key would be sent there. Unset ${RESEND_BASE_URL_ENV}, or point ${TARGET_URL_ENV} / --to-url at your MillionSend instance.`,
+      `${provider.label} API URL ${baseUrl} is the Posta host; the ${provider.label} key would be sent there. Unset ${RESEND_BASE_URL_ENV}, or point ${TARGET_URL_ENV} / --to-url at your Posta instance.`,
     );
   }
   const token = await resolveKey(ctx, ctx.config.fromKey, {
@@ -128,15 +128,15 @@ export async function connectSource(ctx: Context, id: ProviderId): Promise<Sourc
 async function resolveTargetUrl(ctx: Context): Promise<string> {
   if (ctx.config.toUrl !== null) return ctx.config.toUrl;
   const choice = await selectPrompt(ctx.rl, {
-    label: "Where is MillionSend running?",
+    label: "Where is Posta running?",
     options: [
-      { value: "cloud", label: `MillionSend Cloud (${new URL(CLOUD_API_URL).host})` },
+      { value: "cloud", label: `Posta Cloud (${new URL(CLOUD_API_URL).host})` },
       { value: "self", label: "Self-hosted instance (enter its API URL)" },
     ],
   });
   if (choice === "cloud") return CLOUD_API_URL;
   const url = await textPrompt(ctx.rl, {
-    label: "MillionSend API URL",
+    label: "Posta API URL",
     validate: (value) =>
       /^https?:\/\/\S+$/.test(value)
         ? undefined
@@ -148,7 +148,7 @@ async function resolveTargetUrl(ctx: Context): Promise<string> {
 export async function connectTarget(ctx: Context): Promise<TargetSession> {
   const baseUrl = await resolveTargetUrl(ctx);
   const token = await resolveKey(ctx, ctx.config.toKey, {
-    label: "MillionSend API key",
+    label: "Posta API key",
     envName: TARGET_KEY_ENV,
     flag: "--to-key",
   });
@@ -158,15 +158,15 @@ export async function connectTarget(ctx: Context): Promise<TargetSession> {
     userAgent: USER_AGENT,
     rps: TARGET_RPS,
     log: ctx.log,
-    name: "MillionSend",
+    name: "Posta",
     fetch: ctx.fetch,
   });
-  const target = createMillionSendTarget(http, ctx.log, baseUrl);
+  const target = createPostaTarget(http, ctx.log, baseUrl);
   const usage = await target.probe();
   ctx.out.write(
     usage.cloud
-      ? `${ok(SYM.ok)} MillionSend Cloud ${dim("·")} plan ${capitalize(usage.plan ?? "unknown")}\n`
-      : `${ok(SYM.ok)} MillionSend ${dim("·")} ${baseUrl} (self-hosted)\n`,
+      ? `${ok(SYM.ok)} Posta Cloud ${dim("·")} plan ${capitalize(usage.plan ?? "unknown")}\n`
+      : `${ok(SYM.ok)} Posta ${dim("·")} ${baseUrl} (self-hosted)\n`,
   );
   return { target, usage, baseUrl };
 }

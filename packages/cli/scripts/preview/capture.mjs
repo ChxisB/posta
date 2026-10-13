@@ -31,7 +31,7 @@ const builds = argv.filter((a) => a in BUNDLE);
 if (builds.length === 0) builds.push("before", "after");
 
 const freshCwd = (tag) => {
-  const cwd = mkdtempSync(join(tmpdir(), `millionsend-preview-${tag}-`));
+  const cwd = mkdtempSync(join(tmpdir(), `posta-preview-${tag}-`));
   writeFileSync(join(cwd, ".gitignore"), "node_modules\n");
   return cwd;
 };
@@ -76,7 +76,7 @@ function runPty({ bundle, args, cwd, env, cols = 100, rows = 50 }) {
   );
 }
 
-const echo = (args) => Buffer.from(`$ millionsend ${args.join(" ")}\r\n`);
+const echo = (args) => Buffer.from(`$ posta ${args.join(" ")}\r\n`);
 
 /*
  * Order matters: the cloud instance is shared for a build. Read-only
@@ -234,7 +234,7 @@ for (const build of builds) {
 }
 
 const shown = (s) => {
-  const cmd = `millionsend ${s.args.map((a) => (a === "SELF_URL" ? "http://127.0.0.1:<port>" : a)).join(" ")}`;
+  const cmd = `posta ${s.args.map((a) => (a === "SELF_URL" ? "http://127.0.0.1:<port>" : a)).join(" ")}`;
   const envPrefix = s.self
     ? "POSTA_API_KEY=<self-hosted key> "
     : s.env?.RESEND_API_KEY

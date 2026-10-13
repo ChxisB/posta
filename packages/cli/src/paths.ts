@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
-export const STATE_DIR = ".millionsend";
+export const STATE_DIR = ".posta";
 
 export interface MigratePaths {
   dir: string;
@@ -34,7 +34,7 @@ export function migratePaths(cwd = process.cwd()): MigratePaths {
  * Owner-only file (0600, directory 0700), written whole to a sibling and
  * renamed over the target so an interrupt never leaves a half-written state.
  * The sibling is created exclusively: the cwd may be a checkout the user did
- * not author, and a pre-planted symlink at `<file>.tmp` (or at .millionsend
+ * not author, and a pre-planted symlink at `<file>.tmp` (or at .posta
  * itself) would otherwise be followed to wherever it points.
  */
 export function writePrivate(path: string, content: string): void {
@@ -72,7 +72,7 @@ export function readJson<T>(path: string): T | null {
 }
 
 /**
- * Appends `.millionsend/` to the .gitignore in `cwd` when one exists and does
+ * Appends `.posta/` to the .gitignore in `cwd` when one exists and does
  * not list it yet. True when a line was added — the caller says so once.
  */
 export function ensureGitignored(cwd = process.cwd()): boolean {

@@ -1,14 +1,14 @@
 import type { SourceBroadcast, SourceDomain, SourceTemplate } from "./model.js";
 
 /*
- * Pure Resend → MillionSend shape translation. The bundle has no runtime
+ * Pure Resend → Posta shape translation. The bundle has no runtime
  * dependencies, so the target's vocabularies are mirrored here instead of
  * imported: keep them identical to their sources.
  */
 
 /** Mirror of packages/core/src/webhooks.ts WEBHOOK_EVENT_TYPES. */
 /**
- * Resend webhook event names MillionSend also emits, so a subscription carries
+ * Resend webhook event names Posta also emits, so a subscription carries
  * over as-is. Resend's other names (domain.*, email.suppressed, …) have no
  * counterpart here and are dropped per webhook, listed in the plan.
  */
@@ -41,7 +41,7 @@ export type TargetWebhookEvent = (typeof TARGET_WEBHOOK_EVENTS)[number];
 
 /**
  * What a target endpoint subscribed to every event (events null) receives:
- * inbox events are opt-in on MillionSend, delivered only to endpoints that
+ * inbox events are opt-in on Posta, delivered only to endpoints that
  * name them (OPT_IN_EVENT_TYPES in packages/core/src/webhooks.ts).
  */
 export const TARGET_ALL_EVENTS: readonly TargetWebhookEvent[] = TARGET_WEBHOOK_EVENTS.filter(

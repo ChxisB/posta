@@ -193,7 +193,7 @@ describe("createResendSource", () => {
 
     for (const request of fake.requests) {
       expect(request.method).toBe("GET");
-      expect(request.userAgent).toMatch(/^millionsend-cli\/\S+ \(\+https:\/\/github\.com\//);
+      expect(request.userAgent).toMatch(/^posta-cli\/\S+ \(\+https:\/\/github\.com\//);
       expect(request.authorization).toBe(`Bearer ${fake.token}`);
     }
     const paths = fake.requests.map((r) => r.path);

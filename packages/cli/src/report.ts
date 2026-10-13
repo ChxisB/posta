@@ -254,7 +254,7 @@ export function cutoverReadyLines(
   const lines = [
     "",
     heading("Cutover ready"),
-    "Everything but the per-contact enrichment is on MillionSend: transactional sending can move now.",
+    "Everything but the per-contact enrichment is on Posta: transactional sending can move now.",
     "Topic opt-outs and properties land in the enrichment passes below; hold topic sends and broadcasts until they finish.",
     `  ${dim("[")} ${dim("]")} set ${source.toUpperCase()}_BASE_URL=${baseUrl} in your app`,
   ];
@@ -336,7 +336,7 @@ export function countRows(
 }
 
 export const SYNC_HINT = (source: ProviderId): string =>
-  `Run \`millionsend migrate --from ${source}\` again right before cutover to sync new contacts.`;
+  `Run \`posta migrate --from ${source}\` again right before cutover to sync new contacts.`;
 
 /** The numbers, the read-only assurance, secrets once, the checklist, the sync hint, then the plan offer. */
 export async function printSummary(out: OutStream, raw: Report): Promise<void> {
@@ -362,7 +362,7 @@ export async function printSummary(out: OutStream, raw: Report): Promise<void> {
     for (const card of dnsCards(records)) out.write(`${card}\n`);
   }
   if (report.ids.length > 0) {
-    out.write(`\nId map (${report.sourceLabel} → MillionSend; full pairs in migrate-report.md):\n`);
+    out.write(`\nId map (${report.sourceLabel} → Posta; full pairs in migrate-report.md):\n`);
     for (const row of idRows(report.ids)) out.write(`${row}\n`);
   }
   if (report.manual.length > 0) {
@@ -384,7 +384,7 @@ export async function printSummary(out: OutStream, raw: Report): Promise<void> {
 export function renderReportMd(raw: Report): string {
   const report = stripControlDeep(raw);
   const lines = [
-    `# Migration report — ${report.sourceLabel} → MillionSend`,
+    `# Migration report — ${report.sourceLabel} → Posta`,
     "",
     `Finished ${report.finishedAt} · target ${report.target.baseUrl}${report.target.plan === null ? "" : ` · plan ${capitalize(report.target.plan)}`}`,
     "",
@@ -422,7 +422,7 @@ export function renderReportMd(raw: Report): string {
       "",
       "## Id map",
       "",
-      `| Resource | Name | ${report.sourceLabel} id | MillionSend id |`,
+      `| Resource | Name | ${report.sourceLabel} id | Posta id |`,
       "| --- | --- | --- | --- |",
       ...report.ids.map(
         (m) => `| ${m.resource} | ${m.name} | \`${m.sourceId}\` | \`${m.targetId}\` |`,

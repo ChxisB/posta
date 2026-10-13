@@ -19,18 +19,18 @@ Ou instale uma vez:
 
 ```sh
 npm install -g @tack-labs/posta-cli
-millionsend --version
+posta --version
 ```
 
 ## Comandos
 
 ```sh
-millionsend migrate --from resend                          # conectar, escolher recursos, planejar, confirmar, aplicar, resumo
-millionsend migrate plan --from resend [--out plan.json]   # somente leitura; saída 0 nada a fazer, 2 há mudanças, 1 erro
-millionsend migrate apply [plan.json] [--yes]              # aplica um plano salvo, ou planeja e aplica de uma vez
-millionsend migrate status                                 # o que a última execução criou e o que falta
-millionsend migrate rollback [--yes]                       # exclui apenas o que esta ferramenta criou
-millionsend --help | --version
+posta migrate --from resend                          # conectar, escolher recursos, planejar, confirmar, aplicar, resumo
+posta migrate plan --from resend [--out plan.json]   # somente leitura; saída 0 nada a fazer, 2 há mudanças, 1 erro
+posta migrate apply [plan.json] [--yes]              # aplica um plano salvo, ou planeja e aplica de uma vez
+posta migrate status                                 # o que a última execução criou e o que falta
+posta migrate rollback [--yes]                       # exclui apenas o que esta ferramenta criou
+posta --help | --version
 ```
 
 - **`migrate`** é o caminho interativo: pergunta o que falta (chaves, URL de
@@ -71,7 +71,7 @@ millionsend --help | --version
 | `--on-conflict <mode>` | Contatos que já existem no destino: `upsert` (padrão), `skip`, `error`. |
 | `--include-sent` | Importa transmissões enviadas como rascunhos. Puladas por padrão. |
 | `--fresh-webhook-secrets` | Gera segredos de assinatura de webhook novos em vez de copiá-los. Mostrados uma vez, no relatório. |
-| `--fresh` | Esquece o progresso de retomada em `.millionsend/migrate-state.json` e lê tudo de novo. Os ids criados por execuções anteriores são mantidos, então o `rollback` continua funcionando. |
+| `--fresh` | Esquece o progresso de retomada em `.posta/migrate-state.json` e lê tudo de novo. Os ids criados por execuções anteriores são mantidos, então o `rollback` continua funcionando. |
 | `--out <file>` | `migrate plan`: grava o plano como JSON. |
 | `--report <file>` | Grava também o relatório em Markdown neste caminho. |
 | `-y`, `--yes` | Pula confirmações. |
@@ -111,18 +111,18 @@ uma chave:
 
 | Arquivo | Conteúdo |
 | --- | --- |
-| `.millionsend/migrate-state.json` | Cada id que a ferramenta criou por recurso, cursores de retomada, o hash do plano. Gravado após cada lote, então uma execução interrompida retoma de onde parou. |
-| `.millionsend/migrate-report.json` | O relatório da última execução como dados. |
-| `.millionsend/migrate-report.md` | O mesmo relatório em Markdown: contagens, o checklist, os registros DNS por domínio, o mapa de ids (ids de tópicos e segmentos na origem → ids no MillionSend, para código que os referencia), os itens manuais. |
+| `.posta/migrate-state.json` | Cada id que a ferramenta criou por recurso, cursores de retomada, o hash do plano. Gravado após cada lote, então uma execução interrompida retoma de onde parou. |
+| `.posta/migrate-report.json` | O relatório da última execução como dados. |
+| `.posta/migrate-report.md` | O mesmo relatório em Markdown: contagens, o checklist, os registros DNS por domínio, o mapa de ids (ids de tópicos e segmentos na origem → ids no MillionSend, para código que os referencia), os itens manuais. |
 
-`.millionsend/` é acrescentado ao `.gitignore` quando existe um no diretório
+`.posta/` é acrescentado ao `.gitignore` quando existe um no diretório
 atual; a ferramenta avisa uma vez.
 
 ## Modelo de segurança
 
 - **Somente leitura na origem.** Toda requisição ao Resend é um `GET` a um
   endpoint documentado, enviada com o `User-Agent`
-  `millionsend-cli/<versão>`. Escritas vão apenas para a sua API do
+  `posta-cli/<versão>`. Escritas vão apenas para a sua API do
   MillionSend.
 - **As chaves ficam em memória.** Nunca são gravadas em arquivo e são
   mascaradas em toda linha de log (`re_…`, `po_…`, `whsec_…` e headers
@@ -160,15 +160,15 @@ export RESEND_API_KEY=re_...
 export POSTA_API_KEY=po_...
 export POSTA_BASE_URL=https://api.posta.example   # ou a URL da sua instância
 
-millionsend migrate plan --from resend --out plan.json
+posta migrate plan --from resend --out plan.json
 # saída 2 quando há algo a aplicar
-millionsend migrate apply plan.json --yes
+posta migrate apply plan.json --yes
 ```
 
 Ou pelo stdin, primeira linha origem, segunda linha destino:
 
 ```sh
-printf '%s\n%s\n' "$RESEND_KEY" "$POSTA_KEY" | millionsend migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.sua-instancia
+printf '%s\n%s\n' "$RESEND_KEY" "$POSTA_KEY" | posta migrate plan --from resend --from-key-stdin --to-key-stdin --to-url https://api.sua-instancia
 ```
 
 O progresso é impresso uma linha por passo (`✓`, `✗`, `⟳` com contadores
@@ -183,7 +183,7 @@ pode ser encadeada no `jq` ou salva como artefato. `--json` implica
 `--non-interactive`.
 
 ```sh
-millionsend migrate plan --from resend --json | jq '.counts'
+posta migrate plan --from resend --json | jq '.counts'
 ```
 
 ---

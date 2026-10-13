@@ -16,7 +16,7 @@ import { ensureGitignored, migratePaths, readJson, writePrivateJson } from "../s
 
 const dirs: string[] = [];
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-"));
+  const dir = mkdtempSync(join(tmpdir(), "posta-cli-"));
   dirs.push(dir);
   return dir;
 }
@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe("writePrivateJson / readJson", () => {
-  it("creates .millionsend/ owner-only, writes 0600, leaves no temp file", () => {
+  it("creates .posta/ owner-only, writes 0600, leaves no temp file", () => {
     const paths = migratePaths(tempDir());
     writePrivateJson(paths.state, { version: 1 });
     expect(statSync(paths.dir).mode & 0o777).toBe(0o700);
@@ -49,7 +49,7 @@ describe("writePrivateJson / readJson", () => {
     expect(lstatSync(paths.state).isSymbolicLink()).toBe(false);
   });
 
-  it("refuses a .millionsend that is a symlink", () => {
+  it("refuses a .posta that is a symlink", () => {
     const cwd = tempDir();
     const paths = migratePaths(cwd);
     mkdirSync(join(cwd, "elsewhere"));
@@ -74,9 +74,9 @@ describe("ensureGitignored", () => {
     expect(ensureGitignored(cwd)).toBe(false);
     writeFileSync(join(cwd, ".gitignore"), "node_modules");
     expect(ensureGitignored(cwd)).toBe(true);
-    expect(readFileSync(join(cwd, ".gitignore"), "utf8")).toBe("node_modules\n.millionsend/\n");
+    expect(readFileSync(join(cwd, ".gitignore"), "utf8")).toBe("node_modules\n.posta/\n");
     expect(ensureGitignored(cwd)).toBe(false);
-    writeFileSync(join(cwd, ".gitignore"), "/.millionsend\n");
+    writeFileSync(join(cwd, ".gitignore"), "/.posta\n");
     expect(ensureGitignored(cwd)).toBe(false);
   });
 });

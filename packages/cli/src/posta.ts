@@ -127,7 +127,7 @@ function writeError(error: unknown): WriteError | null {
 }
 
 /** `baseUrl` only names the instance in messages; `http` already points at it. */
-export function createMillionSendTarget(http: Http, log: Logger, baseUrl = "the MillionSend URL") {
+export function createPostaTarget(http: Http, log: Logger, baseUrl = "the Posta URL") {
   let requests = 0;
   const api: Http = {
     get: <T>(path: string, options?: RequestOptions) => {
@@ -189,12 +189,12 @@ export function createMillionSendTarget(http: Http, log: Logger, baseUrl = "the 
       if (error instanceof AuthError) {
         error.message =
           error.status === 403
-            ? `MillionSend rejected the API key (403): it is a sending-only key. Migration needs a full-access key (po_…) for your MillionSend instance in ${TARGET_KEY_ENV}.`
-            : `MillionSend rejected the API key (401). Check ${TARGET_KEY_ENV}: it must be a full-access key (po_…) of your MillionSend instance.`;
+            ? `Posta rejected the API key (403): it is a sending-only key. Migration needs a full-access key (po_…) for your Posta instance in ${TARGET_KEY_ENV}.`
+            : `Posta rejected the API key (401). Check ${TARGET_KEY_ENV}: it must be a full-access key (po_…) of your Posta instance.`;
       }
       if (error instanceof ApiError && error.status === 404) {
         throw new Error(
-          `MillionSend at ${baseUrl} has no GET /usage: either ${baseUrl} is not the API URL of your instance (check --to-url / ${TARGET_URL_ENV}) or the instance predates CLI ${VERSION}; upgrade it.`,
+          `Posta at ${baseUrl} has no GET /usage: either ${baseUrl} is not the API URL of your instance (check --to-url / ${TARGET_URL_ENV}) or the instance predates CLI ${VERSION}; upgrade it.`,
         );
       }
       throw error;
@@ -583,4 +583,4 @@ export function createMillionSendTarget(http: Http, log: Logger, baseUrl = "the 
   };
 }
 
-export type MillionSendTarget = ReturnType<typeof createMillionSendTarget>;
+export type PostaTarget = ReturnType<typeof createPostaTarget>;

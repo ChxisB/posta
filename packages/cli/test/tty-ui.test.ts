@@ -388,8 +388,8 @@ describe("secretPromptMode", () => {
 
 describe("answerLine", () => {
   it("uses a dash after a question and a colon otherwise", () => {
-    expect(answerLine("Where is MillionSend running?", "MillionSend Cloud")).toBe(
-      "Where is MillionSend running? — MillionSend Cloud",
+    expect(answerLine("Where is Posta running?", "Posta Cloud")).toBe(
+      "Where is Posta running? — Posta Cloud",
     );
     expect(answerLine("Domain limit", "First 3 domains")).toBe("Domain limit: First 3 domains");
   });

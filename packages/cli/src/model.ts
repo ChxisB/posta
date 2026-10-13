@@ -17,7 +17,7 @@ export const RESOURCES = [
 ] as const;
 export type Resource = (typeof RESOURCES)[number];
 
-/** One DNS row as both Resend and MillionSend present it. */
+/** One DNS row as both Resend and Posta present it. */
 export interface DnsRecord {
   record: string;
   name: string;
@@ -266,7 +266,7 @@ export interface Plan {
   manual: { title: string; detail: string }[];
 }
 
-/** .millionsend/migrate-state.json — never holds a key. */
+/** .posta/migrate-state.json — never holds a key. */
 export interface MigrateState {
   version: 1;
   startedAt: string;

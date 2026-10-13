@@ -44,24 +44,24 @@ describe("createProgress (piped)", () => {
     const progress = createProgress({ stream, tty: false });
     progress.section(["Domains", "Webhooks"]);
     progress.step("Domains").done("3 created, 1 unchanged");
-    progress.step("Webhooks").fail("MillionSend answered 500");
+    progress.step("Webhooks").fail("Posta answered 500");
     expect(chunks).toEqual([
       "✓ Domains  3 created, 1 unchanged\n",
-      "✗ Webhooks — MillionSend answered 500\n",
+      "✗ Webhooks — Posta answered 500\n",
     ]);
   });
 
   it("counts sit in a 7-wide column after the section's longest label", () => {
     const { chunks, stream } = sink();
     const progress = createProgress({ stream, tty: false });
-    progress.section(["Contact properties", "Contacts", "MillionSend"]);
+    progress.section(["Contact properties", "Contacts", "Posta"]);
     progress.step("Contacts").done("721");
     progress.step("Contact properties").done("3");
-    progress.step("MillionSend").done("current state read");
+    progress.step("Posta").done("current state read");
     expect(chunks).toEqual([
       `✓ ${"Contacts".padEnd(18)}     721\n`,
       `✓ Contact properties       3\n`,
-      `✓ ${"MillionSend".padEnd(18)} current state read\n`,
+      `✓ ${"Posta".padEnd(18)} current state read\n`,
     ]);
   });
 
@@ -101,7 +101,7 @@ describe("createProgress (piped)", () => {
       progress.step("Templates").done("0");
       const failed = progress.step("Webhooks");
       failed.note("resumed");
-      failed.fail("MillionSend answered 500");
+      failed.fail("Posta answered 500");
     } finally {
       setColorMode("auto");
     }
@@ -109,7 +109,7 @@ describe("createProgress (piped)", () => {
       "\x1b[32m✓\x1b[39m Contacts      721\n",
       "\x1b[2m✓ Templates       0\x1b[22m\n",
       "\x1b[35m!\x1b[39m resumed\n",
-      "\x1b[31m✗\x1b[39m Webhooks — MillionSend answered 500\n",
+      "\x1b[31m✗\x1b[39m Webhooks — Posta answered 500\n",
     ]);
   });
 });

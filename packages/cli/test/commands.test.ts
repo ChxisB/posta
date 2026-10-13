@@ -117,14 +117,14 @@ beforeAll(async () => {
     startFakeResend(),
     startLiveApi({ isCloud: true, appBaseUrl: "https://app.example.test" }),
   ]);
-  cwd = mkdtempSync(join(tmpdir(), "millionsend-cli-"));
+  cwd = mkdtempSync(join(tmpdir(), "posta-cli-"));
   writeFileSync(join(cwd, ".gitignore"), "node_modules\n");
 });
 afterAll(async () => {
   await Promise.all([fake.close(), api.stop()]);
 });
 
-describe("millionsend migrate", () => {
+describe("posta migrate", () => {
   it("rejects a bad source key with exit 1 and names the env var", async () => {
     const { code, stderr } = await run(["migrate", "--from", "resend", "--yes"], {
       env: { RESEND_API_KEY: "re_wrong_1234567890abcdef" },
@@ -148,11 +148,11 @@ describe("millionsend migrate", () => {
       expect(stderr).toBe("");
       expect(code).toBe(0);
       expect(stdout).toContain("✓ Resend · connected");
-      expect(stdout).toContain("✓ MillionSend Cloud · plan Free");
+      expect(stdout).toContain("✓ Posta Cloud · plan Free");
       expect(stdout).toContain("Plan: ");
       expect(stdout).toContain("Resend was only read; nothing there was changed.");
       expect(stdout).toContain("contacts created");
-      expect(stdout).toContain("Added .millionsend/ to .gitignore.");
+      expect(stdout).toContain("Added .posta/ to .gitignore.");
       expect(stdout).toContain("add DNS records for news.example.com");
       expect(stdout).toContain("create API keys: Production, Staging");
       expect(stdout).toContain(
@@ -163,7 +163,7 @@ describe("millionsend migrate", () => {
       );
       expect(stdout).toContain("https://app.example.test/settings/billing");
       expect(stdout).toContain("again right before cutover");
-      expect(readFileSync(join(cwd, ".gitignore"), "utf8")).toBe("node_modules\n.millionsend/\n");
+      expect(readFileSync(join(cwd, ".gitignore"), "utf8")).toBe("node_modules\n.posta/\n");
       expect(fake.writes).toBe(0);
 
       const state = readState();
@@ -376,7 +376,7 @@ describe("millionsend migrate", () => {
     "an auth failure mid-apply is exit 1 with the state saved",
     async () => {
       const other = await startLiveApi({ isCloud: false, slug: "auth" });
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-auth-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-auth-"));
       try {
         const steve = fake.data.contacts[0]?.id ?? "";
         fake.injectOnce(`/contacts/${steve}`, {
@@ -449,7 +449,7 @@ describe("millionsend migrate", () => {
         readFileSync(new URL("../package.json", import.meta.url), "utf8"),
       ) as { version: string };
       expect(result.stdout).toContain(
-        `millionsend ${packageVersion} — Moves your Resend account into MillionSend.`,
+        `posta ${packageVersion} — Moves your Resend account into Posta.`,
       );
       expect(result.stdout).toContain("contacts (3)\n  + contacts  batch upsert");
       expect(result.stdout).toContain("Estimate: ~");
@@ -523,8 +523,8 @@ describe("migrate rollback", () => {
     return { code, stdout: stdout.text, stderr: stderr.text };
   }
 
-  it("refuses a state file whose ids are not MillionSend ids before connecting", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-rb-"));
+  it("refuses a state file whose ids are not Posta ids before connecting", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "posta-cli-rb-"));
     const state: MigrateState = {
       version: 1,
       startedAt: "",
@@ -542,15 +542,15 @@ describe("migrate rollback", () => {
     const { code, stdout, stderr } = await run(["migrate", "rollback", "--yes"], { cwd: dir });
     expect(code).toBe(1);
     expect(stderr).toContain(`${migratePaths(dir).state} lists 1 id under "templates"`);
-    expect(stderr).toContain("not MillionSend ids");
-    expect(stdout).not.toContain("✓ MillionSend");
+    expect(stderr).toContain("not Posta ids");
+    expect(stdout).not.toContain("✓ Posta");
     expect(stdout).not.toContain("welcome");
   });
 
   it(
     "prints its own header and the first ids, writes a JSON summary, and clears the resume cursor",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-rb-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-rb-"));
       const extra = ["one", "two"].map((n, i) => ({
         id: `00000000-0000-4000-8000-00000000000${i + 1}`,
         email: `${n}@example.org`,
@@ -581,7 +581,7 @@ describe("migrate rollback", () => {
       expect(JSON.parse(stdout)).toEqual({ deleted: { contacts: 5 }, failures: [] });
       // The plain header wraps at the layout width (80 here) with a hanging indent.
       expect(stderr).toContain(
-        "— Deletes what an earlier run created on your MillionSend\n  instance; nothing on Resend is touched.\n",
+        "— Deletes what an earlier run created on your Posta instance;\n  nothing on Resend is touched.\n",
       );
       expect(stderr).not.toContain("Reads only");
       expect(stderr).toContain(`${ids.slice(0, 3).join(", ")} … and 2 more`);
@@ -600,7 +600,7 @@ describe("migrate rollback", () => {
   it(
     "keeps suppression ids in the state when the batch remove fails",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-rb-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-rb-"));
       const migrated = await run(
         ["migrate", "--from", "resend", "--yes", "--only", "suppressions"],
         { cwd: dir },
@@ -629,7 +629,7 @@ describe("migrate rollback", () => {
   it(
     "retries failed enrichment on the next run, clears the cursor when it completes, never re-subscribes",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-rb-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-rb-"));
       const argv = [
         "migrate",
         "--from",
@@ -696,7 +696,7 @@ describe("plan, apply and status edge cases (own target)", () => {
   afterAll(() => mine.stop());
 
   const target = () => ({ POSTA_API_KEY: mine.apiKey, POSTA_BASE_URL: mine.baseUrl });
-  const freshDir = () => mkdtempSync(join(tmpdir(), "millionsend-cli-edge-"));
+  const freshDir = () => mkdtempSync(join(tmpdir(), "posta-cli-edge-"));
   const seed = (dir: string, partial: Partial<MigrateState>): MigrateState => {
     const state: MigrateState = {
       version: 1,
@@ -748,13 +748,13 @@ describe("plan, apply and status edge cases (own target)", () => {
     SLOW,
   );
 
-  it("refuses to send the Resend key to the MillionSend host, before connecting", async () => {
+  it("refuses to send the Resend key to the Posta host, before connecting", async () => {
     const { code, stdout, stderr } = await run(["migrate", "plan", "--from", "resend"], {
       cwd: freshDir(),
       env: { ...target(), POSTA_CLI_RESEND_URL: mine.baseUrl },
     });
     expect(code).toBe(1);
-    expect(stderr).toContain("is the MillionSend host");
+    expect(stderr).toContain("is the Posta host");
     expect(stderr).toContain("POSTA_CLI_RESEND_URL");
     expect(stderr).toContain("POSTA_BASE_URL");
     expect(stdout).not.toContain("✓ Resend");
@@ -844,7 +844,7 @@ describe("cutover-first run shape", () => {
   it(
     "prints the connected limit, the cutover block before enrichment, and per-pass counts",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-cut-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-cut-"));
       // A full run: the cutover-ready block presumes contacts, domains and suppressions came along.
       const result = await run(["migrate", "--from", "resend", "--yes"], { cwd: dir });
       expect(result.code).toBe(0);
@@ -877,7 +877,7 @@ describe("cutover-first run shape", () => {
   it(
     "runs the properties pass alone when topics are left out of the include set",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-props-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-props-"));
       // The contacts must already be on the target for enrichment to plan on its own.
       expect(
         (await run(["migrate", "--from", "resend", "--yes", "--only", "contacts"], { cwd: dir }))
@@ -904,7 +904,7 @@ describe("cutover-first run shape", () => {
   it(
     "creates a contact that appeared since the last run with its unsubscribed flag, and records it for rollback",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-signup-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-signup-"));
       expect(
         (await run(["migrate", "--from", "resend", "--yes", "--only", "contacts"], { cwd: dir }))
           .code,
@@ -949,7 +949,7 @@ describe("cutover-first run shape", () => {
   it(
     "refuses a stale plan file before reading the source again",
     async () => {
-      const dir = mkdtempSync(join(tmpdir(), "millionsend-cli-stale-"));
+      const dir = mkdtempSync(join(tmpdir(), "posta-cli-stale-"));
       const planFile = join(dir, "plan.json");
       const planned = await run(
         ["migrate", "plan", "--from", "resend", "--only", "topics", "--out", planFile],

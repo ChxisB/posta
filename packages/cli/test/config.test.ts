@@ -140,10 +140,7 @@ describe("parseConfig", () => {
       ["migrate", "--from", "resend", "--from-key", "a", "--from-key-stdin"],
       "either --from-key or --from-key-stdin",
     ],
-    [
-      ["migrate", "--from", "resend", "--bogus"],
-      "Unknown option '--bogus'. See millionsend --help",
-    ],
+    [["migrate", "--from", "resend", "--bogus"], "Unknown option '--bogus'. See posta --help"],
   ])("%j → %s", (argv, message) => {
     expect(() => parseConfig(argv, env, true)).toThrow(ConfigError);
     expect(() => parseConfig(argv, env, true)).toThrow(message);
@@ -155,8 +152,8 @@ describe("parseConfig", () => {
     );
     expect(() =>
       parseConfig(["migrate", "--from", "resend"], { RESEND_API_KEY: "re_x" }, false),
-    ).toThrow("Missing MillionSend API key. Set POSTA_API_KEY or pass --to-key-stdin");
-    // No instance named: MillionSend Cloud, like the SDKs.
+    ).toThrow("Missing Posta API key. Set POSTA_API_KEY or pass --to-key-stdin");
+    // No instance named: Posta Cloud, like the SDKs.
     expect(
       parseConfig(
         ["migrate", "--from", "resend", "--yes"],
@@ -164,9 +161,7 @@ describe("parseConfig", () => {
         false,
       ).toUrl,
     ).toBe(CLOUD_API_URL);
-    expect(() => parseConfig(["migrate", "rollback"], {}, false)).toThrow(
-      "Missing MillionSend API key",
-    );
+    expect(() => parseConfig(["migrate", "rollback"], {}, false)).toThrow("Missing Posta API key");
   });
 
   it("non-interactive migrate/apply/rollback need --yes up front; plan and status do not", () => {
