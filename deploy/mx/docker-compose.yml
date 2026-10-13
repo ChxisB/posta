@@ -1,9 +1,9 @@
-# The cloud inbound MX box (mx.millionsend-dns.com); runbook in README.md
+# The cloud inbound MX box (mx.posta-dns.example); runbook in README.md
 # next to this file. It holds no database and no app secret beyond
 # MX_INGEST_SECRET: every message goes to the API over HTTPS.
 services:
   mx:
-    image: "ghcr.io/millionsend/millionsend:${POSTA_TAG:?set POSTA_TAG in .env}"
+    image: "ghcr.io/chxisb/posta:${POSTA_TAG:?set POSTA_TAG in .env}"
     env_file: .env
     environment:
       PROCESS: mx

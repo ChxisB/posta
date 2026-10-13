@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  APP_IMAGE: ghcr.io/millionsend/millionsend
-  BACKUP_IMAGE: ghcr.io/millionsend/backup
+  APP_IMAGE: ghcr.io/chxisb/posta
+  BACKUP_IMAGE: ghcr.io/chxisb/posta-backup
 
 # A newer push supersedes a PR's run, but never an in-flight publish on main:
 # cancelling one would leave the moving tags pointing at an older build.

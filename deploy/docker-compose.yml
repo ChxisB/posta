@@ -1,6 +1,6 @@
 # Standalone self-host compose file — no repo clone needed. Quickstart:
-#   curl -O https://raw.githubusercontent.com/MillionSend/millionsend/main/deploy/docker-compose.yml
-#   curl -o .env https://raw.githubusercontent.com/MillionSend/millionsend/main/.env.example
+#   curl -O https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml
+#   curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
 #   (generate the two secrets in .env, then)
 #   docker compose up -d
 # Upgrade: docker compose pull && docker compose up -d — migrations run on boot.
@@ -22,19 +22,19 @@ services:
     # and a bad plan then costs one core instead of all of them.
     command: ["postgres", "-c", "max_connections=200", "-c", "max_parallel_workers_per_gather=0"]
     environment:
-      POSTGRES_USER: millionsend
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-millionsend}
-      POSTGRES_DB: millionsend
+      POSTGRES_USER: posta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-posta}
+      POSTGRES_DB: posta
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U millionsend -d millionsend"]
+      test: ["CMD-SHELL", "pg_isready -U posta -d posta"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  millionsend:
-    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+  posta:
+    image: "${POSTA_IMAGE:-ghcr.io/chxisb/posta:latest}"
     env_file: .env
     environment:
       PROCESS: all
@@ -60,7 +60,7 @@ services:
       - /app/apps/docs/.source
 
   docs:
-    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/chxisb/posta:latest}"
     env_file: .env
     environment:
       PROCESS: docs
@@ -82,7 +82,7 @@ services:
       - /app/apps/docs/.source
 
   smtp:
-    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/chxisb/posta:latest}"
     env_file: .env
     environment:
       PROCESS: smtp
@@ -108,12 +108,12 @@ services:
       - /app/apps/docs/.source
 
   mx:
-    image: "${POSTA_IMAGE:-ghcr.io/millionsend/millionsend:latest}"
+    image: "${POSTA_IMAGE:-ghcr.io/chxisb/posta:latest}"
     # Its own variables only, not env_file: the MX faces the internet and has
     # no use for the app's keys.
     environment:
       PROCESS: mx
-      MX_INGEST_URL: "http://millionsend:${PORT:-3001}/internal/mx"
+      MX_INGEST_URL: "http://posta:${PORT:-3001}/internal/mx"
       MX_INGEST_SECRET: "${MX_INGEST_SECRET:-}"
       MX_HOSTNAME: "${MX_HOSTNAME:-${RECEIVING_MX_HOST:-}}"
       MX_TLS_CERT_PATH: /tls/fullchain.pem
@@ -159,7 +159,7 @@ services:
 
   backup:
     # Published from scripts/backup on the same tags as the app.
-    image: "${POSTA_BACKUP_IMAGE:-ghcr.io/millionsend/backup:latest}"
+    image: "${POSTA_BACKUP_IMAGE:-ghcr.io/chxisb/posta-backup:latest}"
     env_file: .env
     # Stays a no-op (prints a hint, exits 0, restart "no") until
     # S3_BACKUP_BUCKET and the S3_* credentials are set in .env.

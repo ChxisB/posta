@@ -30,7 +30,7 @@ remote=":s3:${S3_BACKUP_BUCKET}/${S3_BACKUP_PREFIX:-backups}"
 # Only this job's own dumps, directly under the prefix: anything else that
 # shares the bucket path is left alone.
 own_dumps() {
-  rclone "$@" --max-depth 1 --include 'millionsend-*.dump' --include 'millionsend-*.dump.age' "$remote"
+  rclone "$@" --max-depth 1 --include 'posta-*.dump' --include 'posta-*.dump.age' "$remote"
 }
 
 # A dump holds a lock on every table until it ends, so one on every restart or
@@ -52,7 +52,7 @@ if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
-name="millionsend-$(date -u +%Y%m%d-%H%M%S).dump"
+name="posta-$(date -u +%Y%m%d-%H%M%S).dump"
 dump="/tmp/${name}"
 trap 'rm -f "$dump"' EXIT
 

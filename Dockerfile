@@ -40,7 +40,7 @@ ARG GIT_SHA=unknown
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV POSTA_REVISION=$GIT_SHA
-RUN groupadd --system millionsend && useradd --system --gid millionsend millionsend
+RUN groupadd --system posta && useradd --system --gid posta posta
 # Root-owned tree: the process that runs this source cannot rewrite it. Only
 # Next's runtime caches (image optimizer, fetch cache) and the docs' MDX
 # index, which fumadocs regenerates on every start, need to be writable.
@@ -48,9 +48,9 @@ RUN groupadd --system millionsend && useradd --system --gid millionsend millions
 # compose files do, for a read-only rootfs) inherits the mode, not the owner.
 COPY --from=build /app /app
 RUN install -d -m 1777 apps/web/.next/cache apps/docs/.next/cache \
-  && chown -R millionsend:millionsend apps/docs/.source && chmod 1777 apps/docs/.source
-USER millionsend
+  && chown -R posta:posta apps/docs/.source && chmod 1777 apps/docs/.source
+USER posta
 EXPOSE 3000 3001 3002
-# ENTRYPOINT (not CMD) so `docker compose run millionsend setup` reaches
+# ENTRYPOINT (not CMD) so `docker compose run posta setup` reaches
 # start.mjs as argv instead of replacing the command.
 ENTRYPOINT ["node", "scripts/start.mjs"]

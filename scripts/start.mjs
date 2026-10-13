@@ -79,7 +79,7 @@ function runMigrations() {
 // either way; running it here, before `up -d`, means a failure leaves the
 // old container serving instead of a container that will not boot, and the
 // boot-time pass then finds nothing pending:
-//   docker compose run --rm --no-deps millionsend migrate
+//   docker compose run --rm --no-deps posta migrate
 if (process.argv[2] === "migrate") {
   process.exit(runMigrations().status ?? 1);
 }

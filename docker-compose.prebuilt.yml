@@ -3,15 +3,15 @@
 #   docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
 # :edge tracks main; pin a version tag for production.
 services:
-  millionsend:
-    image: ghcr.io/millionsend/millionsend:edge
+  posta:
+    image: ghcr.io/chxisb/posta:edge
     build: !reset null
   smtp:
-    image: ghcr.io/millionsend/millionsend:edge
+    image: ghcr.io/chxisb/posta:edge
     build: !reset null
   docs:
-    image: ghcr.io/millionsend/millionsend:edge
+    image: ghcr.io/chxisb/posta:edge
     build: !reset null
   mx:
-    image: ghcr.io/millionsend/millionsend:edge
+    image: ghcr.io/chxisb/posta:edge
     build: !reset null

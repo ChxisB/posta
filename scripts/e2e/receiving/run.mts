@@ -90,7 +90,7 @@ const API = `http://127.0.0.1:${PORTS.api}`;
 const APP_BASE_URL = `http://127.0.0.1:${PORTS.app}`;
 const MX_HOST = "mx.millionsend-dns.com";
 const PG_CONTAINER = "ms-recv-e2e-pg";
-const DATABASE_URL = `postgres://millionsend:e2e@127.0.0.1:${PORTS.pg}/millionsend`;
+const DATABASE_URL = `postgres://posta:e2e@127.0.0.1:${PORTS.pg}/posta`;
 const KMS_KEY_ID = "arn:aws:kms:us-east-1:000000000000:key/00000000-0000-4000-8000-0000000e2e00";
 
 const A_RECV = "inbound.team-a.example";
@@ -525,11 +525,11 @@ async function startPostgres() {
     "--name",
     PG_CONTAINER,
     "-e",
-    "POSTGRES_USER=millionsend",
+    "POSTGRES_USER=posta",
     "-e",
     "POSTGRES_PASSWORD=e2e",
     "-e",
-    "POSTGRES_DB=millionsend",
+    "POSTGRES_DB=posta",
     "-p",
     `127.0.0.1:${PORTS.pg}:5432`,
     "--tmpfs",
@@ -541,17 +541,8 @@ async function startPostgres() {
   // this answers once the final server is up.
   await waitFor(
     () =>
-      docker([
-        "exec",
-        PG_CONTAINER,
-        "pg_isready",
-        "-h",
-        "127.0.0.1",
-        "-U",
-        "millionsend",
-        "-d",
-        "millionsend",
-      ]).status === 0,
+      docker(["exec", PG_CONTAINER, "pg_isready", "-h", "127.0.0.1", "-U", "posta", "-d", "posta"])
+        .status === 0,
     60_000,
     "postgres",
   );

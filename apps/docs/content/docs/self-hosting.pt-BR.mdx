@@ -21,7 +21,7 @@ domínio de envio que você controla. A verificação do domínio (registros DKI
 Um comando, em um diretório vazio (Node 18+):
 
 ```sh
-mkdir millionsend && cd millionsend
+mkdir posta && cd posta
 npx @tack-labs/posta-setup
 ```
 
@@ -35,9 +35,9 @@ tocar em nada. Em uma instalação já configurada, uma execução no terminal a
 O equivalente manual usa a mesma imagem multi-arch pré-construída:
 
 ```sh
-mkdir millionsend && cd millionsend
-curl -O https://raw.githubusercontent.com/MillionSend/millionsend/main/deploy/docker-compose.yml
-curl -o .env https://raw.githubusercontent.com/MillionSend/millionsend/main/.env.example
+mkdir posta && cd posta
+curl -O https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
 ```
 
 Preencha o `.env` (veja a [referência de ambiente](#referência-de-ambiente) —
@@ -59,16 +59,24 @@ docker compose up -d
 
 As migrações rodam no boot, então, para uma instância pequena, a atualização é
 só isso. O arquivo compose
-roda `ghcr.io/millionsend/millionsend:latest`, a release mais recente com tag
+roda `ghcr.io/chxisb/posta:latest`, a release mais recente com tag
 (as tags `:1.2.3` e `:1.2` existem ao lado dela; `:edge` acompanha a `main`,
 onde todo build passou pela suíte de testes antes). Para fixar uma versão, defina
 `POSTA_IMAGE` no `.env` com uma tag de versão ou um digest imutável
-(`ghcr.io/millionsend/millionsend@sha256:…`; `docker image ls --digests`
+(`ghcr.io/chxisb/posta@sha256:…`; `docker image ls --digests`
 mostra o que está rodando) e rode `docker compose up -d`. Colocar de volta o
 pin anterior é o rollback — com a ressalva de que as migrações de schema só
 andam para frente, então faça um dump antes de um salto grande
 ([Backups](#backups)); uma imagem revertida pode não subir em um schema mais
 novo.
+
+Os arquivos compose criam o usuário e o banco do Postgres como `posta` (senha
+padrão `posta`). O Postgres só aplica esses nomes quando o volume de dados está
+vazio, então um volume criado antes com outros nomes continua com eles, e o app
+não consegue entrar com o `DATABASE_URL` padrão. Comece com um volume novo
+(`docker compose down -v` apaga o antigo junto com os dados; faça um dump antes
+e restaure como em [Backups](#backups)) ou aponte o `DATABASE_URL` para o
+usuário e o banco que esse volume tem.
 
 Quando as tabelas ficam grandes (milhões de e-mails ou contatos), uma migração
 que as reescreve ou indexa leva minutos. As migrações rodam em uma transação
@@ -80,7 +88,7 @@ antigo atendendo em vez de um contêiner que não sobe, e a passagem do boot
 então não encontra nada pendente:
 
 ```sh
-docker compose pull && docker compose run --rm --no-deps millionsend migrate && docker compose up -d
+docker compose pull && docker compose run --rm --no-deps posta migrate && docker compose up -d
 ```
 
 Atualizações automáticas, para um host que só consegue sair para a internet
@@ -88,7 +96,7 @@ Atualizações automáticas, para um host que só consegue sair para a internet
 `up -d` só recria um contêiner quando a imagem dele mudou.
 
 ```sh
-( crontab -l 2>/dev/null; echo "*/5 * * * * cd /opt/millionsend && docker compose pull -q && docker compose up -d" ) | crontab -
+( crontab -l 2>/dev/null; echo "*/5 * * * * cd /opt/posta && docker compose pull -q && docker compose up -d" ) | crontab -
 ```
 
 ## A partir do código-fonte
@@ -124,7 +132,7 @@ auto-hospedada não tem limites de plano.
 | Variável | Propósito |
 | --- | --- |
 | `DATABASE_URL` | String de conexão do Postgres. O padrão corresponde ao serviço `postgres` do compose. |
-| `POSTGRES_PASSWORD` | Senha do serviço `postgres` do compose (padrão `millionsend`); o assistente de setup gera uma e a coloca também em `DATABASE_URL`. Mantenha as duas em sincronia. |
+| `POSTGRES_PASSWORD` | Senha do serviço `postgres` do compose (padrão `posta`); o assistente de setup gera uma e a coloca também em `DATABASE_URL`. Mantenha as duas em sincronia. |
 | `MASTER_ENCRYPTION_KEY` | Chave de criptografia dos corpos de e-mail em repouso. Gere com `openssl rand -base64 32`. Perdê-la torna os corpos armazenados irrecuperáveis; trocá-la deixa os corpos antigos ilegíveis. Faça backup junto com o banco. |
 | `BETTER_AUTH_SECRET` | Segredo de assinatura das sessões do painel. Gere com `openssl rand -base64 32`. |
 | `APP_BASE_URL` | URL base pública da implantação — a origem que os navegadores usam para acessar o painel (ex.: `https://mail.example.com`). O login só é aceito a partir dessa origem; assinaturas SNS, links de descadastro e links de rastreamento derivam dela. Precisa corresponder exatamente ao esquema+host+porta em que você abre o painel — inclusive um `WEB_PORT` personalizado — ou login e cadastro falham com erro de "invalid origin". Padrão `http://localhost:3000`. |
@@ -146,7 +154,7 @@ auto-hospedada não tem limites de plano.
 
 | Variável | Propósito |
 | --- | --- |
-| `POSTA_IMAGE` | Só no deploy standalone: qual imagem rodar. O padrão `ghcr.io/millionsend/millionsend:latest` é a release mais recente com tag (`:edge` acompanha a `main`), então `docker compose pull` é a atualização. Defina uma tag de versão ou um digest imutável `ghcr.io/millionsend/millionsend@sha256:…` para fixar uma versão (`POSTA_BACKUP_IMAGE` fixa o sidecar de backup do mesmo jeito). |
+| `POSTA_IMAGE` | Só no deploy standalone: qual imagem rodar. O padrão `ghcr.io/chxisb/posta:latest` é a release mais recente com tag (`:edge` acompanha a `main`), então `docker compose pull` é a atualização. Defina uma tag de versão ou um digest imutável `ghcr.io/chxisb/posta@sha256:…` para fixar uma versão (`POSTA_BACKUP_IMAGE` fixa o sidecar de backup do mesmo jeito). |
 | `ALLOW_SIGNUP` | O primeiro usuário sempre pode se registrar; depois disso o cadastro fica fechado a menos que isto seja `true`. Mantenha `false` quando o painel é acessível pela internet. |
 | `TRUSTED_PROXIES` | Reverse proxies cujos headers de IP do cliente (`X-Forwarded-For`, `CF-Connecting-IP`) são confiáveis, IPs ou CIDRs separados por vírgula. O padrão `127.0.0.1,::1` cobre um proxy no mesmo host; adicione o endereço do seu proxy quando ele roda em outro lugar. Veja a [seção de nginx](#produção-nginx--tls). |
 | `WEBHOOK_ALLOW_LOCALHOST` | Só para desenvolvimento local: permite que endpoints de webhook (disparos de teste incluídos) apontem para `http://` e endereços de loopback/privados em qualquer porta. Mantenha `false` em qualquer instância acessível pela internet. |
@@ -247,7 +255,7 @@ escreve nada fora dele, então rode-o como o seu usuário e o `.env` criado fica
 seu, com modo 600):
 
 ```sh
-docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms -v ~/.aws:/home/ms/.aws:ro -v "$PWD":/work -w /work ghcr.io/millionsend/millionsend:latest setup
+docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms -v ~/.aws:/home/ms/.aws:ro -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup
 ```
 
 Prefere não rodar um CLI? A página **Configurações → SES** do painel oferece
@@ -271,7 +279,7 @@ npx @tack-labs/posta-setup add-region us-east-1
 # ou, no servidor, a partir do diretório de deploy:
 docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms \
   -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
-  -v "$PWD":/work -w /work ghcr.io/millionsend/millionsend:latest setup add-region us-east-1
+  -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup add-region us-east-1
 ```
 
 `npx @tack-labs/posta-setup add-region` precisa do `@tack-labs/posta-setup` 0.9.0 ou
@@ -443,7 +451,7 @@ credenciais nunca cruzam a rede sem criptografia. Monte o diretório
 `live/<domínio>` (um symlink que o certbot mantém atualizado), não uma cópia
 dos arquivos, para que a renovação caia no mesmo caminho — e reinicie o relay
 depois de cada renovação, já que ele lê o par de chaves ao iniciar (certbot:
-`--deploy-hook 'docker compose -f /opt/millionsend/docker-compose.yml restart smtp'`).
+`--deploy-hook 'docker compose -f /opt/posta/docker-compose.yml restart smtp'`).
 Um wildcard ou qualquer outro PEM emitido por CA funciona da mesma
 forma.
 
@@ -501,9 +509,9 @@ durante a sessão SMTP.
    no lugar de `--nginx` quando a porta 80 estiver livre):
 
    ```sh
-   sudo install -d -m 0750 -o root -g 1000 /opt/millionsend/mx-tls
+   sudo install -d -m 0750 -o root -g 1000 /opt/posta/mx-tls
    sudo certbot certonly --nginx -d mx.example.com --deploy-hook \
-     'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/millionsend/mx-tls/'
+     'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/posta/mx-tls/'
    ```
 
    O certbot roda o hook a cada renovação, e o MX carrega os arquivos novos
@@ -854,7 +862,7 @@ diária `<minuto> <hora> * * *` é aceita — o sidecar roda sem privilégios co
 `postgres`, com todas as capabilities removidas, então a agenda é um loop de
 sleep em vez de crond, e qualquer outro formato faz o serviço sair com
 código 1. Cada dump é um `pg_dump -Fc` (formato custom comprimido, nomeado
-`millionsend-YYYYMMDD-HHMMSS.dump`), o tamanho enviado é verificado contra o
+`posta-YYYYMMDD-HHMMSS.dump`), o tamanho enviado é verificado contra o
 bucket antes de qualquer outra coisa, e dumps mais antigos que
 `BACKUP_RETENTION_DAYS` (padrão 14) são removidos. `S3_BACKUP_PREFIX` (padrão
 `backups`) define o prefixo das chaves. Outros serviços compatíveis com S3
@@ -873,7 +881,7 @@ faça backup dessa chave separadamente, ou os corpos restaurados ficam
 irrecuperáveis.
 
 O `deploy/docker-compose.yml` standalone roda a imagem publicada
-`ghcr.io/millionsend/backup` (`POSTA_BACKUP_IMAGE` a fixa, como
+`ghcr.io/chxisb/posta-backup` (`POSTA_BACKUP_IMAGE` a fixa, como
 `POSTA_IMAGE` fixa o app); um clone do repositório a constrói a partir de
 `scripts/backup`. A restauração usa o mesmo contêiner nos dois casos.
 
@@ -889,15 +897,15 @@ docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup
 Pare o app antes para que nada escreva no meio da restauração:
 
 ```sh
-docker compose stop millionsend smtp
+docker compose stop posta smtp
 # liste o bucket, escolha um dump
 docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
   sh -c 'rclone lsl ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}"'
 # baixe-o e restaure por cima do banco atual
 docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
-  sh -c 'rclone copyto ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}/millionsend-YYYYMMDD-HHMMSS.dump" /tmp/restore.dump \
+  sh -c 'rclone copyto ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}/posta-YYYYMMDD-HHMMSS.dump" /tmp/restore.dump \
     && pg_restore --clean --if-exists -d "$DATABASE_URL" /tmp/restore.dump'
-docker compose start millionsend smtp
+docker compose start posta smtp
 ```
 
 ## Política de cadastro
@@ -1824,7 +1832,7 @@ segredo o build não muda.
 ```sh
 docker build --secret id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
   --build-arg SENTRY_ORG=<slug-da-org> \
-  --build-arg SENTRY_PROJECT=<slug-do-projeto> -t millionsend .
+  --build-arg SENTRY_PROJECT=<slug-do-projeto> -t posta .
 ```
 
 ## Operações

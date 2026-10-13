@@ -20,7 +20,7 @@ Domain verification (DKIM records) is done from the dashboard after boot.
 One command, in an empty directory (Node 18+):
 
 ```sh
-mkdir millionsend && cd millionsend
+mkdir posta && cd posta
 npx @tack-labs/posta-setup
 ```
 
@@ -33,9 +33,9 @@ and safe to re-run; `--dry-run` prints the full plan and touches nothing. On an 
 The manual equivalent runs the same multi-arch prebuilt image:
 
 ```sh
-mkdir millionsend && cd millionsend
-curl -O https://raw.githubusercontent.com/MillionSend/millionsend/main/deploy/docker-compose.yml
-curl -o .env https://raw.githubusercontent.com/MillionSend/millionsend/main/.env.example
+mkdir posta && cd posta
+curl -O https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
 ```
 
 Fill in `.env` (see the [environment reference](#environment-reference) —
@@ -57,15 +57,23 @@ docker compose up -d
 
 Migrations run on boot, so that is the whole upgrade for a small instance. The
 compose file runs
-`ghcr.io/millionsend/millionsend:latest`, the latest tagged release (`:1.2.3`
+`ghcr.io/chxisb/posta:latest`, the latest tagged release (`:1.2.3`
 and `:1.2` tags exist alongside it; `:edge` follows `main`, where every build
 passed the test suite first). To hold a version, set `POSTA_IMAGE`
 in `.env` to a version tag or an immutable digest
-(`ghcr.io/millionsend/millionsend@sha256:…`; `docker image ls --digests` shows
+(`ghcr.io/chxisb/posta@sha256:…`; `docker image ls --digests` shows
 what is running) and `docker compose up -d`. The previous pin put back is the
 rollback — with the caveat that schema migrations run forward only, so take a
 dump before a big jump ([Backups](#backups)); a rolled-back image may not
 start on a newer schema.
+
+The compose files create the Postgres user and database as `posta` (default
+password `posta`). Postgres applies those names only when its data volume is
+empty, so a volume first created under other names keeps them, and the app
+cannot sign in with the default `DATABASE_URL`. Start on a fresh volume
+(`docker compose down -v` deletes the old one with its data; take a dump first
+and restore it as in [Backups](#backups)), or point `DATABASE_URL` at the user
+and database that volume holds.
 
 Once tables are large (millions of emails or contacts), a migration that
 rewrites or indexes them takes minutes. Migrations run in one transaction and
@@ -76,7 +84,7 @@ migration that fails leaves the old container serving instead of a container
 that will not boot, and the boot-time pass then finds nothing pending:
 
 ```sh
-docker compose pull && docker compose run --rm --no-deps millionsend migrate && docker compose up -d
+docker compose pull && docker compose run --rm --no-deps posta migrate && docker compose up -d
 ```
 
 Automatic upgrades, for a host that can only reach out (behind a CDN-only
@@ -84,7 +92,7 @@ firewall, say): a cron line is enough, since `up -d` recreates a container
 only when its image changed.
 
 ```sh
-( crontab -l 2>/dev/null; echo "*/5 * * * * cd /opt/millionsend && docker compose pull -q && docker compose up -d" ) | crontab -
+( crontab -l 2>/dev/null; echo "*/5 * * * * cd /opt/posta && docker compose pull -q && docker compose up -d" ) | crontab -
 ```
 
 ## From source
@@ -119,7 +127,7 @@ deployments — see [Billing](/billing); a self-hosted instance has no plan limi
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string. The default matches the compose `postgres` service. |
-| `POSTGRES_PASSWORD` | Password of the compose `postgres` service (default `millionsend`); the setup wizard generates one and puts it in `DATABASE_URL` too. Keep both in sync. |
+| `POSTGRES_PASSWORD` | Password of the compose `postgres` service (default `posta`); the setup wizard generates one and puts it in `DATABASE_URL` too. Keep both in sync. |
 | `MASTER_ENCRYPTION_KEY` | Encryption key for email bodies at rest. Generate with `openssl rand -base64 32`. Losing it makes stored bodies unrecoverable; changing it orphans old bodies. Back it up with the database. |
 | `BETTER_AUTH_SECRET` | Dashboard session signing secret. Generate with `openssl rand -base64 32`. |
 | `APP_BASE_URL` | Public base URL of the deployment — the origin browsers use to reach the dashboard (e.g. `https://mail.example.com`). Sign-in is only accepted from this origin; SNS subscriptions, unsubscribe links, and tracking links derive from it. It must match the exact scheme+host+port you open the dashboard on — including a custom `WEB_PORT` — or login and signup fail with an "invalid origin" error. Default `http://localhost:3000`. |
@@ -141,7 +149,7 @@ deployments — see [Billing](/billing); a self-hosted instance has no plan limi
 
 | Variable | Purpose |
 | --- | --- |
-| `POSTA_IMAGE` | Standalone deploy only: which image to run. The default `ghcr.io/millionsend/millionsend:latest` is the latest tagged release (`:edge` follows `main`), so `docker compose pull` is the upgrade. Set a version tag or an immutable `ghcr.io/millionsend/millionsend@sha256:…` digest to hold a version (`POSTA_BACKUP_IMAGE` pins the backup sidecar the same way). |
+| `POSTA_IMAGE` | Standalone deploy only: which image to run. The default `ghcr.io/chxisb/posta:latest` is the latest tagged release (`:edge` follows `main`), so `docker compose pull` is the upgrade. Set a version tag or an immutable `ghcr.io/chxisb/posta@sha256:…` digest to hold a version (`POSTA_BACKUP_IMAGE` pins the backup sidecar the same way). |
 | `ALLOW_SIGNUP` | The first user can always register; after that signup stays closed unless this is `true`. Keep `false` when the dashboard is reachable from the internet. |
 | `TRUSTED_PROXIES` | Reverse proxies whose forwarded-client-IP headers (`X-Forwarded-For`, `CF-Connecting-IP`) are believed, comma-separated IPs or CIDRs. Default `127.0.0.1,::1` covers a proxy on the same host; add your proxy's address when it runs elsewhere. See the [nginx section](#production-nginx--tls). |
 | `WEBHOOK_ALLOW_LOCALHOST` | Local development only: lets webhook endpoints (test fires included) target `http://` and loopback/private addresses on any port. Keep `false` on any internet-reachable instance. |
@@ -240,7 +248,7 @@ nothing outside it, so run it as yourself and the `.env` it creates is yours,
 mode 600):
 
 ```sh
-docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms -v ~/.aws:/home/ms/.aws:ro -v "$PWD":/work -w /work ghcr.io/millionsend/millionsend:latest setup
+docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms -v ~/.aws:/home/ms/.aws:ro -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup
 ```
 
 Prefer not to run a CLI? The dashboard's **Settings → SES** page offers a
@@ -264,7 +272,7 @@ npx @tack-labs/posta-setup add-region us-east-1
 # or, on the server, from the deploy directory:
 docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms \
   -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
-  -v "$PWD":/work -w /work ghcr.io/millionsend/millionsend:latest setup add-region us-east-1
+  -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup add-region us-east-1
 ```
 
 `npx @tack-labs/posta-setup add-region` needs `@tack-labs/posta-setup` 0.9.0 or
@@ -430,7 +438,7 @@ wire unencrypted. Mount the `live/<domain>` directory (a symlink certbot keeps
 current), not a copy of the files, so a renewal lands at the same path — and
 restart the relay after each renewal, since it reads the keypair when it
 starts (certbot:
-`--deploy-hook 'docker compose -f /opt/millionsend/docker-compose.yml restart smtp'`).
+`--deploy-hook 'docker compose -f /opt/posta/docker-compose.yml restart smtp'`).
 A wildcard or any other CA-issued PEM works the same way.
 
 Nodemailer example:
@@ -487,9 +495,9 @@ session instead.
    instead of `--nginx` when port 80 is free):
 
    ```sh
-   sudo install -d -m 0750 -o root -g 1000 /opt/millionsend/mx-tls
+   sudo install -d -m 0750 -o root -g 1000 /opt/posta/mx-tls
    sudo certbot certonly --nginx -d mx.example.com --deploy-hook \
-     'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/millionsend/mx-tls/'
+     'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/posta/mx-tls/'
    ```
 
    certbot runs the hook after every renewal, and the MX picks up the new
@@ -820,7 +828,7 @@ would wait behind it. Only the daily form `<minute> <hour> * * *` is
 honoured — the sidecar runs unprivileged as `postgres` with every capability
 dropped, so the schedule is a sleep loop rather than crond, and any other
 shape makes the service exit 1. Each dump is `pg_dump -Fc`
-(compressed custom format, named `millionsend-YYYYMMDD-HHMMSS.dump`), its
+(compressed custom format, named `posta-YYYYMMDD-HHMMSS.dump`), its
 uploaded size is verified against the bucket before anything else happens, and
 dumps older than `BACKUP_RETENTION_DAYS` (default 14) are pruned.
 `S3_BACKUP_PREFIX` (default `backups`) sets the object key prefix. Other
@@ -837,7 +845,7 @@ The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY` — back
 that key up separately, or restored bodies are unrecoverable.
 
 The standalone `deploy/docker-compose.yml` runs the published
-`ghcr.io/millionsend/backup` image (`POSTA_BACKUP_IMAGE` pins it, the way
+`ghcr.io/chxisb/posta-backup` image (`POSTA_BACKUP_IMAGE` pins it, the way
 `POSTA_IMAGE` pins the app); a repository clone builds it from
 `scripts/backup`. Restores use the same container either way.
 
@@ -853,15 +861,15 @@ docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup
 Stop the app first so nothing writes mid-restore:
 
 ```sh
-docker compose stop millionsend smtp
+docker compose stop posta smtp
 # list the bucket, pick a dump
 docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
   sh -c 'rclone lsl ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}"'
 # download it and restore over the current database
 docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
-  sh -c 'rclone copyto ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}/millionsend-YYYYMMDD-HHMMSS.dump" /tmp/restore.dump \
+  sh -c 'rclone copyto ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}/posta-YYYYMMDD-HHMMSS.dump" /tmp/restore.dump \
     && pg_restore --clean --if-exists -d "$DATABASE_URL" /tmp/restore.dump'
-docker compose start millionsend smtp
+docker compose start posta smtp
 ```
 
 ## Signup policy
@@ -1734,7 +1742,7 @@ unchanged.
 ```sh
 docker build --secret id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
   --build-arg SENTRY_ORG=<org-slug> \
-  --build-arg SENTRY_PROJECT=<project-slug> -t millionsend .
+  --build-arg SENTRY_PROJECT=<project-slug> -t posta .
 ```
 
 ## Operations

@@ -86,7 +86,7 @@ describe("freshDatabaseEntries", () => {
     const entries = freshDatabaseEntries();
     expect(entries.POSTGRES_PASSWORD).toMatch(/^[A-Za-z0-9_-]{32}$/);
     expect(entries.DATABASE_URL).toBe(
-      `postgres://millionsend:${entries.POSTGRES_PASSWORD}@postgres:5432/millionsend`,
+      `postgres://posta:${entries.POSTGRES_PASSWORD}@postgres:5432/posta`,
     );
     expect(freshDatabaseEntries().POSTGRES_PASSWORD).not.toBe(entries.POSTGRES_PASSWORD);
   });

@@ -3,7 +3,7 @@ name: release-setup
 # Publishes packages/setup (@tack-labs/posta-setup) at its current version to npm
 # via Trusted Publishing (OIDC): configure npmjs.com → package
 # @tack-labs/posta-setup → Settings → Trusted Publisher → GitHub Actions, repo
-# MillionSend/millionsend, workflow release-setup.yml. No token stored.
+# ChxisB/posta, workflow release-setup.yml. No token stored.
 on:
   workflow_dispatch:
 

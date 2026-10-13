@@ -59,7 +59,7 @@ describe("the SENTRY_* schema", () => {
   async function parse(vars: Record<string, string>) {
     vi.resetModules();
     vi.stubEnv("SKIP_ENV_VALIDATION", "0");
-    vi.stubEnv("DATABASE_URL", "postgres://localhost:5432/millionsend");
+    vi.stubEnv("DATABASE_URL", "postgres://localhost:5432/posta");
     vi.stubEnv("MASTER_ENCRYPTION_KEY", Buffer.alloc(32, 7).toString("base64"));
     for (const name of [
       "SENTRY_DSN",

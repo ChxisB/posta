@@ -10,7 +10,7 @@ import { mediaPool } from "./media/scan.js";
  * The production image has neither pnpm nor dev dependencies, so it runs
  * through the worker's own tsx:
  *
- *   docker compose exec millionsend /app/apps/worker/node_modules/.bin/tsx \
+ *   docker compose exec posta /app/apps/worker/node_modules/.bin/tsx \
  *     /app/apps/worker/src/replay-media.ts --days 30 --limit 5000
  *
  * It decrypts in memory, writes nothing, fetches nothing and calls neither

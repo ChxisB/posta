@@ -2,7 +2,7 @@ name: release-cli
 
 # Publishes packages/cli (@tack-labs/posta-cli) at its current version to npm via
 # Trusted Publishing (OIDC): configure npmjs.com → package @tack-labs/posta-cli →
-# Settings → Trusted Publisher → GitHub Actions, repo MillionSend/millionsend,
+# Settings → Trusted Publisher → GitHub Actions, repo ChxisB/posta,
 # workflow release-cli.yml. No token stored. npm only lets a Trusted Publisher
 # be configured on a package that already exists, so the very first version
 # is published by a maintainer from a laptop (`npm publish` in packages/cli);

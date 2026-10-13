@@ -1,8 +1,8 @@
-# Inbound MX box (MillionSend Cloud)
+# Inbound MX box (Posta Cloud)
 
-The mail server that receives for every receiving-enabled domain on MillionSend
+The mail server that receives for every receiving-enabled domain on Posta
 Cloud, and for the teams' subdomains of the shared inbox domain:
-`mx.millionsend-dns.com`, a small EC2 instance in `us-east-1`. It runs
+`mx.posta-dns.example`, a small EC2 instance in `us-east-1`. It runs
 the app's own image as `PROCESS=mx` and holds no database. Per recipient it asks
 the API whether the domain receives here, and it hands every message to the
 API before it answers `250`. The only secret on the box is `MX_INGEST_SECRET`,
@@ -10,10 +10,10 @@ plus the TLS keypair.
 
 ```
 sender's mail server
-  → mx.millionsend-dns.com:25       A record, DNS only (grey cloud)
+  → mx.posta-dns.example:25       A record, DNS only (grey cloud)
   → this box, container port 2525   PROCESS=mx
-      RCPT TO  → POST https://api.millionsend.com/internal/mx/rcpt     accept or 550/452
-      DATA     → POST https://api.millionsend.com/internal/mx/deliver  stored → 250
+      RCPT TO  → POST https://api.posta.example/internal/mx/rcpt     accept or 550/452
+      DATA     → POST https://api.posta.example/internal/mx/deliver  stored → 250
       app down → 451, the sender retries for days
 ```
 
@@ -25,14 +25,14 @@ Part 1 prepares the box (once). Part 2 runs the MX and connects it to the app.
 
 EC2 console, region **us-east-1** → Launch instance:
 
-- **Name:** `millionsend-mx`
+- **Name:** `posta-mx`
 - **AMI:** Ubuntu Server 24.04 LTS, 64-bit (Arm)
 - **Instance type:** `t4g.small` (2 GiB). The MX keeps at most 512 MiB of
   message data in memory (`MX_MAX_BUFFERED_MB`); past that, senders get
   `452` and retry.
 - **Key pair:** yours
 - **Network:** default VPC, auto-assign public IP on (step 2 replaces it)
-- **Security group** `millionsend-mx`, inbound rules:
+- **Security group** `posta-mx`, inbound rules:
 
   | Type | Port | Source      | Why                                                  |
   | ---- | ---- | ----------- | ---------------------------------------------------- |
@@ -51,11 +51,11 @@ port 25, and this box never sends mail.
 ### 2. Elastic IP
 
 EC2 → Elastic IPs → Allocate Elastic IP address → Actions → Associate → the
-`millionsend-mx` instance.
+`posta-mx` instance.
 
 ### 3. DNS
 
-In the Cloudflare zone **millionsend-dns.com**:
+In the Cloudflare zone **posta-dns.example**:
 
 | Type | Name | Content            | Proxy status       |
 | ---- | ---- | ------------------ | ------------------ |
@@ -65,7 +65,7 @@ It must be grey: Cloudflare proxies HTTP, not SMTP. Add no AAAA record (the
 MX listens on IPv4 only). Wait until it resolves:
 
 ```bash
-dig +short mx.millionsend-dns.com    # prints the Elastic IP
+dig +short mx.posta-dns.example    # prints the Elastic IP
 ```
 
 ### 4. Docker, certbot and swaks
@@ -80,17 +80,17 @@ sudo usermod -aG docker "$USER" && newgrp docker
 ### 5. Working directory and certificate
 
 The image runs as a non-root user. The certificate's deploy hook copies the
-keypair into `/opt/millionsend-mx/tls`, owned `root:1000` with mode 0640, and
+keypair into `/opt/posta-mx/tls`, owned `root:1000` with mode 0640, and
 the compose file adds the container's user to group 1000 (`group_add`), so it
 can read the key without the key being world-readable.
 
 ```bash
-sudo install -d -o "$USER" -g "$USER" /opt/millionsend-mx
-sudo install -d -m 0750 -o root -g 1000 /opt/millionsend-mx/tls
-sudo certbot certonly --standalone -d mx.millionsend-dns.com \
+sudo install -d -o "$USER" -g "$USER" /opt/posta-mx
+sudo install -d -m 0750 -o root -g 1000 /opt/posta-mx/tls
+sudo certbot certonly --standalone -d mx.posta-dns.example \
   --non-interactive --agree-tos -m you@example.com --deploy-hook \
-  'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/millionsend-mx/tls/'
-ls -l /opt/millionsend-mx/tls
+  'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/posta-mx/tls/'
+ls -l /opt/posta-mx/tls
 ```
 
 Replace `you@example.com` with the address Let's Encrypt should write to about
@@ -107,8 +107,8 @@ five minutes, without a restart. Keep port 80 open for it;
 ### 6. Compose file and `.env`
 
 ```bash
-cd /opt/millionsend-mx
-curl -fsSLO https://raw.githubusercontent.com/MillionSend/millionsend/main/deploy/mx/docker-compose.yml
+cd /opt/posta-mx
+curl -fsSLO https://raw.githubusercontent.com/ChxisB/posta/main/deploy/mx/docker-compose.yml
 openssl rand -hex 32    # the MX_INGEST_SECRET, unless the app already has one
 nano .env
 chmod 600 .env
@@ -118,8 +118,8 @@ chmod 600 .env
 
 ```bash
 POSTA_TAG=0.8.0
-MX_HOSTNAME=mx.millionsend-dns.com
-MX_INGEST_URL=https://api.millionsend.com/internal/mx
+MX_HOSTNAME=mx.posta-dns.example
+MX_INGEST_URL=https://api.posta.example/internal/mx
 MX_INGEST_SECRET=<the same value as MX_INGEST_SECRET in the app's .env>
 ```
 
@@ -129,12 +129,12 @@ MX_INGEST_SECRET=<the same value as MX_INGEST_SECRET in the app's .env>
 - `MX_HOSTNAME`: the greeting name. It is the A record above and the app's
   `RECEIVING_MX_HOST`.
 - `MX_INGEST_URL`: the API's public origin plus `/internal/mx`. The API is
-  served at `https://api.millionsend.com`: the Cloud server in the OpenAPI
+  served at `https://api.posta.example`: the Cloud server in the OpenAPI
   document (`apps/api/src/app.ts`), the default base URL of the CLI
   (`packages/cli/src/meta.ts`) and the SDKs, and the host the docs give for
   every call. The internal MX routes belong to the API process
   (`MX_INGEST_PATH` in `packages/core/src/receiving/protocol.ts`), not to
-  `app.millionsend.com`, which serves the dashboard. The box calls the API
+  `app.posta.example`, which serves the dashboard. The box calls the API
   through that public hostname like any other client.
 - `MX_INGEST_SECRET`: the bearer secret, at least 32 characters, identical on
   both sides.
@@ -150,7 +150,7 @@ added here: `MX_MAX_CLIENTS` (200), `MX_MAX_CONNECTIONS_PER_IP` (10),
 In the app's `.env` on the VPS, then `docker compose up -d` there:
 
 ```bash
-RECEIVING_MX_HOST=mx.millionsend-dns.com
+RECEIVING_MX_HOST=mx.posta-dns.example
 MX_INGEST_SECRET=<the same value>
 ```
 
@@ -174,8 +174,8 @@ docker compose logs -f mx
 Expected:
 
 ```
-mx-1  | [mx] {"event":"tls_loaded","subject":"CN=mx.millionsend-dns.com","expires":"..."}
-mx-1  | [mx] {"event":"listening","port":2525,"hostname":"mx.millionsend-dns.com"}
+mx-1  | [mx] {"event":"tls_loaded","subject":"CN=mx.posta-dns.example","expires":"..."}
+mx-1  | [mx] {"event":"listening","port":2525,"hostname":"mx.posta-dns.example"}
 ```
 
 `tls_unavailable` with `EACCES` means the keypair is not `root:1000` 0640, or the
@@ -201,12 +201,12 @@ STARTTLS with the real certificate:
 
 ```bash
 openssl s_client -starttls smtp -connect 127.0.0.1:25 \
-  -servername mx.millionsend-dns.com -verify_hostname mx.millionsend-dns.com -brief </dev/null
+  -servername mx.posta-dns.example -verify_hostname mx.posta-dns.example -brief </dev/null
 ```
 
-Expected: `Protocol version: TLSv1.3`, `Peer certificate: CN=mx.millionsend-dns.com`
+Expected: `Protocol version: TLSv1.3`, `Peer certificate: CN=mx.posta-dns.example`
 and `Verification: OK`. From outside AWS, any SMTP test tool pointed at
-`mx.millionsend-dns.com:25` should show the same.
+`mx.posta-dns.example:25` should show the same.
 
 No AUTH and no relay:
 
@@ -223,10 +223,10 @@ with `550 5.1.1 Recipient domain does not receive mail here`.
 1. In the dashboard, add a subdomain such as `inbound-test.example.com` to a
    team and verify it, turn on **Receiving** and **Catch-all** (or create an
    inbox on it and send to that address below), and add the MX record it
-   shows: name `inbound-test`, mail server `mx.millionsend-dns.com`,
+   shows: name `inbound-test`, mail server `mx.posta-dns.example`,
    priority 10. A subdomain keeps the parent domain's mailboxes untouched.
 2. Wait for the record's live check to pass (`dig +short MX inbound-test.example.com`
-   prints `10 mx.millionsend-dns.com.`).
+   prints `10 mx.posta-dns.example.`).
 3. From an ordinary mailbox (Gmail, Outlook), send a message with an
    attachment to any address at the subdomain.
 4. `docker compose logs mx` shows `"event":"delivered"` with
@@ -253,7 +253,7 @@ Once the app runs the new release, set `POSTA_TAG` in `.env` to it,
 then:
 
 ```bash
-cd /opt/millionsend-mx
+cd /opt/posta-mx
 docker compose pull && docker compose up -d && docker image prune -f
 ```
 
@@ -264,7 +264,7 @@ nothing is lost.
 
 Teams' shared-domain inboxes (`SHARED_INBOX_DOMAIN` in the app's `.env`)
 receive here too, through one wildcard MX record. The domain is its own
-registrable domain, never under `millionsend.com` or `millionsend-dns.com`:
+registrable domain, never under `posta.example` or `posta-dns.example`:
 the cloud app refuses to boot with one there. Agent mail, and abuse of it,
 then never touches the platform's own reputation.
 
@@ -272,7 +272,7 @@ then never touches the platform's own reputation.
 
    | Type | Name | Content |
    | ---- | ---- | ------- |
-   | MX | `*.<shared>` | `mx.millionsend-dns.com`, priority 10 |
+   | MX | `*.<shared>` | `mx.posta-dns.example`, priority 10 |
    | TXT | `_dmarc.<shared>` | `v=DMARC1; p=reject` |
 
 2. **SES identity**: verify `<shared>` as a domain identity with Easy DKIM in
@@ -282,7 +282,7 @@ then never touches the platform's own reputation.
 3. **App**: set `SHARED_INBOX_DOMAIN=<shared>` in the app's `.env`, then
    `docker compose up -d` there. Nothing changes on this box.
 4. **Checks**: `dig +short MX test.<shared>` prints
-   `10 mx.millionsend-dns.com.`. Create an inbox with **Random address**,
+   `10 mx.posta-dns.example.`. Create an inbox with **Random address**,
    send it a message from Gmail, then reply from the inbox: Gmail's "Show
    original" should read `DKIM: 'PASS' with domain <shared>` and
    `DMARC: 'PASS'`. SES documents sending from any subdomain of a verified

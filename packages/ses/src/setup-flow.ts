@@ -13,7 +13,7 @@ export const COMPOSE_FILENAMES = [
 ] as const;
 
 export const COMPOSE_DOWNLOAD_URL =
-  "https://raw.githubusercontent.com/MillionSend/millionsend/main/deploy/docker-compose.yml";
+  "https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml";
 
 /** .env keys the wizard offers to generate when missing or empty. */
 export const SECRET_KEYS = ["MASTER_ENCRYPTION_KEY", "BETTER_AUTH_SECRET"] as const;
@@ -230,7 +230,7 @@ export function freshDatabaseEntries(): Record<string, string> {
   const password = randomBytes(24).toString("base64url");
   return {
     POSTGRES_PASSWORD: password,
-    DATABASE_URL: `postgres://millionsend:${password}@postgres:5432/millionsend`,
+    DATABASE_URL: `postgres://posta:${password}@postgres:5432/posta`,
   };
 }
 
