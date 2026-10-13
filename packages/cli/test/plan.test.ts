@@ -494,7 +494,7 @@ describe("buildPlan diffs against existing rows", () => {
             region: "us-east-1",
             status: "pending",
             records: [
-              { record: "DKIM", name: "millionsend._domainkey", type: "CNAME", value: "x" },
+              { record: "DKIM", name: "posta._domainkey", type: "CNAME", value: "x" },
               { record: "SPF", name: "send", type: "MX", value: "y", priority: 10 },
               { record: "SPF", name: "send", type: "TXT", value: "z" },
             ],

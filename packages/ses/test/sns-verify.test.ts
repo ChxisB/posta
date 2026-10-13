@@ -15,7 +15,7 @@ const fixtures = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 const KEY = readFileSync(join(fixtures, "sns-test-key.pem"), "utf8");
 const CERT = readFileSync(join(fixtures, "sns-test-cert.pem"), "utf8");
 
-const TOPIC = "arn:aws:sns:us-east-1:123456789012:millionsend-events";
+const TOPIC = "arn:aws:sns:us-east-1:123456789012:posta-events";
 const CERT_URL = "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-test.pem";
 
 function sign(msg: Omit<SnsMessage, "Signature">): SnsMessage {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { DnsResolver } from "../src/dns-check.js";
 import { checkReceivingMx, receivingDnsRecord } from "../src/receiving-dns.js";
 
-const MX_HOST = "mx.millionsend-dns.com";
+const MX_HOST = "mx.posta-dns.example";
 
 function resolver(resolveMx: DnsResolver["resolveMx"]): DnsResolver {
   return { resolveTxt: async () => [], resolveCname: async () => [], resolveMx };
@@ -25,7 +25,7 @@ describe("receiving DNS record", () => {
         MX_HOST,
         resolver(async () => rows),
       );
-    expect(await at([{ priority: 10, exchange: "MX.millionsend-dns.com." }])).toEqual({
+    expect(await at([{ priority: 10, exchange: "MX.posta-dns.example." }])).toEqual({
       status: "found",
     });
     // Any priority works while it is the lowest, ties included.
@@ -40,7 +40,7 @@ describe("receiving DNS record", () => {
         { priority: 20, exchange: MX_HOST },
         { priority: 10, exchange: "aspmx.l.google.com." },
       ]),
-    ).toEqual({ status: "mismatch", found: "10 aspmx.l.google.com\n20 mx.millionsend-dns.com" });
+    ).toEqual({ status: "mismatch", found: "10 aspmx.l.google.com\n20 mx.posta-dns.example" });
     expect(await at([])).toEqual({ status: "missing" });
   });
 

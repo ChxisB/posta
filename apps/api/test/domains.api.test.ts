@@ -185,7 +185,7 @@ describe("POST /domains", () => {
       name: "updates.example.com",
       region: "sa-east-1",
       status: "pending",
-      dkimSelector: "millionsend",
+      dkimSelector: "posta",
     });
 
     expect(body).toMatchObject({
@@ -200,7 +200,7 @@ describe("POST /domains", () => {
     });
     expect(body.records).toContainEqual({
       record: "DKIM",
-      name: "millionsend._domainkey.updates.example.com",
+      name: "posta._domainkey.updates.example.com",
       type: "TXT",
       ttl: "Auto",
       status: "not_started",
@@ -278,7 +278,7 @@ describe("POST /domains", () => {
       return { id, key: await insertKey(id) };
     })();
     const { client, calls } = fakeSes();
-    const app = makeApp({ client, isCloud: true, tenants: { configurationSet: "millionsend" } });
+    const app = makeApp({ client, isCloud: true, tenants: { configurationSet: "posta" } });
     const created = await call(app, t.key, "POST", "/domains", { name: "tenant.example.com" });
     expect(created.status).toBe(200);
     const { id } = (await created.json()) as { id: string };
@@ -293,11 +293,11 @@ describe("POST /domains", () => {
     expect(calls[2]?.input).toEqual({ TenantName: t.id });
     expect(calls.slice(3).map((c) => c.input.ResourceArn)).toEqual([
       "arn:aws:ses:sa-east-1:123456789012:identity/tenant.example.com",
-      "arn:aws:ses:sa-east-1:123456789012:configuration-set/millionsend",
+      "arn:aws:ses:sa-east-1:123456789012:configuration-set/posta",
     ]);
     const [row] = await db.select().from(schema.domains).where(eq(schema.domains.id, id));
     expect(row?.sesTenantAssociatedAt).toBeInstanceOf(Date);
-    expect(row?.sesTenantConfigSet).toBe("millionsend");
+    expect(row?.sesTenantConfigSet).toBe("posta");
     const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, t.id));
     expect(team?.sesTenantName).toBe(t.id);
 
@@ -335,7 +335,7 @@ describe("POST /domains", () => {
     const app = makeApp({
       client: partial,
       isCloud: true,
-      tenants: { configurationSet: "millionsend" },
+      tenants: { configurationSet: "posta" },
     });
     const created = await call(app, t.key, "POST", "/domains", { name: "partial.example.com" });
     expect(created.status).toBe(200);
@@ -580,8 +580,7 @@ function dnsFor(domain: string, dkimPublicKey: string, txt: Record<string, strin
   return fakeDns({
     resolveTxt: async (name: string) => {
       if (name in txt) return [txt[name] ?? []];
-      if (name === `millionsend._domainkey.${domain}`)
-        return [[`v=DKIM1; k=rsa; p=${dkimPublicKey}`]];
+      if (name === `posta._domainkey.${domain}`) return [[`v=DKIM1; k=rsa; p=${dkimPublicKey}`]];
       if (name === `send.${domain}`) return [["v=spf1 include:amazonses.com ~all"]];
       return [];
     },
@@ -690,7 +689,7 @@ describe("GET /domains/{id}", () => {
     const app = makeApp({
       client: fakeSes({ dkimStatus: "SUCCESS", verifiedForSending: true }).client,
       dns: dnsFor("wrong.example.com", await dkimKeyOf(id), {
-        "millionsend._domainkey.wrong.example.com": ["v=DKIM1; k=rsa; p=STALEKEY"],
+        "posta._domainkey.wrong.example.com": ["v=DKIM1; k=rsa; p=STALEKEY"],
       }),
     });
     const { records } = await getRecords(app, id);
@@ -728,7 +727,7 @@ describe("POST /domains/{id}/verify", () => {
       client: fakeSes({ dkimStatus: "SUCCESS", verifiedForSending: true }).client,
       dns: fakeDns({
         resolveTxt: async (name: string) => {
-          if (name === "millionsend._domainkey.verify.example.com") {
+          if (name === "posta._domainkey.verify.example.com") {
             return [[`v=DKIM1; k=rsa; p=${dkimPublicKey}`]];
           }
           if (name === "send.verify.example.com") return [["v=spf1 include:amazonses.com ~all"]];

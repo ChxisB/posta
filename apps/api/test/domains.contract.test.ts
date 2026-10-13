@@ -68,7 +68,7 @@ beforeAll(async () => {
         // captured per-domain DKIM key — so verify passes when `state` says so.
         resolveTxt: async (name: string) => {
           for (const [domain, pub] of dkimKeys) {
-            if (name === `millionsend._domainkey.${domain}`) {
+            if (name === `posta._domainkey.${domain}`) {
               return [[`v=DKIM1; k=rsa; p=${pub}`]];
             }
             if (name === `send.${domain}`) return [["v=spf1 include:amazonses.com ~all"]];

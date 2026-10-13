@@ -8,16 +8,16 @@ import {
 } from "@posta/ses/setup-constants";
 
 export const CFN_DEPLOY_COMMAND =
-  "aws cloudformation deploy --template-file infra/millionsend-ses.cfn.yaml --stack-name millionsend --capabilities CAPABILITY_NAMED_IAM";
+  "aws cloudformation deploy --template-file infra/posta-ses.cfn.yaml --stack-name posta --capabilities CAPABILITY_NAMED_IAM";
 
-const CFN_TEMPLATE_URL = "https://millionsend-public.s3.amazonaws.com/millionsend-ses.cfn.yaml";
+const CFN_TEMPLATE_URL = "https://posta-public.s3.amazonaws.com/posta-ses.cfn.yaml";
 
 /**
  * CloudFormation quick-create review page for the hosted template
  * (maintainer notes on the hosted copy: SELF_HOSTING.md).
  */
 export function cfnQuickCreateUrl(region: string): string {
-  return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${CFN_TEMPLATE_URL}&stackName=millionsend`;
+  return `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review?templateURL=${CFN_TEMPLATE_URL}&stackName=posta`;
 }
 
 // The shell script interpolates $TOPIC_ARN/$ACCOUNT_ID at run time, so the
@@ -62,7 +62,7 @@ export function buildAwsSetupScript(opts: {
 
   const lines = [
     "#!/bin/sh",
-    "# MillionSend AWS setup. Run where the aws CLI has admin credentials.",
+    "# Posta AWS setup. Run where the aws CLI has admin credentials.",
     "# Re-runnable: creates that may already exist are tolerated (|| true) —",
     "# but every run mints a NEW access key; delete stale keys in the IAM console.",
     "set -u",

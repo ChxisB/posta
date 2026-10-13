@@ -1,4 +1,4 @@
-// Entry for the published `millionsend-setup` bin. esbuild bundles this into
+// Entry for the published `posta-setup` bin. esbuild bundles this into
 // dist/index.js, inlining the wizard source from packages/ses and the prompt
 // kit it imports from packages/cli (relative imports, not package names, so
 // the published tool and the in-repo `pnpm setup:aws` stay one codebase)

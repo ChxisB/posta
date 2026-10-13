@@ -395,7 +395,7 @@ describe("system.sesEnv / system.eventsHealth", () => {
 
   it("reports whether SNS topics and the configuration set are configured, plus event health", async () => {
     vi.stubEnv("SNS_TOPIC_ARNS", "arn:aws:sns:us-east-1:123456789012:ms-events");
-    vi.stubEnv("SES_CONFIGURATION_SET", "millionsend");
+    vi.stubEnv("SES_CONFIGURATION_SET", "posta");
     expect(await dbCaller("owner").system.sesEnv()).toMatchObject({
       snsTopicsConfigured: true,
       configurationSetConfigured: true,

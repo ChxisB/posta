@@ -227,7 +227,7 @@ itself, so set those only for an MX on another host.
 
 The AWS step of `npx @tack-labs/posta-setup` creates everything MillionSend needs
 in AWS — IAM policy + user + access key, the SNS event topic, the SQS events
-queue (`millionsend-events`) the worker long-polls, and the SES configuration
+queue (`posta-events`) the worker long-polls, and the SES configuration
 set. An HTTPS `APP_BASE_URL` additionally gets events pushed to your host; the
 queue works without any public URL.
 
@@ -238,7 +238,7 @@ into the `.env` in the current directory (no `.env` there → it prints them to
 paste where MillionSend runs). `--dry-run` prints the full plan and exits.
 
 `npx @tack-labs/posta-setup teardown` deletes everything the setup created,
-including all access keys of the `millionsend` IAM user, so a running server
+including all access keys of the `posta` IAM user, so a running server
 stops sending. Re-running setup is safe, but each run mints a new access key —
 delete stale ones in the IAM console.
 
@@ -319,7 +319,7 @@ the two `.env` lines above and a restart.
 
 ## SES events (bounces, complaints, deliveries)
 
-The setup CLI always configures this: an SQS queue (`millionsend-events`) that
+The setup CLI always configures this: an SQS queue (`posta-events`) that
 the worker long-polls, its URL in `.env` as `SQS_QUEUE_URL`. The queue buffers
 events through restarts and needs no inbound reachability, so it is the
 transport every deployment gets; a public HTTPS `APP_BASE_URL` additionally
@@ -378,15 +378,15 @@ policy the wizard and the CloudFormation template install includes the
 `ses:CreateTenant`, `ses:GetTenant`, `ses:DeleteTenant`,
 `ses:CreateTenantResourceAssociation`, `ses:DeleteTenantResourceAssociation`
 and `ses:UpdateReputationEntityCustomerManagedStatus` actions; an existing
-deployment re-runs the wizard (or updates the `millionsend-ses` policy)
+deployment re-runs the wizard (or updates the `posta-ses` policy)
 before turning the flag on.
 
 To update the policy in place, publish the JSON the SES settings page shows as a
 new default version:
 
 ```bash
-aws iam create-policy-version --policy-arn arn:aws:iam::<account-id>:policy/millionsend-ses \
-  --policy-document file://millionsend-ses.json --set-as-default
+aws iam create-policy-version --policy-arn arn:aws:iam::<account-id>:policy/posta-ses \
+  --policy-document file://posta-ses.json --set-as-default
 ```
 
 ## SMTP relay
@@ -780,8 +780,8 @@ MillionSend branding is hidden. ONE `S3_*` credential set is shared with the
 backup job below — each feature is then enabled by its own bucket variable.
 
 The storage step of `npx @tack-labs/posta-setup` prompts for the endpoint and
-keys, creates (or adopts) both buckets — `millionsend-storage` and
-`millionsend-backups` by default — and writes the `S3_*` lines to `.env`.
+keys, creates (or adopts) both buckets — `posta-storage` and
+`posta-backups` by default — and writes the `S3_*` lines to `.env`.
 The one thing it cannot do over the S3 API is make the uploads bucket serve
 objects publicly: on R2, enable public access on the bucket (or attach a
 custom domain), then set that URL — uploads are addressed as
@@ -791,7 +791,7 @@ custom domain), then set that URL — uploads are addressed as
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_STORAGE_BUCKET=millionsend-storage
+S3_STORAGE_BUCKET=posta-storage
 S3_STORAGE_PUBLIC_URL=https://<public-bucket-url-or-custom-domain>
 ```
 
@@ -816,7 +816,7 @@ and `S3_REGION=auto` are already right:
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_BACKUP_BUCKET=millionsend-backups
+S3_BACKUP_BUCKET=posta-backups
 ```
 
 Then add `backup` to `COMPOSE_PROFILES` in `.env` and `docker compose up -d`:
@@ -1032,7 +1032,7 @@ with an "Open console" button; the direct URL `https://<your-host>/console`
 works too. Every number comes from Postgres or a free SESv2 `GetAccount`
 read per region, except SES's own complaint rate: the worker reads it from
 CloudWatch (`cloudwatch:GetMetricData`, one metric per region every 15
-minutes, a few cents a month). A `millionsend-ses` policy from before that
+minutes, a few cents a month). A `posta-ses` policy from before that
 permission leaves the rate unread, and the regional pause then estimates it
 from the instance's own count, leaving out mail to providers that never
 report complaints to SES, such as Gmail, and judges the estimate on the same

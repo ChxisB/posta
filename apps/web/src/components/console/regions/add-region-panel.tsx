@@ -95,7 +95,7 @@ export function AddRegionPanel({
   const flag = regionFlag(region);
   const home = envRegions[0] ?? region;
   const all = envRegions.includes(region) ? envRegions : [...envRegions, region];
-  const arn = (r: string) => `arn:aws:sns:${r}:…:millionsend-events`;
+  const arn = (r: string) => `arn:aws:sns:${r}:…:posta-events`;
   const check1: CheckTone = !served
     ? "neutral"
     : served.status === "serving"

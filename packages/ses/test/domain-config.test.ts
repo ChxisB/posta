@@ -16,7 +16,7 @@ import {
 const BASE: DomainConfiguration = {
   domainName: "updates.example.com",
   region: "us-east-1",
-  snsTopicArn: "arn:aws:sns:us-east-1:123456789012:millionsend-events",
+  snsTopicArn: "arn:aws:sns:us-east-1:123456789012:posta-events",
   tlsMode: "opportunistic",
 };
 
@@ -39,9 +39,7 @@ function commandOf<T>(calls: object[], ctor: new (...args: never[]) => T): T {
 
 describe("domainConfigurationSetName", () => {
   it("sanitizes the domain into a deterministic name", () => {
-    expect(domainConfigurationSetName("Updates.Example.com")).toBe(
-      "millionsend-updates-example-com",
-    );
+    expect(domainConfigurationSetName("Updates.Example.com")).toBe("posta-updates-example-com");
   });
 });
 
@@ -50,7 +48,7 @@ describe("applyDomainConfiguration", () => {
     const { client, calls } = fakeClient();
     await applyDomainConfiguration(client, { ...BASE, tlsMode: "enforced" });
     expect(commandOf(calls, PutConfigurationSetDeliveryOptionsCommand).input).toEqual({
-      ConfigurationSetName: "millionsend-updates-example-com",
+      ConfigurationSetName: "posta-updates-example-com",
       TlsPolicy: "REQUIRE",
     });
   });
@@ -107,7 +105,7 @@ describe("ensureDomainConfigurationSet", () => {
   it("creates the set then converges TLS + events, returning the name", async () => {
     const { client, calls } = fakeClient();
     const name = await ensureDomainConfigurationSet(client, { ...BASE, tlsMode: "enforced" });
-    expect(name).toBe("millionsend-updates-example-com");
+    expect(name).toBe("posta-updates-example-com");
     expect(calls.map((c) => c.constructor.name)).toEqual([
       "CreateConfigurationSetCommand",
       "PutConfigurationSetDeliveryOptionsCommand",
@@ -126,7 +124,7 @@ describe("ensureDomainConfigurationSet", () => {
       return {};
     });
     const name = await ensureDomainConfigurationSet(client, BASE);
-    expect(name).toBe("millionsend-updates-example-com");
+    expect(name).toBe("posta-updates-example-com");
     expect(commandOf(calls, PutConfigurationSetDeliveryOptionsCommand)).toBeDefined();
     expect(commandOf(calls, UpdateConfigurationSetEventDestinationCommand)).toBeDefined();
   });

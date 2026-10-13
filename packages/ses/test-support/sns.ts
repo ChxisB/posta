@@ -7,7 +7,7 @@ import { canonicalString, type SnsMessage } from "../src/sns-verify.js";
 // The committed TEST-ONLY keypair lives with the ses package's own suite.
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), "../test/fixtures");
 
-export const SNS_TEST_TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:millionsend-events";
+export const SNS_TEST_TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:posta-events";
 export const SNS_TEST_CERT_URL =
   "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-test.pem";
 

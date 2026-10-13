@@ -67,7 +67,7 @@ import {
 } from "./setup-flow.js";
 
 const DESCRIPTION_TEXT =
-  "Sets up a self-hosted MillionSend end to end: a .env with generated secrets, the AWS resources (IAM user + key, SNS event topic, SES configuration set), and the Docker launch. Run it in the directory MillionSend should live in — an empty one works. Every step is offered, skippable, and safe to re-run. Sub-commands: add-region <region> (a further SES region on an existing install), teardown.";
+  "Sets up a self-hosted Posta end to end: a .env with generated secrets, the AWS resources (IAM user + key, SNS event topic, SES configuration set), and the Docker launch. Run it in the directory Posta should live in — an empty one works. Every step is offered, skippable, and safe to re-run. Sub-commands: add-region <region> (a further SES region on an existing install), teardown.";
 
 const REGION_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -218,7 +218,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     // Hosted-cloud mode adds the prompts boot demands under IS_CLOUD=true. An
     // .env that already says so keeps the mode on re-runs without the flag.
     const cloud = argv.includes("--cloud") || isCloudEnv(state.envContent);
-    flow.intro("millionsend", "setup", cloud ? "cloud" : "self-host");
+    flow.intro("posta", "setup", cloud ? "cloud" : "self-host");
     flow.note(DESCRIPTION_TEXT);
     flow.note(stateSummary(state));
 
@@ -433,7 +433,7 @@ async function cloudStep(wizard: Wizard): Promise<void> {
     if (wizard.writeEnv(entries)) {
       flow.note(`${Object.keys(entries).join(", ")} written to .env.`);
     } else {
-      flow.log(`No .env here — paste into .env where MillionSend runs:\n\n${pasteBlock(entries)}`);
+      flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
     }
   }
   const missing = CLOUD_REQUIRED_KEYS.filter((key) => !(entries[key] ?? envValue(wizard.env, key)));
@@ -500,7 +500,7 @@ async function socialLoginStep(wizard: Wizard): Promise<void> {
     if (wizard.writeEnv(entries)) {
       flow.note(`${provider.name} credentials written to .env.`);
     } else {
-      flow.log(`No .env here — paste into .env where MillionSend runs:\n\n${pasteBlock(entries)}`);
+      flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
     }
   }
 }
@@ -508,8 +508,8 @@ async function socialLoginStep(wizard: Wizard): Promise<void> {
 /** Accepted shapes mirror packages/config parseEmailFrom; boot re-validates. */
 const EMAIL_FROM_RE = /^(?:[^<>]+<)?[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+>?$/;
 
-const UPDATES_SUBSCRIBE_URL = "https://app.millionsend.com/api/updates/subscribe";
-const UPDATES_PAGE_URL = "https://app.millionsend.com/updates?source=self-host";
+const UPDATES_SUBSCRIBE_URL = "https://app.posta.example/api/updates/subscribe";
+const UPDATES_PAGE_URL = "https://app.posta.example/updates?source=self-host";
 
 /**
  * Optional, interactive only: the operator's one-time opt-in to release
@@ -539,7 +539,7 @@ async function updatesStep(wizard: Wizard): Promise<void> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     flow.note("Check your inbox for the confirmation link.");
   } catch {
-    flow.note(`Couldn't reach millionsend.com — subscribe any time at ${UPDATES_PAGE_URL}.`);
+    flow.note(`Couldn't reach posta.example — subscribe any time at ${UPDATES_PAGE_URL}.`);
   }
 }
 
@@ -576,7 +576,7 @@ async function accountEmailStep(wizard: Wizard): Promise<void> {
       "AUTH_EMAIL_FROM written to .env. Its domain must be a verified sending domain in this instance.",
     );
   } else {
-    flow.log(`No .env here — paste into .env where MillionSend runs:\n\nAUTH_EMAIL_FROM=${value}`);
+    flow.log(`No .env here — paste into .env where Posta runs:\n\nAUTH_EMAIL_FROM=${value}`);
   }
 }
 
@@ -671,7 +671,7 @@ async function storageStep(wizard: Wizard): Promise<void> {
       flow.note("backup added to COMPOSE_PROFILES — the scheduled dumps start with the stack.");
     }
   } else {
-    flow.log(`No .env here — paste into .env where MillionSend runs:\n\n${pasteBlock(entries)}`);
+    flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
   }
   if (publicUrl === "") {
     flow.note(
@@ -866,9 +866,7 @@ async function awsStep(wizard: Wizard, eventsOnly: boolean): Promise<void> {
   if (wizard.writeEnv(entries)) {
     flow.step(`${eventsOnly ? "Event ingestion values" : "AWS keys"} written to .env.`);
   } else {
-    flow.log(
-      `Done. Paste into .env where MillionSend runs, then restart it:\n\n${pasteBlock(entries)}`,
-    );
+    flow.log(`Done. Paste into .env where Posta runs, then restart it:\n\n${pasteBlock(entries)}`);
   }
   const origin = httpsOrigin(appBaseUrl);
   if (origin) {
@@ -960,9 +958,7 @@ async function addRegionStep(
       `${region} added to .env (AWS_REGIONS, SNS_TOPIC_ARNS). Restart the stack (docker compose up -d) so the worker and dashboard pick it up; the region reads as Sandbox until AWS grants production access there.`,
     );
   } else {
-    flow.log(
-      `Done. Paste into .env where MillionSend runs, then restart it:\n\n${pasteBlock(entries)}`,
-    );
+    flow.log(`Done. Paste into .env where Posta runs, then restart it:\n\n${pasteBlock(entries)}`);
   }
   if (httpsOrigin(appBaseUrl)) {
     flow.note(
@@ -986,7 +982,7 @@ export async function addRegionMain(flow: Flow, args: string[], dryRun: boolean)
     flow.error(`Not an AWS region name: ${preset}`);
     return 1;
   }
-  flow.intro("millionsend", "add-region", preset ?? undefined);
+  flow.intro("posta", "add-region", preset ?? undefined);
   const envPath = join(process.cwd(), ".env");
   const state = detectDirState(readCwdFile, null);
   let queueUrl = envValue(state.envContent, "SQS_QUEUE_URL") || process.env.SQS_QUEUE_URL || "";
@@ -1112,7 +1108,7 @@ async function launchStep(wizard: Wizard): Promise<number> {
     return 0;
   }
   const choice = await flow.select({
-    label: "Start MillionSend now?",
+    label: "Start Posta now?",
     initial: wizard.interactive ? "start" : "later",
     options: [
       { value: "start", label: "Start", hint: "docker compose up" },
@@ -1177,7 +1173,7 @@ async function launchStep(wizard: Wizard): Promise<number> {
 
 /** The pre-wizard teardown flow, unchanged: identity, region, delete. */
 async function teardownMain(flow: Flow, dryRun: boolean): Promise<number> {
-  flow.intro("millionsend", "teardown");
+  flow.intro("posta", "teardown");
   let accountId = "";
   if (dryRun) {
     flow.note("--dry-run: skipping the AWS credential check.");

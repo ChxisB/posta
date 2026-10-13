@@ -52,7 +52,7 @@ const DELIVERY_EVENT_TYPES: readonly EventType[] = [
  * qualifier — a domain has one region.
  */
 export function domainConfigurationSetName(domainName: string): string {
-  return `millionsend-${domainName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`.slice(0, 64);
+  return `posta-${domainName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`.slice(0, 64);
 }
 
 function errorName(error: unknown): string {

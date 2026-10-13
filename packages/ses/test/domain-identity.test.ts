@@ -63,7 +63,7 @@ describe("dnsRecordsForDomain", () => {
   it("derives the exact DKIM TXT, MAIL FROM, SPF, and DMARC records", () => {
     const records = dnsRecordsForDomain({
       domain: "updates.example.com",
-      dkimSelector: "millionsend",
+      dkimSelector: "posta",
       dkimPublicKey: "PUBKEYB64",
       mailFromSubdomain: "send",
       region: "sa-east-1",
@@ -72,7 +72,7 @@ describe("dnsRecordsForDomain", () => {
       {
         group: "verification",
         type: "TXT",
-        name: "millionsend._domainkey.updates.example.com",
+        name: "posta._domainkey.updates.example.com",
         value: '"v=DKIM1; k=rsa; p=PUBKEYB64"',
       },
       {
@@ -113,7 +113,7 @@ describe("createDomainIdentity", () => {
     expect((create as CreateEmailIdentityCommand).input).toEqual({
       EmailIdentity: "example.com",
       DkimSigningAttributes: {
-        DomainSigningSelector: "millionsend",
+        DomainSigningSelector: "posta",
         DomainSigningPrivateKey: DKIM.privateKeyB64,
       },
     });
@@ -147,7 +147,7 @@ describe("createDomainIdentity", () => {
       EmailIdentity: "example.com",
       SigningAttributesOrigin: "EXTERNAL",
       SigningAttributes: {
-        DomainSigningSelector: "millionsend",
+        DomainSigningSelector: "posta",
         DomainSigningPrivateKey: DKIM.privateKeyB64,
       },
     });

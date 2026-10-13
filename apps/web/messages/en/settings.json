@@ -81,11 +81,11 @@
       "scriptTitle": "Alternative: paste this script",
       "scriptNote": "Paste into a terminal where the AWS CLI has admin credentials. It creates the IAM user, policy, SNS topic, SQS events queue, and configuration set, then prints your <code>.env</code> lines.",
       "eventsSkipped": "<code>APP_BASE_URL</code> is not a public https URL, so the script skips the https push; events still arrive through the SQS queue. Set it and reload to add the push.",
-      "cfnNote": "One click: opens the CloudFormation review page with the hosted template — the same stack as <code>infra/millionsend-ses.cfn.yaml</code>. From a terminal instead:",
+      "cfnNote": "One click: opens the CloudFormation review page with the hosted template — the same stack as <code>infra/posta-ses.cfn.yaml</code>. From a terminal instead:",
       "manualTitle": "Manual: console steps",
       "step1": "Create a policy: IAM console → Policies → Create policy → JSON — paste this document.",
       "step1Link": "Open the policy editor",
-      "step2": "Create a user named <code>millionsend</code> and attach the policy.",
+      "step2": "Create a user named <code>posta</code> and attach the policy.",
       "step2Link": "Open user creation",
       "step3": "Create an access key for the user and paste it into <code>.env</code>.",
       "step4": "Optional events: SNS topic + configuration set — the script above automates this part; see <code>SELF_HOSTING.md</code>."

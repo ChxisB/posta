@@ -136,8 +136,8 @@ describe("lineReader on a terminal", () => {
     input.write("s3cr3tKEYvalue\r");
     await turn();
     input.isRaw = false;
-    input.write("millionsend-uploads\n");
-    expect(await rl.question("Uploads bucket name: ")).toBe("millionsend-uploads");
+    input.write("posta-uploads\n");
+    expect(await rl.question("Uploads bucket name: ")).toBe("posta-uploads");
     rl.close();
   });
 

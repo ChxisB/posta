@@ -5,8 +5,8 @@ describe("cfnQuickCreateUrl", () => {
   it("targets the console review page for the given region", () => {
     const url = cfnQuickCreateUrl("sa-east-1");
     expect(url).toContain("region=sa-east-1");
-    expect(url).toContain("stackName=millionsend");
-    expect(url).toContain("millionsend-public.s3.amazonaws.com/millionsend-ses.cfn.yaml");
+    expect(url).toContain("stackName=posta");
+    expect(url).toContain("posta-public.s3.amazonaws.com/posta-ses.cfn.yaml");
   });
 });
 
@@ -14,8 +14,8 @@ describe("buildAwsSetupScript", () => {
   it("substitutes the region and creates policy, user, and access key", () => {
     const script = buildAwsSetupScript({ region: "sa-east-1" });
     expect(script).toContain('REGION="sa-east-1"');
-    expect(script).toContain("aws iam create-policy --policy-name millionsend-ses");
-    expect(script).toContain("aws iam create-user --user-name millionsend");
+    expect(script).toContain("aws iam create-policy --policy-name posta-ses");
+    expect(script).toContain("aws iam create-user --user-name posta");
     expect(script).toContain("aws iam attach-user-policy");
     expect(script).toContain("aws iam create-access-key");
     // jq-free: key parsing goes through --query/--output text, never jq.
@@ -33,30 +33,28 @@ describe("buildAwsSetupScript", () => {
       appBaseUrl: "https://mail.example.com",
       includeEvents: true,
     });
-    expect(script).toContain("aws sns create-topic --name millionsend-events");
-    expect(script).toContain("aws sqs create-queue --queue-name millionsend-events");
+    expect(script).toContain("aws sns create-topic --name posta-events");
+    expect(script).toContain("aws sqs create-queue --queue-name posta-events");
     expect(script).toContain('--notification-endpoint "$QUEUE_ARN"');
     expect(script).toContain('--notification-endpoint "https://mail.example.com/ses/events"');
     // Every policy placeholder became a shell splice.
     expect(script).not.toMatch(/__(QUEUE|TOPIC|ACCOUNT)__/);
-    expect(script).toContain(`"arn:aws:iam::'"$ACCOUNT_ID"':user/millionsend"`);
+    expect(script).toContain(`"arn:aws:iam::'"$ACCOUNT_ID"':user/posta"`);
     expect(script).toContain('echo "SQS_QUEUE_URL=$QUEUE_URL"');
-    expect(script).toContain(
-      "aws sesv2 create-configuration-set --configuration-set-name millionsend",
-    );
+    expect(script).toContain("aws sesv2 create-configuration-set --configuration-set-name posta");
     expect(script).toContain(
       '"MatchingEventTypes":["DELIVERY","DELIVERY_DELAY","BOUNCE","COMPLAINT","REJECT","RENDERING_FAILURE"]',
     );
     expect(script).toContain('echo "SNS_TOPIC_ARNS=$TOPIC_ARN"');
-    expect(script).toContain('echo "SES_CONFIGURATION_SET=millionsend"');
+    expect(script).toContain('echo "SES_CONFIGURATION_SET=posta"');
   });
 
   it("still provisions the queue for http or missing appBaseUrl, skipping only the push", () => {
     for (const appBaseUrl of ["http://mail.example.com", undefined]) {
       const script = buildAwsSetupScript({ region: "us-east-1", appBaseUrl, includeEvents: true });
-      expect(script).toContain("aws sqs create-queue --queue-name millionsend-events");
+      expect(script).toContain("aws sqs create-queue --queue-name posta-events");
       expect(script).toContain('echo "SQS_QUEUE_URL=$QUEUE_URL"');
-      expect(script).toContain('echo "SES_CONFIGURATION_SET=millionsend"');
+      expect(script).toContain('echo "SES_CONFIGURATION_SET=posta"');
       expect(script).not.toContain("--protocol https");
     }
   });

@@ -67,7 +67,7 @@ function namedError(name: string): Error {
  * One fake for all three clients: records every command and answers by
  * command type. `errors` maps a command constructor name to the error its
  * send should throw (for already-exists / not-found reruns). `policy`
- * describes an existing millionsend-ses policy: its default document and how
+ * describes an existing posta-ses policy: its default document and how
  * many versions it carries (v1 oldest, the last one default).
  */
 function fakeClients(
@@ -104,13 +104,13 @@ function fakeClients(
       return { AccessKey: { AccessKeyId: "AKIATEST", SecretAccessKey: "secret123" } };
     }
     if (command instanceof CreateTopicCommand) {
-      return { TopicArn: "arn:aws:sns:us-east-1:123456789012:millionsend-events" };
+      return { TopicArn: "arn:aws:sns:us-east-1:123456789012:posta-events" };
     }
     if (command instanceof CreateQueueCommand || command instanceof GetQueueUrlCommand) {
-      return { QueueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/millionsend-events" };
+      return { QueueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/posta-events" };
     }
     if (command instanceof GetQueueAttributesCommand) {
-      return { Attributes: { QueueArn: "arn:aws:sqs:us-east-1:123456789012:millionsend-events" } };
+      return { Attributes: { QueueArn: "arn:aws:sqs:us-east-1:123456789012:posta-events" } };
     }
     if (command instanceof ListAccessKeysCommand) {
       return {
@@ -146,8 +146,8 @@ describe("setupPlan", () => {
   it("routes events to https or the SQS queue depending on appBaseUrl", () => {
     expect(setupPlan(input).join("\n")).toContain("subscribed to https://mail.example.com");
     const viaQueue = setupPlan({ region: "us-east-1", appBaseUrl: "http://x" }).join("\n");
-    expect(viaQueue).toContain("delivering to SQS queue millionsend-events");
-    expect(viaQueue).toContain("SES configuration set millionsend");
+    expect(viaQueue).toContain("delivering to SQS queue posta-events");
+    expect(viaQueue).toContain("SES configuration set posta");
   });
 });
 
@@ -158,8 +158,8 @@ describe("runSetup", () => {
     expect(result).toEqual({
       accessKeyId: "AKIATEST",
       secretAccessKey: "secret123",
-      topicArn: "arn:aws:sns:us-east-1:123456789012:millionsend-events",
-      queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/millionsend-events",
+      topicArn: "arn:aws:sns:us-east-1:123456789012:posta-events",
+      queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/posta-events",
     });
     expect(calls.map((c) => c.constructor)).toEqual([
       CreatePolicyCommand,
@@ -180,22 +180,20 @@ describe("runSetup", () => {
     // The queue is always the transport; an https origin is pushed to as well.
     const subscribes = calls.filter((c) => c instanceof SubscribeCommand) as SubscribeCommand[];
     expect(subscribes.map((s) => [s.input.Protocol, s.input.Endpoint])).toEqual([
-      ["sqs", "arn:aws:sqs:us-east-1:123456789012:millionsend-events"],
+      ["sqs", "arn:aws:sqs:us-east-1:123456789012:posta-events"],
       ["https", "https://mail.example.com/ses/events"],
     ]);
     const attach = calls.find(
       (c) => c instanceof AttachUserPolicyCommand,
     ) as AttachUserPolicyCommand;
-    expect(attach.input.PolicyArn).toBe("arn:aws:iam::123456789012:policy/millionsend-ses");
+    expect(attach.input.PolicyArn).toBe("arn:aws:iam::123456789012:policy/posta-ses");
   });
 
   it("still creates the SQS events queue and skips only the https push without https", async () => {
     const { clients, calls } = fakeClients();
     const result = await runSetup(clients, { ...input, appBaseUrl: null });
-    expect(result.topicArn).toBe("arn:aws:sns:us-east-1:123456789012:millionsend-events");
-    expect(result.queueUrl).toBe(
-      "https://sqs.us-east-1.amazonaws.com/123456789012/millionsend-events",
-    );
+    expect(result.topicArn).toBe("arn:aws:sns:us-east-1:123456789012:posta-events");
+    expect(result.queueUrl).toBe("https://sqs.us-east-1.amazonaws.com/123456789012/posta-events");
     expect(calls.map((c) => c.constructor)).toEqual([
       CreatePolicyCommand,
       CreateUserCommand,
@@ -213,7 +211,7 @@ describe("runSetup", () => {
     ]);
     const subscribe = calls.find((c) => c instanceof SubscribeCommand) as SubscribeCommand;
     expect(subscribe.input.Protocol).toBe("sqs");
-    expect(subscribe.input.Endpoint).toBe("arn:aws:sqs:us-east-1:123456789012:millionsend-events");
+    expect(subscribe.input.Endpoint).toBe("arn:aws:sqs:us-east-1:123456789012:posta-events");
     const policy = calls.find(
       (c) => c instanceof SetQueueAttributesCommand,
     ) as SetQueueAttributesCommand;
@@ -222,7 +220,7 @@ describe("runSetup", () => {
     };
     expect(doc.Statement[0]?.Principal).toEqual({ Service: "sns.amazonaws.com" });
     expect(doc.Statement[1]?.Principal).toEqual({
-      AWS: "arn:aws:iam::123456789012:user/millionsend",
+      AWS: "arn:aws:iam::123456789012:user/posta",
     });
   });
 
@@ -230,8 +228,8 @@ describe("runSetup", () => {
     const { clients, calls } = fakeClients();
     const result = await runEventsSetup(clients, { ...input, appBaseUrl: null });
     expect(result).toEqual({
-      topicArn: "arn:aws:sns:us-east-1:123456789012:millionsend-events",
-      queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/millionsend-events",
+      topicArn: "arn:aws:sns:us-east-1:123456789012:posta-events",
+      queueUrl: "https://sqs.us-east-1.amazonaws.com/123456789012/posta-events",
     });
     expect(calls.some((c) => c instanceof CreatePolicyCommand)).toBe(false);
     expect(calls.some((c) => c instanceof CreateAccessKeyCommand)).toBe(false);
@@ -243,9 +241,7 @@ describe("runSetup", () => {
       errors: { CreateQueueCommand: namedError("QueueNameExists") },
     });
     const result = await runSetup(clients, { ...input, appBaseUrl: null });
-    expect(result.queueUrl).toBe(
-      "https://sqs.us-east-1.amazonaws.com/123456789012/millionsend-events",
-    );
+    expect(result.queueUrl).toBe("https://sqs.us-east-1.amazonaws.com/123456789012/posta-events");
     expect(calls.some((c) => c instanceof GetQueueUrlCommand)).toBe(true);
   });
 
@@ -281,7 +277,7 @@ describe("runSetup", () => {
       (c) => c instanceof CreatePolicyVersionCommand,
     ) as CreatePolicyVersionCommand;
     expect(created.input).toEqual({
-      PolicyArn: "arn:aws:iam::123456789012:policy/millionsend-ses",
+      PolicyArn: "arn:aws:iam::123456789012:policy/posta-ses",
       PolicyDocument: JSON.stringify(SES_IAM_POLICY),
       SetAsDefault: true,
     });
@@ -319,9 +315,9 @@ describe("runSetup", () => {
 });
 
 describe("adding a region", () => {
-  const queueUrl = "https://sqs.sa-east-1.amazonaws.com/123456789012/millionsend-events";
-  const queueArn = "arn:aws:sqs:sa-east-1:123456789012:millionsend-events";
-  const firstTopic = "arn:aws:sns:sa-east-1:123456789012:millionsend-events";
+  const queueUrl = "https://sqs.sa-east-1.amazonaws.com/123456789012/posta-events";
+  const queueArn = "arn:aws:sqs:sa-east-1:123456789012:posta-events";
+  const firstTopic = "arn:aws:sns:sa-east-1:123456789012:posta-events";
 
   it("parses the standard queue URL into its region and ARN, and nothing else", () => {
     expect(parseSqsQueueUrl(queueUrl)).toEqual({ region: "sa-east-1", arn: queueArn });
@@ -395,9 +391,9 @@ describe("adding a region", () => {
     );
     expect(plan).toContain("no new access key");
     expect(plan).toContain(
-      `SNS topic millionsend-events in us-east-1, delivering into the existing events queue ${queueUrl}`,
+      `SNS topic posta-events in us-east-1, delivering into the existing events queue ${queueUrl}`,
     );
-    expect(plan).toContain("SES configuration set millionsend in us-east-1");
+    expect(plan).toContain("SES configuration set posta in us-east-1");
     expect(plan).toContain("us-east-1 appended to AWS_REGIONS");
     expect(plan).not.toContain("/ses/events");
     expect(
@@ -445,7 +441,7 @@ describe("runTeardown", () => {
       DeletePolicyCommand,
     ]);
     const topic = calls.find((c) => c instanceof DeleteTopicCommand) as DeleteTopicCommand;
-    expect(topic.input.TopicArn).toBe("arn:aws:sns:us-east-1:123456789012:millionsend-events");
+    expect(topic.input.TopicArn).toBe("arn:aws:sns:us-east-1:123456789012:posta-events");
   });
 
   it("tolerates resources that are already gone", async () => {
@@ -487,7 +483,7 @@ describe("setupEnvEntries / upsertEnv", () => {
     ]);
     expect(setupEnvEntries("us-east-1", { ...base, topicArn: "arn:x" })).toMatchObject({
       SNS_TOPIC_ARNS: "arn:x",
-      SES_CONFIGURATION_SET: "millionsend",
+      SES_CONFIGURATION_SET: "posta",
     });
     expect(
       setupEnvEntries("us-east-1", { ...base, topicArn: "arn:x", queueUrl: "https://sqs/q" }),
@@ -551,16 +547,16 @@ function fakeStorageClient(options: { headError?: Error } = {}) {
 describe("ensureBucket", () => {
   it("adopts an existing bucket without creating it", async () => {
     const { client, calls } = fakeStorageClient();
-    expect(await ensureBucket(client, "millionsend-storage")).toBe("exists");
+    expect(await ensureBucket(client, "posta-storage")).toBe("exists");
     expect(calls).toHaveLength(1);
     expect(calls[0]).toBeInstanceOf(HeadBucketCommand);
   });
 
   it("creates the bucket when HeadBucket reports NotFound", async () => {
     const { client, calls } = fakeStorageClient({ headError: namedError("NotFound") });
-    expect(await ensureBucket(client, "millionsend-backups")).toBe("created");
+    expect(await ensureBucket(client, "posta-backups")).toBe("created");
     expect(calls[1]).toBeInstanceOf(CreateBucketCommand);
-    expect(calls[1]).toMatchObject({ input: { Bucket: "millionsend-backups" } });
+    expect(calls[1]).toMatchObject({ input: { Bucket: "posta-backups" } });
   });
 
   it("creates on a bare 404 with no modeled error name", async () => {
@@ -589,16 +585,16 @@ describe("storageEnvEntries", () => {
     expect(
       storageEnvEntries({
         credentials,
-        backupBucket: "millionsend-backups",
-        storageBucket: "millionsend-storage",
+        backupBucket: "posta-backups",
+        storageBucket: "posta-storage",
         publicUrl: "https://pub.example.com",
       }),
     ).toEqual({
       S3_ENDPOINT: "https://acct.r2.cloudflarestorage.com",
       S3_ACCESS_KEY_ID: "key",
       S3_SECRET_ACCESS_KEY: "secret",
-      S3_BACKUP_BUCKET: "millionsend-backups",
-      S3_STORAGE_BUCKET: "millionsend-storage",
+      S3_BACKUP_BUCKET: "posta-backups",
+      S3_STORAGE_BUCKET: "posta-storage",
       S3_STORAGE_PUBLIC_URL: "https://pub.example.com",
     });
   });
@@ -607,15 +603,15 @@ describe("storageEnvEntries", () => {
     expect(
       storageEnvEntries({
         credentials,
-        backupBucket: "millionsend-backups",
-        storageBucket: "millionsend-storage",
+        backupBucket: "posta-backups",
+        storageBucket: "posta-storage",
         publicUrl: "",
       }),
     ).toEqual({
       S3_ENDPOINT: "https://acct.r2.cloudflarestorage.com",
       S3_ACCESS_KEY_ID: "key",
       S3_SECRET_ACCESS_KEY: "secret",
-      S3_BACKUP_BUCKET: "millionsend-backups",
+      S3_BACKUP_BUCKET: "posta-backups",
     });
   });
 });

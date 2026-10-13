@@ -54,7 +54,7 @@ it("associates every unmarked domain, stamps it, and names the team's tenant", a
   expect(
     await syncTenants(db, {
       clientForRegion: () => client,
-      configurationSet: "millionsend",
+      configurationSet: "posta",
       enabled: true,
       now,
     }),
@@ -72,12 +72,12 @@ it("associates every unmarked domain, stamps it, and names the team's tenant", a
     "arn:aws:ses:sa-east-1:123456789012:identity/a.acme.dev",
   );
   expect(calls[2]?.input.ResourceArn).toBe(
-    "arn:aws:ses:sa-east-1:123456789012:configuration-set/millionsend",
+    "arn:aws:ses:sa-east-1:123456789012:configuration-set/posta",
   );
   for (const id of [a, b]) {
     const [row] = await db.select().from(schema.domains).where(eq(schema.domains.id, id));
     expect(row?.sesTenantAssociatedAt).toEqual(now);
-    expect(row?.sesTenantConfigSet).toBe("millionsend");
+    expect(row?.sesTenantConfigSet).toBe("posta");
   }
   const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, teamId));
   expect(team?.sesTenantName).toBe(teamId);
@@ -86,7 +86,7 @@ it("associates every unmarked domain, stamps it, and names the team's tenant", a
   expect(
     await syncTenants(db, {
       clientForRegion: () => client,
-      configurationSet: "millionsend",
+      configurationSet: "posta",
       enabled: true,
     }),
   ).toEqual({ associated: 0, failed: 0 });
@@ -103,7 +103,7 @@ it("re-associates a domain whose recorded configuration set drifted from the env
   expect(
     await syncTenants(db, {
       clientForRegion: () => client,
-      configurationSet: "millionsend",
+      configurationSet: "posta",
       enabled: true,
     }),
   ).toEqual({ associated: 1, failed: 0 });
@@ -113,7 +113,7 @@ it("re-associates a domain whose recorded configuration set drifted from the env
     "CreateTenantResourceAssociationCommand",
   ]);
   const [row] = await db.select().from(schema.domains).where(eq(schema.domains.id, id));
-  expect(row?.sesTenantConfigSet).toBe("millionsend");
+  expect(row?.sesTenantConfigSet).toBe("posta");
 });
 
 it("one failing domain is logged and skipped; the others still get associated", async () => {

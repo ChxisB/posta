@@ -1410,22 +1410,22 @@ it("drops the tenant when the send's configuration set is not the one associated
   await db.update(schema.teams).set({ sesTenantName: teamId }).where(eq(schema.teams.id, teamId));
   const { ses, sends } = fakeSes("mid-drift");
   const emailId = await insertEmail({ domainId: drifted.id, from: "Acme <a@drift.dev>" });
-  expect(
-    await sendEmail(db, { keyring, ses, defaultConfigurationSet: "millionsend" }, { emailId }),
-  ).toBe("sent");
-  expect(sends[0]?.configurationSetName).toBe("millionsend");
+  expect(await sendEmail(db, { keyring, ses, defaultConfigurationSet: "posta" }, { emailId })).toBe(
+    "sent",
+  );
+  expect(sends[0]?.configurationSetName).toBe("posta");
   expect(sends[0]?.tenantName).toBeUndefined();
   // Once the association matches the set in force, the tenant rides along.
   await db
     .update(schema.domains)
-    .set({ sesTenantConfigSet: "millionsend" })
+    .set({ sesTenantConfigSet: "posta" })
     .where(eq(schema.domains.id, drifted.id));
   const again = fakeSes("mid-drift-2");
   const secondId = await insertEmail({ domainId: drifted.id, from: "Acme <a@drift.dev>" });
   expect(
     await sendEmail(
       db,
-      { keyring, ses: again.ses, defaultConfigurationSet: "millionsend" },
+      { keyring, ses: again.ses, defaultConfigurationSet: "posta" },
       { emailId: secondId },
     ),
   ).toBe("sent");

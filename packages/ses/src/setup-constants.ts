@@ -4,12 +4,12 @@
 
 /** AWS resource names every setup path (CLI, shell script, CloudFormation) creates. */
 export const SETUP_NAMES = {
-  policy: "millionsend-ses",
-  user: "millionsend",
-  topic: "millionsend-events",
-  queue: "millionsend-events",
-  configurationSet: "millionsend",
-  eventDestination: "millionsend-events",
+  policy: "posta-ses",
+  user: "posta",
+  topic: "posta-events",
+  queue: "posta-events",
+  configurationSet: "posta",
+  eventDestination: "posta-events",
 } as const;
 
 /**
@@ -31,7 +31,7 @@ export const SES_EVENT_TYPES = [
 
 /**
  * Every SES action the instance issues, plus the CloudWatch read of SES's
- * reputation — infra/millionsend-ses.cfn.yaml mirrors the same set. Identity
+ * reputation — infra/posta-ses.cfn.yaml mirrors the same set. Identity
  * actions support resource-level permissions and are confined to identities;
  * sending stays account-wide because a send that names a configuration set is
  * authorized against that resource too, and GetAccount and GetMetricData
@@ -89,7 +89,7 @@ export const SES_IAM_POLICY_JSON = JSON.stringify(SES_IAM_POLICY, null, 2);
  * in an empty directory with no repo clone. Edit both together.
  */
 export function envTemplate(): string {
-  return `# MillionSend self-host configuration.
+  return `# Posta self-host configuration.
 # Save as .env, generate the two secrets below, and \`docker compose up -d\`.
 # This file holds every secret the instance has: keep it readable by its
 # owner only (chmod 600 .env) and out of version control and backups.
@@ -185,7 +185,7 @@ SQS_QUEUE_URL=
 
 # SES configuration set applied to sends that have no per-domain configuration
 # set. Point its event destination at the SNS topic above so delivery events
-# reach MillionSend. Unset sends without a configuration set.
+# reach Posta. Unset sends without a configuration set.
 SES_CONFIGURATION_SET=
 
 # One SES tenant per team, so SES tracks bounce/complaint reputation per
@@ -408,7 +408,7 @@ NOTIFICATIONS_EMAIL_FROM=
 # CF-Connecting-IP) are trusted, comma-separated. Default: loopback only,
 # which covers a proxy on the same host. Add your proxy's address when it
 # runs elsewhere; an untrusted source's headers are ignored and the socket
-# address is used instead. A tracking edge (millionsend-tracking-edge) that
+# address is used instead. A tracking edge (posta-tracking-edge) that
 # forwards branded links through Cloudflare belongs here too, or every
 # tracking hit records the edge as the client.
 # TRUSTED_PROXIES=127.0.0.1,::1
@@ -541,7 +541,7 @@ export function snsTopicPolicy(topicArn: string, accountId: string): object {
 
 /**
  * Events-queue policy: only the events topics may write (one per served
- * region; SNS delivers across regions), and the millionsend IAM user may
+ * region; SNS delivers across regions), and the posta IAM user may
  * consume. The consume grant lives here (resource policy) rather than in
  * SES_IAM_POLICY because a same-account resource policy suffices on SQS, and
  * the identity policy — created once, adopted on re-runs — could not gain new

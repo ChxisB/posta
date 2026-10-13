@@ -159,7 +159,7 @@ the worker long-polls, and the SES configuration set. The policy also carries th
 `ses:*Tenant*` actions and `ses:UpdateReputationEntityCustomerManagedStatus`
 behind `SES_TENANTS` (one SES tenant per team, disabled while the team is
 suspended); a deployment set up before those existed re-runs the wizard, or
-updates the `millionsend-ses` policy, before enabling the flag. It also
+updates the `posta-ses` policy, before enabling the flag. It also
 carries `cloudwatch:GetMetricData`, for SES's own complaint rate, and a
 deployment set up before it updates the policy the same way. Without it, the
 regional pause estimates that rate from the instance's own count, leaving out
@@ -174,7 +174,7 @@ shows the plan, creates everything, and writes the `AWS_*` lines into the `.env`
 the current directory (no `.env` there → it prints them to paste where MillionSend
 runs). `--dry-run` prints the full plan and exits.
 `teardown` deletes everything the setup created, including all access keys of the
-`millionsend` user, so a running server stops sending. Re-running is safe, but each
+`posta` user, so a running server stops sending. Re-running is safe, but each
 run mints a new access key — delete stale ones in the IAM console.
 (`@tack-labs/posta-setup` is the self-host setup tool; `@tack-labs/posta-cli` is the end-user
 CLI that talks to the MillionSend API — migrations from other providers.)
@@ -258,7 +258,7 @@ the two `.env` lines above and a restart.
 <details>
 <summary><b>SES events (bounces, complaints, deliveries)</b></summary>
 
-The setup CLI always configures this: an SQS queue (`millionsend-events`) that
+The setup CLI always configures this: an SQS queue (`posta-events`) that
 the worker long-polls, its URL in `.env` as `SQS_QUEUE_URL`. The queue buffers
 events through restarts and needs no inbound reachability, so it is the transport
 every deployment gets; a public https `APP_BASE_URL` additionally gets an SNS
@@ -757,8 +757,8 @@ MillionSend branding is hidden. ONE `S3_*` credential set is shared with the
 backup job below — each feature is then enabled by its own bucket variable.
 
 The storage step of `npx @tack-labs/posta-setup` prompts for the endpoint and
-keys, creates (or adopts) both buckets — `millionsend-storage` and
-`millionsend-backups` by default — and writes the `S3_*` lines to `.env`.
+keys, creates (or adopts) both buckets — `posta-storage` and
+`posta-backups` by default — and writes the `S3_*` lines to `.env`.
 The one thing it cannot do over the S3 API is make the uploads bucket serve
 objects publicly: on R2, enable public access on the bucket (or attach a
 custom domain), then set that URL — uploads are addressed as
@@ -768,7 +768,7 @@ custom domain), then set that URL — uploads are addressed as
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_STORAGE_BUCKET=millionsend-storage
+S3_STORAGE_BUCKET=posta-storage
 S3_STORAGE_PUBLIC_URL=https://<public-bucket-url-or-custom-domain>
 ```
 
@@ -796,7 +796,7 @@ and `S3_REGION=auto` are already right:
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_BACKUP_BUCKET=millionsend-backups
+S3_BACKUP_BUCKET=posta-backups
 ```
 
 Then add `backup` to `COMPOSE_PROFILES` in `.env` and `docker compose up -d`:
@@ -1589,11 +1589,11 @@ without it.
 <summary><b>Maintainers</b></summary>
 
 The Settings → SES quick-create link loads the CloudFormation template from the
-`millionsend-public` S3 bucket. After changing `infra/millionsend-ses.cfn.yaml`,
+`posta-public` S3 bucket. After changing `infra/posta-ses.cfn.yaml`,
 re-upload it:
 
 ```sh
-aws s3 cp infra/millionsend-ses.cfn.yaml s3://millionsend-public/millionsend-ses.cfn.yaml
+aws s3 cp infra/posta-ses.cfn.yaml s3://posta-public/posta-ses.cfn.yaml
 ```
 
 </details>

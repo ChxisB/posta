@@ -161,7 +161,7 @@ describe("domains.create", () => {
     ]);
     expect(calls[0]?.input).toMatchObject({
       EmailIdentity: "updates.example.com",
-      DkimSigningAttributes: { DomainSigningSelector: "millionsend" },
+      DkimSigningAttributes: { DomainSigningSelector: "posta" },
     });
     expect(calls[1]?.input).toMatchObject({
       EmailIdentity: "updates.example.com",
@@ -176,7 +176,7 @@ describe("domains.create", () => {
       region: "us-east-1",
       status: "pending",
       mailFromSubdomain: "send",
-      dkimSelector: "millionsend",
+      dkimSelector: "posta",
     });
 
     // The stored public key is the public half of the uploaded private key.
@@ -252,7 +252,7 @@ describe("domains.create", () => {
 
   it("with SES_TENANTS on, creates the team's tenant, associates identity + configuration set, and detaches on delete", async () => {
     vi.stubEnv("SES_TENANTS", "true");
-    vi.stubEnv("SES_CONFIGURATION_SET", "millionsend");
+    vi.stubEnv("SES_CONFIGURATION_SET", "posta");
     const teamId = await createTeam(db, "tenant-team");
     const { deps, calls } = fakeSes();
     const { id } = await callerFor(teamId, deps).domains.create({
@@ -269,7 +269,7 @@ describe("domains.create", () => {
     expect(calls[2]?.input).toEqual({ TenantName: teamId });
     expect(calls.slice(3).map((c) => c.input.ResourceArn)).toEqual([
       "arn:aws:ses:us-east-1:123456789012:identity/tenant.example.com",
-      "arn:aws:ses:us-east-1:123456789012:configuration-set/millionsend",
+      "arn:aws:ses:us-east-1:123456789012:configuration-set/posta",
     ]);
     const [row] = await db.select().from(schema.domains).where(eq(schema.domains.id, id));
     expect(row?.sesTenantAssociatedAt).toBeInstanceOf(Date);
@@ -287,7 +287,7 @@ describe("domains.create", () => {
 
   it("with SES_TENANTS on, delete detaches an identity whose association never completed", async () => {
     vi.stubEnv("SES_TENANTS", "true");
-    vi.stubEnv("SES_CONFIGURATION_SET", "millionsend");
+    vi.stubEnv("SES_CONFIGURATION_SET", "posta");
     const teamId = await createTeam(db, "tenant-partial");
     const { deps, calls } = fakeSes();
     // Identity association succeeds, configuration-set association fails: the
@@ -438,7 +438,7 @@ describe("domains.create", () => {
     ]);
 
     const [row] = await db.select().from(schema.domains).where(eq(schema.domains.id, id));
-    expect(row?.dkimSelector).toBe("millionsend");
+    expect(row?.dkimSelector).toBe("posta");
     expect(row?.dkimPublicKey).toBeTruthy();
   });
 
@@ -454,7 +454,7 @@ describe("domains.create", () => {
             name: "example.com",
             region: "us-east-1",
             mailFromSubdomain: "send",
-            dkimSelector: "millionsend",
+            dkimSelector: "posta",
             dkimPublicKey: "winner-public-key",
           });
         }
@@ -476,7 +476,7 @@ describe("domains.create", () => {
 function publishedDns(dkimPublicKey: string, { spf = true }: { spf?: boolean } = {}) {
   return {
     resolveTxt: async (name: string) => {
-      if (name === "millionsend._domainkey.example.com") {
+      if (name === "posta._domainkey.example.com") {
         return [[`v=DKIM1; k=rsa; p=${dkimPublicKey}`]];
       }
       if (name === "send.example.com" && spf) return [["v=spf1 include:amazonses.com ~all"]];
@@ -681,12 +681,10 @@ describe("domains.verify live DNS", () => {
   it("marks a present-but-wrong value Mismatch", async () => {
     const { caller, id } = await verifiedCaller({
       resolveTxt: async (name) =>
-        name === "millionsend._domainkey.example.com" ? [["v=DKIM1; k=rsa; p=WRONGKEY"]] : [],
+        name === "posta._domainkey.example.com" ? [["v=DKIM1; k=rsa; p=WRONGKEY"]] : [],
     });
     const { liveDns } = await caller.domains.verify({ id });
-    expect(liveDns.find((r) => r.name === "millionsend._domainkey.example.com")?.status).toBe(
-      "mismatch",
-    );
+    expect(liveDns.find((r) => r.name === "posta._domainkey.example.com")?.status).toBe("mismatch");
   });
 
   it("never throws when DNS lookups fail with NXDOMAIN or timeout", async () => {
@@ -749,7 +747,7 @@ describe("domains.records", () => {
       {
         group: "verification",
         type: "TXT",
-        name: "millionsend._domainkey.example.com",
+        name: "posta._domainkey.example.com",
         value: `"v=DKIM1; k=rsa; p=${row?.dkimPublicKey}"`,
         status: "pending",
       },

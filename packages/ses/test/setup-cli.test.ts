@@ -63,7 +63,7 @@ describe("main add-region --dry-run", () => {
     expect(await main(["add-region", "us-east-1", "--dry-run"])).toBe(0);
     const out = lines.join("\n");
     expect(out).toContain("Plan:");
-    expect(out).toContain("SNS topic millionsend-events in us-east-1");
+    expect(out).toContain("SNS topic posta-events in us-east-1");
     expect(out).toContain("us-east-1 appended to AWS_REGIONS");
     expect(out).toContain("nothing was created or written");
   });
@@ -124,8 +124,8 @@ describe("add-region with stdin piped", () => {
         "MASTER_ENCRYPTION_KEY=k",
         "BETTER_AUTH_SECRET=s",
         "AWS_REGIONS=sa-east-1",
-        "SQS_QUEUE_URL=https://sqs.sa-east-1.amazonaws.com/123456789012/millionsend-events",
-        "SNS_TOPIC_ARNS=arn:aws:sns:sa-east-1:123456789012:millionsend-events",
+        "SQS_QUEUE_URL=https://sqs.sa-east-1.amazonaws.com/123456789012/posta-events",
+        "SNS_TOPIC_ARNS=arn:aws:sns:sa-east-1:123456789012:posta-events",
         "",
       ].join("\n"),
     );

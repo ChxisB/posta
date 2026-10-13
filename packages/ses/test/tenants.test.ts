@@ -67,11 +67,11 @@ describe("associateTenantResources", () => {
       accountId: "123456789012",
       region: "sa-east-1",
       identity: "mail.acme.dev",
-      configurationSet: "millionsend",
+      configurationSet: "posta",
     });
     expect(calls.map((c) => c.input.ResourceArn)).toEqual([
       "arn:aws:ses:sa-east-1:123456789012:identity/mail.acme.dev",
-      "arn:aws:ses:sa-east-1:123456789012:configuration-set/millionsend",
+      "arn:aws:ses:sa-east-1:123456789012:configuration-set/posta",
     ]);
     // Re-running is idempotent: AlreadyExists is the expected answer.
     const again = fakeClient({

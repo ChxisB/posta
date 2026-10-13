@@ -11,7 +11,7 @@ the dashboard.
 
 Adding a domain registers it with SES and shows the DNS records to add:
 
-- **DKIM** — a single `millionsend._domainkey` TXT record. MillionSend
+- **DKIM** — a single `posta._domainkey` TXT record. MillionSend
   generates an RSA-2048 keypair per domain and hands the private key to SES
   (BYODKIM), so verification is one TXT record instead of three CNAMEs. The
   private key is never stored.

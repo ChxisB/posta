@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { parseSnsTopicArns } from "../src/env.js";
 
-const ARN = "arn:aws:sns:us-east-1:123456789012:millionsend-events";
+const ARN = "arn:aws:sns:us-east-1:123456789012:posta-events";
 
 it("parses comma-separated ARNs with whitespace tolerance", async () => {
   expect(parseSnsTopicArns(`${ARN}, ${ARN}2`)).toEqual([ARN, `${ARN}2`]);

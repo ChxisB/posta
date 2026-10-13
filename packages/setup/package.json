@@ -5,7 +5,7 @@
   "license": "AGPL-3.0",
   "type": "module",
   "bin": {
-    "millionsend-setup": "dist/index.js"
+    "posta-setup": "dist/index.js"
   },
   "files": [
     "dist",
@@ -13,10 +13,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MillionSend/millionsend.git",
+    "url": "git+https://github.com/ChxisB/posta.git",
     "directory": "packages/setup"
   },
-  "homepage": "https://github.com/MillionSend/millionsend/blob/main/SELF_HOSTING.md",
+  "homepage": "https://github.com/ChxisB/posta/blob/main/SELF_HOSTING.md",
   "engines": {
     "node": ">=18"
   },

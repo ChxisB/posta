@@ -233,7 +233,7 @@ do TLS, então só defina essas para um MX em outro host.
 
 A etapa de AWS do `npx @tack-labs/posta-setup` cria tudo de que o MillionSend
 precisa na AWS — política IAM + usuário + chave de acesso, o tópico SNS de
-eventos, a fila SQS de eventos (`millionsend-events`) que o worker consome por
+eventos, a fila SQS de eventos (`posta-events`) que o worker consome por
 long polling e o configuration set do SES. Um `APP_BASE_URL` HTTPS recebe
 adicionalmente os eventos por push; a fila funciona sem URL pública nenhuma.
 
@@ -245,7 +245,7 @@ você colar onde o MillionSend roda). `--dry-run` imprime o plano completo e
 sai.
 
 `npx @tack-labs/posta-setup teardown` apaga tudo que o setup criou, incluindo
-todas as chaves de acesso do usuário IAM `millionsend`, então um servidor em
+todas as chaves de acesso do usuário IAM `posta`, então um servidor em
 execução para de enviar. Repetir o setup é seguro, mas cada execução gera uma
 nova chave de acesso — apague as antigas no console do IAM.
 
@@ -326,7 +326,7 @@ de `.env` acima e um reinício.
 
 ## Eventos do SES (bounces, reclamações e entregas)
 
-O CLI de setup sempre configura isto: uma fila SQS (`millionsend-events`) que o
+O CLI de setup sempre configura isto: uma fila SQS (`posta-events`) que o
 worker consome por long polling, com a URL no `.env` como `SQS_QUEUE_URL`. A
 fila segura os eventos durante reinícios e não precisa de acesso externo, por
 isso é o transporte que toda implantação recebe; um `APP_BASE_URL` HTTPS
@@ -390,15 +390,15 @@ instalam inclui as ações `ses:CreateTenant`, `ses:GetTenant`,
 `ses:DeleteTenant`, `ses:CreateTenantResourceAssociation`,
 `ses:DeleteTenantResourceAssociation` e
 `ses:UpdateReputationEntityCustomerManagedStatus`; uma implantação existente
-roda o assistente de novo (ou atualiza a política `millionsend-ses`) antes de
+roda o assistente de novo (ou atualiza a política `posta-ses`) antes de
 ligar a flag.
 
 Para atualizar a política sem recriar nada, publique o JSON que a página de
 configurações do SES mostra como nova versão padrão:
 
 ```bash
-aws iam create-policy-version --policy-arn arn:aws:iam::<account-id>:policy/millionsend-ses \
-  --policy-document file://millionsend-ses.json --set-as-default
+aws iam create-policy-version --policy-arn arn:aws:iam::<account-id>:policy/posta-ses \
+  --policy-document file://posta-ses.json --set-as-default
 ```
 
 ## Relay SMTP
@@ -810,8 +810,8 @@ credenciais `S3_*` é compartilhado com o job de backup abaixo — cada recurso
 é então habilitado pela sua própria variável de bucket.
 
 A etapa de armazenamento do `npx @tack-labs/posta-setup` pergunta o endpoint e as
-chaves, cria (ou adota) os dois buckets — `millionsend-storage` e
-`millionsend-backups` por padrão — e escreve as linhas `S3_*` no `.env`. A
+chaves, cria (ou adota) os dois buckets — `posta-storage` e
+`posta-backups` por padrão — e escreve as linhas `S3_*` no `.env`. A
 única coisa que ela não consegue fazer pela API S3 é tornar público o bucket
 de uploads: no R2, habilite o acesso público no bucket (ou conecte um domínio
 personalizado) e defina essa URL — os uploads são endereçados como
@@ -821,7 +821,7 @@ personalizado) e defina essa URL — os uploads são endereçados como
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_STORAGE_BUCKET=millionsend-storage
+S3_STORAGE_BUCKET=posta-storage
 S3_STORAGE_PUBLIC_URL=https://<url-publica-do-bucket-ou-dominio-customizado>
 ```
 
@@ -849,7 +849,7 @@ público de uploads. Para o R2 os padrões `S3_PROVIDER=Cloudflare` e
 S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
-S3_BACKUP_BUCKET=millionsend-backups
+S3_BACKUP_BUCKET=posta-backups
 ```
 
 Depois adicione `backup` a `COMPOSE_PROFILES` no `.env` e rode
@@ -1055,7 +1055,7 @@ instância" com o botão "Abrir console"; a URL direta
 de uma leitura gratuita de `GetAccount` do SESv2 por região, exceto a taxa de
 reclamações que o próprio SES mede: o worker a lê no CloudWatch
 (`cloudwatch:GetMetricData`, uma métrica por região a cada 15 minutos, alguns
-centavos de dólar por mês). Uma política `millionsend-ses` anterior a essa
+centavos de dólar por mês). Uma política `posta-ses` anterior a essa
 permissão deixa a taxa sem leitura, e a pausa regional passa a estimá-la pela
 contagem da própria instância, sem contar os e-mails para provedores que
 nunca repassam reclamações ao SES, como o Gmail, com o mesmo limite de 0,4%

@@ -294,7 +294,7 @@ export async function syncAdoptedPolicy(iam: SetupIamClient, policyArn: string):
 }
 
 /**
- * Creates everything MillionSend needs in AWS. Re-runnable: resources that
+ * Creates everything Posta needs in AWS. Re-runnable: resources that
  * already exist are adopted — but every run mints a NEW access key.
  */
 export async function runSetup(clients: SetupClients, input: SetupInput): Promise<SetupResult> {
@@ -475,7 +475,7 @@ export async function runEventsSetup(
   // SES's account-level suppression list is regional and shared by every
   // team on the instance. A hard-bounced mailbox is dead for everyone, so
   // SES may stop those account-wide; a spam report is about one sender's
-  // mail, and MillionSend already suppresses it for that team alone — left
+  // mail, and Posta already suppresses it for that team alone — left
   // on the SES list it would also block an unrelated team's receipt or a
   // password reset to the same person.
   step("SES account-level suppression: bounces only (complaints are per team)");
@@ -488,10 +488,10 @@ export async function runEventsSetup(
 
 /**
  * Since 2026-07-21 an SES account × region with no prior sending starts on
- * the Essentials pricing plan; nothing MillionSend uses needs a plan.
+ * the Essentials pricing plan; nothing Posta uses needs a plan.
  */
 export const ESSENTIALS_WARNING =
-  "This region is on the SES Essentials pricing plan: $0.16 per 1,000 messages instead of the à la carte $0.10. Since 2026-07-21 an SES account × region with no prior sending starts on Essentials. Nothing MillionSend uses needs a plan, and cancelling a defaulted plan takes effect immediately.";
+  "This region is on the SES Essentials pricing plan: $0.16 per 1,000 messages instead of the à la carte $0.10. Since 2026-07-21 an SES account × region with no prior sending starts on Essentials. Nothing Posta uses needs a plan, and cancelling a defaulted plan takes effect immediately.";
 
 /** The region's SES pricing plan (PricingAttributes.CurrentPlan); null when SES reports none. */
 export async function readPricingPlan(ses: SetupSesClient): Promise<string | null> {
@@ -599,8 +599,8 @@ export async function runTeardown(
 
 /** Default bucket names the storage step offers; the prompts allow overrides. */
 export const STORAGE_BUCKET_DEFAULTS = {
-  storage: "millionsend-storage",
-  backup: "millionsend-backups",
+  storage: "posta-storage",
+  backup: "posta-backups",
 } as const;
 
 type StorageCommand = HeadBucketCommand | CreateBucketCommand;

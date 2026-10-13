@@ -137,7 +137,7 @@ describe("flow on a pipe", () => {
       },
     };
     const flow = createFlow(asking, { rail: false });
-    flow.intro("millionsend", "setup", "self-host");
+    flow.intro("posta", "setup", "self-host");
     flow.note("some help");
     flow.list("Plan:", ["one", "two"]);
     flow.step("created");
@@ -149,7 +149,7 @@ describe("flow on a pipe", () => {
     expect(await flow.confirm("Go?", true)).toBe(false);
     flow.outro("bye");
     expect(lines).toEqual([
-      "millionsend setup · self-host",
+      "posta setup · self-host",
       "some help",
       "Plan:",
       "  · one",
@@ -193,10 +193,10 @@ describe("flow on a terminal", () => {
   it("hangs every block off the rail and redraws an answered question under a hollow diamond", async () => {
     setColorMode("never");
     const t = terminal();
-    t.flow.intro("millionsend", "setup", "self-host");
+    t.flow.intro("posta", "setup", "self-host");
     t.flow.note("Every step is offered and skippable.");
     t.flow.list("Plan:", ["IAM user", "SNS topic"]);
-    t.flow.step("IAM policy millionsend-ses");
+    t.flow.step("IAM policy posta-ses");
     t.flow.warn("careful");
     const first = t.flow.ask({ label: "APP_BASE_URL", hint: "dashboard origin" });
     expect(t.screen().slice(-2)).toEqual([
@@ -210,7 +210,7 @@ describe("flow on a terminal", () => {
     expect(await second).toBe("");
     t.flow.outro("Done.");
     expect(t.screen()).toEqual([
-      `${RAIL.start}   millionsend  setup · self-host`,
+      `${RAIL.start}   posta  setup · self-host`,
       RAIL.bar,
       `${RAIL.bar}  Every step is offered and skippable.`,
       RAIL.bar,
@@ -218,7 +218,7 @@ describe("flow on a terminal", () => {
       `${RAIL.bar}  · IAM user`,
       `${RAIL.bar}  · SNS topic`,
       RAIL.bar,
-      `${RAIL.done}  IAM policy millionsend-ses`,
+      `${RAIL.done}  IAM policy posta-ses`,
       `${RAIL.warn}  careful`,
       RAIL.bar,
       `${RAIL.done}  APP_BASE_URL (dashboard origin)`,

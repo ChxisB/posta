@@ -1,10 +1,10 @@
 # @tack-labs/posta-setup
 
 The self-hosting setup wizard for
-[MillionSend](https://github.com/MillionSend/millionsend). One command in an
+[Posta](https://github.com/ChxisB/posta). One command in an
 empty directory takes you from nothing to a running instance. Not to be
 confused with `@tack-labs/posta-cli`, the end-user CLI that talks to the
-MillionSend API (migrations from other providers).
+Posta API (migrations from other providers).
 
 ```sh
 npx @tack-labs/posta-setup            # the wizard
@@ -26,14 +26,14 @@ and re-running is safe:
    or keeps your existing one and only fills gaps. Offers to generate
    `MASTER_ENCRYPTION_KEY` and `BETTER_AUTH_SECRET` for you, and prompts once
    for `APP_BASE_URL`.
-2. **AWS** — IAM policy + `millionsend` user + access key (least-privilege
+2. **AWS** — IAM policy + `posta` user + access key (least-privilege
    sending); with an https `APP_BASE_URL`, also the SNS event topic and SES
    configuration set so bounces, complaints, and deliveries flow back into
    your instance. Keys are written into the same `.env`.
 3. **object storage & backups** — one S3-compatible credential set (Cloudflare
    R2 works out of the box) enables team logo uploads and scheduled database
-   backups. Creates (or adopts) both buckets — `millionsend-storage` and
-   `millionsend-backups` by default — and writes the `S3_*` lines. Public
+   backups. Creates (or adopts) both buckets — `posta-storage` and
+   `posta-backups` by default — and writes the `S3_*` lines. Public
    access for the uploads bucket cannot be enabled over the S3 API, so it
    prints the manual R2 instruction; keep the backups bucket private.
 4. **launch** — downloads the standalone `docker-compose.yml` if the directory
@@ -47,10 +47,10 @@ by surprise. Piped, `add-region` needs its region argument (it refuses to
 guess one) and a `yes` line for its confirmation.
 
 Run it anywhere Node 18+ lives; the AWS step wants your admin AWS credentials
-(laptop or server — the MillionSend server itself never needs admin
+(laptop or server — the Posta server itself never needs admin
 credentials) and offers `aws login`/`aws sso login`/`aws configure` when the
 credential check fails on a machine with the aws CLI. Each AWS run mints a
 new access key — delete stale ones in the IAM console.
 
 Full self-hosting guide:
-[SELF_HOSTING.md](https://github.com/MillionSend/millionsend/blob/main/SELF_HOSTING.md).
+[SELF_HOSTING.md](https://github.com/ChxisB/posta/blob/main/SELF_HOSTING.md).
