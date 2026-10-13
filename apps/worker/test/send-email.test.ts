@@ -127,7 +127,7 @@ it("sends a queued email: MIME, join key, status, event row", async () => {
   expect(sends).toHaveLength(1);
   const mime = sends[0]?.raw.toString("utf8") ?? "";
   // Header casing is normalized by nodemailer; compare case-insensitively.
-  expect(mime.toLowerCase()).toContain(`x-millionsend-email-id: ${emailId}`);
+  expect(mime.toLowerCase()).toContain(`x-posta-email-id: ${emailId}`);
   expect(mime).toContain("Subject: greetings");
   expect(mime).toContain("r@example.com");
   expect(sends[0]?.configurationSetName).toBe("ms-config-set");
@@ -610,7 +610,7 @@ it("attachments and custom headers ride the raw MIME; tracking still rewrites th
   expect(raw).toContain(content);
   // Custom header shipped; the transport-owned join header is still ours.
   expect(lower).toContain("x-entity-ref-id: ref-1");
-  expect(lower).toContain(`x-millionsend-email-id: ${emailId}`);
+  expect(lower).toContain(`x-posta-email-id: ${emailId}`);
   // Tracking rewrote the html part even on the attachment path.
   const mime = unwrapQp(raw);
   expect(mime).toContain("https://track.example.com/t/c/");
@@ -706,7 +706,7 @@ it("account mail ships untracked on a tracking domain and loses its body once SE
   const { ses, sends } = fakeSes("mid-system");
   const url = "https://app.example.com/reset-password?token=secret";
   const emailId = await insertEmail(
-    { tags: { millionsend_system: "password_reset" } },
+    { tags: { posta_system: "password_reset" } },
     `<a href="${url}">reset</a>`,
   );
   const deps: SendDeps = {
@@ -731,7 +731,7 @@ it("account mail without a credential ships untracked and keeps its body", async
   const { ses, sends } = fakeSes("mid-system-notice");
   const url = "https://app.example.com/domains";
   const emailId = await insertEmail(
-    { tags: { millionsend_system: "domain.verified" } },
+    { tags: { posta_system: "domain.verified" } },
     `<a href="${url}">domains</a>`,
   );
   const deps: SendDeps = {

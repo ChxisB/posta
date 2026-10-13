@@ -120,7 +120,7 @@ describe("deriveTrackingKey", () => {
       join(dirname(fileURLToPath(import.meta.url)), "../src/tracking.ts"),
       "utf8",
     );
-    expect(src).toContain("millionsend:tracking:v1");
+    expect(src).toContain("posta:tracking:v1");
     expect(deriveTrackingKey(master).length).toBe(32);
   });
 

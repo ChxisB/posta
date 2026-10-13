@@ -13,7 +13,7 @@ import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
 
 // Domain-separation label: the signing key is HKDF-derived from the master
 // encryption key so the KEK itself never signs anything.
-const HKDF_INFO = "millionsend:unsubscribe:v1";
+const HKDF_INFO = "posta:unsubscribe:v1";
 
 export function deriveUnsubscribeKey(masterKey: Buffer): Buffer {
   if (masterKey.length < 16) throw new Error("master key too short to derive from");

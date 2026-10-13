@@ -685,14 +685,14 @@ describe("reserved tag names", () => {
       body: JSON.stringify(items),
     });
 
-  it("refuses a millionsend_ tag name in any letter case on POST /emails, accepting nothing", async () => {
+  it("refuses a posta_ tag name in any letter case on POST /emails, accepting nothing", async () => {
     const before = enqueuedSends.length;
-    for (const name of ["millionsend_system", "MillionSend_System", "MILLIONSEND_TEST"]) {
+    for (const name of ["posta_system", "Posta_System", "POSTA_TEST"]) {
       const res = await post({ ...validBody, tags: [{ name, value: "password_reset" }] });
       expect(res.status, name).toBe(422);
       expect(await res.json()).toMatchObject({
         name: "validation_error",
-        message: expect.stringMatching(/^tags\.0\.name: .*millionsend_ are reserved/),
+        message: expect.stringMatching(/^tags\.0\.name: .*posta_ are reserved/),
       });
     }
     expect(enqueuedSends.length).toBe(before);
@@ -702,7 +702,7 @@ describe("reserved tag names", () => {
     const before = enqueuedSends.length;
     const items = [
       { ...validBody, to: ["tag-ok@example.com"] },
-      { ...validBody, tags: [{ name: "millionsend_system", value: "password_reset" }] },
+      { ...validBody, tags: [{ name: "posta_system", value: "password_reset" }] },
     ];
     const strict = await batch(items);
     expect(strict.status).toBe(422);
@@ -908,7 +908,7 @@ describe("attachments and custom headers", () => {
       "List-Id",
       "Content-Type",
       "X-SES-SOURCE-ARN",
-      "X-MillionSend-Email-Id",
+      "X-Posta-Email-Id",
       "Resent-From",
       "Authentication-Results",
       "ARC-Seal",

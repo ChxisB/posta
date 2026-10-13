@@ -534,7 +534,7 @@ read in the language of the owner's contact in the team below, else English; eac
 which notices they get under **Settings → Notifications** (account mail and security receipts are
 always sent). Verify the sender's domain under
 **Domains** in a team and those emails are logged and measured there, tagged
-`millionsend_system`. Password-reset, verification, invitation, subscription-confirm and
+`posta_system`. Password-reset, verification, invitation, subscription-confirm and
 console-code emails lose their body once SES accepts them, since the link or code inside is
 a live credential; the other notices keep theirs for the usual retention window. Until a
 team holds the domain they go straight through SES and leave no trace.
@@ -564,7 +564,7 @@ holds it, the new-domain warm-up never caps its domains, a pause for its bounce 
 rate refuses its new sends but never holds mail it already queued, and its contacts are the
 list a suspension unsubscribes a team's members from. Account mail is exempt from that pause
 whatever its team's plan: the pause neither refuses nor holds what the instance's own
-account-mail path sends, the only path that can tag an email `millionsend_system`.
+account-mail path sends, the only path that can tag an email `posta_system`.
 
 On an instance with `ALLOW_SIGNUP=true`, every new account becomes a contact of that team
 (`source: signup`) once its address is verified; the sign-up screen says so, and deleting the

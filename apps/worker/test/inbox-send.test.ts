@@ -136,7 +136,7 @@ describe("the inbox.forward job", () => {
       .from(schema.emails)
       .where(eq(schema.emails.inboxId, inbox.id));
     expect(email).toMatchObject({ from: inbox.emailAddress, to: [w.owner], threadId });
-    const marker = email?.headers?.["X-MillionSend-Forwarded"] ?? "";
+    const marker = email?.headers?.["X-Posta-Forwarded"] ?? "";
     expect(marker.startsWith(`${inbox.id}.`)).toBe(true);
     expect(verifyForwardMarker(w.keys, marker)).toBe(true);
   });

@@ -650,7 +650,7 @@ async function deliverAuthenticated(raw: Buffer, p: { from: string; to: string[]
     headers: {
       authorization: `Bearer ${ingestSecret}`,
       "content-type": "application/octet-stream",
-      "x-millionsend-envelope": Buffer.from(JSON.stringify(envelope)).toString("base64url"),
+      "x-posta-envelope": Buffer.from(JSON.stringify(envelope)).toString("base64url"),
     },
     body: raw,
   });
@@ -1626,7 +1626,7 @@ try {
       );
       note(`passthrough: POST /emails accepted ${passthrough.id}`);
       const sentPass = await waitFor(
-        () => sesSends.find((s) => s.tags.millionsend_email_id === passthrough.id),
+        () => sesSends.find((s) => s.tags.posta_email_id === passthrough.id),
         90_000,
         "the forwarded email at SES",
       );
@@ -1660,7 +1660,7 @@ try {
       );
       note(`wrapped: POST /emails accepted ${wrapped.id}`);
       const captured = await waitFor(
-        () => sesSends.find((s) => s.tags.millionsend_email_id === wrapped.id),
+        () => sesSends.find((s) => s.tags.posta_email_id === wrapped.id),
         90_000,
         "the wrapped forward at SES",
       );
@@ -2271,7 +2271,7 @@ try {
   const atSes = async (emailId: string) => {
     const n = await waitFor(
       () => {
-        const i = sesSends.findIndex((s) => s.tags.millionsend_email_id === emailId);
+        const i = sesSends.findIndex((s) => s.tags.posta_email_id === emailId);
         return i >= 0 ? i + 1 : undefined;
       },
       90_000,

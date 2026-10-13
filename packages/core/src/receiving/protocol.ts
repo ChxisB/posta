@@ -41,7 +41,7 @@ export const MAX_DELIVER_RECIPIENTS = 100;
 export const MAX_ENVELOPE_RECIPIENT_BYTES = 8 * 1024;
 
 /** The header that carries the DeliverEnvelope on POST /deliver, as base64url JSON. */
-export const MX_ENVELOPE_HEADER = "x-millionsend-envelope";
+export const MX_ENVELOPE_HEADER = "x-posta-envelope";
 
 /** /deliver answers that carry an SmtpReply for the MX to relay. */
 export const MX_DELIVER_PERMANENT_STATUS = 422;

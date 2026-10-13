@@ -142,10 +142,10 @@ export interface InboxAccept {
 }
 
 /**
- * Tag names MillionSend writes on its own mail. Every customer send path
+ * Tag names Posta writes on its own mail. Every customer send path
  * refuses them (isReservedTagName), so no customer tag passes for one.
  */
-export const RESERVED_TAG_PREFIX = "millionsend_";
+export const RESERVED_TAG_PREFIX = "posta_";
 
 /** In any letter case: a reserved name stays reserved however it is spelled. */
 export function isReservedTagName(name: string): boolean {

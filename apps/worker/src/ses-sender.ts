@@ -45,7 +45,7 @@ export function createSesSender(defaultRegion: string): SesSender {
             ...(CcAddresses ? { CcAddresses } : {}),
             ...(BccAddresses ? { BccAddresses } : {}),
           },
-          EmailTags: [{ Name: "millionsend_email_id", Value: emailId }],
+          EmailTags: [{ Name: "posta_email_id", Value: emailId }],
           ...(configurationSetName ? { ConfigurationSetName: configurationSetName } : {}),
           ...(tenantName ? { TenantName: tenantName } : {}),
         }),

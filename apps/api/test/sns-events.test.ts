@@ -72,7 +72,7 @@ const deliveryPayload = {
   mail: {
     messageId: "ses-mid-1",
     timestamp: "2026-08-14T00:00:00.000Z",
-    tags: { millionsend_email_id: ["00000000-0000-4000-8000-000000000001"] },
+    tags: { posta_email_id: ["00000000-0000-4000-8000-000000000001"] },
   },
   delivery: { timestamp: "2026-08-14T00:00:01.000Z", smtpResponse: "250 OK" },
 };

@@ -1088,7 +1088,7 @@ export async function openReceivedForForward(
   html: string | null;
   text: string | null;
   attachments: EmailAttachment[];
-  /** X-MillionSend-Forwarded as received: one of our forwards when verifyForwardMarker says so. */
+  /** X-Posta-Forwarded as received: one of our forwards when verifyForwardMarker says so. */
   forwardedBy: string | null;
 } | null> {
   const r = schema.receivedEmails;
@@ -1106,7 +1106,7 @@ export async function openReceivedForForward(
       keepCidLinks: true,
     }),
   );
-  const marker = parsed.headers.get("x-millionsend-forwarded");
+  const marker = parsed.headers.get("x-posta-forwarded");
   return {
     raw,
     html: parsed.html || null,
@@ -1940,7 +1940,7 @@ export async function forwardToForwardTargets(
     // the original in the dashboard. A link to it if owners ask for the files.
     attachments: forwardedFilesProblem(opened.attachments) === null ? opened.attachments : [],
     headers: {
-      "X-MillionSend-Forwarded": forwardMarker(deps.inboxKeys, inbox.id),
+      "X-Posta-Forwarded": forwardMarker(deps.inboxKeys, inbox.id),
       ...(inbox.kind === "agent" ? { "Auto-Submitted": "auto-generated" } : {}),
     },
     approved: true,

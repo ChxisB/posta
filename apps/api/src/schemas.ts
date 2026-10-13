@@ -221,7 +221,7 @@ export const sendEmailRequestSchema = z
             .string()
             .min(1)
             .refine((name) => !isReservedTagName(name), {
-              message: `tag names starting with ${RESERVED_TAG_PREFIX} are reserved for MillionSend`,
+              message: `tag names starting with ${RESERVED_TAG_PREFIX} are reserved for Posta`,
             }),
           value: z.string(),
         }),

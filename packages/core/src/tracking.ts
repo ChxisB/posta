@@ -22,7 +22,7 @@ import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
  * Open payload raw bytes: `emailId` alone.
  */
 
-const HKDF_INFO = "millionsend:tracking:v1";
+const HKDF_INFO = "posta:tracking:v1";
 
 export function deriveTrackingKey(masterKey: Buffer): Buffer {
   if (masterKey.length < 16) throw new Error("master key too short to derive from");

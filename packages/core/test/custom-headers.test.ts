@@ -13,7 +13,7 @@ describe("customHeaderIssues", () => {
     expect(customHeaderIssues({ "X-SES-Configuration-Set": "x" })[0]?.message).toMatch(
       /not an allowed header/,
     );
-    expect(customHeaderIssues({ "X-MillionSend-Forwarded": "x" })).toHaveLength(1);
+    expect(customHeaderIssues({ "X-Posta-Forwarded": "x" })).toHaveLength(1);
     expect(customHeaderIssues({ "Auto-Submitted": "auto-replied" })).toHaveLength(1);
     expect(customHeaderIssues({ "Bad Name": "x" })[0]?.message).toMatch(/not a valid header name/);
   });

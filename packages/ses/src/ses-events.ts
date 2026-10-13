@@ -72,7 +72,7 @@ export function parseSesEvent(raw: unknown): ParsedSesEvent | null {
     data: { eventType },
   };
   const tags = mail?.tags as Record<string, unknown> | undefined;
-  const taggedEmailIds = tags?.millionsend_email_id;
+  const taggedEmailIds = tags?.posta_email_id;
   if (
     Array.isArray(taggedEmailIds) &&
     taggedEmailIds.length === 1 &&

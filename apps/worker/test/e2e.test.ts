@@ -136,9 +136,7 @@ it("accepts a send from the official resend SDK", async () => {
 it("worker sends it through (fake) SES and records the join key", async () => {
   expect(await sendEmail(db, { keyring, ses: fakeSes }, { emailId })).toBe("sent");
   expect(rawSends).toHaveLength(1);
-  expect(rawSends[0]?.toString("utf8").toLowerCase()).toContain(
-    `x-millionsend-email-id: ${emailId}`,
-  );
+  expect(rawSends[0]?.toString("utf8").toLowerCase()).toContain(`x-posta-email-id: ${emailId}`);
   const [row] = await db.select().from(schema.emails).where(eq(schema.emails.id, emailId));
   expect(row?.sesMessageId).toBe(SES_MESSAGE_ID);
   expect(row?.latestStatus).toBe("sent");

@@ -365,8 +365,8 @@ it("still emails the operator about a suspended team, through the system mailer"
     expect(mailed).toHaveLength(2);
     expect(mailed).toEqual(
       expect.arrayContaining([
-        { to: ["op@example.com"], tags: { millionsend_system: "monitor.alert" } },
-        { to: ["op@example.com"], tags: { millionsend_system: "monitor.broadcasts_paused" } },
+        { to: ["op@example.com"], tags: { posta_system: "monitor.alert" } },
+        { to: ["op@example.com"], tags: { posta_system: "monitor.broadcasts_paused" } },
       ]),
     );
   } finally {

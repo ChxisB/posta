@@ -51,7 +51,7 @@ const MAX_SCHEDULE_AHEAD_DAYS = 30;
  * user. The tag marks them so the per-team hourly cap below can count them
  * without a table of its own.
  */
-const TEST_SEND_TAG = "millionsend_test";
+const TEST_SEND_TAG = "posta_test";
 const TEST_SENDS_PER_HOUR = 10;
 
 const DELIVERABILITY_MESSAGES: Record<AppLocale, typeof enDeliverability> = {

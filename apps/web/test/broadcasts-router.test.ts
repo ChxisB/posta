@@ -655,7 +655,7 @@ describe("broadcasts.sendTest", () => {
     expect(row).toMatchObject({
       to: ["u1@example.com"],
       subject: "[Test] Hello u1",
-      tags: { millionsend_test: "1" },
+      tags: { posta_test: "1" },
     });
 
     // Ten in the last hour is the cap; the eleventh is refused.
@@ -665,7 +665,7 @@ describe("broadcasts.sendTest", () => {
         from: "news@acme.dev",
         to: ["u1@example.com"],
         subject: `t${i}`,
-        tags: { millionsend_test: "1" },
+        tags: { posta_test: "1" },
       })),
     );
     await expect(

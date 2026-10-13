@@ -9,7 +9,7 @@ import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
  * unsubscribe key, so the KEK itself never signs anything.
  */
 
-const HKDF_INFO = "millionsend:updates:v1";
+const HKDF_INFO = "posta:updates:v1";
 
 export const UPDATES_SOURCES = ["self-host", "updates"] as const;
 export type UpdatesSource = (typeof UPDATES_SOURCES)[number];

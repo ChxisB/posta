@@ -1,8 +1,8 @@
 import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
 
-const THREAD_TOKEN_INFO = "millionsend:thread-token:v1";
-const RECEIVED_SECRET_INFO = "millionsend:received-secret:v1";
-const FORWARD_MARKER_INFO = "millionsend:forward-marker:v1";
+const THREAD_TOKEN_INFO = "posta:thread-token:v1";
+const RECEIVED_SECRET_INFO = "posta:received-secret:v1";
+const FORWARD_MARKER_INFO = "posta:forward-marker:v1";
 
 /**
  * Inbox keys, each an HKDF derivation of the master key with its own info,
@@ -13,7 +13,7 @@ export interface InboxKeys {
   threadToken: Buffer;
   /** Keys the MACs of received codes and links (received_secrets). */
   receivedSecret: Buffer;
-  /** Signs the X-MillionSend-Forwarded marker, so a sender cannot fake one to dodge forward_to. */
+  /** Signs the X-Posta-Forwarded marker, so a sender cannot fake one to dodge forward_to. */
   forwardMarker: Buffer;
 }
 
@@ -96,7 +96,7 @@ const markerMac = (keys: InboxKeys, inboxId: string): string =>
     .subarray(0, 16)
     .toString("base64url");
 
-/** The X-MillionSend-Forwarded value a forward from this inbox carries: `<inbox id>.<mac>`. */
+/** The X-Posta-Forwarded value a forward from this inbox carries: `<inbox id>.<mac>`. */
 export function forwardMarker(keys: InboxKeys, inboxId: string): string {
   return `${inboxId}.${markerMac(keys, inboxId)}`;
 }

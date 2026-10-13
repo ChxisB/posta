@@ -370,9 +370,7 @@ it("a suspended team hears none of its automated notices through the system mail
     .select({ to: schema.emails.to, tags: schema.emails.tags })
     .from(schema.emails)
     .where(eq(schema.emails.teamId, system));
-  expect(mailed).toEqual([
-    { to: ["active@example.com"], tags: { millionsend_system: "quota.warning" } },
-  ]);
+  expect(mailed).toEqual([{ to: ["active@example.com"], tags: { posta_system: "quota.warning" } }]);
 });
 
 it("a suspended team hears no domain notice, and its security receipts only while the suspension is not silent", async () => {
@@ -413,12 +411,12 @@ it("a suspended team hears no domain notice, and its security receipts only whil
   await domain();
   await join();
   await sweep();
-  expect(await mailed()).toEqual([{ millionsend_system: "member.joined" }]);
+  expect(await mailed()).toEqual([{ posta_system: "member.joined" }]);
 
   await suspend("phishing");
   await join();
   await sweep();
-  expect(await mailed()).toEqual([{ millionsend_system: "member.joined" }]);
+  expect(await mailed()).toEqual([{ posta_system: "member.joined" }]);
 });
 
 it("without a configured sender the mailer is a no-op", async () => {

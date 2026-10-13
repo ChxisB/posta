@@ -142,7 +142,7 @@ remaining deltas are deliberate and loud:
   null plan, limits and period.
 - `DELETE /emails/{id}` exists (Resend has no email deletion).
 - Custom `headers` are allowlisted: any `X-*` name (except `X-SES-*` and
-  `X-MillionSend-*`) plus `In-Reply-To`, `References`, `Importance`,
+  `X-Posta-*`) plus `In-Reply-To`, `References`, `Importance`,
   `Priority`, `Comments`, `Keywords`, `Organization`, and the one-click
   unsubscribe pair — `List-Unsubscribe` (one or more `<https://…>` or
   `<mailto:…>` targets) with `List-Unsubscribe-Post`
@@ -166,7 +166,7 @@ remaining deltas are deliberate and loud:
   broadcast send it is refused with `422 reserved_sender`, in any letter case
   and with any display name. Send from a domain you
   [verified](/concepts/domains) instead.
-- Tag names starting with `millionsend_`, in any letter case, are
+- Tag names starting with `posta_`, in any letter case, are
   MillionSend's own: a `tags` entry with one on `POST /emails` or
   `POST /emails/batch` is refused with `422 validation_error`.
 - Anything unsupported is rejected with `422` rather than silently dropped

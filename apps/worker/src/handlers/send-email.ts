@@ -811,7 +811,7 @@ async function sendQueued(
   // defense in depth).
   const headers: Record<string, string> = {
     ...email.headers,
-    "X-MillionSend-Email-ID": email.id,
+    "X-Posta-Email-ID": email.id,
   };
   if (email.contactId) {
     if (!deps.unsubscribe) {

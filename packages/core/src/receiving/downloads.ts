@@ -10,7 +10,7 @@ import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
  * the KEK never signs anything itself.
  */
 
-const HKDF_INFO = "millionsend:receiving-download:v1";
+const HKDF_INFO = "posta:receiving-download:v1";
 
 export const RECEIVED_DOWNLOAD_TTL_MS = 60 * 60 * 1000;
 

@@ -5,7 +5,7 @@
  * (Resent-*, Sender, Return-Path), read-receipt targets
  * (Disposition-Notification-To, Return-Receipt-To, Errors-To) or list
  * headers the transport owns. Allowed: any X-* header except the X-SES-* and
- * X-MillionSend-* families, plus this vetted set of threading/priority
+ * X-Posta-* families, plus this vetted set of threading/priority
  * headers. Matched case-insensitively; the worker still reassigns its own
  * headers last (defense in depth). Every surface that takes customer headers
  * (POST /emails, the SMTP relay) validates through customHeaderIssues.
@@ -50,7 +50,7 @@ const ALLOWED_HEADERS_HINT = `X-* (except X-SES-*) or ${[...ALLOWED_HEADERS].joi
 function isAllowedHeaderName(name: string): boolean {
   const lower = name.toLowerCase();
   if (lower.startsWith("x-")) {
-    return !lower.startsWith("x-ses-") && !lower.startsWith("x-millionsend-");
+    return !lower.startsWith("x-ses-") && !lower.startsWith("x-posta-");
   }
   return ALLOWED_HEADERS.has(lower);
 }

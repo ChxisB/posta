@@ -754,8 +754,8 @@ describe("the forward_to pass", () => {
     const email = sent(out as SendOutcome).email;
     expect(email).toMatchObject({ to: [w.owner], subject: "Fwd: Question" });
     const row = await emailRow(email.id);
-    expect(verifyForwardMarker(w.keys, row.headers?.["X-MillionSend-Forwarded"] ?? "")).toBe(true);
-    expect(row.headers?.["X-MillionSend-Forwarded"]).toMatch(new RegExp(`^${inbox.id}\\.`));
+    expect(verifyForwardMarker(w.keys, row.headers?.["X-Posta-Forwarded"] ?? "")).toBe(true);
+    expect(row.headers?.["X-Posta-Forwarded"]).toMatch(new RegExp(`^${inbox.id}\\.`));
     expect(row.headers?.["Auto-Submitted"]).toBe("auto-generated");
     const rows = await activity(inbox.id);
     expect(rows.map((a) => [a.action, a.emailId]).sort()).toEqual([
@@ -774,7 +774,7 @@ describe("the forward_to pass", () => {
       inbox,
       threadId,
       message: {
-        headers: { "X-MillionSend-Forwarded": forwardMarker(w.keys, randomUUID()) },
+        headers: { "X-Posta-Forwarded": forwardMarker(w.keys, randomUUID()) },
       },
     });
     expect(
@@ -783,7 +783,7 @@ describe("the forward_to pass", () => {
     const faked = await receive(w, {
       inbox,
       threadId,
-      message: { headers: { "X-MillionSend-Forwarded": `${inbox.id}.AAAAAAAAAAAAAAAAAAAAAA` } },
+      message: { headers: { "X-Posta-Forwarded": `${inbox.id}.AAAAAAAAAAAAAAAAAAAAAA` } },
     });
     expect(
       await forwardToForwardTargets(db, w.deps, { receivedEmailId: faked.id, inboxId: inbox.id }),

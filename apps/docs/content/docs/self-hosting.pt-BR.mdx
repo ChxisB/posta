@@ -929,7 +929,7 @@ e-mail, convites para equipes e os avisos de cota e entregabilidade aos propriet
 das equipes — saem de `AUTH_EMAIL_FROM` e `NOTIFICATIONS_EMAIL_FROM`.
 Verifique o domínio do remetente em **Domínios** em uma equipe e, a partir daí,
 esses e-mails são registrados e medidos nessa equipe como qualquer outro:
-aparecem na lista de E-mails com a tag `millionsend_system`, contam nas
+aparecem na lista de E-mails com a tag `posta_system`, contam nas
 Métricas e as Supressões se preenchem com os bounces deles. O corpo é
 descartado assim que o SES aceita a mensagem, já que um link de redefinição é
 uma credencial válida, e os links nunca são reescritos para rastreio de
@@ -981,7 +981,7 @@ envios novos dela mas nunca segura o que ela já pôs na fila, e os contatos
 dela são a lista da qual uma suspensão descadastra os membros de uma equipe.
 Os e-mails de conta também ficam fora dessa pausa, seja qual for o plano da
 equipe deles: ela não recusa nem segura o que sai pelo caminho de e-mails de
-conta da própria instância, o único que pode pôr a tag `millionsend_system`
+conta da própria instância, o único que pode pôr a tag `posta_system`
 em um e-mail.
 
 A mesma equipe é a audiência das novidades do produto. Em uma instância com
