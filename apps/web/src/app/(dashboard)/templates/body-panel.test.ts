@@ -128,36 +128,16 @@ describe("BodyPanel view switch", () => {
   });
 });
 
-describe("BodyPanel components rail", () => {
-  const rail = createElement("p", { className: "stand-in" }, "Rail");
-
-  it("keeps the old single column when there is no rail", () => {
+describe("BodyPanel width", () => {
+  it("is one column at reading width; the rails around it are the layout's", () => {
     const markup = render(panel({ tab: "edit", mode: "code" }));
     expect(markup).not.toContain("po-tpl-rail");
     expect(markup).not.toContain("data-rail");
     expect(markup).toContain("max-width:720px");
-    // The label row and view still sit in one wrapper, rail or not.
-    expect(markup).toContain('class="po-tpl-main"');
   });
 
-  it("hangs the rail beside the field, folded behind a labelled toggle when narrow", () => {
-    const markup = render(panel({ tab: "preview", rail }));
-    expect(markup).toContain('class="po-field po-tpl-body" data-rail=""');
-    expect(markup).toContain("max-width:calc(720px + var(--po-rail-left-w) + var(--po-rail-gap))");
-    expect(markup).toMatch(
-      /<button type="button" class="po-btn po-btn-sm po-tpl-rail-toggle" aria-expanded="false" aria-controls="po-tpl-rail-panel">Blocks<\/button>/,
-    );
-    expect(markup).toContain(
-      '<div id="po-tpl-rail-panel" class="po-tpl-rail-panel"><p class="stand-in">Rail</p></div>',
-    );
-    // The toggle and the panel are the rail's; the label, strip and view are the main column's.
-    expect(markup.indexOf("po-tpl-rail")).toBeLessThan(markup.indexOf("po-tpl-main"));
-    expect(markup.indexOf("po-tpl-main")).toBeLessThan(markup.indexOf('id="tpl-body-label"'));
-    expect(markup.indexOf("stand-in")).toBeLessThan(markup.indexOf('id="tpl-body-label"'));
-  });
-
-  it("leaves a wide html-and-preview field its full width, rail or not", () => {
-    expect(render(panel({ wide: true, rail }))).toContain("max-width:1200px");
+  it("leaves a wide html-and-preview field its full width", () => {
+    expect(render(panel({ wide: true }))).toContain("max-width:1200px");
   });
 });
 

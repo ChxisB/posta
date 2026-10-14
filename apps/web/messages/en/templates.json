@@ -140,5 +140,11 @@
       "size-near": "This email is {size} KB, close to the {limit} KB where Gmail cuts messages off. Trim some content before it grows.",
       "size-over": "This email is {size} KB. Gmail cuts messages off after about {limit} KB and hides the rest. Trim images, text or styling."
     }
+  },
+  "rails": {
+    "settings": "Settings",
+    "hide": "Hide {rail}",
+    "show": "Show {rail}",
+    "close": "Close {rail}"
   }
 }

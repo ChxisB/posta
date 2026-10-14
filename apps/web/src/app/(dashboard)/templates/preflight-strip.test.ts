@@ -121,6 +121,15 @@ describe("PreflightStrip state", () => {
   });
 });
 
+describe("PreflightStrip list id", () => {
+  it("can be given its own, so two strips on a page never share one", () => {
+    const html = render({ issues: [error], listId: "tpl-preflight-list-top" });
+    expect(html).toContain('aria-controls="tpl-preflight-list-top"');
+    expect(html).toContain('id="tpl-preflight-list-top"');
+    expect(html).not.toContain('id="tpl-preflight-list"');
+  });
+});
+
 describe("PreflightStrip list", () => {
   it("is shut by default, with the toggle pointing at it", () => {
     const html = render({ issues: [error] });

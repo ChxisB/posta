@@ -4,9 +4,13 @@ import { useTranslations } from "next-intl";
 import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID } from "./field-ids";
 import { PreviewTextField } from "./preview-text-field";
 
-/** Name and subject as one row above the body, then the preview text under them. */
+/**
+ * Name and subject as one row above the body, then the preview text under
+ * them; or `stacked`, one under another, for the settings rail.
+ */
 export function EditorFields({
   wide,
+  stacked = false,
   name,
   subject,
   previewText,
@@ -16,6 +20,8 @@ export function EditorFields({
 }: {
   /** Follows the body's width: wide while the html source sits beside its preview. */
   wide: boolean;
+  /** One column at any width, and no width cap: the rail around it sets the width. */
+  stacked?: boolean;
   name: string;
   subject: string;
   previewText: string;
@@ -26,7 +32,11 @@ export function EditorFields({
   const t = useTranslations("templates");
   // Source beside preview needs the room; every other body stays at reading width.
   return (
-    <div className="po-tpl-meta" style={{ maxWidth: wide ? 1200 : 720 }}>
+    <div
+      className="po-tpl-meta"
+      data-stacked={stacked || undefined}
+      style={stacked ? undefined : { maxWidth: wide ? 1200 : 720 }}
+    >
       <div className="po-field">
         <label htmlFor="tpl-name">{t("editor.nameLabel")}</label>
         <input

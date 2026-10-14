@@ -3106,6 +3106,10 @@ summary:focus-visible,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* In the settings rail the fields stack, whatever the window's width. */
+.po-tpl-meta[data-stacked] {
+  grid-template-columns: minmax(0, 1fr);
+}
 .po-tpl-code {
   container-type: inline-size;
   /* One body height for both panes: the code box and the preview frame start
@@ -3335,61 +3339,193 @@ button.po-pf-issue:hover .po-pf-go {
 .po-pf-list + .po-pf-note {
   margin-top: 0;
 }
-/* Template body with the components rail (templates/body-panel.tsx): the rail
-   hangs to the left of the label row, strip and editor, which keep their
-   width. Under 1200px the rail folds behind a "Blocks" toggle above them;
-   the three-zone layout and its drawers are TB07's. */
-.po-tpl-body {
-  --po-rail-left-w: 216px;
-  --po-rail-gap: 16px;
+/* The dashboard's content column (app/(dashboard)/layout.tsx): 1120px, centred.
+   The template editor is a workspace and takes the 1248px its three zones need
+   at full size (216 + 720 + 280 and two 16px gaps) when the window has them. */
+.po-main-col {
+  max-width: 1120px;
+  margin: 0 auto;
 }
-.po-tpl-body[data-rail] {
+.po-main-col:has(.po-tpl-layout) {
+  max-width: 1248px;
+}
+/* The block editor's three zones (templates/rails-layout.tsx): the components
+   rail on the left, the email in the middle, the settings rail on the right.
+   `data-tier` is what the layout's own width allows (lib/template-rails.ts):
+   wide docks both rails, medium docks the settings and turns Blocks into a
+   drawer, narrow turns both into drawers. A drawer is out of the grid, so its
+   column has no width and no gap. Each rail's gap is its own margin for that
+   reason. */
+.po-tpl-layout {
+  --po-rail-left-w: 216px;
+  --po-rail-right-w: 280px;
+  --po-rail-collapsed-w: 40px;
+  --po-rail-gap: 16px;
+  --po-rail-drawer-w: min(340px, calc(100vw - 24px));
+}
+.po-tpl-layout[data-tier="medium"] {
+  --po-rail-right-w: 224px;
+}
+.po-tpl-grid {
   display: grid;
-  grid-template-columns: var(--po-rail-left-w) minmax(0, 1fr);
-  column-gap: var(--po-rail-gap);
+  grid-template-columns: auto minmax(0, 720px) auto;
   align-items: start;
+  justify-content: start;
+}
+.po-tpl-canvas {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.po-tpl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .po-tpl-rail {
-  position: sticky;
-  top: 16px;
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  grid-row: 1;
   border: 1px solid var(--po-line);
   border-radius: var(--po-r-input);
   background: var(--po-panel);
 }
-.po-tpl-rail-toggle {
+.po-tpl-rail[data-mode="docked"] {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 32px);
+}
+.po-tpl-rail[data-mode="docked"][data-side="left"] {
+  grid-column: 1;
+  width: var(--po-rail-left-w);
+  margin-right: var(--po-rail-gap);
+}
+.po-tpl-rail[data-mode="docked"][data-side="right"] {
+  grid-column: 3;
+  width: var(--po-rail-right-w);
+  margin-left: var(--po-rail-gap);
+}
+.po-tpl-rail[data-mode="docked"][data-collapsed] {
+  width: var(--po-rail-collapsed-w);
+}
+.po-tpl-rail-inner {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.po-tpl-rail[data-collapsed] .po-tpl-rail-inner {
   display: none;
 }
-@media (max-width: 1199px) {
-  .po-tpl-body[data-rail] {
-    display: block;
+.po-tpl-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: none;
+  padding: 8px 8px 8px 12px;
+  border-bottom: 1px solid var(--po-line);
+}
+.po-tpl-rail-title {
+  margin: 0;
+  color: var(--po-bone);
+  font-size: var(--po-fs-label);
+  font-weight: 500;
+}
+.po-tpl-rail-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--po-r-input);
+  background: none;
+  color: var(--po-muted);
+  cursor: pointer;
+}
+.po-tpl-rail-btn:hover {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+}
+.po-tpl-rail-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--po-focus-ring);
+}
+.po-tpl-rail-expand {
+  width: 100%;
+  height: var(--po-rail-collapsed-w);
+}
+.po-tpl-rail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Settings rail: the fields, then the preflight card under a rule. */
+.po-tpl-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+}
+.po-tpl-settings-checks {
+  padding-top: 16px;
+  border-top: 1px solid var(--po-line);
+}
+/* A drawer: fixed to its edge over a scrim, closed until it is opened. Its
+   contents are inert while closed, so visibility only waits out the slide. */
+.po-tpl-rail[data-mode="drawer"] {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: calc(var(--po-z-modal) - 1);
+  width: var(--po-rail-drawer-w);
+  border-width: 0 1px 0 0;
+  border-radius: 0;
+  visibility: hidden;
+  transform: translateX(-104%);
+  transition:
+    transform var(--po-dur-drawer) var(--po-ease),
+    visibility 0s var(--po-dur-drawer);
+}
+.po-tpl-rail[data-mode="drawer"][data-side="left"] {
+  left: 0;
+}
+.po-tpl-rail[data-mode="drawer"][data-side="right"] {
+  right: 0;
+  border-width: 0 0 0 1px;
+  transform: translateX(104%);
+}
+.po-tpl-rail[data-mode="drawer"][data-open] {
+  visibility: visible;
+  transform: none;
+  transition: transform var(--po-dur-drawer) var(--po-ease);
+}
+.po-tpl-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--po-z-modal) - 2);
+  background: rgba(0, 0, 0, 0.72);
+  animation: po-fade var(--po-dur-base) var(--po-ease);
+}
+@media (pointer: coarse) {
+  .po-tpl-rail-btn {
+    width: 40px;
+    height: 40px;
   }
-  .po-tpl-rail {
-    position: static;
-    max-height: none;
-    margin-bottom: 8px;
-    border: 0;
-    background: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-tpl-rail[data-mode="drawer"],
+  .po-tpl-rail[data-mode="drawer"][data-open] {
+    transition: none;
   }
-  .po-tpl-rail-toggle {
-    display: inline-flex;
-  }
-  .po-tpl-rail-panel {
-    display: none;
-    margin-top: 6px;
-    border: 1px solid var(--po-line);
-    border-radius: var(--po-r-input);
-    background: var(--po-panel);
-  }
-  .po-tpl-rail[data-open] .po-tpl-rail-panel {
-    display: block;
-  }
-  /* The body's own width leaves room for the rail beside the column; with the
-     rail folded away the column keeps its usual 720px. */
-  .po-tpl-body[data-rail] > .po-tpl-rail,
-  .po-tpl-body[data-rail] > .po-tpl-main {
-    max-width: 720px;
+  .po-tpl-scrim {
+    animation: none;
   }
 }
 /* Components rail (maily-editor/components-rail.tsx). */
@@ -3400,12 +3536,6 @@ button.po-pf-issue:hover .po-pf-go {
   gap: 10px;
   padding: 12px;
   font-size: var(--po-fs-label);
-}
-.po-blocks-title {
-  margin: 0;
-  color: var(--po-bone);
-  font-size: var(--po-fs-label);
-  font-weight: 500;
 }
 .po-blocks-search {
   display: flex;

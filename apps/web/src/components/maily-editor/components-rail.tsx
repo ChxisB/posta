@@ -7,17 +7,21 @@ import { insertBlockAfterSelection, type TiptapEditor } from "./commands";
 import { BLOCK_ICONS, SearchIcon } from "./icons";
 
 /**
- * The components rail: every block the `/` menu offers, grouped, searchable
- * and one click (or Enter) from the email. A block goes after the block the
- * cursor is in, or at the end if the person has not clicked into the email
- * yet. `editor` is null while the block editor is not showing (the Preview,
- * HTML and Text views), and the blocks wait, disabled, until it is back.
+ * The components rail's contents: every block the `/` menu offers, grouped,
+ * searchable and one click (or Enter) from the email. A block goes after the
+ * block the cursor is in, or at the end if the person has not clicked into
+ * the email yet. `editor` is null while the block editor is not showing (the
+ * Preview, HTML and Text views), and the blocks wait, disabled, until it is
+ * back. The rail around it (its heading and landmark) is the layout's.
  */
 export function ComponentsRail({
   editor,
+  onInserted,
   defaultQuery = "",
 }: {
   editor: TiptapEditor | null;
+  /** Called after a block went in: a drawer closes here, so the email is in view. */
+  onInserted?: (() => void) | undefined;
   /** Starts with this search (a static render has no typing). */
   defaultQuery?: string;
 }) {
@@ -54,14 +58,12 @@ export function ComponentsRail({
     if (insertBlockAfterSelection(editor, entry.block, { atEnd: !touched.current })) {
       touched.current = true;
       setAdded(t("rail.added", { block: labelOf(entry.key).title }));
+      onInserted?.();
     }
   }
 
   return (
-    <section className="po-blocks" aria-labelledby="po-blocks-title">
-      <h2 id="po-blocks-title" className="po-blocks-title">
-        {t("rail.label")}
-      </h2>
+    <div className="po-blocks">
       <div className="po-blocks-search">
         <SearchIcon size={14} />
         <input
@@ -123,6 +125,6 @@ export function ComponentsRail({
       <p className="po-blocks-live" role="status">
         {added}
       </p>
-    </section>
+    </div>
   );
 }

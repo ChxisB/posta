@@ -5,7 +5,7 @@ import { type ReactNode, useState } from "react";
 import { type PreflightAt, type PreflightIssue, preflightCounts } from "@/lib/preflight";
 
 /** The id of the list the toggle opens, for `aria-controls`. */
-const LIST_ID = "tpl-preflight-list";
+export const PREFLIGHT_LIST_ID = "tpl-preflight-list";
 
 type StripState = "checking" | "error" | "warn" | "clean";
 
@@ -124,6 +124,7 @@ export function PreflightStrip({
   checking,
   htmlSource,
   onReveal,
+  listId = PREFLIGHT_LIST_ID,
   defaultOpen = false,
 }: {
   issues: readonly PreflightIssue[];
@@ -132,6 +133,8 @@ export function PreflightStrip({
   /** An html-authored body: its links and images are not read, and the list says so. */
   htmlSource: boolean;
   onReveal: (at: PreflightAt) => void;
+  /** The list's element id, so two strips on one page do not share it. */
+  listId?: string;
   /** Starts with the list showing (a static render has no click to open it). */
   defaultOpen?: boolean;
 }) {
@@ -166,14 +169,14 @@ export function PreflightStrip({
           type="button"
           className="po-pf-toggle"
           aria-expanded={expanded}
-          aria-controls={LIST_ID}
+          aria-controls={listId}
           disabled={checking}
           onClick={() => setOpen((value) => !value)}
         >
           {expanded ? t("hideDetails") : t("showDetails")}
         </button>
       </div>
-      <div id={LIST_ID} className="po-pf-detail" hidden={!expanded}>
+      <div id={listId} className="po-pf-detail" hidden={!expanded}>
         {expanded ? (
           <>
             {issues.length === 0 ? (

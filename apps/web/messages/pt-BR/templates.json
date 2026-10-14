@@ -140,5 +140,11 @@
       "size-near": "Este e-mail tem {size} KB, perto dos {limit} KB em que o Gmail corta as mensagens. Reduza o conteúdo antes que cresça mais.",
       "size-over": "Este e-mail tem {size} KB. O Gmail corta as mensagens depois de cerca de {limit} KB e esconde o resto. Reduza imagens, texto ou estilos."
     }
+  },
+  "rails": {
+    "settings": "Configurações",
+    "hide": "Ocultar {rail}",
+    "show": "Mostrar {rail}",
+    "close": "Fechar {rail}"
   }
 }

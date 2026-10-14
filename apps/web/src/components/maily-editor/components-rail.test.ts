@@ -53,11 +53,12 @@ describe("ComponentsRail", () => {
     expect(groups).toEqual(["Text", "Media and buttons", "Layout"]);
   });
 
-  it("is a labelled region with a labelled search", () => {
+  it("has a labelled search, and leaves its heading and landmark to the rail around it", () => {
     const html = render({ editor });
-    expect(html).toContain('aria-labelledby="po-blocks-title"');
-    expect(html).toContain('id="po-blocks-title"');
     expect(html).toMatch(/<input[^>]*type="search"[^>]*aria-label="Search blocks"/);
+    expect(html).not.toContain("<section");
+    expect(html).not.toContain("<h2");
+    expect(html).not.toContain("po-blocks-title");
   });
 
   it("hides its icons from assistive technology", () => {

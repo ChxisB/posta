@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     >
       {/* Canvas main-block padding: 32px 40px (DESIGN.md Layout); 16px below 900px. */}
       <main className="po-main" style={{ flex: 1, minWidth: 0, padding: "32px 40px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+        <div className="po-main-col">
           <TeamStandingBanner />
           <EventsHealthBanner />
           <DeliverabilityBanner />
