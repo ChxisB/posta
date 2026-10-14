@@ -20,6 +20,19 @@ export function bodyEditorMode(opts: {
     : "code";
 }
 
+/** A body's two tabs: the editor for its mode, or the rendered preview. */
+export type BodyTab = "edit" | "preview";
+
+/**
+ * The tab a body opens on, from the row as loaded. An html-authored row opens
+ * on its faithful preview, not on an editor; a block row or a new template
+ * opens on the editor.
+ */
+export function firstBodyTab(initial?: { document: unknown; html: string }): BodyTab {
+  const mode = bodyEditorMode({ document: initial?.document ?? null, html: initial?.html ?? "" });
+  return mode === "code" ? "preview" : "edit";
+}
+
 export interface TemplateSaveInput {
   name: string;
   subject: string;
