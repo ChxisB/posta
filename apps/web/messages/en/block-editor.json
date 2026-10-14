@@ -109,6 +109,16 @@
     "navigate": "Navigate",
     "empty": "No fields match."
   },
+  "handle": {
+    "label": "Block actions",
+    "title": "Drag to move this block, or open its actions",
+    "announce": {
+      "moved": "Moved to position {position} of {total}",
+      "duplicated": "Block duplicated",
+      "deleted": "Block deleted",
+      "added": "Paragraph added below"
+    }
+  },
   "shortcuts": {
     "open": "Shortcuts",
     "title": "Keyboard shortcuts",

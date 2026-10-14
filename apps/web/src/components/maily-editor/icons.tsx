@@ -230,3 +230,16 @@ export const BLOCK_ICONS: Record<EditorBlockKey, (p: IconProps) => ReactElement>
   columns: ColumnsIcon,
   section: SectionIcon,
 };
+
+/** Six dots in two columns: the grip of the block handle. */
+export function GripIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      {[5.5, 10.5].flatMap((x) =>
+        [3.5, 8, 12.5].map((y) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="1.1" fill="currentColor" stroke="none" />
+        )),
+      )}
+    </Svg>
+  );
+}

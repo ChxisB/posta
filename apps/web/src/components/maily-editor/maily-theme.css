@@ -91,6 +91,8 @@
 
 /* ---- editing surface ---------------------------------------------------- */
 .po-maily-surface {
+  /* The block handle's layer fills it (see the block handle section). */
+  position: relative;
   border: 1px solid var(--po-line);
   border-radius: 0 0 var(--po-r-input) var(--po-r-input);
   background: var(--po-panel);
@@ -114,7 +116,8 @@
 }
 .po-maily .ProseMirror {
   min-height: 280px;
-  padding: 16px 18px;
+  /* The left inset is the block handle's gutter, inside the frame. */
+  padding: 16px 18px 16px 36px;
   outline: none;
   color: var(--po-bone);
   font: 400 var(--po-fs-ui) / 1.6 var(--po-font-sans);
@@ -535,16 +538,83 @@
     flex-wrap: wrap;
   }
 }
-/* The block handle hangs left of the block, in a gutter that the 16px
-   content padding below 900px does not leave: without its "+" (the slash
-   menu adds blocks too) it fits on screen, keeping the ⠿ menu, and the
-   wider text inset seats it inside the editor's frame, clear of the
-   screen's 12px margin. */
-@media (max-width: 899px) {
-  .po-maily .tippy-box[data-placement^="left"] [class~="mly:pr-1.5"] > :first-child {
+/* ---- block handle ------------------------------------------------------- */
+/* Maily's own handle is off (hideContextMenu); ours sits in the gutter the
+   editor's left padding leaves. The layer covers the surface without taking
+   its pointer events, so only the handle itself is hit. */
+.po-bhandle-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.po-bhandle {
+  position: absolute;
+  left: 6px;
+  pointer-events: auto;
+  display: flex;
+  cursor: grab;
+}
+.po-bhandle:active {
+  cursor: grabbing;
+}
+.po-bhandle-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--po-faint);
+  cursor: inherit;
+  transition:
+    background var(--po-dur-fast) var(--po-ease),
+    color var(--po-dur-fast) var(--po-ease);
+}
+.po-bhandle-grip:hover,
+.po-bhandle-grip[aria-expanded="true"] {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+}
+.po-bhandle-grip:focus-visible {
+  outline: none;
+  color: var(--po-bone);
+  box-shadow: var(--po-focus-ring);
+}
+.po-bhandle-drop {
+  position: absolute;
+  left: 34px;
+  right: 16px;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--po-accent);
+  pointer-events: none;
+}
+/* Said to a screen reader, never shown. */
+.po-bhandle-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Touch has no pointer to hover or drag with: the components rail and the
+   keyboard shortcuts are the way there, and the gutter is given back. */
+@media (pointer: coarse) {
+  .po-bhandle-layer {
     display: none;
   }
   .po-maily .ProseMirror {
-    padding-left: 30px;
+    padding-left: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-bhandle-grip {
+    transition: none;
   }
 }

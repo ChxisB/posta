@@ -19,6 +19,7 @@ import { themeOf, withoutTheme, withTheme } from "@/lib/email-theme";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { isModEnter } from "@/lib/save-shortcut";
 import { runBlockAction } from "./block-actions";
+import { BlockHandle } from "./block-handle-view";
 import { EDITOR_BLOCKS } from "./blocks";
 import { VariableIcon } from "./icons";
 import { blockShortcutFor, currentKeyPlatform } from "./shortcuts";
@@ -249,6 +250,9 @@ export function MailyEditor({
   const config = useMemo(
     () => ({
       hasMenuBar: false,
+      // Maily's block handle lets a block be dropped inside a quote, a list or a
+      // column and has an English-only menu: ours (block-handle-view.tsx) replaces it.
+      hideContextMenu: true,
       immediatelyRender: false,
       wrapClassName: "po-maily-wrap",
       contentClassName: "po-maily-content",
@@ -315,6 +319,7 @@ export function MailyEditor({
           onCreate={onCreate}
           onUpdate={onUpdate}
         />
+        <BlockHandle editor={editor} />
       </div>
     </div>
   );

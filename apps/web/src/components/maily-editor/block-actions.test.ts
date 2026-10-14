@@ -10,10 +10,14 @@ import {
   planDuplicate,
   planInsertParagraphAfter,
   planMove,
+  planMoveBlockTo,
   runBlockAction,
+  runBlockActionAt,
+  runBlockMoveTo,
   type SelectionLike,
   selectionAt,
   selectionOf,
+  selectionOfBlock,
 } from "./block-actions";
 import type { ChainCommandProps, TiptapEditor } from "./commands";
 import { BLOCK_ACTION_IDS } from "./shortcuts";
@@ -252,6 +256,117 @@ describe("planMove", () => {
     const one = doc(textblock("paragraph", 3));
     expect(planMove(one, cursor(2), "up")).toBeNull();
     expect(planMove(one, cursor(2), "down")).toBeNull();
+  });
+});
+
+describe("selectionOfBlock", () => {
+  it("covers the whole top-level block at an index", () => {
+    expect(selectionOfBlock(email(), 0)).toEqual({ from: 0, to: 4, node: false, inline: false });
+    expect(selectionOfBlock(email(), 3)).toEqual({ from: 10, to: 17, node: false, inline: false });
+    expect(selectionOfBlock(email(), 4)).toEqual({ from: 17, to: 30, node: false, inline: false });
+  });
+
+  it("is null past either end, and for a half index", () => {
+    expect(selectionOfBlock(email(), -1)).toBeNull();
+    expect(selectionOfBlock(email(), 5)).toBeNull();
+    expect(selectionOfBlock(email(), 1.5)).toBeNull();
+    expect(selectionOfBlock(doc(), 0)).toBeNull();
+  });
+
+  it("makes the planners act on that block", () => {
+    const selection = selectionOfBlock(email(), 3) as SelectionLike;
+    expect(blockSpanOf(email(), selection)).toMatchObject({ firstIndex: 3, lastIndex: 3 });
+    expect(planDelete(email(), selection)?.edits).toEqual([{ type: "delete", from: 10, to: 17 }]);
+  });
+});
+
+describe("planMoveBlockTo", () => {
+  /** The order of the blocks after moving `index` to `gap`, from the transaction model. */
+  function moved(index: number, gap: number): string | null {
+    const plan = planMoveBlockTo(email(), index, gap);
+    if (!plan) return null;
+    const m = model();
+    expect(applyBlockEdits(plan.edits, m.props)).toBe(true);
+    return m.names();
+  }
+
+  it("moves a block down to a gap further on: copy it there, then delete it", () => {
+    expect(planMoveBlockTo(email(), 1, 4)).toEqual({
+      edits: [
+        { type: "copy", at: 17, from: 4, to: 9 },
+        { type: "delete", from: 4, to: 9 },
+      ],
+      // B is a heading: its text starts at 5 and the block now starts at 12.
+      select: { kind: "text", from: 13, to: 13 },
+    });
+    expect(moved(1, 4)).toBe("ACDBE");
+  });
+
+  it("moves a block up to a gap earlier on: delete it, then copy it there", () => {
+    expect(planMoveBlockTo(email(), 2, 0)).toEqual({
+      edits: [
+        { type: "delete", from: 9, to: 10 },
+        { type: "copy", at: 0, from: 9, to: 10 },
+      ],
+      // C is an image, so it is selected whole where it lands.
+      select: { kind: "node", at: 0 },
+    });
+    expect(moved(2, 0)).toBe("CABDE");
+  });
+
+  it("moves the first block to the end and the last block to the start", () => {
+    expect(moved(0, 5)).toBe("BCDEA");
+    expect(planMoveBlockTo(email(), 0, 5)?.select).toEqual({ kind: "text", from: 27, to: 27 });
+    expect(moved(4, 0)).toBe("EABCD");
+    expect(planMoveBlockTo(email(), 4, 0)?.select).toEqual({ kind: "text", from: 3, to: 3 });
+  });
+
+  it("moves a list or a set of columns whole, never into it", () => {
+    expect(moved(3, 0)).toBe("DABCE");
+    expect(moved(4, 1)).toBe("AEBCD");
+    // The text cursor goes to the first line of the moved block, inside it.
+    expect(planMoveBlockTo(email(), 3, 0)?.select).toEqual({ kind: "text", from: 3, to: 3 });
+  });
+
+  it("plans nothing for the two gaps either side of the block: it would stay put", () => {
+    for (let index = 0; index < 5; index += 1) {
+      expect(planMoveBlockTo(email(), index, index)).toBeNull();
+      expect(planMoveBlockTo(email(), index, index + 1)).toBeNull();
+    }
+  });
+
+  it("plans nothing for an index or a gap that is not there", () => {
+    expect(planMoveBlockTo(email(), 5, 0)).toBeNull();
+    expect(planMoveBlockTo(email(), -1, 2)).toBeNull();
+    expect(planMoveBlockTo(email(), 1, -1)).toBeNull();
+    expect(planMoveBlockTo(email(), 1, 6)).toBeNull();
+    expect(planMoveBlockTo(email(), 1, Number.NaN)).toBeNull();
+    expect(planMoveBlockTo(email(), 1, 2.5)).toBeNull();
+    expect(planMoveBlockTo(doc(), 0, 0)).toBeNull();
+    expect(planMoveBlockTo(doc(textblock("paragraph")), 0, 1)).toBeNull();
+  });
+
+  it("every move lands the block between its neighbours, on real edges, and keeps the rest in order", () => {
+    const names = [...NAMES];
+    for (let index = 0; index < 5; index += 1) {
+      for (let gap = 0; gap <= 5; gap += 1) {
+        const expected = [...names];
+        const [block] = expected.splice(index, 1);
+        expected.splice(gap > index ? gap - 1 : gap, 0, block as string);
+        // The model throws on any position that is not the edge of a block.
+        expect(moved(index, gap) ?? names.join("")).toBe(expected.join(""));
+      }
+    }
+  });
+
+  it("makes the same document as the keyboard move for a step up or down", () => {
+    for (let index = 0; index < 5; index += 1) {
+      const middle = selectionOfBlock(email(), index) as SelectionLike;
+      const up = planMove(email(), middle, "up");
+      const down = planMove(email(), middle, "down");
+      expect(moved(index, index - 1)).toBe(up ? result("moveBlockUp", middle) : null);
+      expect(moved(index, index + 2)).toBe(down ? result("moveBlockDown", middle) : null);
+    }
   });
 });
 
@@ -577,6 +692,114 @@ describe("runBlockAction", () => {
     const { editor, calls } = fakeEditor({ editable: false });
     expect(runBlockAction(editor, "deleteBlock")).toBe(false);
     expect(calls).toEqual([]);
+  });
+});
+
+describe("runBlockActionAt and runBlockMoveTo", () => {
+  /** The same recording chain as above, over the example email. */
+  function recorder(editable = true) {
+    const calls: string[] = [];
+    let command: ((props: ChainCommandProps) => boolean) | undefined;
+    const facade = {
+      command(fn: (props: ChainCommandProps) => boolean) {
+        calls.push("command");
+        command = fn;
+        return facade;
+      },
+      setTextSelection(position: unknown) {
+        calls.push(`text ${JSON.stringify(position)}`);
+        return facade;
+      },
+      setNodeSelection(position: number) {
+        calls.push(`node ${position}`);
+        return facade;
+      },
+      scrollIntoView() {
+        calls.push("scroll");
+        return facade;
+      },
+      run() {
+        calls.push("run");
+        return true;
+      },
+    };
+    const editor = {
+      isEditable: editable,
+      chain: () => facade,
+      state: { doc: email() },
+    } as unknown as TiptapEditor;
+    return { editor, calls, command: () => command };
+  }
+
+  it("moves the block it is given, whatever the selection, and puts the cursor in it", () => {
+    const { editor, calls, command } = recorder();
+    expect(runBlockActionAt(editor, "moveBlockDown", 1)).toBe(true);
+    expect(calls).toEqual(["command", 'text {"from":6,"to":6}', "scroll", "run"]);
+    const m = model();
+    command()?.(m.props);
+    expect(m.names()).toBe("ACBDE");
+  });
+
+  it("moves a block up, and selects a leaf whole where it lands", () => {
+    const { editor, calls, command } = recorder();
+    expect(runBlockActionAt(editor, "moveBlockUp", 2)).toBe(true);
+    expect(calls).toEqual(["command", "node 4", "scroll", "run"]);
+    const m = model();
+    command()?.(m.props);
+    expect(m.names()).toBe("ACBDE");
+  });
+
+  it("does nothing for a move off either end", () => {
+    const { editor, calls } = recorder();
+    expect(runBlockActionAt(editor, "moveBlockUp", 0)).toBe(false);
+    expect(runBlockActionAt(editor, "moveBlockDown", 4)).toBe(false);
+    expect(calls).toEqual([]);
+  });
+
+  it("duplicates, deletes and adds a paragraph after the block it is given", () => {
+    const duplicate = recorder();
+    expect(runBlockActionAt(duplicate.editor, "duplicateBlock", 1)).toBe(true);
+    const m = model();
+    duplicate.command()?.(m.props);
+    expect(m.names()).toBe("ABBCDE");
+
+    const remove = recorder();
+    expect(runBlockActionAt(remove.editor, "deleteBlock", 4)).toBe(true);
+    const d = model();
+    remove.command()?.(d.props);
+    expect(d.names()).toBe("ABCD");
+
+    const add = recorder();
+    expect(runBlockActionAt(add.editor, "insertParagraphAfter", 0)).toBe(true);
+    const a = model();
+    add.command()?.(a.props);
+    expect(a.names()).toBe("APBCDE");
+  });
+
+  it("does nothing for an index that is not a block, or in an editor that cannot be edited", () => {
+    const { editor, calls } = recorder();
+    expect(runBlockActionAt(editor, "deleteBlock", 9)).toBe(false);
+    expect(runBlockActionAt(editor, "deleteBlock", -1)).toBe(false);
+    expect(calls).toEqual([]);
+    const locked = recorder(false);
+    expect(runBlockActionAt(locked.editor, "deleteBlock", 1)).toBe(false);
+    expect(runBlockMoveTo(locked.editor, 1, 4)).toBe(false);
+    expect(locked.calls).toEqual([]);
+  });
+
+  it("moves a block to a gap as one chain, and says false when that is no move", () => {
+    const { editor, calls, command } = recorder();
+    expect(runBlockMoveTo(editor, 0, 5)).toBe(true);
+    expect(calls).toEqual(["command", 'text {"from":27,"to":27}', "scroll", "run"]);
+    const m = model();
+    command()?.(m.props);
+    expect(m.names()).toBe("BCDEA");
+
+    const still = recorder();
+    expect(runBlockMoveTo(still.editor, 2, 2)).toBe(false);
+    expect(runBlockMoveTo(still.editor, 2, 3)).toBe(false);
+    expect(runBlockMoveTo(still.editor, 2, 9)).toBe(false);
+    expect(still.calls).toEqual([]);
   });
 });
 

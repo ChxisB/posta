@@ -109,6 +109,16 @@
     "navigate": "Navegar",
     "empty": "Nenhum campo encontrado."
   },
+  "handle": {
+    "label": "Ações do bloco",
+    "title": "Arraste para mover este bloco ou abra as ações dele",
+    "announce": {
+      "moved": "Movido para a posição {position} de {total}",
+      "duplicated": "Bloco duplicado",
+      "deleted": "Bloco excluído",
+      "added": "Parágrafo adicionado abaixo"
+    }
+  },
   "shortcuts": {
     "open": "Atalhos",
     "title": "Atalhos de teclado",

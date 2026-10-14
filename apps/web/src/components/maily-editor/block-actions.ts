@@ -217,6 +217,45 @@ export function planInsertParagraphAfter(
   };
 }
 
+/** A selection covering the whole top-level block at `index`, so a planner acts on that block. Null past either end. */
+export function selectionOfBlock(doc: AuthoringNode, index: number): SelectionLike | null {
+  if (!Number.isInteger(index) || index < 0 || index >= doc.childCount) return null;
+  let from = 0;
+  for (let i = 0; i < index; i += 1) from += doc.child(i).nodeSize;
+  return { from, to: from + doc.child(index).nodeSize, node: false, inline: false };
+}
+
+/**
+ * Moves the top-level block at `index` to `gap`: the gap before block `gap`,
+ * counted in the document as it stands (0 is above the first block, the block
+ * count is below the last). The two gaps either side of the block put it where
+ * it is, so they plan nothing. Only ever a gap between top-level blocks, so a
+ * drag cannot nest a block inside a quote, a list or a column.
+ */
+export function planMoveBlockTo(doc: AuthoringNode, index: number, gap: number): BlockPlan | null {
+  const block = selectionOfBlock(doc, index);
+  if (!block || !Number.isInteger(gap) || gap < 0 || gap > doc.childCount) return null;
+  if (gap === index || gap === index + 1) return null;
+  let at = 0;
+  for (let i = 0; i < gap; i += 1) at += doc.child(i).nodeSize;
+  const size = block.to - block.from;
+  const copy: BlockEdit = { type: "copy", at, from: block.from, to: block.to };
+  const remove: BlockEdit = { type: "delete", from: block.from, to: block.to };
+  // The later edit goes first, so the earlier one's place does not move.
+  const moved = at > block.from;
+  const start = moved ? at - size : at;
+  const target = selectionAt(doc, block.from);
+  const delta = start - block.from;
+  return {
+    edits: moved ? [copy, remove] : [remove, copy],
+    select: !target
+      ? null
+      : target.kind === "node"
+        ? { kind: "node", at: target.at + delta }
+        : { kind: "text", from: target.from + delta, to: target.to + delta },
+  };
+}
+
 /** One planner per block shortcut; the drift test holds this table to the shortcut list. */
 export const BLOCK_ACTIONS: Record<
   BlockActionId,
@@ -285,11 +324,50 @@ export function runBlockAction(editor: TiptapEditor, id: BlockActionId): boolean
     selection: EditorSelection;
   };
   const plan = BLOCK_ACTIONS[id](state.doc, selectionOf(state.selection));
-  if (!plan) return true;
+  if (plan) applyPlan(editor, plan);
+  return true;
+}
+
+/** Runs a plan as one transaction (one undo step), selects what it says to, and scrolls there. */
+function applyPlan(editor: TiptapEditor, plan: BlockPlan): void {
   let run = chain(editor).command((props) => applyBlockEdits(plan.edits, props));
   const { select } = plan;
   if (select?.kind === "text") run = run.setTextSelection({ from: select.from, to: select.to });
   else if (select?.kind === "node") run = run.setNodeSelection(select.at);
   run.scrollIntoView().run();
+}
+
+/**
+ * Runs a block action on the top-level block at `index` instead of on the
+ * selection (the block handle's menu acts on the block it hangs beside). The
+ * cursor goes to the block it acted on (for a delete, to what took its
+ * place), so the handle and the keyboard shortcuts carry on from there. False
+ * when there was nothing to do.
+ */
+export function runBlockActionAt(editor: TiptapEditor, id: BlockActionId, index: number): boolean {
+  if (!editor.isEditable) return false;
+  const doc = (editor.state as unknown as { doc: AuthoringNode }).doc;
+  const selection = selectionOfBlock(doc, index);
+  if (!selection) return false;
+  // A move is a move to the gap beside the neighbour, which also puts the
+  // cursor in the block that moved (the shortcuts leave it where it was).
+  const plan =
+    id === "moveBlockUp"
+      ? planMoveBlockTo(doc, index, index - 1)
+      : id === "moveBlockDown"
+        ? planMoveBlockTo(doc, index, index + 2)
+        : BLOCK_ACTIONS[id](doc, selection);
+  if (!plan) return false;
+  applyPlan(editor, plan);
+  return true;
+}
+
+/** Moves the top-level block at `index` to `gap` (see planMoveBlockTo). False when that is no move. */
+export function runBlockMoveTo(editor: TiptapEditor, index: number, gap: number): boolean {
+  if (!editor.isEditable) return false;
+  const doc = (editor.state as unknown as { doc: AuthoringNode }).doc;
+  const plan = planMoveBlockTo(doc, index, gap);
+  if (!plan) return false;
+  applyPlan(editor, plan);
   return true;
 }

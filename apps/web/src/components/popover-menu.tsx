@@ -64,14 +64,32 @@ export function PopoverMenu({
   align = "right",
   triggerGlyph,
   boxed = false,
+  triggerClassName,
+  triggerTitle,
+  onOpenChange,
 }: {
   ariaLabel: string;
   items: (PopoverMenuItem | null)[];
   align?: "left" | "right";
   triggerGlyph?: React.ReactNode | ((open: boolean) => React.ReactNode);
   boxed?: boolean;
+  /** Replaces the trigger's own look, for a caller that draws it (a block handle's grip). */
+  triggerClassName?: string;
+  /** A native tooltip on the trigger, which the aria-label still names. */
+  triggerTitle?: string;
+  /** Told each time the menu opens or closes, for a caller whose own UI follows it. */
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    // Only a change is told: a menu that mounts closed has not closed.
+    if (wasOpen.current === open) return;
+    wasOpen.current = open;
+    onOpenChangeRef.current?.(open);
+  }, [open]);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -188,7 +206,8 @@ export function PopoverMenu({
       <button
         ref={triggerRef}
         type="button"
-        className={boxed ? "po-btn po-btn-icon" : "po-menu-trigger-bare"}
+        className={triggerClassName ?? (boxed ? "po-btn po-btn-icon" : "po-menu-trigger-bare")}
+        title={triggerTitle}
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
