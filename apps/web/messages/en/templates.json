@@ -146,5 +146,93 @@
     "hide": "Hide {rail}",
     "show": "Show {rail}",
     "close": "Close {rail}"
+  },
+  "starters": {
+    "picker": {
+      "hint": "Pick a starting point and change anything. Nothing is saved until you save.",
+      "listLabel": "Starting points",
+      "blank": "Start from blank",
+      "blankHint": "An empty email, for when you know what you want to write.",
+      "kind": {
+        "transactional": "Transactional",
+        "marketing": "Marketing"
+      }
+    },
+    "placeholderNote": "This starter links to example.com. Replace those links before you send.",
+    "welcome": {
+      "name": "Welcome email",
+      "description": "A short hello for new sign-ups, with one clear next step.",
+      "subject": "Welcome, [FIRST_NAME|there]",
+      "previewText": "Here is how to get started, and where to find help.",
+      "heading": "Welcome aboard",
+      "greeting": "Hi [FIRST_NAME|there],",
+      "intro": "Thanks for signing up. Your account is ready, and these three steps will get you going.",
+      "step1": "Set up your profile.",
+      "step2": "Invite the people you work with.",
+      "step3": "Create your first project.",
+      "button": "Get started",
+      "help": "Questions? Reply to this email and a person will answer."
+    },
+    "password-reset": {
+      "name": "Password reset",
+      "description": "A reset link that expires, and a line for anyone who did not ask.",
+      "subject": "Reset your password",
+      "previewText": "Use this link to choose a new password. It works for the next hour.",
+      "heading": "Reset your password",
+      "greeting": "Hi [FIRST_NAME|there],",
+      "intro": "We received a request to reset the password for [EMAIL|your account]. Choose a new one with the button below.",
+      "button": "Choose a new password",
+      "expiry": "This link works for one hour. After that, you can ask for a new one.",
+      "ignore": "If you did not ask for this, you can ignore this email. Your password will not change."
+    },
+    "receipt": {
+      "name": "Receipt",
+      "description": "A payment confirmation with the order, the amount and a link to the details.",
+      "subject": "Your receipt",
+      "previewText": "Thanks for your order. Here is a summary of what you paid for.",
+      "heading": "Thanks for your order",
+      "greeting": "Hi [FIRST_NAME|there],",
+      "intro": "We have received your payment. This is a summary for your records.",
+      "order": "**Order:** 1042",
+      "item": "**Pro plan, monthly:** 24.00",
+      "total": "**Total paid:** 24.00",
+      "button": "View your order",
+      "help": "If anything looks wrong, reply to this email and we will sort it out."
+    },
+    "product-update": {
+      "name": "Product update",
+      "description": "Two things that changed, each with a short note, and a link to the rest.",
+      "subject": "What is new this month",
+      "previewText": "Two changes we think you will like, and a link to everything else.",
+      "heading": "What is new",
+      "greeting": "Hi [FIRST_NAME|there],",
+      "intro": "Here is what we shipped since our last update.",
+      "firstTitle": "A faster dashboard",
+      "firstBody": "Pages now load in about half the time. There is nothing to change on your side.",
+      "secondTitle": "Scheduled sending",
+      "secondBody": "Write now, send later. Pick a date and a time, and we take care of the rest.",
+      "button": "See the full changelog",
+      "footer": "You are getting this because you signed up for updates.",
+      "unsubscribe": "Unsubscribe"
+    },
+    "newsletter": {
+      "name": "Newsletter",
+      "description": "A feature story, a pull quote and a short list of reading.",
+      "subject": "This month, in short",
+      "previewText": "One story worth your time, and three links we think you will want to read.",
+      "heading": "This month, in short",
+      "greeting": "Hi [FIRST_NAME|there],",
+      "intro": "A quick round-up of what we have been working on and reading.",
+      "featureTitle": "The story of the month",
+      "featureBody": "Tell the story in a few short paragraphs. Start with what changed for the reader, explain how, and end with one clear next step.",
+      "quote": "A short line from a customer or a teammate sits well here.",
+      "linksTitle": "Worth reading",
+      "link1": "How we plan a release",
+      "link2": "Five habits of tidy inboxes",
+      "link3": "A look at our new pricing",
+      "signoff": "Until next time, and thanks for reading.",
+      "footer": "You are getting this because you subscribed.",
+      "unsubscribe": "Unsubscribe"
+    }
   }
 }

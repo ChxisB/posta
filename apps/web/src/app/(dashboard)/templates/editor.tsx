@@ -11,6 +11,7 @@ import {
 import { ComponentsRail } from "@/components/maily-editor/components-rail";
 import { Skeleton } from "@/components/skeleton";
 import type { PreflightAt } from "@/lib/preflight";
+import { placeholderLinks } from "@/lib/starter-templates";
 import { BodyPanel } from "./body-panel";
 import { TemplateConvertDialog } from "./convert-dialog";
 import { EditorFields } from "./editor-fields";
@@ -18,10 +19,10 @@ import { EditorHeader } from "./editor-header";
 import { PREFLIGHT_LIST_ID, PreflightStrip } from "./preflight-strip";
 import { RailsLayout, railOpenerId } from "./rails-layout";
 import { SettingsRail } from "./settings-rail";
-import { type EditorInitial, useTemplateEditor } from "./use-template-editor";
+import { type EditorInitial, type EditorSeed, useTemplateEditor } from "./use-template-editor";
 import { useRailTier, useTemplateRails } from "./use-template-rails";
 
-export type { EditorInitial } from "./use-template-editor";
+export type { EditorInitial, EditorSeed } from "./use-template-editor";
 
 /** The fields' ghosts: the third is the preview text, with its hint line. */
 function FieldGhosts({ stacked }: { stacked: boolean }) {
@@ -113,12 +114,16 @@ export function EditorSkeleton() {
   );
 }
 
-/** A template's editor page: the model hook's state, composed into its views. */
-export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
-  const m = useTemplateEditor(initial);
+/**
+ * A template's editor page: the model hook's state, composed into its views.
+ * `seed` is the starter a new template begins from.
+ */
+export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; seed?: EditorSeed }) {
+  const m = useTemplateEditor(initial, seed);
   const rails = useTemplateRails();
   const tb = useTranslations("block-editor");
   const tr = useTranslations("templates.rails");
+  const ts = useTranslations("templates.starters");
   const blocks = m.mode === "blocks";
   const sheet = useShortcutsCheatsheet(blocks);
   // Where the checks and fields are: in the docked settings rail, or out of
@@ -187,6 +192,11 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           : strip(blocks ? `${PREFLIGHT_LIST_ID}-top` : undefined)
       }
     >
+      {seed !== undefined && placeholderLinks(m.document) > 0 ? (
+        <p role="status" className="po-tpl-starter-note">
+          {ts("placeholderNote")}
+        </p>
+      ) : null}
       {m.recovered ? (
         <DraftBanner
           savedAt={m.recovered.savedAt}

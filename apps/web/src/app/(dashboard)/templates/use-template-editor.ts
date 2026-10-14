@@ -48,24 +48,39 @@ export interface EditorInitial {
 }
 
 /**
+ * What a new template opens with, when it is begun from a starter: the fields
+ * and body of an unsaved template. It is the baseline the editor measures
+ * changes against, so choosing a starter and leaving costs nothing (no leave
+ * prompt, no local draft) until the author changes something.
+ */
+export interface EditorSeed {
+  name: string;
+  subject: string;
+  previewText: string;
+  document: unknown;
+}
+
+/**
  * Everything the template editor holds and does: the fields, the body's mode
  * and tab, the unsaved-changes tracking and local draft, the server render,
  * saving (and its keys), and the html→blocks conversion. TemplateEditor
  * composes its views from what this returns.
  */
-export function useTemplateEditor(initial: EditorInitial | undefined) {
+export function useTemplateEditor(initial: EditorInitial | undefined, seed?: EditorSeed) {
   const t = useTranslations("templates");
   const common = useTranslations("common");
   const trpc = useTRPC();
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState(initial?.name ?? "");
-  const [subject, setSubject] = useState(initial?.subject ?? "");
-  const [previewText, setPreviewText] = useState(initial?.previewText ?? "");
+  // A saved template opens as saved; a new one as its starter, or as nothing.
+  const start = initial ?? seed;
+  const [name, setName] = useState(start?.name ?? "");
+  const [subject, setSubject] = useState(start?.subject ?? "");
+  const [previewText, setPreviewText] = useState(start?.previewText ?? "");
   const [html, setHtml] = useState(initial?.html ?? "");
   const [text, setText] = useState(initial?.text ?? "");
-  const [document, setDocument] = useState<unknown>(initial?.document ?? null);
+  const [document, setDocument] = useState<unknown>(start?.document ?? null);
   // Armed by "Convert this template": the block editor then mounts on the
   // html seed and emits its parse. Until then a document-less row never
   // reaches the block editor — its html would be flattened on the first edit.
@@ -89,9 +104,9 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const seedIsSaved = useRef(true);
   const savedHtml = useRef(initial?.html ?? "");
   const [savedMeta, setSavedMeta] = useState({
-    name: initial?.name ?? "",
-    subject: initial?.subject ?? "",
-    previewText: initial?.previewText ?? "",
+    name: start?.name ?? "",
+    subject: start?.subject ?? "",
+    previewText: start?.previewText ?? "",
   });
   const dirty =
     bodyDirty ||
@@ -113,12 +128,12 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const live = useRef(draftState);
   live.current = draftState;
   const persisted: TemplateDraft = {
-    name: initial?.name ?? "",
-    subject: initial?.subject ?? "",
-    previewText: initial?.previewText ?? "",
+    name: start?.name ?? "",
+    subject: start?.subject ?? "",
+    previewText: start?.previewText ?? "",
     html: initial?.html ?? "",
     text: initial?.text ?? "",
-    document: initial?.document ?? null,
+    document: start?.document ?? null,
   };
   const draft = useLocalDraft<TemplateDraft>({
     storageKey: `po-draft:template:${initial?.id ?? "new"}`,

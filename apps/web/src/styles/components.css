@@ -4342,3 +4342,167 @@ button.po-pf-issue:hover .po-pf-go {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* New template: the starting points, one card each. A card is a link, its preview
+   a sketch of the email (decoration; the words under it say what it is). */
+.po-starters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.po-starter-item {
+  display: flex;
+  min-width: 0;
+}
+.po-starter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 12px 16px;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-card);
+  background: var(--po-panel);
+  color: var(--po-bone);
+  text-decoration: none;
+  transition:
+    border-color var(--po-dur-fast) var(--po-ease),
+    background-color var(--po-dur-fast) var(--po-ease);
+}
+.po-starter:hover {
+  border-color: var(--po-line-strong);
+  background: var(--po-panel-raised);
+}
+.po-starter:focus-visible {
+  outline: none;
+  box-shadow: var(--po-focus-ring);
+}
+.po-starter-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 156px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  background: var(--po-inset);
+}
+.po-starter-blank .po-starter-preview {
+  border-style: dashed;
+  background: transparent;
+  color: var(--po-muted);
+}
+.po-starter-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: var(--po-fs-body);
+  font-weight: 600;
+}
+.po-starter-kind {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-pill);
+  color: var(--po-muted);
+  font-size: var(--po-fs-micro);
+  font-weight: 500;
+}
+.po-starter-desc {
+  padding: 0 4px;
+  color: var(--po-muted);
+  font-size: var(--po-fs-label);
+  line-height: 1.5;
+}
+/* The sketch: a column of bars, the top of the email, fading out where the card cuts it. */
+.po-sketch {
+  --po-sketch-faint: color-mix(in srgb, var(--po-muted) 38%, transparent);
+  --po-sketch-strong: color-mix(in srgb, var(--po-bone) 62%, transparent);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  height: 100%;
+  padding: 16px 18px 0;
+  -webkit-mask-image: linear-gradient(#000 68%, transparent);
+  mask-image: linear-gradient(#000 68%, transparent);
+}
+.po-sketch-heading {
+  display: block;
+  width: 58%;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--po-sketch-strong);
+}
+.po-sketch-heading[data-level="2"] {
+  width: 48%;
+  height: 7px;
+}
+.po-sketch-heading[data-level="3"] {
+  width: 38%;
+  height: 6px;
+}
+.po-sketch-text,
+.po-sketch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.po-sketch-line {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--po-sketch-faint);
+}
+.po-sketch-line[data-last="true"] {
+  width: 68%;
+}
+.po-sketch-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+}
+.po-sketch-item > .po-sketch-line {
+  width: 74%;
+}
+.po-sketch-dot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--po-sketch-strong);
+}
+.po-sketch-quote {
+  display: block;
+  width: 70%;
+  height: 12px;
+  border-left: 2px solid var(--po-sketch-strong);
+  background:
+    linear-gradient(var(--po-sketch-faint), var(--po-sketch-faint)) 8px center / 80% 4px no-repeat;
+}
+.po-sketch-button {
+  display: block;
+  width: 64px;
+  height: 14px;
+  border-radius: 5px;
+  background: var(--po-sketch-strong);
+}
+.po-sketch-divider {
+  display: block;
+  height: 1px;
+  background: var(--po-sketch-faint);
+}
+/* A starter's note in the editor, under the body: a footnote, like the draft offer. */
+.po-tpl-starter-note {
+  margin: 8px 0 0;
+  color: var(--po-muted);
+  font-size: var(--po-fs-label);
+}

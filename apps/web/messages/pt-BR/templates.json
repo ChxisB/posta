@@ -146,5 +146,93 @@
     "hide": "Ocultar {rail}",
     "show": "Mostrar {rail}",
     "close": "Fechar {rail}"
+  },
+  "starters": {
+    "picker": {
+      "hint": "Escolha um ponto de partida e mude o que quiser. Nada é salvo até você salvar.",
+      "listLabel": "Pontos de partida",
+      "blank": "Começar do zero",
+      "blankHint": "Um e-mail vazio, para quando você já sabe o que quer escrever.",
+      "kind": {
+        "transactional": "Transacional",
+        "marketing": "Marketing"
+      }
+    },
+    "placeholderNote": "Este modelo tem links para example.com. Troque esses links antes de enviar.",
+    "welcome": {
+      "name": "E-mail de boas-vindas",
+      "description": "Um olá curto para quem acabou de se cadastrar, com um próximo passo claro.",
+      "subject": "Boas-vindas, [FIRST_NAME|você]",
+      "previewText": "Veja como começar e onde encontrar ajuda.",
+      "heading": "Boas-vindas",
+      "greeting": "Olá, [FIRST_NAME|você],",
+      "intro": "Obrigado por se cadastrar. Sua conta está pronta, e estes três passos ajudam você a começar.",
+      "step1": "Configure seu perfil.",
+      "step2": "Convide as pessoas com quem você trabalha.",
+      "step3": "Crie seu primeiro projeto.",
+      "button": "Começar",
+      "help": "Dúvidas? Responda a este e-mail e uma pessoa vai ajudar."
+    },
+    "password-reset": {
+      "name": "Redefinição de senha",
+      "description": "Um link de redefinição que expira e uma linha para quem não fez o pedido.",
+      "subject": "Redefina sua senha",
+      "previewText": "Use este link para escolher uma nova senha. Ele vale por uma hora.",
+      "heading": "Redefina sua senha",
+      "greeting": "Olá, [FIRST_NAME|você],",
+      "intro": "Recebemos um pedido para redefinir a senha de [EMAIL|sua conta]. Escolha uma nova no botão abaixo.",
+      "button": "Escolher uma nova senha",
+      "expiry": "Este link vale por uma hora. Depois disso, você pode pedir outro.",
+      "ignore": "Se você não fez este pedido, pode ignorar este e-mail. Sua senha não vai mudar."
+    },
+    "receipt": {
+      "name": "Recibo",
+      "description": "Uma confirmação de pagamento com o pedido, o valor e um link para os detalhes.",
+      "subject": "Seu recibo",
+      "previewText": "Obrigado pelo pedido. Aqui está um resumo do que você pagou.",
+      "heading": "Obrigado pelo pedido",
+      "greeting": "Olá, [FIRST_NAME|você],",
+      "intro": "Recebemos seu pagamento. Este é um resumo para os seus registros.",
+      "order": "**Pedido:** 1042",
+      "item": "**Plano Pro, mensal:** 24,00",
+      "total": "**Total pago:** 24,00",
+      "button": "Ver o pedido",
+      "help": "Se algo parecer errado, responda a este e-mail e vamos resolver."
+    },
+    "product-update": {
+      "name": "Novidades do produto",
+      "description": "Duas mudanças, cada uma com uma nota curta, e um link para o resto.",
+      "subject": "O que há de novo neste mês",
+      "previewText": "Duas mudanças de que achamos que você vai gostar e um link para todo o resto.",
+      "heading": "O que há de novo",
+      "greeting": "Olá, [FIRST_NAME|você],",
+      "intro": "Veja o que lançamos desde a nossa última novidade.",
+      "firstTitle": "Um painel mais rápido",
+      "firstBody": "As páginas agora carregam na metade do tempo. Você não precisa mudar nada.",
+      "secondTitle": "Envio agendado",
+      "secondBody": "Escreva agora e envie depois. Escolha data e hora, e nós cuidamos do resto.",
+      "button": "Ver todas as novidades",
+      "footer": "Você recebe este e-mail porque se inscreveu para receber novidades.",
+      "unsubscribe": "Descadastrar"
+    },
+    "newsletter": {
+      "name": "Newsletter",
+      "description": "Uma matéria de destaque, uma citação e uma pequena lista de leituras.",
+      "subject": "Este mês, em resumo",
+      "previewText": "Uma história que vale o seu tempo e três links que achamos que você vai querer ler.",
+      "heading": "Este mês, em resumo",
+      "greeting": "Olá, [FIRST_NAME|você],",
+      "intro": "Um resumo rápido do que temos feito e lido.",
+      "featureTitle": "A história do mês",
+      "featureBody": "Conte a história em poucos parágrafos curtos. Comece pelo que mudou para o leitor, explique como e termine com um próximo passo claro.",
+      "quote": "Uma frase curta de um cliente ou de alguém da equipe funciona bem aqui.",
+      "linksTitle": "Vale a leitura",
+      "link1": "Como planejamos um lançamento",
+      "link2": "Cinco hábitos de caixas de entrada organizadas",
+      "link3": "Uma olhada nos nossos novos preços",
+      "signoff": "Até a próxima, e obrigado por ler.",
+      "footer": "Você recebe este e-mail porque se inscreveu.",
+      "unsubscribe": "Descadastrar"
+    }
   }
 }
