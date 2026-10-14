@@ -113,6 +113,7 @@
       "email": "E-mail inteiro",
       "subject": "Assunto",
       "previewText": "Texto de pré-visualização",
+      "theme": "Tema",
       "text": "Texto",
       "link": "Link",
       "button": "Botão",
@@ -137,6 +138,10 @@
       "subject-empty": "Sem assunto. Quem enviar este modelo precisa informar o próprio.",
       "preview-text-empty": "Sem texto de pré-visualização. As caixas de entrada mostrarão a primeira linha do e-mail.",
       "preview-text-long": "O texto de pré-visualização tem {length} caracteres; a maioria das caixas de entrada mostra cerca de {shown}. Encurte para que não seja cortado.",
+      "theme-contrast-text": "O texto é difícil de ler sobre o fundo do e-mail ({ratio, number, ::.0}:1). O ideal é 4,5:1 ou mais.",
+      "theme-contrast-heading": "Os títulos são difíceis de ler sobre o fundo do e-mail ({ratio, number, ::.0}:1). O ideal é 4,5:1 ou mais.",
+      "theme-contrast-link": "Os links são difíceis de ler sobre o fundo do e-mail ({ratio, number, ::.0}:1). O ideal é 4,5:1 ou mais.",
+      "theme-contrast-button": "O texto do botão é difícil de ler sobre o botão ({ratio, number, ::.0}:1). O ideal é 4,5:1 ou mais.",
       "size-near": "Este e-mail tem {size} KB, perto dos {limit} KB em que o Gmail corta as mensagens. Reduza o conteúdo antes que cresça mais.",
       "size-over": "Este e-mail tem {size} KB. O Gmail corta as mensagens depois de cerca de {limit} KB e esconde o resto. Reduza imagens, texto ou estilos."
     }
@@ -146,6 +151,49 @@
     "hide": "Ocultar {rail}",
     "show": "Mostrar {rail}",
     "close": "Fechar {rail}"
+  },
+  "theme": {
+    "title": "Tema do e-mail",
+    "hint": "Como o e-mail aparece para quem o recebe. O editor continua no tema do seu painel.",
+    "presets": "Predefinição",
+    "preset": {
+      "default": "Padrão",
+      "dark": "Escuro",
+      "soft": "Suave"
+    },
+    "colours": "Cores",
+    "colour": {
+      "page": "Fundo da página",
+      "email": "Fundo do e-mail",
+      "text": "Texto",
+      "heading": "Títulos",
+      "link": "Links",
+      "button": "Botões",
+      "buttonText": "Texto do botão"
+    },
+    "picker": "{colour}, seletor de cor",
+    "hexInvalid": "Use uma cor hexadecimal, como #7046e8.",
+    "font": "Fonte",
+    "corners": "Cantos",
+    "corner": {
+      "square": "Retos",
+      "soft": "Suaves",
+      "round": "Arredondados"
+    },
+    "spacing": "Espaço ao redor",
+    "space": {
+      "none": "Nenhum",
+      "medium": "Médio",
+      "large": "Grande"
+    },
+    "reset": "Restaurar o padrão",
+    "issues": {
+      "title": "Difícil de ler",
+      "text": "O texto sobre o fundo do e-mail está em {ratio}:1. O ideal é 4,5:1 ou mais.",
+      "heading": "Os títulos sobre o fundo do e-mail estão em {ratio}:1. O ideal é 4,5:1 ou mais.",
+      "link": "Os links sobre o fundo do e-mail estão em {ratio}:1. O ideal é 4,5:1 ou mais.",
+      "button": "O texto do botão sobre o botão está em {ratio}:1. O ideal é 4,5:1 ou mais."
+    }
   },
   "starters": {
     "picker": {

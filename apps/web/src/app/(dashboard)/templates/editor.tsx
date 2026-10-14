@@ -19,6 +19,7 @@ import { EditorHeader } from "./editor-header";
 import { PREFLIGHT_LIST_ID, PreflightStrip } from "./preflight-strip";
 import { RailsLayout, railOpenerId } from "./rails-layout";
 import { SettingsRail } from "./settings-rail";
+import { ThemePanel } from "./theme-panel";
 import { type EditorInitial, type EditorSeed, useTemplateEditor } from "./use-template-editor";
 import { useRailTier, useTemplateRails } from "./use-template-rails";
 
@@ -139,7 +140,10 @@ export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; see
     if (at.scope === "node") {
       // The email is what they are going to; a drawer would only cover it.
       if (rails.drawer) rails.close({ focus: false });
-    } else if ((at.scope === "subject" || at.scope === "previewText") && !rails.shown("right")) {
+    } else if (
+      (at.scope === "subject" || at.scope === "previewText" || at.scope === "theme") &&
+      !rails.shown("right")
+    ) {
       rails.show("right");
       // Once the rail has rendered reachable (it was inert), not before.
       window.setTimeout(() => m.reveal(at), 0);
@@ -245,6 +249,7 @@ export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; see
               onName={m.setName}
               onSubject={m.setSubject}
               onPreviewText={m.setPreviewText}
+              theme={<ThemePanel theme={m.theme} onChange={m.changeTheme} />}
               checks={strip()}
               footer={<ShortcutsButton onClick={openShortcuts} />}
             />

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MailyEditorChange } from "@/components/maily-editor";
 import { revealNode, type TiptapEditor } from "@/components/maily-editor/commands";
 import { authoredState, isMailyDoc } from "@/lib/email-doc";
+import { type EmailTheme, sameTheme, themeOf, withTheme } from "@/lib/email-theme";
 import { buildMergeOptions } from "@/lib/merge-fields";
 import { type PreflightAt, preflight } from "@/lib/preflight";
 import { saveShortcut } from "@/lib/save-shortcut";
@@ -23,7 +24,7 @@ import {
 import { useTRPC } from "@/lib/trpc";
 import { useLocalDraft } from "@/lib/use-local-draft";
 import { confirmUnsavedNavigation, useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
-import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID } from "./field-ids";
+import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID, themeFieldId } from "./field-ids";
 
 /** Everything a crash would lose — mirrored into the local draft. */
 interface TemplateDraft {
@@ -217,6 +218,23 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     seedIsSaved.current = false;
   }
 
+  // The email's own look, kept on the document (lib/email-theme.ts), so the
+  // draft, the dirty check, the preview render and the save all carry it with
+  // the body. The block editor hands it back on every change it emits.
+  const theme = useMemo(() => themeOf(document), [document]);
+
+  /** The theme panel's edit: the document with a new theme, dirty once it differs from the baseline. */
+  function changeTheme(next: EmailTheme | undefined) {
+    if (sameTheme(theme, next)) return;
+    const base = isMailyDoc(document)
+      ? document
+      : { type: "doc", content: [{ type: "paragraph" }] };
+    const nextDoc = withTheme(base, next);
+    setDocument(nextDoc);
+    if (stableStringify(nextDoc) !== savedDoc.current) setBodyDirty(true);
+    seedIsSaved.current = false;
+  }
+
   /** A source edit in code mode: dirty while it differs from the saved html. */
   function changeCode(next: string) {
     setHtml(next);
@@ -264,9 +282,13 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
   /** Take the person to what an issue is about: a field, or a node in the editor. */
   const reveal = useCallback(
     (at: PreflightAt) => {
-      if (at.scope === "subject" || at.scope === "previewText") {
+      if (at.scope === "subject" || at.scope === "previewText" || at.scope === "theme") {
         const field = window.document.getElementById(
-          at.scope === "subject" ? SUBJECT_FIELD_ID : PREVIEW_TEXT_FIELD_ID,
+          at.scope === "theme"
+            ? themeFieldId(at.field)
+            : at.scope === "subject"
+              ? SUBJECT_FIELD_ID
+              : PREVIEW_TEXT_FIELD_ID,
         );
         field?.focus();
         field?.scrollIntoView({ block: "nearest" });
@@ -424,6 +446,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     mergeFields,
     previewSamples,
     changeBlocks,
+    theme,
+    changeTheme,
     changeCode,
     recovered: draft.recovered,
     restoreRecovered,

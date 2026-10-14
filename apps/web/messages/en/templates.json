@@ -113,6 +113,7 @@
       "email": "Whole email",
       "subject": "Subject",
       "previewText": "Preview text",
+      "theme": "Theme",
       "text": "Text",
       "link": "Link",
       "button": "Button",
@@ -137,6 +138,10 @@
       "subject-empty": "No subject. Whatever sends this template needs to bring its own.",
       "preview-text-empty": "No preview text. Inboxes will show the email's first line instead.",
       "preview-text-long": "The preview text is {length} characters; most inboxes show about {shown}. Shorten it so it isn't cut off.",
+      "theme-contrast-text": "Text is hard to read on the email background ({ratio, number, ::.0}:1). Aim for 4.5:1 or more.",
+      "theme-contrast-heading": "Headings are hard to read on the email background ({ratio, number, ::.0}:1). Aim for 4.5:1 or more.",
+      "theme-contrast-link": "Links are hard to read on the email background ({ratio, number, ::.0}:1). Aim for 4.5:1 or more.",
+      "theme-contrast-button": "Button text is hard to read on the button ({ratio, number, ::.0}:1). Aim for 4.5:1 or more.",
       "size-near": "This email is {size} KB, close to the {limit} KB where Gmail cuts messages off. Trim some content before it grows.",
       "size-over": "This email is {size} KB. Gmail cuts messages off after about {limit} KB and hides the rest. Trim images, text or styling."
     }
@@ -146,6 +151,49 @@
     "hide": "Hide {rail}",
     "show": "Show {rail}",
     "close": "Close {rail}"
+  },
+  "theme": {
+    "title": "Email theme",
+    "hint": "How the email looks to the people who get it. The editor stays in your dashboard theme.",
+    "presets": "Preset",
+    "preset": {
+      "default": "Default",
+      "dark": "Dark",
+      "soft": "Soft"
+    },
+    "colours": "Colours",
+    "colour": {
+      "page": "Page background",
+      "email": "Email background",
+      "text": "Text",
+      "heading": "Headings",
+      "link": "Links",
+      "button": "Buttons",
+      "buttonText": "Button text"
+    },
+    "picker": "{colour}, colour picker",
+    "hexInvalid": "Use a hex colour, such as #7046e8.",
+    "font": "Font",
+    "corners": "Corners",
+    "corner": {
+      "square": "Square",
+      "soft": "Soft",
+      "round": "Round"
+    },
+    "spacing": "Space around",
+    "space": {
+      "none": "None",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "reset": "Reset to default",
+    "issues": {
+      "title": "Hard to read",
+      "text": "Text on the email background is {ratio}:1. Aim for 4.5:1 or more.",
+      "heading": "Headings on the email background are {ratio}:1. Aim for 4.5:1 or more.",
+      "link": "Links on the email background are {ratio}:1. Aim for 4.5:1 or more.",
+      "button": "Button text on the button is {ratio}:1. Aim for 4.5:1 or more."
+    }
   },
   "starters": {
     "picker": {

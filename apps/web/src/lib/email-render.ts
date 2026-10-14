@@ -1,5 +1,6 @@
 import { type JSONContent, Maily } from "@maily-to/render";
 import { isMailyDoc } from "./email-doc";
+import { themeOf, themeToRenderOptions } from "./email-theme";
 import { htmlToText } from "./html";
 import { makeMergeToken } from "./merge-fields";
 
@@ -43,6 +44,15 @@ function declareDarkScheme(html: string): string {
  * variable formatter emits our exact worker token grammar ({{{NAME}}} /
  * {{{NAME|fallback}}}) and never sets a value, so tokens ship unresolved for the
  * send worker to substitute per recipient.
+ *
+ * The document's theme (its colours, font, corners) is applied here, and it is
+ * always applied in full, even for a document with none. `Maily#setTheme`
+ * deep-merges into one module-level default object that every `Maily` shares,
+ * so a themed render would otherwise colour the next, unthemed one. Setting
+ * every field on every render keeps that shared object equal to what this
+ * document asked for. Maily reads the theme while it builds its markup, which
+ * `render()` does synchronously before its first await, and nothing here awaits
+ * between setTheme and that call, so two renders at once cannot swap themes.
  */
 export async function renderEmailDocument(
   document: unknown,
@@ -52,6 +62,7 @@ export async function renderEmailDocument(
   maily.setVariableFormatter(({ variable, fallback }) =>
     makeMergeToken(variable, fallback || undefined),
   );
+  maily.setTheme(themeToRenderOptions(themeOf(document)));
   const html = declareDarkScheme(await maily.render());
   return { html, text: htmlToText(html) };
 }

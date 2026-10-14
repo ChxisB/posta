@@ -11,7 +11,11 @@ vi.mock("next-intl", () => {
       rich: (key: string) => `${ns}.${key}`,
       raw: (key: string) => `${ns}.${key}`,
     });
-  return { useTranslations: t, useLocale: () => "en" };
+  return {
+    useTranslations: t,
+    useLocale: () => "en",
+    useFormatter: () => ({ number: (value: number) => String(value) }),
+  };
 });
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),

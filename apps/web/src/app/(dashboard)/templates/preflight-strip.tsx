@@ -72,7 +72,12 @@ function StateIcon({ state }: { state: StripState }) {
 
 /** A key for a row: the same issue keeps its row between renders. */
 function issueKey(issue: PreflightIssue): string {
-  const place = issue.at.scope === "node" ? issue.at.path.join(".") : issue.at.scope;
+  const place =
+    issue.at.scope === "node"
+      ? issue.at.path.join(".")
+      : issue.at.scope === "theme"
+        ? `theme.${issue.at.field}`
+        : issue.at.scope;
   return [issue.messageKey, place, issue.params?.name ?? "", issue.context ?? ""].join(":");
 }
 

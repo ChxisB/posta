@@ -15,6 +15,7 @@ import "./maily-theme.css";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
+import { themeOf, withoutTheme, withTheme } from "@/lib/email-theme";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { isModEnter } from "@/lib/save-shortcut";
 import { runBlockAction } from "./block-actions";
@@ -51,7 +52,12 @@ export interface MailyEditorValue {
 }
 
 export interface MailyEditorChange {
-  /** The Maily/Tiptap document; send html is re-rendered from it on save. */
+  /**
+   * The Maily/Tiptap document; send html is re-rendered from it on save. It
+   * carries the email's theme (lib/email-theme.ts) when the value did: Tiptap
+   * does not know the key, so the editor takes it off the seed and puts it back
+   * on every change, from the latest `value.document` the page passed.
+   */
   document: unknown;
   /**
    * The editor's reading of the value it mounted with (Tiptap fills in default
@@ -120,7 +126,7 @@ export function MailyEditor({
   // re-initialises from these re-renders.
   const [, setTick] = useState(0);
 
-  const initialDoc = isMailyDoc(value.document) ? value.document : null;
+  const initialDoc = isMailyDoc(value.document) ? withoutTheme(value.document) : null;
   const seed = useRef<{ contentJson?: MailyContent; contentHtml?: string }>(
     initialDoc
       ? { contentJson: initialDoc as MailyContent }
@@ -129,6 +135,10 @@ export function MailyEditor({
         : { contentJson: emptyMailyDoc() as MailyContent },
   );
   const liveDoc = useRef<MailyDoc>(initialDoc ?? emptyMailyDoc());
+  // The page owns the theme and changes it from outside the editor (the theme
+  // panel), so it is read from each render's value, like the callbacks below.
+  const themeRef = useRef(themeOf(value.document));
+  themeRef.current = themeOf(value.document);
 
   // Refs so the emit path is a stable callback — Maily re-inits if onUpdate's
   // identity changes.
@@ -145,7 +155,7 @@ export function MailyEditor({
   );
 
   const emit = useCallback((seeded: boolean) => {
-    onChangeRef.current({ document: liveDoc.current, seeded });
+    onChangeRef.current({ document: withTheme(liveDoc.current, themeRef.current), seeded });
   }, []);
 
   // Restrict variables to the merge-field list; a *function* source never

@@ -15,6 +15,7 @@
  */
 
 import { isMailyDoc } from "./email-doc";
+import { type EmailColourKey, themeContrastIssues, themeOf } from "./email-theme";
 import { MERGE_TOKEN_RE, type MergeFieldOption, parseMergeToken } from "./merge-fields";
 import { PREVIEW_TEXT_SHOWN, previewTextHint } from "./preview-text";
 
@@ -54,6 +55,7 @@ export type PreflightRuleId =
   | "subject-empty"
   | "preview-text-empty"
   | "preview-text-long"
+  | "theme-contrast-low"
   | "size-near"
   | "size-over";
 
@@ -76,6 +78,10 @@ export const PREFLIGHT_MESSAGE_KEYS = [
   "subject-empty",
   "preview-text-empty",
   "preview-text-long",
+  "theme-contrast-text",
+  "theme-contrast-heading",
+  "theme-contrast-link",
+  "theme-contrast-button",
   "size-near",
   "size-over",
 ] as const;
@@ -97,6 +103,8 @@ export type PreflightAt =
   | { scope: "email" }
   | { scope: "subject" }
   | { scope: "previewText" }
+  /** A colour in the email's theme: `field` is the one to change. */
+  | { scope: "theme"; field: EmailColourKey }
   /** `path` indexes down the document's `content` arrays to the node. */
   | { scope: "node"; path: number[]; node: PreflightNodeKind };
 
@@ -481,6 +489,14 @@ class Checker {
 
 const utf8 = new TextEncoder();
 
+/** The colour to change first for each pair that can read badly: the one a person chose to write with. */
+const THEME_PAIR_FIELD: Record<"text" | "heading" | "link" | "button", EmailColourKey> = {
+  text: "text",
+  heading: "heading",
+  link: "link",
+  button: "buttonText",
+};
+
 /** Errors first, then warnings, each in the order found (document order for nodes). */
 export function preflight(input: PreflightInput): PreflightIssue[] {
   const checker = new Checker(input.mergeFields);
@@ -534,6 +550,21 @@ export function preflight(input: PreflightInput): PreflightIssue[] {
       if (seen.has(key)) continue;
       seen.add(key);
       checker.add(issue);
+    }
+  }
+
+  // The theme's colours, for a block body (an html-authored one has none).
+  // Advice only: low contrast still sends, and the panel says the same.
+  if (isMailyDoc(input.document)) {
+    for (const { pair, ratio } of themeContrastIssues(themeOf(input.document))) {
+      checker.add({
+        id: "theme-contrast-low",
+        severity: "warn",
+        messageKey: `theme-contrast-${pair}`,
+        // Rounded down: a ratio just under the line never reads as the line.
+        params: { ratio: Math.floor(ratio * 10) / 10 },
+        at: { scope: "theme", field: THEME_PAIR_FIELD[pair] },
+      });
     }
   }
 

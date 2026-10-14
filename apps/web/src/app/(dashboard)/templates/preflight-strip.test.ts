@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createTranslator } from "next-intl";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -202,8 +203,22 @@ describe("preflight catalogs", () => {
         expect(Object.keys(preflight.issue).sort()).toEqual([...PREFLIGHT_MESSAGE_KEYS].sort());
       });
 
+      it("writes a contrast ratio with one decimal, in the locale's own separator", () => {
+        const say = createTranslator({
+          locale,
+          messages: { templates: templates as never },
+          namespace: "templates.preflight",
+        } as never) as unknown as (key: string, values: Record<string, number>) => string;
+        const sep = locale === "en" ? "." : ",";
+        for (const pair of ["text", "heading", "link", "button"]) {
+          const key = `issue.theme-contrast-${pair}`;
+          expect(say(key, { ratio: 4.4 })).toContain(`(4${sep}4:1)`);
+          expect(say(key, { ratio: 1 })).toContain(`(1${sep}0:1)`);
+        }
+      });
+
       it("names every place an issue can sit", () => {
-        for (const where of ["email", "subject", "previewText", ...NODE_KINDS]) {
+        for (const where of ["email", "subject", "previewText", "theme", ...NODE_KINDS]) {
           expect(preflight.where[where], where).toBeTruthy();
         }
       });
@@ -216,5 +231,39 @@ describe("preflight catalogs", () => {
       const name = key.slice(3, -1);
       expect(catalogs.en.preflight, name).toHaveProperty(name);
     }
+  });
+});
+
+describe("PreflightStrip theme issue", () => {
+  const themeWarning: PreflightIssue = {
+    id: "theme-contrast-low",
+    severity: "warn",
+    messageKey: "theme-contrast-link",
+    params: { ratio: 1.3 },
+    at: { scope: "theme", field: "link" },
+  };
+
+  it("is a row you can click to go to the colour, named Theme, with the ratio in words", () => {
+    const html = render({ issues: [themeWarning], defaultOpen: true });
+    expect(html).toMatch(/<button[^>]*po-pf-issue/);
+    expect(html).toContain(">Theme</span>");
+    expect(html).toContain("Links are hard to read on the email background (1.3:1)");
+    expect(html).toContain("po-pf-go");
+  });
+
+  it("keeps a row per colour, not one for the whole theme", () => {
+    const html = render({
+      issues: [
+        themeWarning,
+        {
+          ...themeWarning,
+          messageKey: "theme-contrast-text",
+          at: { scope: "theme", field: "text" },
+        },
+      ],
+      defaultOpen: true,
+    });
+    expect(html.match(/po-pf-msg/g)).toHaveLength(2);
+    expect(html).toContain("Text is hard to read");
   });
 });

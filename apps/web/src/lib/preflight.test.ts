@@ -497,3 +497,78 @@ describe("scanMergeTokens", () => {
     expect(scanMergeTokens("{{{ a }}} {{{ b }}}").malformed).toBe("{{{ a }}}");
   });
 });
+
+describe("theme contrast", () => {
+  const themed = (theme: Record<string, string>, ...content: Node[]) =>
+    run({ document: { ...doc(...(content.length ? content : [p(t("Hello"))])), theme } });
+
+  it("is quiet for a theme that reads", () => {
+    expect(
+      themed({
+        email: "#18181b",
+        text: "#e4e4e7",
+        heading: "#ffffff",
+        link: "#93c5fd",
+        button: "#ffffff",
+        buttonText: "#111827",
+      }),
+    ).toEqual([]);
+  });
+
+  it("warns about a dark email whose link colour was left at the default, and points at the link colour", () => {
+    const [issue, ...rest] = themed({ email: "#18181b", text: "#e4e4e7", heading: "#ffffff" });
+    expect(rest).toEqual([]);
+    expect(issue).toMatchObject({
+      id: "theme-contrast-low",
+      severity: "warn",
+      messageKey: "theme-contrast-link",
+      at: { scope: "theme", field: "link" },
+      params: { ratio: 1 },
+    });
+  });
+
+  it("names the pair, and points text at its colour and a button at the button's text colour", () => {
+    const issues = themed({ text: "#cccccc", buttonText: "#eeeeee", button: "#ffffff" });
+    expect(issues.map((i) => [i.messageKey, i.at])).toEqual([
+      ["theme-contrast-button", { scope: "theme", field: "buttonText" }],
+      ["theme-contrast-text", { scope: "theme", field: "text" }],
+    ]);
+  });
+
+  it("rounds the ratio down to one decimal, so just under the line never reads as the line", () => {
+    // #777777 on white is 4.48:1
+    const [issue] = themed({ text: "#777777" });
+    expect(issue?.params).toEqual({ ratio: 4.4 });
+  });
+
+  it("is only ever a warning, so it never counts as an error", () => {
+    const issues = themed({
+      email: "#000000",
+      text: "#000000",
+      heading: "#000000",
+      link: "#000000",
+    });
+    expect(issues.length).toBeGreaterThan(0);
+    expect(issues.every((i) => i.severity === "warn")).toBe(true);
+    expect(preflightCounts(issues).errors).toBe(0);
+  });
+
+  it("comes after the issues in the body, and before any size warning", () => {
+    const issues = run({
+      document: {
+        ...doc(p(t("Read", [link("http://example.com")]))),
+        theme: { text: "#cccccc" },
+      },
+      html: `<p>${"x".repeat(SIZE_NEAR_BYTES)}</p>`,
+    });
+    expect(ids(issues)).toEqual(["link-insecure", "theme-contrast-low", "size-near"]);
+  });
+
+  it("ignores a theme that does not validate, as the render does", () => {
+    expect(themed({ text: "red" })).toEqual([]);
+  });
+
+  it("has nothing to say about an html-authored body, which has no theme", () => {
+    expect(run({ document: null, html: "<p style='color:#ccc'>Hello</p>" })).toEqual([]);
+  });
+});
