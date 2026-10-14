@@ -218,10 +218,10 @@ export function Sidebar({
       <div style={{ padding: "4px 10px 14px" }}>
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
-          src="/logo/millionsend-wordmark.svg"
+          src="/logo/posta-wordmark.svg"
           className="po-wordmark"
           alt={tCommon("appName")}
-          style={{ height: 15, display: "block" }}
+          style={{ height: 32, display: "block" }}
         />
       </div>
       <TeamSwitcher teamName={teamName} teamLogoUrl={teamLogoUrl} />

@@ -290,7 +290,7 @@ describe("tool listing", () => {
     const client = await connect(await mintToken());
     const tools = (await client.listTools()).tools;
     expect(client.getServerVersion()?.icons?.[0]?.src).toBe(
-      `${appBaseUrl}/logo/millionsend-avatar-512.png`,
+      `${appBaseUrl}/logo/posta-avatar-512.png`,
     );
     for (const t of tools) {
       expect(t.title, t.name).toBeTruthy();

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Posta">
+<title>Posta</title>
+<defs><linearGradient id="posta-avatar-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1024" y2="1024"><stop offset="0" stop-color="#FF6A3D"/><stop offset="0.5" stop-color="#E8458B"/><stop offset="1" stop-color="#7046E8"/></linearGradient></defs>
+<rect width="1024" height="1024" rx="230.4" fill="url(#posta-avatar-gradient)"/><g transform="translate(236.8 256) scale(3.2) translate(-3.5 0)"><g transform="skewX(-12)"><path d="M11,5 H84 M25,22 H84 M39,39 H84" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/><path d="M80,144 V16 H132 A36,36 0 0 1 132,88 H80" fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+</svg>

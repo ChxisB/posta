@@ -38,18 +38,9 @@ export function filesUnder(dir: string, extensions: string[]): string[] {
 
 /* ---------------------------------------------------------------- old brand */
 
-/**
- * Code still names the previous product's logo files until RB18 replaces them
- * (it needs the Brand Book). These paths are the only old-brand strings the
- * scan lets through; RB18 deletes this pattern and the files together.
- */
-const PENDING_LOGO_FILES =
-  /millionsend-(?:avatar-512|avatar|banner|favicon|mark|wordmark-light|wordmark)\.(?:svg|png)/g;
-
 /** The previous product's name, and its display font, wherever they survive. */
 export function oldBrandHits(text: string): string[] {
-  const rest = text.replace(PENDING_LOGO_FILES, "");
-  return [...rest.matchAll(/millionsend|\bErode\b/gi)]
+  return [...text.matchAll(/millionsend|\bErode\b/gi)]
     .map((match) => match[0])
     .filter((hit) => hit.toLowerCase() === "millionsend" || hit === "Erode");
 }
@@ -138,9 +129,10 @@ export function strayHexes(
 /* ----------------------------------------------------------- the gradient */
 
 /**
- * Files outside colors.css that may use the Coral→Rose→Violet gradient: the
- * mark and large brand moments only. None yet; RB18 adds the logo component
- * and names it here.
+ * Source files outside colors.css that may use the Coral→Rose→Violet gradient:
+ * the mark and large brand moments only. None: the logo is a set of SVG files
+ * in public/logo/ (checked in "the logo files"), not a component, so no
+ * TypeScript or CSS names the gradient.
  */
 export const GRADIENT_ALLOWED_IN: string[] = [];
 
@@ -161,10 +153,11 @@ export function assetRefs(text: string): string[] {
 }
 
 /**
- * Public files the code points at that are not there yet. The three email
- * images are the wordmark and the Gmail button tile that RB18 supplies with the
- * logo; the test requires this list to be exact, so it cannot hide a new gap
- * and cannot outlive the files.
+ * Public files the code points at that are not in this app's public folder.
+ * The three email images are the system emails' wordmarks and the Gmail button
+ * tile; packages/core/src/html.ts loads them from SITE_URL, so the product
+ * site serves them, not this app. The test requires this list to be exact, so
+ * it cannot hide a new gap and cannot outlive the files.
  */
 export const KNOWN_MISSING_ASSETS = [
   "email/white.png",

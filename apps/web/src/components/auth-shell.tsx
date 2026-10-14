@@ -16,10 +16,10 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
     >
       {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
       <img
-        src="/logo/millionsend-wordmark.svg"
+        src="/logo/posta-wordmark.svg"
         className="po-wordmark"
         alt={t("appName")}
-        height={22}
+        height={32}
         style={{ marginBottom: 28 }}
       />
       {/* Border-box so the 100% cap holds the padding too; 438 = a 380px content box. */}

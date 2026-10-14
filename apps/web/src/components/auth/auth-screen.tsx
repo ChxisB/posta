@@ -17,10 +17,10 @@ export function AuthScreen({ title, children }: { title: string; children: React
       <div className={styles.column}>
         {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
         <img
-          src="/logo/millionsend-wordmark.svg"
+          src="/logo/posta-wordmark.svg"
           className="po-wordmark"
           alt={tCommon("appName")}
-          height={22}
+          height={32}
         />
         <h1 className={`po-display ${styles.headline}`}>{title}</h1>
         {children}

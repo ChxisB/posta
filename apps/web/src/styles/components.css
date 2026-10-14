@@ -2175,10 +2175,11 @@ summary:focus-visible,
   --po-mp-bg: #ffffff;
 }
 
-/* Wordmark — the SVG's fills are bone-on-transparent, invisible on paper;
-   light theme swaps in the ink variant of the same lockup. */
+/* Wordmark — the default file has a white word on a transparent ground, which
+   disappears on paper; light theme swaps in the same lockup with an ink word.
+   The mark is the gradient in both. */
 [data-theme="light"] .po-wordmark {
-  content: url("/logo/millionsend-wordmark-light.svg");
+  content: url("/logo/posta-wordmark-light.svg");
 }
 
 /* Theme-scoped visibility — elements that ship one render per theme (e.g. the

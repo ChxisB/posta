@@ -67,7 +67,7 @@ function TopicName({ name }: { name: string }) {
   return <span style={{ overflowWrap: "anywhere" }}>{name}</span>;
 }
 
-const BRAND_MARK_URL = "/logo/millionsend-favicon.svg";
+const BRAND_MARK_URL = "/logo/posta-favicon.svg";
 
 /** "Powered by Posta", under the card, linking to the site. */
 function PoweredBy({ template }: { template: string }) {
@@ -97,7 +97,7 @@ function PoweredBy({ template }: { template: string }) {
             }}
           >
             {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
-            <img src={BRAND_MARK_URL} alt="" width={16} height={16} style={{ borderRadius: 4 }} />
+            <img src={BRAND_MARK_URL} alt="" width={16} height={16} />
             Posta
           </span>
         ),
@@ -142,14 +142,9 @@ function Wordmark() {
   return (
     <>
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
-      <img className="po-dark-only" src="/logo/millionsend-wordmark.svg" alt="Posta" height={20} />
+      <img className="po-dark-only" src="/logo/posta-wordmark.svg" alt="Posta" height={32} />
       {/* biome-ignore lint/performance/noImgElement: static pre-sized svg, nothing for next/image to optimize */}
-      <img
-        className="po-light-only"
-        src="/logo/millionsend-wordmark-light.svg"
-        alt="Posta"
-        height={20}
-      />
+      <img className="po-light-only" src="/logo/posta-wordmark-light.svg" alt="Posta" height={32} />
     </>
   );
 }

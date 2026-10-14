@@ -502,7 +502,7 @@ function buildServer(
       websiteUrl: SITE_URL,
       icons: [
         {
-          src: `${appBaseUrl}/logo/millionsend-avatar-512.png`,
+          src: `${appBaseUrl}/logo/posta-avatar-512.png`,
           mimeType: "image/png",
           sizes: ["512x512"],
         },

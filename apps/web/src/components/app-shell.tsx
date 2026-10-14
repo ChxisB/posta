@@ -72,10 +72,10 @@ export function AppShell({
           <Link href="/" style={{ display: "inline-flex" }}>
             {/* biome-ignore lint/performance/noImgElement: static SVG logo, nothing for next/image to optimize */}
             <img
-              src="/logo/millionsend-wordmark.svg"
+              src="/logo/posta-wordmark.svg"
               className="po-wordmark"
               alt={t("appName")}
-              style={{ height: 15, display: "block" }}
+              style={{ height: 32, display: "block" }}
             />
           </Link>
         </header>

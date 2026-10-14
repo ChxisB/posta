@@ -135,12 +135,41 @@ The odometer digit-roll is the only flourish. Every animation is off under
 
 ## Logo
 
-The mark and wordmark in `public/logo/` are never redrawn, recoloured or
-stretched. Where the gradient is not allowed, use the one-colour variant: ink on
-a light ground, bone on a dark one. Minimum sizes and clear space are set with
-the final mark (RB18, which waits for the Brand Book); until then
-`public/logo/` still holds the previous product's files, and the brand test
-names them.
+The Posta Brand Book is the source. The mark is a violet-ending gradient "P"
+with three speed stripes, skewed 12°. The wordmark is the lowercase word
+"posta" in Geist 800, tracked -0.045em. In a sentence the name is "Posta".
+
+The files are in `public/logo/` (the docs app has its own favicon in
+`apps/docs/public/logo/`). They are drawn as paths, so they need no font:
+
+| File | Use |
+| --- | --- |
+| `posta-mark.svg` | the mark alone |
+| `posta-wordmark.svg` | mark and word, word in white, for dark grounds |
+| `posta-wordmark-light.svg` | the same, word in ink, for light grounds |
+| `posta-banner.svg` | the README banner (1280 × 320 on ink) |
+| `posta-favicon.svg` | the tile for under 20px: a white P on the gradient |
+| `posta-avatar.svg`, `posta-avatar-512.png` | the app icon: gradient tile, corners 22.5%, the mark at half the tile's height |
+
+`src/app/apple-icon.png` and the two `og.png` files are the same artwork
+rasterised. They are made from the Brand Book's geometry, not redrawn: the
+brand test checks the mark's path data and the gradient's stops.
+
+- **Colourways.** Six, from the book. Primary (gradient on a light ground), On
+  dark (gradient on ink `#0A0C10`), Reversed (white on `#6538D6`), Lilac
+  (`#6538D6` on `#EFE9FF`), One colour (ink on white) and Deep (`#A98BFF` on
+  `#2A1470`). Only the first two are files so far; the app uses them.
+- **Size.** The stripes from 32px high. From 20 to 31px use the P alone. Under
+  20px use the favicon tile. The sidebar, the mobile bar and the auth screens
+  set the lockup at 32px.
+- **Clear space.** Half the mark's height on every side.
+- **Never.** Recolour it, stretch or squash it, rotate it, outline it, retype
+  the wordmark in another face, or put it on a ground that does not contrast.
+- **The gradient is for the logo and the app icon only.** In the interface the
+  accent is the flat violet above. The gradient lives in the SVG files, so no
+  stylesheet or component names it.
+- Open: the book names `#6538D6` as its violet, and the interface accent is
+  `#7046E8` (the gradient's end). They are not unified yet.
 
 ## Voice: plain, numeric, engineer to engineer
 

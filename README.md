@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/logo/millionsend-banner.svg" alt="Posta" width="560">
+  <img src="apps/web/public/logo/posta-banner.svg" alt="Posta" width="560">
 </p>
 
 <p align="center"><b>The open-source email platform. Send one. Send a million.</b></p>

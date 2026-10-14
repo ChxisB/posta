@@ -83,11 +83,11 @@ describe("the old brand", () => {
     expect(oldBrandHits("src: url(/fonts/Erode-Variable.woff2)")).toEqual(["Erode"]);
   });
 
-  it("lets the logo files RB18 still has to replace through, and nothing else", () => {
-    expect(oldBrandHits('icon: "/logo/millionsend-favicon.svg"')).toEqual([]);
-    expect(oldBrandHits("/logo/millionsend-wordmark-light.svg")).toEqual([]);
-    expect(oldBrandHits("millionsend-newthing.svg")).toEqual(["millionsend"]);
+  it("finds the previous product's logo file names too", () => {
+    expect(oldBrandHits('icon: "/logo/millionsend-favicon.svg"')).toEqual(["millionsend"]);
+    expect(oldBrandHits("/logo/millionsend-wordmark-light.svg")).toEqual(["millionsend"]);
     expect(oldBrandHits('const name = "millionsend"')).toEqual(["millionsend"]);
+    expect(oldBrandHits('icon: "/logo/posta-favicon.svg"')).toEqual([]);
   });
 
   it("is absent from the code, styles and copy", () => {
@@ -101,10 +101,31 @@ describe("the old brand", () => {
     expect(hits).toEqual([]);
   });
 
-  it("names neither the old display font nor the old hover word in DESIGN.md", () => {
-    const hits = oldBrandHits(DESIGN);
-    expect(hits.filter((hit) => hit.toLowerCase() === "erode")).toEqual([]);
+  it("is absent from DESIGN.md, and DESIGN.md does not use the old hover word", () => {
+    expect(oldBrandHits(DESIGN)).toEqual([]);
     expect(DESIGN.toLowerCase()).not.toContain("rollover");
+  });
+
+  it("is absent from the README, the contributor and self-hosting guides and the docs", () => {
+    const documents = [
+      "README.md",
+      "CONTRIBUTING.md",
+      "SELF_HOSTING.md",
+      ...filesUnder("apps/docs/content", [".md", ".mdx", ".json"]),
+    ];
+    const hits = documents.flatMap((file) => {
+      const found = oldBrandHits(readRepoFile(file));
+      return found.length ? [`${file}: ${[...new Set(found)].join(", ")}`] : [];
+    });
+    expect(hits).toEqual([]);
+  });
+
+  it("has no file named for it in either app's public folder", () => {
+    const named = [
+      ...filesUnder("apps/web/public", [""]),
+      ...filesUnder("apps/docs/public", [""]),
+    ].filter((file) => /millionsend/i.test(file));
+    expect(named).toEqual([]);
   });
 });
 
@@ -388,6 +409,98 @@ describe("system email", () => {
   });
 });
 
+const LOGO_DIR = "apps/web/public/logo";
+const LOGO_FILES = [
+  "posta-avatar-512.png",
+  "posta-avatar.svg",
+  "posta-banner.svg",
+  "posta-favicon.svg",
+  "posta-mark.svg",
+  "posta-wordmark-light.svg",
+  "posta-wordmark.svg",
+];
+/** The Brand Book's gradient, in order, and the only other colours a logo file may carry. */
+const LOGO_GRADIENT = ["#FF6A3D", "#E8458B", "#7046E8"];
+const LOGO_COLOURS = new Set([...LOGO_GRADIENT, "#0A0C10", "#FFFFFF"]);
+const SVG_LOGOS = [
+  ...filesUnder(LOGO_DIR, [".svg"]),
+  ...filesUnder("apps/docs/public/logo", [".svg"]),
+];
+
+describe("the logo files", () => {
+  it("are the set the apps name, and nothing else", () => {
+    expect(filesUnder(LOGO_DIR, [""]).map((file) => file.slice(LOGO_DIR.length + 1))).toEqual(
+      LOGO_FILES,
+    );
+    expect(filesUnder("apps/docs/public/logo", [""])).toEqual([
+      "apps/docs/public/logo/posta-favicon.svg",
+    ]);
+  });
+
+  it("are drawn as paths: no text, no embedded image, no script, no outside reference", () => {
+    for (const file of SVG_LOGOS) {
+      const svg = readRepoFile(file);
+      expect(svg, file).toMatch(/^<svg [^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+      for (const banned of [
+        /<text[\s>]/,
+        /<image[\s>]/,
+        /<script[\s>]/,
+        /font-family/,
+        /href=/,
+        /url\(\s*["']?https?:/,
+      ]) {
+        expect(svg, `${file} ${banned}`).not.toMatch(banned);
+      }
+    }
+  });
+
+  it("use the Brand Book's colours only, and its gradient in its order", () => {
+    for (const file of SVG_LOGOS) {
+      const svg = readRepoFile(file);
+      const colours = svg.match(/#[0-9A-Fa-f]{6}\b/g) ?? [];
+      expect(
+        colours.filter((colour) => !LOGO_COLOURS.has(colour.toUpperCase())),
+        file,
+      ).toEqual([]);
+      const stops = [...svg.matchAll(/<stop [^>]*stop-color="(#[0-9A-Fa-f]{6})"/g)].map((m) =>
+        (m[1] as string).toUpperCase(),
+      );
+      expect(stops, file).toEqual(LOGO_GRADIENT);
+    }
+  });
+
+  it("keep the Brand Book's mark: its viewBox and its two strokes", () => {
+    const mark = readRepoFile(`${LOGO_DIR}/posta-mark.svg`);
+    expect(mark).toContain('viewBox="3.5 0 172 160"');
+    expect(mark).toContain('transform="skewX(-12)"');
+    expect(mark).toContain("M11,5 H84 M25,22 H84 M39,39 H84");
+    expect(mark).toContain("M80,144 V16 H132 A36,36 0 0 1 132,88 H80");
+  });
+
+  it("differ between the two wordmarks only in the word's fill", () => {
+    const onDark = readRepoFile(`${LOGO_DIR}/posta-wordmark.svg`);
+    const onLight = readRepoFile(`${LOGO_DIR}/posta-wordmark-light.svg`);
+    expect(onDark.replace('fill="#FFFFFF"', 'fill="#0A0C10"')).toBe(onLight);
+  });
+
+  it("each give their gradient an id of their own, so two inline copies cannot clash", () => {
+    const ids = SVG_LOGOS.flatMap((file) =>
+      [...readRepoFile(file).matchAll(/<linearGradient[^>]*\bid="([^"]+)"/g)].map(
+        (m) => m[1] as string,
+      ),
+    );
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) expect(id).toMatch(/^posta-[a-z]+-gradient$/);
+  });
+
+  it("include a banner the README shows", () => {
+    const readme = readRepoFile("README.md");
+    const banner = /src="(apps\/web\/public\/logo\/[^"]+)"/.exec(readme)?.[1];
+    expect(banner).toBe(`${LOGO_DIR}/posta-banner.svg`);
+    expect(filesUnder(LOGO_DIR, [".svg"])).toContain(banner);
+  });
+});
+
 describe("public files the code names", () => {
   const WEB = "apps/web/public";
   const refs = (dirs: string[], extensions = [".ts", ".tsx", ".css", ".mjs"]) =>
@@ -407,7 +520,7 @@ describe("public files the code names", () => {
     ]);
   });
 
-  it("exist, apart from the ones RB18 supplies with the logo", () => {
+  it("exist, apart from the email images the product site serves", () => {
     const missing = missingAssets(WEB, refs(["apps/web/src", "packages/core/src"]));
     // Exact, so a new gap fails and a file that arrives has to leave the list.
     expect(missing.sort()).toEqual(KNOWN_MISSING_ASSETS);
