@@ -1,5 +1,6 @@
 "use client";
 
+import { injectPreheader } from "@posta/core/broadcast-content";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
@@ -33,13 +34,23 @@ const PREVIEW_SAMPLES: Record<string, string> = {
   UNSUBSCRIBE_URL: "#",
 };
 
+const sampleValue = (samples: Record<string, string>, name: string, fallback?: string) =>
+  PREVIEW_SAMPLES[name] ?? samples[name] ?? fallback ?? name;
+
 /** Fill every merge token with a preview sample; `samples` supplies real
  * per-contact-property values where the caller has them. Values are
  * HTML-escaped — contact-controlled property strings must read as text in the
  * preview, never as markup. */
 export function fillMergeSamples(html: string, samples: Record<string, string>): string {
   return html.replace(MERGE_TOKEN_RE, (_m, name: string, fallback: string | undefined) =>
-    escapeHtml(PREVIEW_SAMPLES[name] ?? samples[name] ?? fallback ?? name),
+    escapeHtml(sampleValue(samples, name, fallback)),
+  );
+}
+
+/** fillMergeSamples for plain text that React escapes as it renders it. */
+export function fillMergeSampleText(text: string, samples: Record<string, string>): string {
+  return text.replace(MERGE_TOKEN_RE, (_m, name: string, fallback: string | undefined) =>
+    sampleValue(samples, name, fallback),
   );
 }
 
@@ -433,24 +444,81 @@ export function FinishCell({
   );
 }
 
+const oneLine = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+} as const;
+
+/** How the message sits in an inbox list: the subject, then the preview text. */
+export function InboxLine({
+  subject,
+  previewText,
+  samples = {},
+}: {
+  subject: string;
+  previewText: string;
+  samples?: Record<string, string>;
+}) {
+  const t = useTranslations("templates");
+  const subjectLine = fillMergeSampleText(subject.trim(), samples);
+  const previewLine = fillMergeSampleText(previewText.trim(), samples);
+  return (
+    <div
+      style={{
+        display: "grid",
+        gap: 2,
+        padding: "10px 14px",
+        borderBottom: "1px solid var(--po-line)",
+        fontSize: "var(--po-fs-ui)",
+      }}
+    >
+      <span style={{ color: "var(--po-faint)", fontSize: "var(--po-fs-label)" }}>
+        {t("previewText.inboxLabel")}
+      </span>
+      <span
+        style={{
+          ...oneLine,
+          fontWeight: 600,
+          color: subjectLine ? "var(--po-bone)" : "var(--po-faint)",
+        }}
+      >
+        {subjectLine || t("previewText.noSubject")}
+      </span>
+      <span style={{ ...oneLine, color: previewLine ? "var(--po-muted)" : "var(--po-faint)" }}>
+        {previewLine || t("previewText.none")}
+      </span>
+    </div>
+  );
+}
+
 /**
  * Sandboxed render of broadcast HTML; scripts never run. Every merge token is
  * shown as a sample value so the preview reads like a real send. The frame
  * runs edge to edge like the email detail's, with the same light/dark client
- * pills, following the dashboard's theme until the author picks one.
+ * pills, following the dashboard's theme until the author picks one. With
+ * `inbox`, the inbox line sits above it and the preheader is in the html, as
+ * a send has them.
  */
 export function ContentPreview({
   html,
   title,
   samples = {},
+  inbox,
 }: {
   html: string;
   title: string;
   samples?: Record<string, string>;
+  inbox?: { subject: string; previewText: string };
 }) {
   const [scheme, setScheme] = usePreviewScheme();
+  const previewText = inbox?.previewText.trim() ?? "";
+  const body = previewText ? injectPreheader(html, previewText) : html;
   return (
     <div>
+      {inbox ? (
+        <InboxLine subject={inbox.subject} previewText={previewText} samples={samples} />
+      ) : null}
       <div
         style={{
           display: "flex",
@@ -464,7 +532,7 @@ export function ContentPreview({
       <iframe
         title={title}
         sandbox="allow-popups allow-popups-to-escape-sandbox"
-        srcDoc={emulateEmailScheme(fillMergeSamples(html, samples), scheme)}
+        srcDoc={emulateEmailScheme(fillMergeSamples(body, samples), scheme)}
         style={{
           display: "block",
           width: "100%",

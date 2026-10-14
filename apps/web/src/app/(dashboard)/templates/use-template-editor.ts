@@ -26,6 +26,7 @@ import { confirmUnsavedNavigation, useUnsavedChangesWarning } from "@/lib/use-un
 interface TemplateDraft {
   name: string;
   subject: string;
+  previewText: string;
   html: string;
   text: string;
   document: unknown;
@@ -35,6 +36,7 @@ export interface EditorInitial {
   id: string;
   name: string;
   subject: string | null;
+  previewText: string | null;
   html: string;
   text: string | null;
   document: unknown;
@@ -57,6 +59,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
 
   const [name, setName] = useState(initial?.name ?? "");
   const [subject, setSubject] = useState(initial?.subject ?? "");
+  const [previewText, setPreviewText] = useState(initial?.previewText ?? "");
   const [html, setHtml] = useState(initial?.html ?? "");
   const [text, setText] = useState(initial?.text ?? "");
   const [document, setDocument] = useState<unknown>(initial?.document ?? null);
@@ -73,8 +76,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   // body's baseline is the last-persisted document as the block editor first
   // reads it (it fills in default attributes), compared regardless of key order
   // since jsonb reorders it; any later emit that differs marks the body dirty
-  // until the next save. Code mode compares the html itself. Name and subject
-  // compare with what was last saved.
+  // until the next save. Code mode compares the html itself. Name, subject and
+  // preview text compare with what was last saved.
   const [bodyDirty, setBodyDirty] = useState(false);
   const savedDoc = useRef<string | null>(
     initial !== undefined ? stableStringify(initial.document ?? null) : null,
@@ -85,8 +88,13 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const [savedMeta, setSavedMeta] = useState({
     name: initial?.name ?? "",
     subject: initial?.subject ?? "",
+    previewText: initial?.previewText ?? "",
   });
-  const dirty = bodyDirty || name !== savedMeta.name || subject !== savedMeta.subject;
+  const dirty =
+    bodyDirty ||
+    name !== savedMeta.name ||
+    subject !== savedMeta.subject ||
+    previewText !== savedMeta.previewText;
   useUnsavedChangesWarning(dirty, common("unsavedWarn"));
   const [savedAt, setSavedAt] = useState<number | null>(() =>
     initial ? new Date(initial.updatedAt).getTime() : null,
@@ -95,8 +103,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   // Local crash-recovery draft (browser-only, one key per template).
   const [editorNonce, setEditorNonce] = useState(0);
   const draftState = useMemo<TemplateDraft>(
-    () => ({ name, subject, html, text, document }),
-    [name, subject, html, text, document],
+    () => ({ name, subject, previewText, html, text, document }),
+    [name, subject, previewText, html, text, document],
   );
   // The form as it is now, for a save that resolves after further edits.
   const live = useRef(draftState);
@@ -104,6 +112,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const persisted: TemplateDraft = {
     name: initial?.name ?? "",
     subject: initial?.subject ?? "",
+    previewText: initial?.previewText ?? "",
     html: initial?.html ?? "",
     text: initial?.text ?? "",
     document: initial?.document ?? null,
@@ -118,6 +127,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   function restoreDraft(data: TemplateDraft) {
     setName(data.name);
     setSubject(data.subject);
+    // Drafts written before preview text existed have none.
+    setPreviewText(data.previewText ?? "");
     setHtml(data.html);
     setText(data.text);
     setDocument(data.document);
@@ -209,7 +220,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
 
   /** Create-or-update; returns the template id. */
   async function persist(): Promise<string> {
-    const sent: TemplateDraft = { name, subject, html, text, document };
+    const sent: TemplateDraft = { name, subject, previewText, html, text, document };
     const fields = templateSaveInput(mode, sent);
     let id: string;
     if (initial) {
@@ -223,7 +234,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     const sentDoc = stableStringify(fields.document);
     savedDoc.current = sentDoc;
     savedHtml.current = sent.html;
-    setSavedMeta({ name: sent.name, subject: sent.subject });
+    setSavedMeta({ name: sent.name, subject: sent.subject, previewText: sent.previewText });
     setBodyDirty(
       mode === "code"
         ? live.current.html !== sent.html
@@ -302,6 +313,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
         templateSaveInput("blocks", {
           name: blocksCopyName(name),
           subject,
+          previewText,
           html,
           text,
           document: doc,
@@ -329,6 +341,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     setName,
     subject,
     setSubject,
+    previewText,
+    setPreviewText,
     html,
     text,
     document,

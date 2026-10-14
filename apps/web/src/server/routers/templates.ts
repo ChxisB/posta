@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { mailyDocumentSchema } from "@/lib/email-doc";
+import { PREVIEW_TEXT_MAX } from "@/lib/preview-text";
 import { resolveEditorSave } from "../email-content";
 import { beforeCursor, createdAtCursorField, cursorSchema, paginate } from "../keyset";
 import { router, teamProcedure } from "../trpc";
@@ -11,6 +12,7 @@ import { router, teamProcedure } from "../trpc";
 const nameSchema = z.string().trim().min(1).max(200);
 // "" clears the field — stored as null, never as an empty string.
 const subjectSchema = z.string().trim().max(998);
+const previewTextSchema = z.string().trim().max(PREVIEW_TEXT_MAX);
 const bodySchema = z.string().max(500_000);
 // Maily editor source of truth; null clears it back to a legacy raw-HTML row.
 const documentSchema = mailyDocumentSchema.nullable();
@@ -70,8 +72,16 @@ export const templatesRouter = router({
     // no column records which template a broadcast came from, so a template's
     // text cannot be told apart from the text of mail already delivered. A
     // support view, which never sees sent content, therefore sees none of it.
+    // The preview text is copied with the body and becomes its preheader.
     if (!ctx.supportView) return { ...template, hiddenBySupportView: false };
-    return { ...template, html: null, text: null, document: null, hiddenBySupportView: true };
+    return {
+      ...template,
+      previewText: null,
+      html: null,
+      text: null,
+      document: null,
+      hiddenBySupportView: true,
+    };
   }),
 
   create: teamProcedure
@@ -79,6 +89,7 @@ export const templatesRouter = router({
       z.object({
         name: nameSchema,
         subject: subjectSchema.optional(),
+        previewText: previewTextSchema.optional(),
         html: bodySchema.min(1),
         text: bodySchema.optional(),
         document: documentSchema.optional(),
@@ -93,6 +104,7 @@ export const templatesRouter = router({
           teamId: ctx.teamId,
           name: saved.name,
           subject: saved.subject || null,
+          previewText: saved.previewText || null,
           html: saved.html,
           text: saved.text || null,
           document: saved.document ?? null,
@@ -108,6 +120,7 @@ export const templatesRouter = router({
         id: z.uuid(),
         name: nameSchema.optional(),
         subject: subjectSchema.optional(),
+        previewText: previewTextSchema.optional(),
         html: bodySchema.min(1).optional(),
         text: bodySchema.optional(),
         document: documentSchema.optional(),
@@ -122,6 +135,7 @@ export const templatesRouter = router({
         .set({
           ...(saved.name !== undefined ? { name: saved.name } : {}),
           ...(saved.subject !== undefined ? { subject: saved.subject || null } : {}),
+          ...(saved.previewText !== undefined ? { previewText: saved.previewText || null } : {}),
           ...(saved.html !== undefined ? { html: saved.html } : {}),
           ...(saved.text !== undefined ? { text: saved.text || null } : {}),
           ...(saved.document !== undefined ? { document: saved.document } : {}),
@@ -147,6 +161,7 @@ export const templatesRouter = router({
         teamId: ctx.teamId,
         name: `${source.name} (copy)`,
         subject: source.subject,
+        previewText: source.previewText,
         html: source.html,
         text: source.text,
         document: source.document,

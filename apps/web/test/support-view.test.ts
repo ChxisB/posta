@@ -1118,16 +1118,19 @@ describe("what a view can and cannot see", () => {
     const body = { html: "<p>reusable</p>", text: "reusable" };
     const [template] = await db
       .insert(schema.templates)
-      .values({ teamId, name: "Monthly", subject: "Hi", ...body })
+      .values({ teamId, name: "Monthly", subject: "Hi", previewText: "Peek", ...body })
       .returning({ id: schema.templates.id });
     if (!template) throw new Error("template insert failed");
     expect(await owner().templates.get({ id: template.id })).toMatchObject({
       html: body.html,
+      previewText: "Peek",
       hiddenBySupportView: false,
     });
     const grant = await start();
     expect(await viewer(grant).templates.get({ id: template.id })).toMatchObject({
       name: "Monthly",
+      // The preview text becomes the copied body's preheader, so it goes with it.
+      previewText: null,
       html: null,
       text: null,
       document: null,

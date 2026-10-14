@@ -1,21 +1,26 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { PreviewTextField } from "./preview-text-field";
 
-/** Name and subject, laid out as one row above the body. */
+/** Name and subject as one row above the body, then the preview text under them. */
 export function EditorFields({
   wide,
   name,
   subject,
+  previewText,
   onName,
   onSubject,
+  onPreviewText,
 }: {
   /** Follows the body's width: wide while the html source sits beside its preview. */
   wide: boolean;
   name: string;
   subject: string;
+  previewText: string;
   onName: (name: string) => void;
   onSubject: (subject: string) => void;
+  onPreviewText: (previewText: string) => void;
 }) {
   const t = useTranslations("templates");
   // Source beside preview needs the room; every other body stays at reading width.
@@ -47,6 +52,7 @@ export function EditorFields({
           onChange={(event) => onSubject(event.target.value)}
         />
       </div>
+      <PreviewTextField id="tpl-preview-text" value={previewText} onChange={onPreviewText} />
     </div>
   );
 }

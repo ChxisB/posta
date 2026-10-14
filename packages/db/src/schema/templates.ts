@@ -16,6 +16,9 @@ export const templates = pgTable(
     // team, null for dashboard-only templates.
     alias: text("alias"),
     subject: text("subject"),
+    // Inbox preview (preheader) text. Never stored in `html`: it is injected
+    // where the template's content is used, like a broadcast's previewText.
+    previewText: text("preview_text"),
     html: text("html").notNull(),
     text: text("text"),
     // Block-editor source of truth (BlockDoc). Null → legacy raw-HTML row whose

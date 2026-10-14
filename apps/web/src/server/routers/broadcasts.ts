@@ -26,6 +26,7 @@ import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { createTranslator } from "next-intl";
 import { z } from "zod";
 import { mailyDocumentSchema } from "@/lib/email-doc";
+import { PREVIEW_TEXT_MAX } from "@/lib/preview-text";
 import enDeliverability from "../../../messages/en/deliverability.json";
 import ptBRDeliverability from "../../../messages/pt-BR/deliverability.json";
 import type { AppLocale } from "../../i18n/request";
@@ -150,6 +151,8 @@ const fromSchema = z
     message: "From must be a single address like ada@example.com or Ada <ada@example.com>",
   });
 const subjectSchema = z.string().trim().min(1).max(998);
+// "" clears it. Never stored in the html: the fan-out injects it (injectPreheader).
+const previewTextSchema = z.string().trim().max(PREVIEW_TEXT_MAX);
 // "" clears the field — stored as null, never as an empty string.
 const nameSchema = z.string().trim().max(200);
 const bodySchema = z.string().max(500_000);
@@ -414,6 +417,7 @@ export const broadcastsRouter = router({
         name: nameSchema.optional(),
         from: fromSchema,
         subject: subjectSchema,
+        previewText: previewTextSchema.optional(),
         replyTo: emailSchema.optional(),
         html: bodySchema.optional(),
         text: bodySchema.optional(),
@@ -434,6 +438,7 @@ export const broadcastsRouter = router({
           name: input.name || null,
           from: input.from,
           subject: input.subject,
+          previewText: input.previewText || null,
           replyTo: input.replyTo ? encodeReplyTo(input.replyTo) : null,
           html: saved.html || null,
           text: saved.text || null,
@@ -453,6 +458,7 @@ export const broadcastsRouter = router({
         name: nameSchema.optional(),
         from: fromSchema.optional(),
         subject: subjectSchema.optional(),
+        previewText: previewTextSchema.optional(),
         replyTo: emailSchema.or(z.literal("")).optional(),
         html: bodySchema.optional(),
         text: bodySchema.optional(),
@@ -474,6 +480,7 @@ export const broadcastsRouter = router({
           ...(saved.name !== undefined ? { name: saved.name || null } : {}),
           ...(saved.from !== undefined ? { from: saved.from } : {}),
           ...(saved.subject !== undefined ? { subject: saved.subject } : {}),
+          ...(saved.previewText !== undefined ? { previewText: saved.previewText || null } : {}),
           ...(saved.replyTo !== undefined ? { replyTo: encodeReplyTo(saved.replyTo) } : {}),
           ...(saved.html !== undefined ? { html: saved.html || null } : {}),
           ...(saved.text !== undefined ? { text: saved.text || null } : {}),
@@ -601,7 +608,7 @@ export const broadcastsRouter = router({
         subject: z.string().trim().min(1),
         html: z.string().max(500_000).nullable(),
         text: z.string().nullable(),
-        previewText: z.string().nullable().optional(),
+        previewText: previewTextSchema.nullable().optional(),
         replyTo: z.array(z.string().trim().min(1)).max(10).optional(),
       }),
     )

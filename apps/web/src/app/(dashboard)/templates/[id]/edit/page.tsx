@@ -45,6 +45,7 @@ export default function EditTemplatePage() {
         id: template.id,
         name: template.name,
         subject: template.subject,
+        previewText: template.previewText,
         // Non-null past the support view check above.
         html: template.html ?? "",
         text: template.text,

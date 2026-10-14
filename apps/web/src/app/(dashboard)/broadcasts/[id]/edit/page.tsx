@@ -46,6 +46,7 @@ export default function EditBroadcastPage() {
         name: broadcast.name,
         from: broadcast.from,
         subject: broadcast.subject,
+        previewText: broadcast.previewText,
         replyTo: broadcast.replyTo,
         html: broadcast.html,
         text: broadcast.text,

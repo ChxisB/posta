@@ -54,6 +54,7 @@ const HTML_ROW = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Legacy",
   subject: null,
+  previewText: null,
   html: '<table><tr><td style="padding:8px">Hi {{{FIRST_NAME|there}}}</td></tr></table>',
   text: null,
   document: null,
@@ -119,6 +120,43 @@ describe("template editor mode", () => {
     expect(out).toMatch(/class="po-tpl-meta"[^>]*>.*id="tpl-name".*id="tpl-subject"/);
   });
 
+  it("puts preview text under name and subject, with its hint and no count while empty", () => {
+    const out = renderToStaticMarkup(createElement(TemplateEditor, { initial: HTML_ROW }));
+    expect(out).toMatch(/class="po-tpl-meta"[^>]*>.*id="tpl-subject".*id="tpl-preview-text"/);
+    const input = out.match(/<input[^>]*id="tpl-preview-text"[^>]*>/)?.[0] ?? "";
+    expect(input).toContain('aria-describedby="tpl-preview-text-hint"');
+    expect(input).toMatch(/maxlength="998"/i);
+    expect(out).toMatch(/id="tpl-preview-text-hint"[^>]*><span>templates.previewText.hintEmpty</);
+    expect(out).not.toContain("templates.previewText.count");
+    // The preview's inbox line says what inboxes show instead; nothing is injected.
+    expect(out).toContain("templates.previewText.inboxLabel");
+    expect(out).toContain("templates.previewText.noSubject");
+    expect(out).toContain("templates.previewText.none");
+    expect(out).not.toContain("display:none;max-height:0");
+  });
+
+  it("shows saved preview text in the field, the inbox line and the frame's preheader", () => {
+    const out = renderToStaticMarkup(
+      createElement(TemplateEditor, {
+        initial: { ...HTML_ROW, subject: "Hello", previewText: "Inside, {{{FIRST_NAME|there}}}" },
+      }),
+    );
+    expect(out).toContain('value="Inside, {{{FIRST_NAME|there}}}"');
+    expect(out).toContain("templates.previewText.hintFits");
+    expect(out).toContain("templates.previewText.count");
+    // The inbox line fills merge tokens with the preview's samples, like the frame.
+    expect(out).toMatch(/>Hello<\/span><span[^>]*>Inside, Ada<\/span>/);
+    expect(out).toMatch(/<iframe[^>]*srcDoc="[^"]*display:none;max-height:0[^"]*Inside, Ada/i);
+  });
+
+  it("warns past what inboxes show, without capping the field there", () => {
+    const out = renderToStaticMarkup(
+      createElement(TemplateEditor, { initial: { ...HTML_ROW, previewText: "a".repeat(131) } }),
+    );
+    expect(out).toContain("templates.previewText.hintLong");
+    expect(out).toMatch(/color:var\(--po-warn\)[^>]*>templates.previewText.count</);
+  });
+
   it("derives code mode for html without a Maily document, unless converting or empty", () => {
     const html = "<p>x</p>";
     expect(bodyEditorMode({ document: null, html })).toBe("code");
@@ -169,12 +207,20 @@ describe("code mode panes", () => {
 });
 
 describe("code-mode save", () => {
-  const fields = { name: " Legacy ", subject: " Hi ", html: "<p>x</p>", text: "", document: null };
+  const fields = {
+    name: " Legacy ",
+    subject: " Hi ",
+    previewText: " Peek ",
+    html: "<p>x</p>",
+    text: "",
+    document: null,
+  };
 
   it("keeps the row html-authored: document is null even when state holds a legacy shape", () => {
     expect(templateSaveInput("code", { ...fields, document: { version: 2 } })).toEqual({
       name: "Legacy",
       subject: "Hi",
+      previewText: "Peek",
       html: "<p>x</p>",
       text: "",
       document: null,

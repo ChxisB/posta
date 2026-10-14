@@ -65,12 +65,22 @@
     "error": "Não foi possível carregar o modelo.",
     "hiddenBySupportView": "O conteúdo do modelo fica oculto no modo de suporte."
   },
+  "previewText": {
+    "label": "Texto de pré-visualização",
+    "count": "{count, plural, one {# caractere} other {# caracteres}}",
+    "hintEmpty": "Aparece depois do assunto na maioria das caixas de entrada. Sem ele, elas mostram a primeira linha do e-mail.",
+    "hintFits": "Aparece depois do assunto na maioria das caixas de entrada.",
+    "hintLong": "A maioria das caixas de entrada corta depois de uns {max} caracteres.",
+    "inboxLabel": "Na caixa de entrada",
+    "noSubject": "Ainda sem assunto",
+    "none": "Sem texto de pré-visualização. As caixas de entrada mostram a primeira linha do e-mail."
+  },
   "picker": {
     "label": "Começar de um modelo",
     "none": "Em branco",
     "hint": "Copia o conteúdo para cá. Edições futuras do modelo não mudam nada.",
     "replaceTitle": "Substituir o conteúdo?",
-    "replaceBody": "Aplicar este modelo sobrescreve o corpo e o assunto atuais.",
+    "replaceBody": "Aplicar este modelo sobrescreve o corpo, o assunto e o texto de pré-visualização atuais.",
     "replaceConfirm": "Substituir conteúdo"
   }
 }

@@ -52,6 +52,10 @@
       "types": "./src/html.ts",
       "default": "./src/html.ts"
     },
+    "./broadcast-content": {
+      "types": "./src/broadcast-content.ts",
+      "default": "./src/broadcast-content.ts"
+    },
     "./customer-text": {
       "types": "./src/customer-text.ts",
       "default": "./src/customer-text.ts"

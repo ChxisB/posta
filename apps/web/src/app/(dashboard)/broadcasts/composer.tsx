@@ -24,6 +24,7 @@ import { useTRPC } from "@/lib/trpc";
 import { useLocalDraft } from "@/lib/use-local-draft";
 import { useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
 import { ConvertBlocksDialog, HtmlAuthoredBanner, HtmlCodeMode } from "../templates/html-mode";
+import { PreviewTextField } from "../templates/preview-text-field";
 import { ContentPreview, SendPlanSummary } from "./parts";
 
 /** Everything a crash would lose — mirrored into the local draft. */
@@ -33,6 +34,7 @@ interface ComposerDraft {
   name: string;
   from: string;
   subject: string;
+  previewText: string;
   replyTo: string;
   html: string;
   text: string;
@@ -53,6 +55,7 @@ export interface ComposerInitial {
   name: string | null;
   from: string;
   subject: string;
+  previewText: string | null;
   replyTo: string | null;
   html: string | null;
   text: string | null;
@@ -75,7 +78,7 @@ export function ComposerSkeleton() {
         </h1>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 720 }}>
-        {["100%", "100%", "100%", "100%"].map((width, row) => (
+        {["100%", "100%", "100%", "100%", "100%"].map((width, row) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows, position is identity
           <div key={row}>
             <Skeleton width={90} height={11} />
@@ -104,6 +107,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [from, setFrom] = useState(initial?.from ?? "");
   const [subject, setSubject] = useState(initial?.subject ?? "");
+  const [previewText, setPreviewText] = useState(initial?.previewText ?? "");
   const [replyTo, setReplyTo] = useState(initial?.replyTo ?? "");
   const [html, setHtml] = useState(initial?.html ?? "");
   const [text, setText] = useState(initial?.text ?? "");
@@ -139,13 +143,16 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   // reading is of the persisted body.
   const seedIsSaved = useRef(true);
   const savedHtml = useRef(initial?.html ?? "");
-  useUnsavedChangesWarning(dirty, common("unsavedWarn"));
+  // Preview text compares with what was last saved, like the template editor's
+  // fields. The other non-body fields don't arm the warning yet (TB14).
+  const [savedPreviewText, setSavedPreviewText] = useState(initial?.previewText ?? "");
+  useUnsavedChangesWarning(dirty || previewText !== savedPreviewText, common("unsavedWarn"));
 
   // Local crash-recovery draft (browser-only, one key per broadcast).
   const [editorNonce, setEditorNonce] = useState(0);
   const draftState = useMemo<ComposerDraft>(
-    () => ({ topicId, segmentId, name, from, subject, replyTo, html, text, document }),
-    [topicId, segmentId, name, from, subject, replyTo, html, text, document],
+    () => ({ topicId, segmentId, name, from, subject, previewText, replyTo, html, text, document }),
+    [topicId, segmentId, name, from, subject, previewText, replyTo, html, text, document],
   );
   const persisted: ComposerDraft = {
     topicId: initial?.topicId ?? "",
@@ -153,6 +160,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     name: initial?.name ?? "",
     from: initial?.from ?? "",
     subject: initial?.subject ?? "",
+    previewText: initial?.previewText ?? "",
     replyTo: initial?.replyTo ?? "",
     html: initial?.html ?? "",
     text: initial?.text ?? "",
@@ -173,6 +181,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     setName(data.name);
     setFrom(data.from);
     setSubject(data.subject);
+    // Drafts written before preview text existed have none.
+    setPreviewText(data.previewText ?? "");
     setReplyTo(data.replyTo);
     setHtml(data.html);
     setText(data.text);
@@ -241,7 +251,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
       setTemplateId("");
       return;
     }
-    // Applying overwrites the body (and subject). Confirm when there is real
+    // Applying overwrites the body (and subject and preview text). Confirm when there is real
     // content to lose: edits this session (dirty) or a stored non-empty body
     // (text is the rendered plain text, so an empty document stays empty).
     if (dirty || text.trim() !== "") {
@@ -260,6 +270,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     // setDocument would show the old body forever.
     setTemplateId(id);
     if (template.subject) setSubject(template.subject);
+    if (template.previewText) setPreviewText(template.previewText);
     // Null only under a support view, which cannot save the broadcast anyway.
     setHtml(template.html ?? "");
     setText(template.text ?? "");
@@ -313,6 +324,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     testMutation.mutate({
       from: from.trim(),
       subject: subject.trim(),
+      previewText: previewText.trim() || null,
       html: html.trim() ? html : null,
       text: text.trim() ? text : null,
       ...(replyTo.trim()
@@ -334,6 +346,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
 
   /** Create-or-update the draft; returns its id. */
   async function persist(): Promise<string> {
+    const sentPreviewText = previewText;
     if (initial) {
       await updateMutation.mutateAsync({
         id: initial.id,
@@ -342,6 +355,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
         ...(name.trim() ? { name: name.trim() } : { name: "" }),
         from: from.trim(),
         subject: subject.trim(),
+        previewText: sentPreviewText.trim(),
         replyTo: replyTo.trim(),
         html,
         text,
@@ -351,6 +365,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
       savedDoc.current = stableStringify(document);
       savedHtml.current = html;
       setDirty(false);
+      setSavedPreviewText(sentPreviewText);
       draft.markSaved();
       return initial.id;
     }
@@ -360,6 +375,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
       ...(name.trim() ? { name: name.trim() } : {}),
       from: from.trim(),
       subject: subject.trim(),
+      ...(sentPreviewText.trim() ? { previewText: sentPreviewText.trim() } : {}),
       ...(replyTo.trim() ? { replyTo: replyTo.trim() } : {}),
       ...(html ? { html } : {}),
       ...(text ? { text } : {}),
@@ -368,6 +384,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     savedDoc.current = stableStringify(document);
     savedHtml.current = html;
     setDirty(false);
+    setSavedPreviewText(sentPreviewText);
     draft.markSaved();
     return id;
   }
@@ -739,6 +756,11 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                     onChange={(event) => setSubject(event.target.value)}
                   />
                 </div>
+                <PreviewTextField
+                  id="bc-preview-text"
+                  value={previewText}
+                  onChange={setPreviewText}
+                />
               </div>
 
               <div className="po-field">
@@ -825,6 +847,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                           html={html}
                           title={t("composer.previewTab")}
                           samples={previewSamples}
+                          inbox={{ subject, previewText }}
                         />
                       ) : (
                         <p

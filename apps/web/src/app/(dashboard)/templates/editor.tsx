@@ -27,12 +27,18 @@ export function EditorSkeleton() {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 720 }}>
         <div className="po-tpl-meta">
-          {[0, 1].map((row) => (
-            <div key={row}>
+          {[0, 1, 2].map((row) => (
+            // The third is the preview text: full width, with its hint line.
+            <div key={row} style={row === 2 ? { gridColumn: "1 / -1" } : undefined}>
               <Skeleton width={90} height={11} />
               <div style={{ marginTop: 8, display: "flex" }}>
                 <Skeleton width="100%" height={38} radius="var(--po-r-input)" />
               </div>
+              {row === 2 ? (
+                <div style={{ marginTop: 6, display: "flex" }}>
+                  <Skeleton width={260} height={11} />
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
@@ -61,8 +67,10 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           wide={m.wideBody}
           name={m.name}
           subject={m.subject}
+          previewText={m.previewText}
           onName={m.setName}
           onSubject={m.setSubject}
+          onPreviewText={m.setPreviewText}
         />
 
         <BodyPanel
@@ -77,6 +85,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           converting={m.converting}
           mergeFields={m.mergeFields}
           previewSamples={m.previewSamples}
+          inbox={{ subject: m.subject, previewText: m.previewText }}
           onBlocksChange={m.changeBlocks}
           onCodeChange={m.changeCode}
           onConvert={m.openConvert}

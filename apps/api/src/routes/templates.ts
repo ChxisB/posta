@@ -329,6 +329,7 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
           teamId: auth.teamId,
           name: `${source.name} (copy)`,
           subject: source.subject,
+          previewText: source.previewText,
           html: source.html,
           text: source.text,
           document: source.document,

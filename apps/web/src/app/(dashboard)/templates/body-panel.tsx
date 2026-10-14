@@ -26,6 +26,7 @@ export function BodyPanel({
   converting,
   mergeFields,
   previewSamples,
+  inbox,
   onBlocksChange,
   onCodeChange,
   onConvert,
@@ -44,6 +45,8 @@ export function BodyPanel({
   converting: boolean;
   mergeFields: MergeFieldOption[];
   previewSamples: Record<string, string>;
+  /** The preview tab's inbox line: what a recipient sees before opening. */
+  inbox: { subject: string; previewText: string };
   onBlocksChange: (value: MailyEditorChange) => void;
   onCodeChange: (html: string) => void;
   onConvert: () => void;
@@ -114,7 +117,12 @@ export function BodyPanel({
             }}
           >
             {html ? (
-              <ContentPreview html={html} title={t("editor.previewTab")} samples={previewSamples} />
+              <ContentPreview
+                html={html}
+                title={t("editor.previewTab")}
+                samples={previewSamples}
+                inbox={inbox}
+              />
             ) : (
               <p
                 style={{

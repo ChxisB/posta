@@ -251,6 +251,23 @@ describe("draft-only editing", () => {
     expect(await broadcastRow(id)).toMatchObject({ name: null, replyTo: null });
   });
 
+  it("stores preview text trimmed beside the html, and clears it with an empty string", async () => {
+    const teamId = await createTeam(db, "team-a");
+    await seedVerifiedDomain(teamId);
+    const caller = callerFor(teamId);
+    const { id } = await caller.broadcasts.create({ ...DRAFT_INPUT, previewText: "  Peek  " });
+    expect(await caller.broadcasts.get({ id })).toMatchObject({
+      previewText: "Peek",
+      // The fan-out injects it; the stored body has no preheader.
+      html: DRAFT_INPUT.html,
+    });
+
+    await caller.broadcasts.update({ id, subject: "Updated" });
+    expect((await broadcastRow(id))?.previewText).toBe("Peek");
+    await caller.broadcasts.update({ id, previewText: "" });
+    expect((await broadcastRow(id))?.previewText).toBeNull();
+  });
+
   it("refuses update and delete once the broadcast left draft", async () => {
     const teamId = await createTeam(db, "team-a");
     const { caller, id } = await seedDraft(teamId);

@@ -3,6 +3,7 @@ import { schema } from "@posta/db";
 import { createTeam, createTestDb } from "@posta/test-utils";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PREVIEW_TEXT_MAX } from "@/lib/preview-text";
 import { createCaller } from "@/server/routers";
 
 vi.mock("@posta/db", async (importOriginal) => {
@@ -74,7 +75,32 @@ describe("templates.create / get / update / delete", () => {
     const teamId = await createTeam(db, "team-a");
     const caller = callerFor(teamId);
     const { id } = await caller.templates.create({ name: "Bare", html: "<p>x</p>" });
-    expect(await templateRow(id)).toMatchObject({ subject: null, text: null });
+    expect(await templateRow(id)).toMatchObject({ subject: null, previewText: null, text: null });
+  });
+
+  it("stores preview text trimmed, clears it with an empty string, and caps it", async () => {
+    const teamId = await createTeam(db, "team-a");
+    const caller = callerFor(teamId);
+    const { id } = await caller.templates.create({
+      ...TEMPLATE_INPUT,
+      previewText: "  Your receipt is inside  ",
+    });
+    expect(await caller.templates.get({ id })).toMatchObject({
+      previewText: "Your receipt is inside",
+    });
+    // Kept apart from the body: the html is stored as sent, with no preheader.
+    expect((await templateRow(id))?.html).toBe(TEMPLATE_INPUT.html);
+
+    // An update that leaves it out keeps it.
+    await caller.templates.update({ id, name: "Receipt" });
+    expect((await templateRow(id))?.previewText).toBe("Your receipt is inside");
+
+    await caller.templates.update({ id, previewText: "" });
+    expect((await templateRow(id))?.previewText).toBeNull();
+
+    await expect(
+      caller.templates.update({ id, previewText: "a".repeat(PREVIEW_TEXT_MAX + 1) }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("deletes a template", async () => {
@@ -90,12 +116,13 @@ describe("templates.duplicate", () => {
   it('inserts an independent copy named "<name> (copy)"', async () => {
     const teamId = await createTeam(db, "team-a");
     const caller = callerFor(teamId);
-    const { id } = await caller.templates.create(TEMPLATE_INPUT);
+    const { id } = await caller.templates.create({ ...TEMPLATE_INPUT, previewText: "Peek" });
 
     const { id: copyId } = await caller.templates.duplicate({ id });
     expect(copyId).not.toBe(id);
     expect(await caller.templates.get({ id: copyId })).toMatchObject({
       ...TEMPLATE_INPUT,
+      previewText: "Peek",
       name: "Welcome (copy)",
       teamId,
     });

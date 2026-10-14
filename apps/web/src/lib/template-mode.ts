@@ -36,6 +36,7 @@ export function firstBodyTab(initial?: { document: unknown; html: string }): Bod
 export interface TemplateSaveInput {
   name: string;
   subject: string;
+  previewText: string;
   html: string;
   text: string;
   document: unknown;
@@ -53,6 +54,7 @@ export function templateSaveInput(
   return {
     name: fields.name.trim(),
     subject: fields.subject.trim(),
+    previewText: fields.previewText.trim(),
     html: fields.html,
     text: fields.text,
     document: mode === "code" ? null : fields.document,

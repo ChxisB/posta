@@ -56,6 +56,7 @@ const HTML_ROW = {
   name: "Launch",
   from: "Ada <ada@news.example.com>",
   subject: "Hi",
+  previewText: null,
   replyTo: null,
   html: '<table><tr><td style="padding:8px">Hi {{{FIRST_NAME|there}}}</td></tr></table>',
   text: null,
@@ -80,5 +81,17 @@ describe("broadcast composer body mode", () => {
     );
     expect(out).toContain("data-block-editor");
     expect(out).not.toContain("templates.html.banner");
+  });
+});
+
+describe("broadcast composer preview text", () => {
+  it("sits after the subject, and shows in the preview's inbox line and preheader", () => {
+    const out = renderToStaticMarkup(
+      createElement(BroadcastComposer, { initial: { ...HTML_ROW, previewText: "Peek inside" } }),
+    );
+    expect(out).toMatch(/class="po-tpl-meta"[^>]*>.*id="bc-subject".*id="bc-preview-text"/);
+    expect(out).toContain('value="Peek inside"');
+    expect(out).toMatch(/>Hi<\/span><span[^>]*>Peek inside<\/span>/);
+    expect(out).toMatch(/<iframe[^>]*srcDoc="[^"]*display:none;max-height:0[^"]*Peek inside/i);
   });
 });

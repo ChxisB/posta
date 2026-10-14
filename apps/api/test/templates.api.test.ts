@@ -373,7 +373,11 @@ describe("POST /templates/{id}/duplicate", () => {
       alias: "original",
     });
     const document = { type: "doc", content: [] };
-    await db.update(schema.templates).set({ document }).where(eq(schema.templates.id, id));
+    // Preview text is dashboard-only, so it is set on the row.
+    await db
+      .update(schema.templates)
+      .set({ document, previewText: "Peek" })
+      .where(eq(schema.templates.id, id));
 
     const res = await call(fullKey, "POST", "/templates/original/duplicate");
     expect(res.status).toBe(200);
@@ -389,6 +393,7 @@ describe("POST /templates/{id}/duplicate", () => {
       subject: "Sub",
       html: "<p>o</p>",
       text: "o",
+      previewText: "Peek",
       document,
     });
     expect((await call(otherTeamKey, "POST", `/templates/${id}/duplicate`)).status).toBe(404);

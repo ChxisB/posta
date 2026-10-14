@@ -65,12 +65,22 @@
     "error": "Couldn't load the template.",
     "hiddenBySupportView": "Template content is hidden in support view."
   },
+  "previewText": {
+    "label": "Preview text",
+    "count": "{count, plural, one {# character} other {# characters}}",
+    "hintEmpty": "Shown after the subject in most inboxes. Without it, they show the email's opening line.",
+    "hintFits": "Shown after the subject in most inboxes.",
+    "hintLong": "Most inboxes cut it off after about {max} characters.",
+    "inboxLabel": "In the inbox",
+    "noSubject": "No subject yet",
+    "none": "No preview text. Inboxes show the email's opening line instead."
+  },
   "picker": {
     "label": "Start from a template",
     "none": "Blank",
     "hint": "Copies its content here. Later template edits change nothing.",
     "replaceTitle": "Replace content?",
-    "replaceBody": "Applying this template overwrites the current body and subject.",
+    "replaceBody": "Applying this template overwrites the current body, subject and preview text.",
     "replaceConfirm": "Replace content"
   }
 }
