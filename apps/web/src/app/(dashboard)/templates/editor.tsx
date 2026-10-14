@@ -81,7 +81,9 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           editorKey={m.editorNonce}
           document={m.document}
           html={m.html}
-          hasText={m.text !== ""}
+          text={m.text}
+          name={m.name}
+          rendering={m.rendering}
           converting={m.converting}
           mergeFields={m.mergeFields}
           previewSamples={m.previewSamples}

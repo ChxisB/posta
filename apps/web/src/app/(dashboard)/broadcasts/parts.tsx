@@ -7,7 +7,12 @@ import { useMemo } from "react";
 import { DotParts } from "@/components/dot-parts";
 import { PreviewSchemePills } from "@/components/preview-scheme-pills";
 import type { TONE_COLOR } from "@/components/status-tile";
-import { emailFrameBackground, emulateEmailScheme } from "@/lib/email-preview";
+import {
+  emailFrameBackground,
+  emulateEmailScheme,
+  MOBILE_PREVIEW_WIDTH,
+  type PreviewDevice,
+} from "@/lib/email-preview";
 import {
   formatDayTime,
   formatFinishAbout,
@@ -505,15 +510,33 @@ export function ContentPreview({
   title,
   samples = {},
   inbox,
+  device = "desktop",
 }: {
   html: string;
   title: string;
   samples?: Record<string, string>;
   inbox?: { subject: string; previewText: string };
+  /** The width to imitate; a phone's is centred in the pane. Only the width changes. */
+  device?: PreviewDevice;
 }) {
   const [scheme, setScheme] = usePreviewScheme();
   const previewText = inbox?.previewText.trim() ?? "";
   const body = previewText ? injectPreheader(html, previewText) : html;
+  const frame = (
+    <iframe
+      title={title}
+      sandbox="allow-popups allow-popups-to-escape-sandbox"
+      srcDoc={emulateEmailScheme(fillMergeSamples(body, samples), scheme)}
+      style={{
+        display: "block",
+        width: device === "mobile" ? MOBILE_PREVIEW_WIDTH : "100%",
+        ...(device === "mobile" ? { maxWidth: "100%" } : {}),
+        height: 560,
+        border: 0,
+        background: emailFrameBackground(scheme),
+      }}
+    />
+  );
   return (
     <div>
       {inbox ? (
@@ -529,18 +552,19 @@ export function ContentPreview({
       >
         <PreviewSchemePills scheme={scheme} onChange={setScheme} />
       </div>
-      <iframe
-        title={title}
-        sandbox="allow-popups allow-popups-to-escape-sandbox"
-        srcDoc={emulateEmailScheme(fillMergeSamples(body, samples), scheme)}
-        style={{
-          display: "block",
-          width: "100%",
-          height: 560,
-          border: 0,
-          background: emailFrameBackground(scheme),
-        }}
-      />
+      {device === "mobile" ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            background: "var(--po-panel-raised)",
+          }}
+        >
+          {frame}
+        </div>
+      ) : (
+        frame
+      )}
     </div>
   );
 }

@@ -215,8 +215,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const errorText = createMutation.isError && initial ? t("html.copyError") : null;
   // A new block body has no html until its first server render returns, and
   // Save waits for it.
-  const preparing =
-    mode === "blocks" && html.trim() === "" && (debouncedDoc !== document || rendered.isFetching);
+  const rendering = mode === "blocks" && (debouncedDoc !== document || rendered.isFetching);
+  const preparing = rendering && html.trim() === "";
 
   /** Create-or-update; returns the template id. */
   async function persist(): Promise<string> {
@@ -345,6 +345,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     setPreviewText,
     html,
     text,
+    rendering,
     document,
     mode,
     tab,

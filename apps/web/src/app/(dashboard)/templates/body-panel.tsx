@@ -1,18 +1,24 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type { MailyEditorChange } from "@/components/maily-editor";
+import { Segmented } from "@/components/segmented";
+import { PREVIEW_DEVICES, type PreviewDevice } from "@/lib/email-preview";
 import type { MergeFieldOption } from "@/lib/merge-fields";
 import type { BodyEditorMode, BodyTab } from "@/lib/template-mode";
+import { bodyTabs, sourceFileName } from "@/lib/template-view";
 import { ContentPreview } from "../broadcasts/parts";
 import { HtmlAuthoredBanner, HtmlCodeMode } from "./html-mode";
 import { MailyEditor } from "./lazy-maily-editor";
+import { SourceActions, SourceView } from "./source-view";
 
 /**
- * The body field: its label row with the Edit/Preview switch, then the block
- * editor or the html source (by mode), or the preview. `children` sits under
- * the body, inside the field (the draft banner).
+ * The body field: its label row with the view switch (Edit, Preview, and for
+ * block templates HTML and Text) and the controls of the view showing, then
+ * that view: the block editor or the html source (by mode), the preview, or
+ * the generated source. `children` sits under the body, inside the field (the
+ * draft banner).
  */
 export function BodyPanel({
   wide,
@@ -22,7 +28,9 @@ export function BodyPanel({
   editorKey,
   document,
   html,
-  hasText,
+  text,
+  name,
+  rendering,
   converting,
   mergeFields,
   previewSamples,
@@ -41,11 +49,16 @@ export function BodyPanel({
   editorKey: number;
   document: unknown;
   html: string;
-  hasText: boolean;
+  /** The plain text the last render produced. */
+  text: string;
+  /** Template name: a download's file name when the subject has no slug. */
+  name: string;
+  /** A render of the blocks is pending, so `html` and `text` are about to change. */
+  rendering: boolean;
   converting: boolean;
   mergeFields: MergeFieldOption[];
   previewSamples: Record<string, string>;
-  /** The preview tab's inbox line: what a recipient sees before opening. */
+  /** The inbox line over the preview: what a recipient sees before opening. */
   inbox: { subject: string; previewText: string };
   onBlocksChange: (value: MailyEditorChange) => void;
   onCodeChange: (html: string) => void;
@@ -53,6 +66,16 @@ export function BodyPanel({
   children?: ReactNode;
 }) {
   const t = useTranslations("templates");
+  const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const views = bodyTabs(mode);
+  const source = tab === "html" || tab === "text" ? tab : null;
+  const sourceValue = tab === "html" ? html : text;
+  const tabLabel: Record<BodyTab, string> = {
+    edit: t("editor.editTab"),
+    preview: t("editor.previewTab"),
+    html: t("editor.htmlTab"),
+    text: t("editor.textTab"),
+  };
   return (
     <div className="po-field" style={{ maxWidth: wide ? 1200 : 720 }}>
       <div
@@ -60,84 +83,111 @@ export function BodyPanel({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "6px 12px",
           marginBottom: 6,
         }}
       >
-        <label htmlFor="tpl-html" style={{ marginBottom: 0 }}>
+        {/* Only the source editor of an html-authored row is a field to point at. */}
+        <label
+          id="tpl-body-label"
+          htmlFor={mode === "code" && tab === "edit" ? "tpl-html" : undefined}
+          style={{ marginBottom: 0 }}
+        >
           {t("editor.htmlLabel")}
         </label>
-        <div style={{ display: "flex", gap: 6 }}>
-          {(["edit", "preview"] as const).map((key) => (
-            <button
-              key={key}
-              type="button"
-              style={{
-                fontSize: 13,
-                padding: "4px 10px",
-                borderRadius: 8,
-                border: 0,
-                cursor: "pointer",
-                background: tab === key ? "var(--po-panel-raised)" : "none",
-                color: tab === key ? "var(--po-bone)" : "var(--po-muted)",
-                font: "inherit",
-              }}
-              onClick={() => onTab(key)}
-            >
-              {t(key === "edit" ? "editor.editTab" : "editor.previewTab")}
-            </button>
-          ))}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+            gap: "6px 10px",
+          }}
+        >
+          {mode === "blocks" && tab === "preview" && html ? (
+            <Segmented
+              className="po-tpl-device"
+              label={t("editor.deviceLabel")}
+              options={PREVIEW_DEVICES.map((value) => ({
+                value,
+                label: t(value === "desktop" ? "editor.deviceDesktop" : "editor.deviceMobile"),
+              }))}
+              value={device}
+              onChange={setDevice}
+            />
+          ) : null}
+          {source ? (
+            <SourceActions
+              kind={source}
+              value={sourceValue}
+              fileName={sourceFileName(inbox.subject, name, source)}
+              disabled={rendering || sourceValue.trim() === ""}
+            />
+          ) : null}
+          <Segmented
+            label={t("editor.viewLabel")}
+            options={views.map((value) => ({ value, label: tabLabel[value] }))}
+            value={tab}
+            onChange={onTab}
+          />
         </div>
       </div>
-      {tab === "edit" && mode === "blocks" ? (
-        <MailyEditor
-          key={editorKey}
-          value={{ document, html }}
-          convertHtml={converting}
-          onChange={onBlocksChange}
-          mergeFields={mergeFields}
-        />
-      ) : tab === "edit" ? (
-        <HtmlCodeMode
-          html={html}
-          onChange={onCodeChange}
-          mergeFields={mergeFields}
-          previewSamples={previewSamples}
-          hasText={hasText}
-        />
-      ) : (
-        <>
-          {mode === "code" ? (
-            <HtmlAuthoredBanner onEditHtml={() => onTab("edit")} onConvert={onConvert} />
-          ) : null}
-          <div
-            style={{
-              border: "1px solid var(--po-line)",
-              borderRadius: "var(--po-r-input)",
-              overflow: "hidden",
-            }}
-          >
-            {html ? (
-              <ContentPreview
-                html={html}
-                title={t("editor.previewTab")}
-                samples={previewSamples}
-                inbox={inbox}
-              />
-            ) : (
-              <p
-                style={{
-                  margin: 0,
-                  padding: "16px 18px",
-                  color: "var(--po-muted)",
-                  fontSize: "var(--po-fs-ui)",
-                }}
-              >
-                {t("editor.noHtml")}
-              </p>
-            )}
-          </div>
-        </>
-      )}
+      <section aria-labelledby="tpl-body-label">
+        {tab === "edit" && mode === "blocks" ? (
+          <MailyEditor
+            key={editorKey}
+            value={{ document, html }}
+            convertHtml={converting}
+            onChange={onBlocksChange}
+            mergeFields={mergeFields}
+          />
+        ) : tab === "edit" ? (
+          <HtmlCodeMode
+            html={html}
+            onChange={onCodeChange}
+            mergeFields={mergeFields}
+            previewSamples={previewSamples}
+            hasText={text !== ""}
+          />
+        ) : source ? (
+          <SourceView kind={source} value={sourceValue} />
+        ) : (
+          <>
+            {mode === "code" ? (
+              <HtmlAuthoredBanner onEditHtml={() => onTab("edit")} onConvert={onConvert} />
+            ) : null}
+            <div
+              style={{
+                border: "1px solid var(--po-line)",
+                borderRadius: "var(--po-r-input)",
+                overflow: "hidden",
+              }}
+            >
+              {html ? (
+                <ContentPreview
+                  html={html}
+                  title={t("editor.previewTab")}
+                  samples={previewSamples}
+                  inbox={inbox}
+                  device={mode === "blocks" ? device : "desktop"}
+                />
+              ) : (
+                <p
+                  style={{
+                    margin: 0,
+                    padding: "16px 18px",
+                    color: "var(--po-muted)",
+                    fontSize: "var(--po-fs-ui)",
+                  }}
+                >
+                  {t("editor.noHtml")}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </section>
       {children}
     </div>
   );

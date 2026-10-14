@@ -1,5 +1,13 @@
 export type EmailScheme = "light" | "dark";
 
+/** Widths a preview can imitate: the full pane, or a phone. */
+export type PreviewDevice = "desktop" | "mobile";
+
+export const PREVIEW_DEVICES: readonly PreviewDevice[] = ["desktop", "mobile"];
+
+/** A phone's usable width in CSS pixels; a narrower pane shrinks the frame to fit. */
+export const MOBILE_PREVIEW_WIDTH = 375;
+
 /**
  * What shows behind a preview frame whose message is shorter than the frame.
  * The two literals are the recipient's side of the glass, so they stay put

@@ -20,8 +20,11 @@ export function bodyEditorMode(opts: {
     : "code";
 }
 
-/** A body's two tabs: the editor for its mode, or the rendered preview. */
-export type BodyTab = "edit" | "preview";
+/**
+ * A body's views: the editor for its mode, the rendered preview, and for
+ * block templates the generated html and plain text (see bodyTabs).
+ */
+export type BodyTab = "edit" | "preview" | "html" | "text";
 
 /**
  * The tab a body opens on, from the row as loaded. An html-authored row opens

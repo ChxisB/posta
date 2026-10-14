@@ -324,6 +324,37 @@
   background: var(--po-panel-raised);
   color: var(--po-bone);
 }
+/* Segmented choice (components/segmented.tsx): a few toggle buttons in one
+   frame, the pressed one raised. The template body's views, the preview width. */
+.po-seg {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  margin: 0;
+  min-width: 0;
+  padding: 2px;
+  border: 1px solid var(--po-line);
+  border-radius: 10px;
+  background: var(--po-panel);
+}
+.po-seg > button {
+  border: 0;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  color: var(--po-muted);
+  white-space: nowrap;
+}
+.po-seg > button:hover {
+  color: var(--po-bone);
+}
+.po-seg > button[aria-pressed="true"] {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+}
 /* Glowing card edge: a bright top border fading to the normal line down the
    sides, over the outer card shadow. Set --po-card-bg to match a non-default
    surface. Uses a two-layer background so the gradient rides the border box. */
@@ -3128,6 +3159,35 @@ summary:focus-visible,
   margin: 8px 0 0;
   font-size: var(--po-fs-label);
   color: var(--po-muted);
+}
+/* A block template's generated html or plain text (templates/source-view.tsx):
+   read-only, in the code pane's type, as tall as the preview frame. */
+.po-tpl-source {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 560px;
+  padding: 14px 16px;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  background: var(--po-panel);
+  color: var(--po-bone);
+  font: 12.5px / 1.7 var(--po-font-mono);
+  tab-size: 2;
+  resize: vertical;
+}
+/* On a phone the pane is no wider than the phone width it would imitate. */
+@media (max-width: 410px) {
+  .po-tpl-device {
+    display: none;
+  }
+}
+.po-tpl-source-note {
+  font-size: var(--po-fs-label);
+  color: var(--po-muted);
+}
+.po-tpl-source-note[data-failed] {
+  color: var(--po-danger);
 }
 /* Find, in the code pane's toolbar: field, "n / total", previous, next, close. */
 .po-code-find {
