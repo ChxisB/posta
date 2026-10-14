@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 import type { MailyEditorChange } from "@/components/maily-editor";
+import type { TiptapEditor } from "@/components/maily-editor/commands";
 import { Segmented } from "@/components/segmented";
 import { PREVIEW_DEVICES, type PreviewDevice } from "@/lib/email-preview";
 import type { MergeFieldOption } from "@/lib/merge-fields";
@@ -38,6 +39,8 @@ export function BodyPanel({
   onBlocksChange,
   onCodeChange,
   onConvert,
+  onEditor,
+  strip,
   children,
 }: {
   /** Html source beside its preview: the field takes the room. */
@@ -63,6 +66,10 @@ export function BodyPanel({
   onBlocksChange: (value: MailyEditorChange) => void;
   onCodeChange: (html: string) => void;
   onConvert: () => void;
+  /** Hands over the block editor once it is ready, and null when it goes. */
+  onEditor?: ((editor: TiptapEditor | null) => void) | undefined;
+  /** The preflight strip: under the label row, over the body. */
+  strip?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useTranslations("templates");
@@ -133,6 +140,7 @@ export function BodyPanel({
           />
         </div>
       </div>
+      {strip}
       <section aria-labelledby="tpl-body-label">
         {tab === "edit" && mode === "blocks" ? (
           <MailyEditor
@@ -141,6 +149,7 @@ export function BodyPanel({
             convertHtml={converting}
             onChange={onBlocksChange}
             mergeFields={mergeFields}
+            onEditor={onEditor}
           />
         ) : tab === "edit" ? (
           <HtmlCodeMode

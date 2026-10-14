@@ -96,5 +96,49 @@
     "replaceTitle": "Replace content?",
     "replaceBody": "Applying this template overwrites the current body, subject and preview text.",
     "replaceConfirm": "Replace content"
+  },
+  "preflight": {
+    "label": "Checks",
+    "checking": "Checking…",
+    "errorCount": "{count, plural, one {# error} other {# errors}}",
+    "warningCount": "{count, plural, one {# warning} other {# warnings}}",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "nothing": "Nothing to fix.",
+    "error": "Error",
+    "warning": "Warning",
+    "show": "Show",
+    "codeNote": "Links and images are only checked in templates built with blocks.",
+    "where": {
+      "email": "Whole email",
+      "subject": "Subject",
+      "previewText": "Preview text",
+      "text": "Text",
+      "link": "Link",
+      "button": "Button",
+      "image": "Image",
+      "logo": "Logo",
+      "inlineImage": "Inline image",
+      "linkCard": "Link card",
+      "variable": "Variable"
+    },
+    "issue": {
+      "link-empty": "{node, select, button {This button has no link. Add a web address, or remove the button.} linkCard {This link card has no link. Add a web address, or remove the card.} other {This link has no web address. Add one, or remove the link.}}",
+      "link-invalid": "{node, select, button {This button's link} linkCard {This card's link} image {This image's link} other {This link}} isn't a full web address. Start it with https://, or use mailto: or tel:.",
+      "link-insecure": "{node, select, button {This button's link} linkCard {This card's link} image {This image's link} other {This link}} uses http://. Switch to https:// so it opens without a browser warning.",
+      "image-src-missing": "{node, select, logo {This logo} inlineImage {This inline image} other {This image}} has no source. Paste an image address, or remove it.",
+      "image-src-invalid": "{node, select, logo {This logo} inlineImage {This inline image} other {This image}} can't load in an inbox from that address. Use a full web address starting with https://.",
+      "image-alt-missing": "{node, select, logo {This logo} inlineImage {This inline image} other {This image}} has no alt text. Add a short description so screen readers can describe it.",
+      "merge-field-unknown": "{name} isn't a built-in variable or a contact property, so it will send blank. Pick a variable from the list, or add the property first.",
+      "merge-field-unknown-suggest": "{name} isn't a variable here, so it will send blank. Did you mean {suggestion}?",
+      "merge-field-no-fallback": "{name} has no default, so contacts without it get a blank. Add a default to the variable.",
+      "merge-field-malformed": "A merge field here isn't written correctly, so it would send as broken text. Write it like {example}.",
+      "merge-field-braces": "Two braces aren't a merge field and send as typed. Use three, like {example}.",
+      "subject-empty": "No subject. Whatever sends this template needs to bring its own.",
+      "preview-text-empty": "No preview text. Inboxes will show the email's first line instead.",
+      "preview-text-long": "The preview text is {length} characters; most inboxes show about {shown}. Shorten it so it isn't cut off.",
+      "size-near": "This email is {size} KB, close to the {limit} KB where Gmail cuts messages off. Trim some content before it grows.",
+      "size-over": "This email is {size} KB. Gmail cuts messages off after about {limit} KB and hides the rest. Trim images, text or styling."
+    }
   }
 }

@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MailyEditorChange } from "@/components/maily-editor";
+import { revealNode, type TiptapEditor } from "@/components/maily-editor/commands";
 import { authoredState, isMailyDoc } from "@/lib/email-doc";
 import { buildMergeOptions } from "@/lib/merge-fields";
+import { type PreflightAt, preflight } from "@/lib/preflight";
 import { saveShortcut } from "@/lib/save-shortcut";
 import { saveState } from "@/lib/save-state";
 import { SAVED_FLASH_MS } from "@/lib/saved-flash";
@@ -21,6 +23,7 @@ import {
 import { useTRPC } from "@/lib/trpc";
 import { useLocalDraft } from "@/lib/use-local-draft";
 import { confirmUnsavedNavigation, useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
+import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID } from "./field-ids";
 
 /** Everything a crash would lose — mirrored into the local draft. */
 interface TemplateDraft {
@@ -218,6 +221,47 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const rendering = mode === "blocks" && (debouncedDoc !== document || rendered.isFetching);
   const preparing = rendering && html.trim() === "";
 
+  // Preflight reads the live document and fields, and the html of the last
+  // render (it measures size from that, so it never renders on its own). It is
+  // "checking" only until there is html at all: while an edit re-renders, the
+  // last result stands.
+  const issues = useMemo(
+    () => preflight({ subject, previewText, document, html, mergeFields }),
+    [subject, previewText, document, html, mergeFields],
+  );
+
+  // The block editor, while it is mounted, and a node an issue asked to show
+  // before the editor was there to show it (the view was Preview, say).
+  const editorRef = useRef<TiptapEditor | null>(null);
+  const pendingReveal = useRef<readonly number[] | null>(null);
+  const onEditor = useCallback((editor: TiptapEditor | null) => {
+    editorRef.current = editor;
+    const path = pendingReveal.current;
+    if (editor && path) {
+      pendingReveal.current = null;
+      revealNode(editor, path);
+    }
+  }, []);
+  /** Take the person to what an issue is about: a field, or a node in the editor. */
+  const reveal = useCallback(
+    (at: PreflightAt) => {
+      if (at.scope === "subject" || at.scope === "previewText") {
+        const field = window.document.getElementById(
+          at.scope === "subject" ? SUBJECT_FIELD_ID : PREVIEW_TEXT_FIELD_ID,
+        );
+        field?.focus();
+        field?.scrollIntoView({ block: "nearest" });
+      } else if (at.scope === "node") {
+        if (editorRef.current && tab === "edit") revealNode(editorRef.current, at.path);
+        else {
+          pendingReveal.current = at.path;
+          setTab("edit");
+        }
+      }
+    },
+    [tab],
+  );
+
   /** Create-or-update; returns the template id. */
   async function persist(): Promise<string> {
     const sent: TemplateDraft = { name, subject, previewText, html, text, document };
@@ -346,6 +390,10 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     html,
     text,
     rendering,
+    issues,
+    checking: preparing,
+    reveal,
+    onEditor,
     document,
     mode,
     tab,

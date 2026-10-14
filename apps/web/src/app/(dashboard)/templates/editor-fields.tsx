@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID } from "./field-ids";
 import { PreviewTextField } from "./preview-text-field";
 
 /** Name and subject as one row above the body, then the preview text under them. */
@@ -38,21 +39,21 @@ export function EditorFields({
         />
       </div>
       <div className="po-field">
-        <label htmlFor="tpl-subject">
+        <label htmlFor={SUBJECT_FIELD_ID}>
           {t("editor.subjectLabel")}{" "}
           <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
             — {t("editor.optional")}
           </span>
         </label>
         <input
-          id="tpl-subject"
+          id={SUBJECT_FIELD_ID}
           className="po-input"
           style={{ width: "100%" }}
           value={subject}
           onChange={(event) => onSubject(event.target.value)}
         />
       </div>
-      <PreviewTextField id="tpl-preview-text" value={previewText} onChange={onPreviewText} />
+      <PreviewTextField id={PREVIEW_TEXT_FIELD_ID} value={previewText} onChange={onPreviewText} />
     </div>
   );
 }

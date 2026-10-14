@@ -96,5 +96,49 @@
     "replaceTitle": "Substituir o conteúdo?",
     "replaceBody": "Aplicar este modelo sobrescreve o corpo, o assunto e o texto de pré-visualização atuais.",
     "replaceConfirm": "Substituir conteúdo"
+  },
+  "preflight": {
+    "label": "Verificações",
+    "checking": "Verificando…",
+    "errorCount": "{count, plural, one {# erro} other {# erros}}",
+    "warningCount": "{count, plural, one {# aviso} other {# avisos}}",
+    "showDetails": "Mostrar detalhes",
+    "hideDetails": "Ocultar detalhes",
+    "nothing": "Nada para corrigir.",
+    "error": "Erro",
+    "warning": "Aviso",
+    "show": "Mostrar",
+    "codeNote": "Links e imagens só são verificados em modelos criados com blocos.",
+    "where": {
+      "email": "E-mail inteiro",
+      "subject": "Assunto",
+      "previewText": "Texto de pré-visualização",
+      "text": "Texto",
+      "link": "Link",
+      "button": "Botão",
+      "image": "Imagem",
+      "logo": "Logotipo",
+      "inlineImage": "Imagem em linha",
+      "linkCard": "Cartão de link",
+      "variable": "Variável"
+    },
+    "issue": {
+      "link-empty": "{node, select, button {Este botão está sem link. Adicione um endereço web ou remova o botão.} linkCard {Este cartão de link está sem link. Adicione um endereço web ou remova o cartão.} other {Este link está sem endereço web. Adicione um ou remova o link.}}",
+      "link-invalid": "{node, select, button {O link deste botão} linkCard {O link deste cartão} image {O link desta imagem} other {Este link}} não é um endereço web completo. Comece com https://, ou use mailto: ou tel:.",
+      "link-insecure": "{node, select, button {O link deste botão} linkCard {O link deste cartão} image {O link desta imagem} other {Este link}} usa http://. Troque por https:// para abrir sem aviso do navegador.",
+      "image-src-missing": "{node, select, logo {Este logotipo está sem origem.} inlineImage {Esta imagem em linha está sem origem.} other {Esta imagem está sem origem.}} Cole o endereço de uma imagem ou remova-a.",
+      "image-src-invalid": "{node, select, logo {Este logotipo não carrega} inlineImage {Esta imagem em linha não carrega} other {Esta imagem não carrega}} na caixa de entrada com esse endereço. Use um endereço web completo, começando com https://.",
+      "image-alt-missing": "{node, select, logo {Este logotipo está sem texto alternativo.} inlineImage {Esta imagem em linha está sem texto alternativo.} other {Esta imagem está sem texto alternativo.}} Adicione uma descrição curta para que leitores de tela possam descrevê-la.",
+      "merge-field-unknown": "{name} não é uma variável padrão nem uma propriedade de contato, então será enviada em branco. Escolha uma variável da lista ou crie a propriedade antes.",
+      "merge-field-unknown-suggest": "{name} não é uma variável aqui, então será enviada em branco. Você quis dizer {suggestion}?",
+      "merge-field-no-fallback": "{name} está sem valor padrão, então contatos sem ela recebem um espaço em branco. Adicione um valor padrão à variável.",
+      "merge-field-malformed": "Uma variável aqui está escrita de forma incorreta e seria enviada como texto quebrado. Escreva assim: {example}.",
+      "merge-field-braces": "Duas chaves não formam uma variável e são enviadas como digitadas. Use três, assim: {example}.",
+      "subject-empty": "Sem assunto. Quem enviar este modelo precisa informar o próprio.",
+      "preview-text-empty": "Sem texto de pré-visualização. As caixas de entrada mostrarão a primeira linha do e-mail.",
+      "preview-text-long": "O texto de pré-visualização tem {length} caracteres; a maioria das caixas de entrada mostra cerca de {shown}. Encurte para que não seja cortado.",
+      "size-near": "Este e-mail tem {size} KB, perto dos {limit} KB em que o Gmail corta as mensagens. Reduza o conteúdo antes que cresça mais.",
+      "size-over": "Este e-mail tem {size} KB. O Gmail corta as mensagens depois de cerca de {limit} KB e esconde o resto. Reduza imagens, texto ou estilos."
+    }
   }
 }

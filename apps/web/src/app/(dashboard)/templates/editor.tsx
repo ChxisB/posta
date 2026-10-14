@@ -6,6 +6,7 @@ import { BodyPanel } from "./body-panel";
 import { TemplateConvertDialog } from "./convert-dialog";
 import { EditorFields } from "./editor-fields";
 import { EditorHeader } from "./editor-header";
+import { PreflightStrip } from "./preflight-strip";
 import { type EditorInitial, useTemplateEditor } from "./use-template-editor";
 
 export type { EditorInitial } from "./use-template-editor";
@@ -91,6 +92,15 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           onBlocksChange={m.changeBlocks}
           onCodeChange={m.changeCode}
           onConvert={m.openConvert}
+          onEditor={m.onEditor}
+          strip={
+            <PreflightStrip
+              issues={m.issues}
+              checking={m.checking}
+              htmlSource={m.mode === "code"}
+              onReveal={m.reveal}
+            />
+          }
         >
           {m.recovered ? (
             <DraftBanner

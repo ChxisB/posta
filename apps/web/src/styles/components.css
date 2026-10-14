@@ -3189,6 +3189,152 @@ summary:focus-visible,
 .po-tpl-source-note[data-failed] {
   color: var(--po-danger);
 }
+/* Preflight strip (templates/preflight-strip.tsx): both counts on one line, a
+   toggle at the right, and a list of what to fix underneath. Colour never
+   stands alone: every row says Error or Warning in words and with an icon. */
+.po-pf {
+  margin-bottom: 8px;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  background: var(--po-panel);
+  font-size: var(--po-fs-label);
+}
+.po-pf-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  min-height: 38px;
+  padding: 4px 6px 4px 12px;
+}
+.po-pf-state {
+  display: inline-flex;
+  flex: none;
+  color: var(--po-muted);
+}
+.po-pf[data-state="error"] .po-pf-state {
+  color: var(--po-danger);
+}
+.po-pf[data-state="warn"] .po-pf-state {
+  color: var(--po-warn);
+}
+.po-pf[data-state="clean"] .po-pf-state {
+  color: var(--po-success);
+}
+.po-pf-label {
+  color: var(--po-bone);
+  font-weight: 500;
+}
+.po-pf-summary {
+  min-width: 0;
+  color: var(--po-muted);
+}
+.po-pf-summary [data-count="error"][data-active] {
+  color: var(--po-danger);
+}
+.po-pf-summary [data-count="warn"][data-active] {
+  color: var(--po-warn);
+}
+.po-pf-toggle {
+  margin-left: auto;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--po-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.po-pf-toggle:hover:not(:disabled) {
+  color: var(--po-bone);
+}
+.po-pf-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.po-pf-detail {
+  border-top: 1px solid var(--po-line);
+}
+.po-pf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+.po-pf-issue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--po-bone);
+  font: inherit;
+  text-align: left;
+}
+button.po-pf-issue {
+  cursor: pointer;
+}
+button.po-pf-issue:hover {
+  background: var(--po-panel-raised);
+}
+.po-pf-sev {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 78px;
+  font-weight: 500;
+}
+.po-pf-sev[data-severity="error"] {
+  color: var(--po-danger);
+}
+.po-pf-sev[data-severity="warn"] {
+  color: var(--po-warn);
+}
+.po-pf-where {
+  padding: 0 7px;
+  border: 1px solid var(--po-line);
+  border-radius: 6px;
+  color: var(--po-muted);
+}
+.po-pf-msg {
+  flex: 1 1 240px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.po-pf-go {
+  color: var(--po-muted);
+  text-decoration: underline;
+}
+button.po-pf-issue:hover .po-pf-go {
+  color: var(--po-bone);
+}
+.po-pf-ctx {
+  flex: 1 0 100%;
+  color: var(--po-muted);
+  font-family: var(--po-font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.po-pf-none,
+.po-pf-note {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--po-muted);
+}
+.po-pf-note {
+  border-top: 1px solid var(--po-line);
+}
+.po-pf-none + .po-pf-note,
+.po-pf-list + .po-pf-note {
+  margin-top: 0;
+}
 /* Find, in the code pane's toolbar: field, "n / total", previous, next, close. */
 .po-code-find {
   display: flex;

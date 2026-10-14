@@ -28,7 +28,7 @@ import {
 import "@maily-to/core/style.css";
 import "./maily-theme.css";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { isModEnter } from "@/lib/save-shortcut";
@@ -77,6 +77,12 @@ export interface MailyEditorProps {
   onChange: (value: MailyEditorChange) => void;
   mergeFields: MergeFieldOption[];
   /**
+   * Hands the page the Tiptap editor once it exists, and null when it goes
+   * (the preview tab unmounts it), so the page can act on it from outside:
+   * the preflight strip selects the node an issue is about.
+   */
+  onEditor?: ((editor: TiptapEditor | null) => void) | undefined;
+  /**
    * Explicit html→blocks conversion: when the seed is raw html, emit Tiptap's
    * parse of it on create instead of waiting for the first edit. Only set
    * after the user chose to convert — see the seed emit rule below.
@@ -122,6 +128,7 @@ export function MailyEditor({
   value,
   onChange,
   mergeFields,
+  onEditor,
   convertHtml = false,
 }: MailyEditorProps) {
   const t = useTranslations("block-editor");
@@ -147,6 +154,15 @@ export function MailyEditor({
   // identity changes.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  const onEditorRef = useRef(onEditor);
+  onEditorRef.current = onEditor;
+  useEffect(
+    () => () => {
+      onEditorRef.current?.(null);
+    },
+    [],
+  );
 
   const emit = useCallback((seeded: boolean) => {
     onChangeRef.current({ document: liveDoc.current, seeded });
@@ -264,6 +280,7 @@ export function MailyEditor({
     (ed: TiptapEditor) => {
       liveDoc.current = ed.getJSON() as MailyDoc;
       setEditor(ed);
+      onEditorRef.current?.(ed);
       ed.on("transaction", () => setTick((n) => n + 1));
       if (emitOnCreate) emit(true);
     },
