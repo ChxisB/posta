@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MailyEditorChange } from "@/components/maily-editor";
-import { isMailyDoc } from "@/lib/email-doc";
+import { authoredState, isMailyDoc } from "@/lib/email-doc";
 import { buildMergeOptions } from "@/lib/merge-fields";
+import { saveShortcut } from "@/lib/save-shortcut";
+import { saveState } from "@/lib/save-state";
 import { SAVED_FLASH_MS } from "@/lib/saved-flash";
+import { stableStringify } from "@/lib/stable-json";
 import {
   type BodyTab,
   blocksCopyName,
@@ -35,6 +38,8 @@ export interface EditorInitial {
   html: string;
   text: string | null;
   document: unknown;
+  /** The row's last save, shown until this session saves again. */
+  updatedAt: Date | string;
 }
 
 /**
@@ -64,16 +69,28 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const [tab, setTab] = useState<BodyTab>(() => firstBodyTab(initial));
   const [convertOpen, setConvertOpen] = useState(false);
 
-  // Unsaved-body tracking for the native leave warning: the baseline is the
-  // last-persisted document (or the editor's very first emit for a new one);
-  // any later emit that differs arms beforeunload until the next save. Code
-  // mode compares the html itself.
-  const [dirty, setDirty] = useState(false);
+  // Unsaved changes, for the leave warning and the header's save state. The
+  // body's baseline is the last-persisted document as the block editor first
+  // reads it (it fills in default attributes), compared regardless of key order
+  // since jsonb reorders it; any later emit that differs marks the body dirty
+  // until the next save. Code mode compares the html itself. Name and subject
+  // compare with what was last saved.
+  const [bodyDirty, setBodyDirty] = useState(false);
   const savedDoc = useRef<string | null>(
-    initial !== undefined ? JSON.stringify(initial.document ?? null) : null,
+    initial !== undefined ? stableStringify(initial.document ?? null) : null,
   );
+  // Until a restore or a convert, the editor's first reading is of the persisted body.
+  const seedIsSaved = useRef(true);
   const savedHtml = useRef(initial?.html ?? "");
+  const [savedMeta, setSavedMeta] = useState({
+    name: initial?.name ?? "",
+    subject: initial?.subject ?? "",
+  });
+  const dirty = bodyDirty || name !== savedMeta.name || subject !== savedMeta.subject;
   useUnsavedChangesWarning(dirty, common("unsavedWarn"));
+  const [savedAt, setSavedAt] = useState<number | null>(() =>
+    initial ? new Date(initial.updatedAt).getTime() : null,
+  );
 
   // Local crash-recovery draft (browser-only, one key per template).
   const [editorNonce, setEditorNonce] = useState(0);
@@ -81,16 +98,21 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     () => ({ name, subject, html, text, document }),
     [name, subject, html, text, document],
   );
+  // The form as it is now, for a save that resolves after further edits.
+  const live = useRef(draftState);
+  live.current = draftState;
+  const persisted: TemplateDraft = {
+    name: initial?.name ?? "",
+    subject: initial?.subject ?? "",
+    html: initial?.html ?? "",
+    text: initial?.text ?? "",
+    document: initial?.document ?? null,
+  };
   const draft = useLocalDraft<TemplateDraft>({
     storageKey: `po-draft:template:${initial?.id ?? "new"}`,
     state: draftState,
-    initialState: {
-      name: initial?.name ?? "",
-      subject: initial?.subject ?? "",
-      html: initial?.html ?? "",
-      text: initial?.text ?? "",
-      document: initial?.document ?? null,
-    },
+    initialState: persisted,
+    compareAs: authoredState,
   });
 
   function restoreDraft(data: TemplateDraft) {
@@ -104,7 +126,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     // A restored draft is unsaved by definition: poison the baseline so the
     // editor's next emit differs and the leave-guard arms immediately.
     savedDoc.current = "__restored__";
-    setDirty(true);
+    seedIsSaved.current = false;
+    setBodyDirty(true);
     draft.acceptRecovered();
   }
 
@@ -155,16 +178,20 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   /** The block editor's emit: a new document, dirty once it differs from the baseline. */
   function changeBlocks(v: MailyEditorChange) {
     setDocument(v.document);
-    const snapshot = JSON.stringify(v.document);
-    // First emit of a brand-new document is the baseline, not an edit.
-    if (savedDoc.current === null) savedDoc.current = snapshot;
-    else if (snapshot !== savedDoc.current) setDirty(true);
+    const snapshot = stableStringify(v.document);
+    if (v.seeded && seedIsSaved.current) {
+      // The editor's reading of the persisted body (or a new one's empty body).
+      savedDoc.current = snapshot;
+      draft.rebase({ ...persisted, document: v.document });
+    } else if (snapshot !== savedDoc.current) setBodyDirty(true);
+    // A later mount (the preview tab unmounts it) reads the body as edited.
+    seedIsSaved.current = false;
   }
 
   /** A source edit in code mode: dirty while it differs from the saved html. */
   function changeCode(next: string) {
     setHtml(next);
-    setDirty(next !== savedHtml.current);
+    setBodyDirty(next !== savedHtml.current);
   }
 
   const createMutation = useMutation(trpc.templates.create.mutationOptions());
@@ -173,16 +200,17 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const complete = name.trim() !== "" && html.trim() !== "";
   const saving = createMutation.isPending || updateMutation.isPending;
   // On an existing template the create mutation only ever makes the converted copy.
-  const errorText =
-    updateMutation.isError || (createMutation.isError && !initial)
-      ? t("editor.saveError")
-      : createMutation.isError
-        ? t("html.copyError")
-        : null;
+  const saveFailed = updateMutation.isError || (createMutation.isError && !initial);
+  const errorText = createMutation.isError && initial ? t("html.copyError") : null;
+  // A new block body has no html until its first server render returns, and
+  // Save waits for it.
+  const preparing =
+    mode === "blocks" && html.trim() === "" && (debouncedDoc !== document || rendered.isFetching);
 
   /** Create-or-update; returns the template id. */
   async function persist(): Promise<string> {
-    const fields = templateSaveInput(mode, { name, subject, html, text, document });
+    const sent: TemplateDraft = { name, subject, html, text, document };
+    const fields = templateSaveInput(mode, sent);
     let id: string;
     if (initial) {
       await updateMutation.mutateAsync({ id: initial.id, ...fields });
@@ -190,14 +218,23 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     } else {
       ({ id } = await createMutation.mutateAsync(fields));
     }
-    savedDoc.current = JSON.stringify(fields.document);
-    savedHtml.current = html;
-    setDirty(false);
-    draft.markSaved();
+    // What was sent is the new baseline. Edits made while the save was in
+    // flight differ from it, so they stay unsaved (and in the local draft).
+    const sentDoc = stableStringify(fields.document);
+    savedDoc.current = sentDoc;
+    savedHtml.current = sent.html;
+    setSavedMeta({ name: sent.name, subject: sent.subject });
+    setBodyDirty(
+      mode === "code"
+        ? live.current.html !== sent.html
+        : stableStringify(live.current.document) !== sentDoc,
+    );
+    setSavedAt(Date.now());
+    draft.markSaved(sent);
     return id;
   }
 
-  // Transient "✓ Saved" beside the Save button; the timeout below retires it.
+  // A fresh save is highlighted in the header for a moment; the timeout below ends it.
   const [justSaved, setJustSaved] = useState(false);
   useEffect(() => {
     if (!justSaved) return;
@@ -219,19 +256,21 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   }
 
   // ⌘S saves, ⌘↵ saves and closes — matching the keycaps on the buttons.
+  // An open dialog (the convert dialog) owns ⌘↵ as its confirm. The block
+  // editor hands ⌘↵ on to here rather than inserting a line break. Capture
+  // phase: the open dialog is read before its own handler closes it (React
+  // commits that before a later bubble listener runs).
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey)) return;
-      if (event.key === "s") {
-        event.preventDefault();
-        void save(false);
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        void save(true);
-      }
+      const dialogOpen = window.document.querySelector('[aria-modal="true"]') !== null;
+      const action = saveShortcut(event, dialogOpen);
+      if (action === null) return;
+      event.preventDefault();
+      if (action === "save") void save(false);
+      else if (action === "saveAndClose") void save(true);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   });
 
   // Html→blocks conversion. Both paths run Tiptap's parse inside the block
@@ -242,6 +281,8 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   const openConvert = () => setConvertOpen(true);
   const closeConvert = useCallback(() => setConvertOpen(false), []);
   const convertInPlace = useCallback(() => {
+    // The editor's first reading is then a conversion, which is an edit.
+    seedIsSaved.current = false;
     setConvertOpen(false);
     setConverting(true);
     setTab("edit");
@@ -306,6 +347,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     discardRecovered: draft.discardRecovered,
     complete,
     saving,
+    saveState: saveState({ saving, failed: saveFailed, dirty, preparing, savedAt }),
     justSaved,
     errorText,
     save,

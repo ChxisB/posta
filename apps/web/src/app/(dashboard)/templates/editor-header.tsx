@@ -3,14 +3,16 @@
 import { useTranslations } from "next-intl";
 import { Crumb, CrumbEnd, PageHeader } from "@/components/page-header";
 import { BtnSpinner } from "@/components/spinner";
-import { SAVED_FADE_ANIMATION } from "@/lib/saved-flash";
+import type { SaveState } from "@/lib/save-state";
+import { SaveStatus } from "./save-status";
 
 /**
- * The editor's page header: crumbs and title, the transient "✓ Saved", and
- * the two save buttons with their keycaps (useTemplateEditor binds the keys).
+ * The editor's page header: crumbs and title, the save state, and the two
+ * save buttons with their keycaps (useTemplateEditor binds the keys).
  */
 export function EditorHeader({
   editing,
+  saveState,
   justSaved,
   complete,
   saving,
@@ -18,6 +20,7 @@ export function EditorHeader({
 }: {
   /** An existing template, as opposed to a new one. */
   editing: boolean;
+  saveState: SaveState;
   justSaved: boolean;
   complete: boolean;
   saving: boolean;
@@ -35,20 +38,7 @@ export function EditorHeader({
       title={editing ? t("editor.editTitle") : t("editor.newTitle")}
       actions={
         <>
-          {justSaved ? (
-            <span
-              role="status"
-              style={{
-                color: "var(--po-success)",
-                fontSize: "var(--po-fs-label)",
-                // Fade-out is the shared fade-in played backwards, timed so
-                // it finishes just before the unmount timeout fires.
-                animation: SAVED_FADE_ANIMATION,
-              }}
-            >
-              ✓ {t("editor.saved")}
-            </span>
-          ) : null}
+          <SaveStatus state={saveState} fresh={justSaved} onRetry={() => void onSave(false)} />
           <button
             type="button"
             className="po-btn po-btn-secondary"

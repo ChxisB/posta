@@ -27,3 +27,14 @@ export function isMailyDoc(value: unknown): value is MailyDoc {
 export const mailyDocumentSchema = z
   .unknown()
   .refine(isMailyDoc, { message: "document is not renderable Maily JSON" });
+
+/**
+ * An editor's state as authored, for telling whether it holds unsaved work: a
+ * block body's html and text are rendered from its document, so they are left
+ * out (a fresh render can differ from the stored copy with nobody editing).
+ */
+export function authoredState<T extends { html: string; text: string; document: unknown }>(
+  state: T,
+): T {
+  return isMailyDoc(state.document) ? { ...state, html: "", text: "" } : state;
+}

@@ -31,6 +31,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
+import { isModEnter } from "@/lib/save-shortcut";
 import { VariableIcon } from "./icons";
 import { EditorToolbar, type TiptapEditor } from "./toolbar";
 import { createVariableNodeView } from "./variable-node-view";
@@ -64,6 +65,11 @@ export interface MailyEditorValue {
 export interface MailyEditorChange {
   /** The Maily/Tiptap document; send html is re-rendered from it on save. */
   document: unknown;
+  /**
+   * The editor's reading of the value it mounted with (Tiptap fills in default
+   * attributes), not an edit: a page whose baseline is that value adopts it.
+   */
+  seeded: boolean;
 }
 
 export interface MailyEditorProps {
@@ -142,8 +148,8 @@ export function MailyEditor({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  const emit = useCallback(() => {
-    onChangeRef.current({ document: liveDoc.current });
+  const emit = useCallback((seeded: boolean) => {
+    onChangeRef.current({ document: liveDoc.current, seeded });
   }, []);
 
   // Restrict variables to the merge-field list; a *function* source never
@@ -259,14 +265,14 @@ export function MailyEditor({
       liveDoc.current = ed.getJSON() as MailyDoc;
       setEditor(ed);
       ed.on("transaction", () => setTick((n) => n + 1));
-      if (emitOnCreate) emit();
+      if (emitOnCreate) emit(true);
     },
     [emit, emitOnCreate],
   );
   const onUpdate = useCallback(
     (ed: TiptapEditor) => {
       liveDoc.current = ed.getJSON() as MailyDoc;
-      emit();
+      emit(false);
     },
     [emit],
   );
@@ -274,7 +280,16 @@ export function MailyEditor({
   return (
     <div className="po-maily">
       <EditorToolbar editor={editor} fields={fields} />
-      <div className="po-maily-surface">
+      {/* ⌘↵ belongs to the page (the template editor saves and closes on it),
+          not to Tiptap, which would insert a line break (HardBreak binds
+          Mod-Enter) that gets saved. ProseMirror skips a key whose default is
+          already prevented; Shift+↵ still breaks the line. */}
+      <div
+        className="po-maily-surface"
+        onKeyDownCapture={(event) => {
+          if (isModEnter(event)) event.preventDefault();
+        }}
+      >
         {/* Spread the seed so only the one set key (contentJson OR contentHtml)
             is passed — exactOptionalPropertyTypes rejects an explicit undefined. */}
         <Editor

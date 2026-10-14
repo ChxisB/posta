@@ -25,11 +25,12 @@ vi.mock("next/dynamic", () => ({
 }));
 const rq = vi.hoisted(() => ({
   infinite: { data: undefined as unknown, isPending: false, isError: false, hasNextPage: false },
+  mutation: { isPending: false, isError: false },
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({ data: undefined }),
   useInfiniteQuery: () => rq.infinite,
-  useMutation: () => ({ mutateAsync: vi.fn(), mutate: vi.fn(), isPending: false, isError: false }),
+  useMutation: () => ({ mutateAsync: vi.fn(), mutate: vi.fn(), ...rq.mutation }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 // Any trpc.<path>.<helper>(...) call resolves to an inert options object.
@@ -56,6 +57,7 @@ const HTML_ROW = {
   html: '<table><tr><td style="padding:8px">Hi {{{FIRST_NAME|there}}}</td></tr></table>',
   text: null,
   document: null,
+  updatedAt: "2026-10-14T12:32:00.000Z",
 };
 
 describe("template editor mode", () => {
@@ -82,6 +84,34 @@ describe("template editor mode", () => {
     const out = renderToStaticMarkup(createElement(TemplateEditor, {}));
     expect(out).toContain("data-block-editor");
     expect(out).not.toContain("templates.html.banner");
+  });
+
+  it("shows an opened row's save state, in a polite live region, once", () => {
+    const out = renderToStaticMarkup(createElement(TemplateEditor, { initial: HTML_ROW }));
+    expect(out).toMatch(
+      /<span role="status" aria-live="polite"[^>]*>✓ templates.editor.stateSaved</,
+    );
+    expect(out.match(/templates.editor.state/g)).toHaveLength(1);
+    expect(out).not.toContain("templates.editor.retry");
+  });
+
+  it("says a new template is not saved yet", () => {
+    const out = renderToStaticMarkup(createElement(TemplateEditor, {}));
+    expect(out).toMatch(/role="status"[^>]*>templates.editor.stateNew</);
+  });
+
+  it("keeps a failed save in the header, with a retry, and not under the body", () => {
+    rq.mutation.isError = true;
+    try {
+      const out = renderToStaticMarkup(createElement(TemplateEditor, {}));
+      expect(out).toMatch(/role="status"[^>]*>templates.editor.stateError</);
+      expect(out).toMatch(
+        /<button type="button" class="po-btn po-btn-ghost po-btn-sm">templates.editor.retry</,
+      );
+      expect(out).not.toContain("po-field-error");
+    } finally {
+      rq.mutation.isError = false;
+    }
   });
 
   it("lays name and subject out as one row", () => {

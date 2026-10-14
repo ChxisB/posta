@@ -49,6 +49,7 @@ export default function EditTemplatePage() {
         html: template.html ?? "",
         text: template.text,
         document: template.document,
+        updatedAt: template.updatedAt,
       }}
     />
   );

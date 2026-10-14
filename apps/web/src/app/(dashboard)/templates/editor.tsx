@@ -49,6 +49,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
     <>
       <EditorHeader
         editing={m.editing}
+        saveState={m.saveState}
         justSaved={m.justSaved}
         complete={m.complete}
         saving={m.saving}

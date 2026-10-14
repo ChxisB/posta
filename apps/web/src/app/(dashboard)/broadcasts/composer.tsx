@@ -15,8 +15,9 @@ import { Select } from "@/components/select";
 import { Skeleton } from "@/components/skeleton";
 import { BtnSpinner } from "@/components/spinner";
 import { MarkerRail, MobileStepBar, StepRail } from "@/components/stepper";
-import { isMailyDoc } from "@/lib/email-doc";
+import { authoredState, isMailyDoc } from "@/lib/email-doc";
 import { buildMergeOptions } from "@/lib/merge-fields";
+import { stableStringify } from "@/lib/stable-json";
 import { statusGlow } from "@/lib/status-glow";
 import { bodyEditorMode } from "@/lib/template-mode";
 import { useTRPC } from "@/lib/trpc";
@@ -127,13 +128,16 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   const [step, setStep] = useState<1 | 2>(initial ? 2 : 1);
 
   // Unsaved-body tracking for the native leave warning: the baseline is the
-  // last-persisted document (or the editor's very first emit for a new one);
-  // any later emit that differs arms beforeunload until the next save. Code
-  // mode compares the html itself.
+  // last-persisted document as the block editor first reads it (it fills in
+  // default attributes); any later emit that differs arms beforeunload until
+  // the next save. Code mode compares the html itself.
   const [dirty, setDirty] = useState(false);
   const savedDoc = useRef<string | null>(
-    initial !== undefined ? JSON.stringify(initial.document ?? null) : null,
+    initial !== undefined ? stableStringify(initial.document ?? null) : null,
   );
+  // Until a restore, an applied template or a convert, the editor's first
+  // reading is of the persisted body.
+  const seedIsSaved = useRef(true);
   const savedHtml = useRef(initial?.html ?? "");
   useUnsavedChangesWarning(dirty, common("unsavedWarn"));
 
@@ -143,20 +147,22 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     () => ({ topicId, segmentId, name, from, subject, replyTo, html, text, document }),
     [topicId, segmentId, name, from, subject, replyTo, html, text, document],
   );
+  const persisted: ComposerDraft = {
+    topicId: initial?.topicId ?? "",
+    segmentId: initial?.segmentId ?? "",
+    name: initial?.name ?? "",
+    from: initial?.from ?? "",
+    subject: initial?.subject ?? "",
+    replyTo: initial?.replyTo ?? "",
+    html: initial?.html ?? "",
+    text: initial?.text ?? "",
+    document: initial?.document ?? null,
+  };
   const draft = useLocalDraft<ComposerDraft>({
     storageKey: `po-draft:broadcast:${initial?.id ?? "new"}`,
     state: draftState,
-    initialState: {
-      topicId: initial?.topicId ?? "",
-      segmentId: initial?.segmentId ?? "",
-      name: initial?.name ?? "",
-      from: initial?.from ?? "",
-      subject: initial?.subject ?? "",
-      replyTo: initial?.replyTo ?? "",
-      html: initial?.html ?? "",
-      text: initial?.text ?? "",
-      document: initial?.document ?? null,
-    },
+    initialState: persisted,
+    compareAs: authoredState,
   });
 
   // Older stored drafts may carry extra fields (e.g. a dropped audienceId);
@@ -177,6 +183,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     // A restored draft is unsaved by definition: poison the baseline so the
     // editor's next emit differs and the leave-guard arms immediately.
     savedDoc.current = "__restored__";
+    seedIsSaved.current = false;
     setDirty(true);
     draft.acceptRecovered();
   }
@@ -268,6 +275,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     // Applied-but-unsaved content: poison the baseline so the editor's next
     // emit differs and the leave-guard arms immediately.
     savedDoc.current = "__applied__";
+    seedIsSaved.current = false;
     setDirty(true);
   }
   // The plan behind the guard: the count and, when capacity or the plan
@@ -340,7 +348,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
         // Code mode keeps the row html-authored, whatever shape the state holds.
         document: mode === "code" ? null : document,
       });
-      savedDoc.current = JSON.stringify(document);
+      savedDoc.current = stableStringify(document);
       savedHtml.current = html;
       setDirty(false);
       draft.markSaved();
@@ -357,7 +365,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
       ...(text ? { text } : {}),
       ...(document && mode !== "code" ? { document } : {}),
     });
-    savedDoc.current = JSON.stringify(document);
+    savedDoc.current = stableStringify(document);
     savedHtml.current = html;
     setDirty(false);
     draft.markSaved();
@@ -395,6 +403,8 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   const closeGuard = useCallback(() => setGuardOpen(false), []);
   const closeConvert = useCallback(() => setConvertOpen(false), []);
   const convertInPlace = useCallback(() => {
+    // The editor's first reading is then a conversion, which is an edit.
+    seedIsSaved.current = false;
     setConvertOpen(false);
     setConverting(true);
     setTab("edit");
@@ -772,10 +782,14 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                     convertHtml={converting}
                     onChange={(v) => {
                       setDocument(v.document);
-                      const snapshot = JSON.stringify(v.document);
-                      // First emit of a brand-new document is the baseline, not an edit.
-                      if (savedDoc.current === null) savedDoc.current = snapshot;
-                      else if (snapshot !== savedDoc.current) setDirty(true);
+                      const snapshot = stableStringify(v.document);
+                      if (v.seeded && seedIsSaved.current) {
+                        // The editor's reading of the persisted body (or a new one's empty body).
+                        savedDoc.current = snapshot;
+                        draft.rebase({ ...persisted, document: v.document });
+                      } else if (snapshot !== savedDoc.current) setDirty(true);
+                      // A later mount (the preview tab unmounts it) reads the body as edited.
+                      seedIsSaved.current = false;
                     }}
                     mergeFields={mergeFields}
                   />
