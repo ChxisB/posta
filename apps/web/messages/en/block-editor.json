@@ -81,6 +81,20 @@
       "desc": "Group content in a styled box."
     }
   },
+  "rail": {
+    "label": "Blocks",
+    "search": "Search blocks",
+    "group": {
+      "text": "Text",
+      "media": "Media and buttons",
+      "layout": "Layout"
+    },
+    "add": "Add {block}",
+    "added": "{block} added.",
+    "none": "Nothing matches \"{query}\".",
+    "hint": "Adds after the block you are in. You can also type / in the email.",
+    "needsEdit": "Open the Edit view to add blocks."
+  },
   "ph": {
     "body": "Write something, or / for blocks",
     "heading": "Heading {level}"

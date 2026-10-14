@@ -81,6 +81,20 @@
       "desc": "Agrupe conteúdo em uma caixa estilizada."
     }
   },
+  "rail": {
+    "label": "Blocos",
+    "search": "Buscar blocos",
+    "group": {
+      "text": "Texto",
+      "media": "Mídia e botões",
+      "layout": "Layout"
+    },
+    "add": "Adicionar {block}",
+    "added": "{block} adicionado.",
+    "none": "Nada corresponde a \"{query}\".",
+    "hint": "Adiciona depois do bloco em que você está. Você também pode digitar / no e-mail.",
+    "needsEdit": "Abra a visualização Editar para adicionar blocos."
+  },
   "ph": {
     "body": "Escreva algo ou digite / para inserir um bloco",
     "heading": "Título {level}"

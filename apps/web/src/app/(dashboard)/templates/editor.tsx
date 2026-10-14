@@ -1,6 +1,7 @@
 "use client";
 
 import { DraftBanner } from "@/components/draft-banner";
+import { ComponentsRail } from "@/components/maily-editor/components-rail";
 import { Skeleton } from "@/components/skeleton";
 import { BodyPanel } from "./body-panel";
 import { TemplateConvertDialog } from "./convert-dialog";
@@ -93,6 +94,11 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           onCodeChange={m.changeCode}
           onConvert={m.openConvert}
           onEditor={m.onEditor}
+          rail={
+            m.mode === "blocks" ? (
+              <ComponentsRail editor={m.tab === "edit" ? m.blockEditor : null} />
+            ) : undefined
+          }
           strip={
             <PreflightStrip
               issues={m.issues}

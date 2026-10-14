@@ -3335,6 +3335,190 @@ button.po-pf-issue:hover .po-pf-go {
 .po-pf-list + .po-pf-note {
   margin-top: 0;
 }
+/* Template body with the components rail (templates/body-panel.tsx): the rail
+   hangs to the left of the label row, strip and editor, which keep their
+   width. Under 1200px the rail folds behind a "Blocks" toggle above them;
+   the three-zone layout and its drawers are TB07's. */
+.po-tpl-body {
+  --po-rail-left-w: 216px;
+  --po-rail-gap: 16px;
+}
+.po-tpl-body[data-rail] {
+  display: grid;
+  grid-template-columns: var(--po-rail-left-w) minmax(0, 1fr);
+  column-gap: var(--po-rail-gap);
+  align-items: start;
+}
+.po-tpl-rail {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  background: var(--po-panel);
+}
+.po-tpl-rail-toggle {
+  display: none;
+}
+@media (max-width: 1199px) {
+  .po-tpl-body[data-rail] {
+    display: block;
+  }
+  .po-tpl-rail {
+    position: static;
+    max-height: none;
+    margin-bottom: 8px;
+    border: 0;
+    background: none;
+  }
+  .po-tpl-rail-toggle {
+    display: inline-flex;
+  }
+  .po-tpl-rail-panel {
+    display: none;
+    margin-top: 6px;
+    border: 1px solid var(--po-line);
+    border-radius: var(--po-r-input);
+    background: var(--po-panel);
+  }
+  .po-tpl-rail[data-open] .po-tpl-rail-panel {
+    display: block;
+  }
+  /* The body's own width leaves room for the rail beside the column; with the
+     rail folded away the column keeps its usual 720px. */
+  .po-tpl-body[data-rail] > .po-tpl-rail,
+  .po-tpl-body[data-rail] > .po-tpl-main {
+    max-width: 720px;
+  }
+}
+/* Components rail (maily-editor/components-rail.tsx). */
+.po-blocks {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  font-size: var(--po-fs-label);
+}
+.po-blocks-title {
+  margin: 0;
+  color: var(--po-bone);
+  font-size: var(--po-fs-label);
+  font-weight: 500;
+}
+.po-blocks-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--po-line);
+  border-radius: var(--po-r-input);
+  background: var(--po-panel-raised);
+  color: var(--po-muted);
+}
+.po-blocks-search:focus-within {
+  box-shadow: var(--po-focus-ring);
+}
+.po-blocks-search input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  outline: none;
+  color: var(--po-bone);
+  font: 400 13px var(--po-font-sans);
+}
+.po-blocks-search input::placeholder {
+  color: var(--po-faint);
+}
+.po-blocks-search input:focus-visible {
+  box-shadow: none;
+}
+.po-blocks-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.po-blocks-group-title {
+  margin: 0;
+  color: var(--po-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.po-blocks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.po-blocks-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--po-bone);
+  font: 400 13px var(--po-font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--po-dur-fast) var(--po-ease),
+    color var(--po-dur-fast) var(--po-ease);
+}
+.po-blocks-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--po-muted);
+}
+.po-blocks-item:hover:not(:disabled) {
+  background: var(--po-panel-raised);
+}
+.po-blocks-item:focus-visible {
+  outline: none;
+  box-shadow: var(--po-focus-ring);
+}
+.po-blocks-item:disabled {
+  color: var(--po-faint);
+  cursor: default;
+}
+.po-blocks-item:disabled .po-blocks-icon {
+  color: var(--po-faint);
+}
+.po-blocks-none,
+.po-blocks-hint {
+  margin: 0;
+  color: var(--po-muted);
+  line-height: 1.45;
+}
+/* Announces an insert to a screen reader without showing it. */
+.po-blocks-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .po-blocks-item {
+    transition: none;
+  }
+}
 /* Find, in the code pane's toolbar: field, "n / total", previous, next, close. */
 .po-code-find {
   display: flex;

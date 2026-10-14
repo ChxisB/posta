@@ -233,9 +233,13 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
   // The block editor, while it is mounted, and a node an issue asked to show
   // before the editor was there to show it (the view was Preview, say).
   const editorRef = useRef<TiptapEditor | null>(null);
+  // The same editor as state, so the components rail enables when it arrives
+  // and disables when it goes.
+  const [blockEditor, setBlockEditor] = useState<TiptapEditor | null>(null);
   const pendingReveal = useRef<readonly number[] | null>(null);
   const onEditor = useCallback((editor: TiptapEditor | null) => {
     editorRef.current = editor;
+    setBlockEditor(editor);
     const path = pendingReveal.current;
     if (editor && path) {
       pendingReveal.current = null;
@@ -394,6 +398,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined) {
     checking: preparing,
     reveal,
     onEditor,
+    blockEditor,
     document,
     mode,
     tab,

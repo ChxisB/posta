@@ -41,6 +41,7 @@ export function BodyPanel({
   onConvert,
   onEditor,
   strip,
+  rail,
   children,
 }: {
   /** Html source beside its preview: the field takes the room. */
@@ -70,10 +71,14 @@ export function BodyPanel({
   onEditor?: ((editor: TiptapEditor | null) => void) | undefined;
   /** The preflight strip: under the label row, over the body. */
   strip?: ReactNode;
+  /** The components rail (a block template's): beside the field, or behind a toggle when narrow. */
+  rail?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useTranslations("templates");
+  const tb = useTranslations("block-editor");
   const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [railOpen, setRailOpen] = useState(false);
   const views = bodyTabs(mode);
   const source = tab === "html" || tab === "text" ? tab : null;
   const sourceValue = tab === "html" ? html : text;
@@ -84,120 +89,148 @@ export function BodyPanel({
     text: t("editor.textTab"),
   };
   return (
-    <div className="po-field" style={{ maxWidth: wide ? 1200 : 720 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "6px 12px",
-          marginBottom: 6,
-        }}
-      >
-        {/* Only the source editor of an html-authored row is a field to point at. */}
-        <label
-          id="tpl-body-label"
-          htmlFor={mode === "code" && tab === "edit" ? "tpl-html" : undefined}
-          style={{ marginBottom: 0 }}
-        >
-          {t("editor.htmlLabel")}
-        </label>
+    <div
+      className="po-field po-tpl-body"
+      data-rail={rail ? "" : undefined}
+      style={{
+        maxWidth: wide
+          ? 1200
+          : rail
+            ? "calc(720px + var(--po-rail-left-w) + var(--po-rail-gap))"
+            : 720,
+      }}
+    >
+      {rail ? (
+        <div className="po-tpl-rail" data-open={railOpen || undefined}>
+          <button
+            type="button"
+            className="po-btn po-btn-sm po-tpl-rail-toggle"
+            aria-expanded={railOpen}
+            aria-controls="po-tpl-rail-panel"
+            onClick={() => setRailOpen((open) => !open)}
+          >
+            {tb("rail.label")}
+          </button>
+          <div id="po-tpl-rail-panel" className="po-tpl-rail-panel">
+            {rail}
+          </div>
+        </div>
+      ) : null}
+      <div className="po-tpl-main">
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             flexWrap: "wrap",
-            gap: "6px 10px",
+            gap: "6px 12px",
+            marginBottom: 6,
           }}
         >
-          {mode === "blocks" && tab === "preview" && html ? (
-            <Segmented
-              className="po-tpl-device"
-              label={t("editor.deviceLabel")}
-              options={PREVIEW_DEVICES.map((value) => ({
-                value,
-                label: t(value === "desktop" ? "editor.deviceDesktop" : "editor.deviceMobile"),
-              }))}
-              value={device}
-              onChange={setDevice}
-            />
-          ) : null}
-          {source ? (
-            <SourceActions
-              kind={source}
-              value={sourceValue}
-              fileName={sourceFileName(inbox.subject, name, source)}
-              disabled={rendering || sourceValue.trim() === ""}
-            />
-          ) : null}
-          <Segmented
-            label={t("editor.viewLabel")}
-            options={views.map((value) => ({ value, label: tabLabel[value] }))}
-            value={tab}
-            onChange={onTab}
-          />
-        </div>
-      </div>
-      {strip}
-      <section aria-labelledby="tpl-body-label">
-        {tab === "edit" && mode === "blocks" ? (
-          <MailyEditor
-            key={editorKey}
-            value={{ document, html }}
-            convertHtml={converting}
-            onChange={onBlocksChange}
-            mergeFields={mergeFields}
-            onEditor={onEditor}
-          />
-        ) : tab === "edit" ? (
-          <HtmlCodeMode
-            html={html}
-            onChange={onCodeChange}
-            mergeFields={mergeFields}
-            previewSamples={previewSamples}
-            hasText={text !== ""}
-          />
-        ) : source ? (
-          <SourceView kind={source} value={sourceValue} />
-        ) : (
-          <>
-            {mode === "code" ? (
-              <HtmlAuthoredBanner onEditHtml={() => onTab("edit")} onConvert={onConvert} />
+          {/* Only the source editor of an html-authored row is a field to point at. */}
+          <label
+            id="tpl-body-label"
+            htmlFor={mode === "code" && tab === "edit" ? "tpl-html" : undefined}
+            style={{ marginBottom: 0 }}
+          >
+            {t("editor.htmlLabel")}
+          </label>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              flexWrap: "wrap",
+              gap: "6px 10px",
+            }}
+          >
+            {mode === "blocks" && tab === "preview" && html ? (
+              <Segmented
+                className="po-tpl-device"
+                label={t("editor.deviceLabel")}
+                options={PREVIEW_DEVICES.map((value) => ({
+                  value,
+                  label: t(value === "desktop" ? "editor.deviceDesktop" : "editor.deviceMobile"),
+                }))}
+                value={device}
+                onChange={setDevice}
+              />
             ) : null}
-            <div
-              style={{
-                border: "1px solid var(--po-line)",
-                borderRadius: "var(--po-r-input)",
-                overflow: "hidden",
-              }}
-            >
-              {html ? (
-                <ContentPreview
-                  html={html}
-                  title={t("editor.previewTab")}
-                  samples={previewSamples}
-                  inbox={inbox}
-                  device={mode === "blocks" ? device : "desktop"}
-                />
-              ) : (
-                <p
-                  style={{
-                    margin: 0,
-                    padding: "16px 18px",
-                    color: "var(--po-muted)",
-                    fontSize: "var(--po-fs-ui)",
-                  }}
-                >
-                  {t("editor.noHtml")}
-                </p>
-              )}
-            </div>
-          </>
-        )}
-      </section>
-      {children}
+            {source ? (
+              <SourceActions
+                kind={source}
+                value={sourceValue}
+                fileName={sourceFileName(inbox.subject, name, source)}
+                disabled={rendering || sourceValue.trim() === ""}
+              />
+            ) : null}
+            <Segmented
+              label={t("editor.viewLabel")}
+              options={views.map((value) => ({ value, label: tabLabel[value] }))}
+              value={tab}
+              onChange={onTab}
+            />
+          </div>
+        </div>
+        {strip}
+        <section aria-labelledby="tpl-body-label">
+          {tab === "edit" && mode === "blocks" ? (
+            <MailyEditor
+              key={editorKey}
+              value={{ document, html }}
+              convertHtml={converting}
+              onChange={onBlocksChange}
+              mergeFields={mergeFields}
+              onEditor={onEditor}
+            />
+          ) : tab === "edit" ? (
+            <HtmlCodeMode
+              html={html}
+              onChange={onCodeChange}
+              mergeFields={mergeFields}
+              previewSamples={previewSamples}
+              hasText={text !== ""}
+            />
+          ) : source ? (
+            <SourceView kind={source} value={sourceValue} />
+          ) : (
+            <>
+              {mode === "code" ? (
+                <HtmlAuthoredBanner onEditHtml={() => onTab("edit")} onConvert={onConvert} />
+              ) : null}
+              <div
+                style={{
+                  border: "1px solid var(--po-line)",
+                  borderRadius: "var(--po-r-input)",
+                  overflow: "hidden",
+                }}
+              >
+                {html ? (
+                  <ContentPreview
+                    html={html}
+                    title={t("editor.previewTab")}
+                    samples={previewSamples}
+                    inbox={inbox}
+                    device={mode === "blocks" ? device : "desktop"}
+                  />
+                ) : (
+                  <p
+                    style={{
+                      margin: 0,
+                      padding: "16px 18px",
+                      color: "var(--po-muted)",
+                      fontSize: "var(--po-fs-ui)",
+                    }}
+                  >
+                    {t("editor.noHtml")}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+        {children}
+      </div>
     </div>
   );
 }

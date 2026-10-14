@@ -2,21 +2,6 @@
 
 import { Editor, type EditorProps } from "@maily-to/core";
 import {
-  blockquote,
-  bulletList,
-  button,
-  columns,
-  divider,
-  heading1,
-  heading2,
-  heading3,
-  image,
-  orderedList,
-  section,
-  spacer,
-  text,
-} from "@maily-to/core/blocks";
-import {
   DEFAULT_RENDER_VARIABLE_FUNCTION,
   getSlashCommandSuggestions,
   getVariableSuggestions,
@@ -32,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { isModEnter } from "@/lib/save-shortcut";
+import { EDITOR_BLOCKS } from "./blocks";
 import { VariableIcon } from "./icons";
 import { EditorToolbar, type TiptapEditor } from "./toolbar";
 import { createVariableNodeView } from "./variable-node-view";
@@ -91,23 +77,6 @@ export interface MailyEditorProps {
 }
 
 type MailyContent = NonNullable<EditorProps["contentJson"]>;
-
-/** The curated slash-menu blocks, paired with their i18n key. */
-const SLASH_BLOCKS = [
-  [text, "text"],
-  [heading1, "heading1"],
-  [heading2, "heading2"],
-  [heading3, "heading3"],
-  [bulletList, "bulletList"],
-  [orderedList, "orderedList"],
-  [image, "image"],
-  [button, "button"],
-  [divider, "divider"],
-  [spacer, "spacer"],
-  [blockquote, "blockquote"],
-  [columns, "columns"],
-  [section, "section"],
-] as const;
 
 /** Node types that render their own inner placeholder (or none at all). */
 const NO_PLACEHOLDER_NODES = new Set([
@@ -233,7 +202,7 @@ export function MailyEditor({
         suggestion: getSlashCommandSuggestions([
           {
             title: t("slash.group"),
-            commands: SLASH_BLOCKS.map(([block, key]) => ({
+            commands: EDITOR_BLOCKS.map(({ block, key }) => ({
               ...block,
               title: t(`slash.${key}.title`),
               description: t(`slash.${key}.desc`),
