@@ -6,7 +6,8 @@ import { EditorFields } from "./editor-fields";
 /**
  * The settings rail's contents, top to bottom: the fields (name, subject,
  * preview text), the theme slot (filled once a template has one), and the
- * preflight card. The fields keep their ids, which a preflight row focuses.
+ * preflight card, then an optional footer line (the shortcuts link). The
+ * fields keep their ids, which a preflight row focuses.
  */
 export function SettingsRail({
   name,
@@ -17,6 +18,7 @@ export function SettingsRail({
   onPreviewText,
   theme,
   checks,
+  footer,
 }: {
   name: string;
   subject: string;
@@ -26,6 +28,7 @@ export function SettingsRail({
   onPreviewText: (previewText: string) => void;
   theme?: ReactNode;
   checks: ReactNode;
+  footer?: ReactNode;
 }) {
   return (
     <div className="po-tpl-settings">
@@ -41,6 +44,7 @@ export function SettingsRail({
       />
       {theme ? <div className="po-tpl-settings-theme">{theme}</div> : null}
       <div className="po-tpl-settings-checks">{checks}</div>
+      {footer ? <div className="po-tpl-settings-foot">{footer}</div> : null}
     </div>
   );
 }

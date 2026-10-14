@@ -3,6 +3,11 @@
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { DraftBanner } from "@/components/draft-banner";
+import {
+  ShortcutsButton,
+  ShortcutsDialog,
+  useShortcutsCheatsheet,
+} from "@/components/maily-editor/cheatsheet";
 import { ComponentsRail } from "@/components/maily-editor/components-rail";
 import { Skeleton } from "@/components/skeleton";
 import type { PreflightAt } from "@/lib/preflight";
@@ -11,7 +16,7 @@ import { TemplateConvertDialog } from "./convert-dialog";
 import { EditorFields } from "./editor-fields";
 import { EditorHeader } from "./editor-header";
 import { PREFLIGHT_LIST_ID, PreflightStrip } from "./preflight-strip";
-import { RailsLayout } from "./rails-layout";
+import { RailsLayout, railOpenerId } from "./rails-layout";
 import { SettingsRail } from "./settings-rail";
 import { type EditorInitial, useTemplateEditor } from "./use-template-editor";
 import { useRailTier, useTemplateRails } from "./use-template-rails";
@@ -115,6 +120,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
   const tb = useTranslations("block-editor");
   const tr = useTranslations("templates.rails");
   const blocks = m.mode === "blocks";
+  const sheet = useShortcutsCheatsheet(blocks);
   // Where the checks and fields are: in the docked settings rail, or out of
   // sight in a drawer or folded away. Then the checks also show over the body.
   const settingsDocked = rails.modeOf("right") === "docked" && !rails.state.collapsed.right;
@@ -135,6 +141,14 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
       return;
     }
     m.reveal(at);
+  }
+
+  /** From the rail's link. A drawer is a dialog with its own Esc and Tab, so it steps aside first. */
+  function openShortcuts() {
+    const drawer = rails.drawer;
+    const opener = drawer ? document.getElementById(railOpenerId(drawer)) : undefined;
+    if (drawer) rails.close({ focus: false });
+    sheet.show(opener);
   }
 
   const strip = (listId?: string) => (
@@ -222,6 +236,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
               onSubject={m.setSubject}
               onPreviewText={m.setPreviewText}
               checks={strip()}
+              footer={<ShortcutsButton onClick={openShortcuts} />}
             />
           }
         >
@@ -243,6 +258,8 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           {error}
         </div>
       )}
+
+      {blocks ? <ShortcutsDialog open={sheet.open} onClose={sheet.close} /> : null}
 
       <TemplateConvertDialog
         open={m.convertOpen}

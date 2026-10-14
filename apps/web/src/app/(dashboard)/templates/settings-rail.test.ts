@@ -55,6 +55,14 @@ describe("SettingsRail", () => {
     );
   });
 
+  it("has a footer line only when something fills it, after the checks", () => {
+    expect(rail()).not.toContain("po-tpl-settings-foot");
+    const markup = rail({ footer: createElement("p", { id: "foot" }, "foot") });
+    expect(markup).toContain('class="po-tpl-settings-foot"');
+    expect(markup.indexOf('id="checks"')).toBeLessThan(markup.indexOf("po-tpl-settings-foot"));
+    expect(markup.indexOf("po-tpl-settings-foot")).toBeLessThan(markup.indexOf('id="foot"'));
+  });
+
   it("stacks its fields in one column with no width cap", () => {
     const markup = rail();
     expect(markup).toMatch(/class="po-tpl-meta" data-stacked="true"/);

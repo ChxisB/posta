@@ -108,5 +108,56 @@
     "header": "Variables",
     "navigate": "Navigate",
     "empty": "No fields match."
+  },
+  "shortcuts": {
+    "open": "Shortcuts",
+    "title": "Keyboard shortcuts",
+    "space": "Space",
+    "groups": {
+      "insert": "Insert",
+      "write": "Write",
+      "text": "Text",
+      "blocks": "Blocks",
+      "page": "Template"
+    },
+    "notes": {
+      "insert": "Type these at the start of an empty line.",
+      "blocks": "Each one acts on the whole block the cursor is in: a list or a set of columns moves as one."
+    },
+    "actions": {
+      "slashMenu": "Open the block menu",
+      "heading1Rule": "Heading 1",
+      "heading2Rule": "Heading 2",
+      "heading3Rule": "Heading 3",
+      "bulletRule": "Bullet list",
+      "orderedRule": "Numbered list",
+      "quoteRule": "Quote",
+      "dividerRule": "Divider",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "code": "Inline code",
+      "lineBreak": "Line break",
+      "undo": "Undo",
+      "redo": "Redo",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list",
+      "quote": "Quote",
+      "alignLeft": "Align left",
+      "alignCenter": "Align centre",
+      "alignRight": "Align right",
+      "moveBlockUp": "Move block up",
+      "moveBlockDown": "Move block down",
+      "duplicateBlock": "Duplicate block",
+      "deleteBlock": "Delete block",
+      "insertParagraphAfter": "Add a paragraph after the block",
+      "save": "Save",
+      "saveAndClose": "Save and close",
+      "showShortcuts": "Show shortcuts"
+    }
   }
 }

@@ -1372,6 +1372,69 @@ button.po-notice-strip-action {
   width: 818px;
 }
 
+/* The keyboard shortcuts dialog (maily-editor/cheatsheet.tsx): the groups in
+   two balanced columns, each row a label and its keycaps. */
+.po-shortcuts {
+  columns: 2;
+  column-gap: 36px;
+  margin-top: 18px;
+}
+.po-shortcuts-group {
+  break-inside: avoid;
+  margin-bottom: 24px;
+}
+.po-shortcuts-group:last-child {
+  margin-bottom: 0;
+}
+.po-shortcuts-group h3 {
+  margin: 0 0 8px;
+  font: 600 var(--po-fs-micro) var(--po-font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--po-muted);
+}
+.po-shortcuts-note {
+  margin: -2px 0 8px;
+  font-size: var(--po-fs-label);
+  line-height: 1.4;
+  color: var(--po-muted);
+}
+.po-shortcuts-group dl {
+  margin: 0;
+}
+.po-shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--po-line);
+  font-size: var(--po-fs-ui);
+}
+.po-shortcuts-row:last-child {
+  border-bottom: 0;
+}
+.po-shortcuts-row dt {
+  color: var(--po-bone);
+}
+.po-shortcuts-row dd {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  margin: 0;
+}
+.po-shortcuts-cap {
+  min-width: 22px;
+  padding: 2px 7px;
+  font-size: var(--po-fs-badge);
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .po-shortcuts {
+    columns: 1;
+  }
+}
+
 /* Sortable table headers (the console lists): the header cell is a button
    with a caret that reads ↕ at rest and ↑/↓ when the column is active. */
 .po-table thead th.po-th-sortable {
@@ -3476,6 +3539,32 @@ button.po-pf-issue:hover .po-pf-go {
 .po-tpl-settings-checks {
   padding-top: 16px;
   border-top: 1px solid var(--po-line);
+}
+/* The rail's last line: the shortcuts link, under its own rule. */
+.po-tpl-settings-foot {
+  padding-top: 12px;
+  border-top: 1px solid var(--po-line);
+}
+.po-tpl-shortcuts-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--po-r-input);
+  background: none;
+  color: var(--po-muted);
+  font: 500 var(--po-fs-label) var(--po-font-sans);
+  cursor: pointer;
+}
+.po-tpl-shortcuts-btn:hover {
+  background: var(--po-panel-raised);
+  color: var(--po-bone);
+}
+.po-tpl-shortcuts-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--po-focus-ring);
 }
 /* A drawer: fixed to its edge over a scrim, closed until it is opened. Its
    contents are inert while closed, so visibility only waits out the slide. */

@@ -108,5 +108,56 @@
     "header": "Variáveis",
     "navigate": "Navegar",
     "empty": "Nenhum campo encontrado."
+  },
+  "shortcuts": {
+    "open": "Atalhos",
+    "title": "Atalhos de teclado",
+    "space": "Espaço",
+    "groups": {
+      "insert": "Inserir",
+      "write": "Escrever",
+      "text": "Texto",
+      "blocks": "Blocos",
+      "page": "Modelo"
+    },
+    "notes": {
+      "insert": "Digite no início de uma linha vazia.",
+      "blocks": "Cada um age no bloco inteiro em que o cursor está: uma lista ou um conjunto de colunas se move como um só."
+    },
+    "actions": {
+      "slashMenu": "Abrir o menu de blocos",
+      "heading1Rule": "Título 1",
+      "heading2Rule": "Título 2",
+      "heading3Rule": "Título 3",
+      "bulletRule": "Lista com marcadores",
+      "orderedRule": "Lista numerada",
+      "quoteRule": "Citação",
+      "dividerRule": "Divisor",
+      "bold": "Negrito",
+      "italic": "Itálico",
+      "underline": "Sublinhado",
+      "strike": "Tachado",
+      "code": "Código em linha",
+      "lineBreak": "Quebra de linha",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "heading1": "Título 1",
+      "heading2": "Título 2",
+      "heading3": "Título 3",
+      "bulletList": "Lista com marcadores",
+      "orderedList": "Lista numerada",
+      "quote": "Citação",
+      "alignLeft": "Alinhar à esquerda",
+      "alignCenter": "Centralizar",
+      "alignRight": "Alinhar à direita",
+      "moveBlockUp": "Mover bloco para cima",
+      "moveBlockDown": "Mover bloco para baixo",
+      "duplicateBlock": "Duplicar bloco",
+      "deleteBlock": "Excluir bloco",
+      "insertParagraphAfter": "Adicionar parágrafo após o bloco",
+      "save": "Salvar",
+      "saveAndClose": "Salvar e fechar",
+      "showShortcuts": "Mostrar atalhos"
+    }
   }
 }

@@ -3,11 +3,23 @@ export interface ShortcutKey {
   key: string;
   metaKey: boolean;
   ctrlKey: boolean;
+  /** Optional, so a caller with only the two Mod keys still fits; absent reads as not held. */
+  shiftKey?: boolean;
+  altKey?: boolean;
+}
+
+/**
+ * ⌘ (or Ctrl) held on its own. Shift or Alt turn it into another shortcut:
+ * ⌘⇧S is the editor's strikethrough and ⌘⇧↵ adds a paragraph, so neither may
+ * save or be swallowed by the page.
+ */
+function modOnly(event: ShortcutKey): boolean {
+  return (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey;
 }
 
 /** ⌘↵ on a Mac, Ctrl+↵ elsewhere. */
 export function isModEnter(event: ShortcutKey): boolean {
-  return event.key === "Enter" && (event.metaKey || event.ctrlKey);
+  return event.key === "Enter" && modOnly(event);
 }
 
 /**
@@ -22,7 +34,7 @@ export function saveShortcut(
   event: ShortcutKey,
   dialogOpen: boolean,
 ): "save" | "saveAndClose" | "suppress" | null {
-  if (!(event.metaKey || event.ctrlKey)) return null;
+  if (!modOnly(event)) return null;
   if (event.key === "s") return dialogOpen ? "suppress" : "save";
   if (event.key === "Enter") return dialogOpen ? null : "saveAndClose";
   return null;

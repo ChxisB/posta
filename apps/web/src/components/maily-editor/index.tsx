@@ -13,12 +13,14 @@ import {
 import "@maily-to/core/style.css";
 import "./maily-theme.css";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
 import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { isModEnter } from "@/lib/save-shortcut";
+import { runBlockAction } from "./block-actions";
 import { EDITOR_BLOCKS } from "./blocks";
 import { VariableIcon } from "./icons";
+import { blockShortcutFor, currentKeyPlatform } from "./shortcuts";
 import { EditorToolbar, type TiptapEditor } from "./toolbar";
 import { createVariableNodeView } from "./variable-node-view";
 import { usePickerFields } from "./variable-picker";
@@ -88,6 +90,15 @@ const NO_PLACEHOLDER_NODES = new Set([
   "blockquote",
   "htmlCodeBlock",
 ]);
+
+/** A key pressed in the email's own text, not in a field inside it (the variable popover's input). */
+function isEmailTarget(target: EventTarget): boolean {
+  return (
+    target instanceof Element &&
+    target.closest(".ProseMirror") !== null &&
+    target.closest("input, textarea, select") === null
+  );
+}
 
 function emptyMailyDoc(): MailyDoc {
   return { type: "doc", content: [{ type: "paragraph" }] };
@@ -263,19 +274,28 @@ export function MailyEditor({
     [emit],
   );
 
+  const onSurfaceKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isModEnter(event)) {
+      event.preventDefault();
+      return;
+    }
+    if (!editor || !isEmailTarget(event.target)) return;
+    const id = blockShortcutFor(event.nativeEvent, currentKeyPlatform());
+    if (id && runBlockAction(editor, id)) event.preventDefault();
+  };
+
   return (
     <div className="po-maily">
       <EditorToolbar editor={editor} fields={fields} />
-      {/* ⌘↵ belongs to the page (the template editor saves and closes on it),
-          not to Tiptap, which would insert a line break (HardBreak binds
-          Mod-Enter) that gets saved. ProseMirror skips a key whose default is
-          already prevented; Shift+↵ still breaks the line. */}
-      <div
-        className="po-maily-surface"
-        onKeyDownCapture={(event) => {
-          if (isModEnter(event)) event.preventDefault();
-        }}
-      >
+      {/* The surface sees every key in the email before ProseMirror does, and
+          ProseMirror skips a key whose default is already prevented. That is
+          how two things are kept off Tiptap's own keymaps:
+          - ⌘↵ belongs to the page (the template editor saves and closes on it),
+            not to Tiptap, which would insert a line break (HardBreak binds
+            Mod-Enter) that gets saved. Shift+↵ still breaks the line.
+          - The block shortcuts (move, duplicate, delete, paragraph after) are
+            ours, matched from shortcuts.ts; Tiptap has no binding for them. */}
+      <div className="po-maily-surface" onKeyDownCapture={onSurfaceKeyDown}>
         {/* Spread the seed so only the one set key (contentJson OR contentHtml)
             is passed — exactOptionalPropertyTypes rejects an explicit undefined. */}
         <Editor

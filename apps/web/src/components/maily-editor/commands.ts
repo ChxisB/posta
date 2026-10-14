@@ -31,7 +31,25 @@ export interface EditorChain {
   setTextSelection(position: number | { from: number; to: number }): EditorChain;
   setNodeSelection(position: number): EditorChain;
   scrollIntoView(): EditorChain;
+  /** Runs `fn` on the chain's transaction, so a run of edits is one undo step. */
+  command(fn: (props: ChainCommandProps) => boolean): EditorChain;
   run(): boolean;
+}
+
+/** The transaction methods the block shortcuts use, as Tiptap's `command` hands them over. */
+export interface TransactionLike {
+  readonly doc: { slice(from: number, to: number): { content: unknown } };
+  insert(position: number, content: unknown): unknown;
+  delete(from: number, to: number): unknown;
+}
+
+/** What `command` passes its function: the shared transaction and the state it started from. */
+export interface ChainCommandProps {
+  tr: TransactionLike;
+  state: {
+    doc: { slice(from: number, to: number): { content: unknown } };
+    schema: { nodes: Record<string, { createAndFill(): unknown } | undefined> };
+  };
 }
 
 export interface EditorCan {
