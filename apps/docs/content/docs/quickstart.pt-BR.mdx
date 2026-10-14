@@ -62,11 +62,15 @@ O Posta só envia a partir de domínios que você verificou.
 3. Clique em **Checar DNS**. O Posta também resolve os
    registros ao vivo, então você vê na hora quais ainda faltam.
 
+![A página Domínios no painel do Posta: dois domínios de envio verificados e um ainda aguardando seus registros DNS.](/screenshots/pt-BR/domains.png)
+
 ## 3. Crie uma chave de API
 
 Vá em **Chaves de API** e crie uma. O token `po_` é exibido uma única vez —
 copie agora. Chaves podem ter acesso total ou somente envio, e opcionalmente
 ficar restritas a um único domínio.
+
+![A página Chaves de API, listando cada chave com sua permissão, o domínio ao qual está restrita e quando foi usada pela última vez.](/screenshots/pt-BR/api-keys.png)
 
 ## 4. Envie um e-mail
 
@@ -122,6 +126,8 @@ else console.log("sent", data.id);
 
 Ambos retornam `{ "id": "..." }`. Acompanhe o e-mail indo de `queued` a
 `delivered` na página **E-mails**.
+
+![A página E-mails, listando cada envio com o status de entrega.](/screenshots/pt-BR/emails.png)
 
 <Callout type="info">
 Em uma instância auto-hospedada, eventos de entrega (entregue, bounce,

@@ -70,6 +70,12 @@ button[data-checked] svg {
   }
 }
 
+/* The dashboard screenshots are dark on a dark page; a hairline keeps their
+   edge in both themes. */
+.prose img {
+  border: 1px solid var(--color-fd-border);
+}
+
 /* fumadocs-openapi's MethodLabel colors a method with a Tailwind text utility
    (GET green, POST blue, PUT yellow, PATCH orange, DELETE red). Developers
    read Postman's palette — POST yellow, PUT blue, PATCH purple — so the three

@@ -58,11 +58,15 @@ Posta only sends from domains you have verified.
 3. Click **Verify DNS records**. Posta also resolves the records live,
    so you can see immediately which ones are still missing.
 
+![The Domains page in the Posta dashboard: two verified sending domains and one still waiting for its DNS records.](/screenshots/en/domains.png)
+
 ## 3. Create an API key
 
 Go to **API keys** and create one. The `po_` token is shown once — copy it
 now. Keys can be scoped to full access or sending-only, and optionally pinned
 to a single domain.
+
+![The API keys page, listing each key with its permission, the domain it is pinned to and when it was last used.](/screenshots/en/api-keys.png)
 
 ## 4. Send an email
 
@@ -118,6 +122,8 @@ else console.log("sent", data.id);
 
 Both return `{ "id": "..." }`. Watch the email move from `queued` to
 `delivered` on the **Emails** page.
+
+![The Emails page, listing each send with its delivery status.](/screenshots/en/emails.png)
 
 <Callout type="info">
 On a self-hosted instance, delivery events (delivered, bounced, complained)

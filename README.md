@@ -8,7 +8,10 @@ Self-host on your own AWS SES, or use the hosted cloud. Resend-compatible API â€
 means changing two environment variables, not rewriting your integration.
 
 <p align="center">
-  <img src=".github/screenshots/emails.png" alt="The Posta dashboard: the Emails page, with each send's delivery status" width="900">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset=".github/screenshots/emails-light.png">
+    <img src=".github/screenshots/emails.png" alt="The Posta dashboard: the Emails page, with each send's delivery status" width="900">
+  </picture>
 </p>
 
 ## Features
@@ -35,6 +38,19 @@ means changing two environment variables, not rewriting your integration.
 | Content monitoring | âœ… | Optional outbound judge via [TypeSafe Jev](https://typesafe.ai). Off by default on self-host. |
 
 The hosted monitor uses [TypeSafe](https://typesafe.ai)'s Jev, a System One model built for typed decisions in software. A new team's mail in its first window and its broadcasts, and any team's mail to a destination it has never used, are scored before SES takes them and wait for the verdict, about half a second; everything else is sampled after it is sent, and sending never waits on it. Self-hosters leave it off unless they set `ABUSE_JUDGE=typesafe`.
+
+## A look around
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/template-editor.png" alt="The template editor: a welcome email in the block editor, with the subject, preview text and email theme in the side panel"><br><sub><b>Templates</b>: a block editor with merge fields and an email theme.</sub></td>
+    <td width="50%"><img src=".github/screenshots/metrics.png" alt="The Metrics page: daily sends, the deliverability rate and the account score, with bounce and complaint rates tracked against SES thresholds"><br><sub><b>Metrics</b>: sends over time and your rates against the SES thresholds.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/audience.png" alt="The Audience page: contact totals with a growth chart, and a table of contacts with their segments and subscription status"><br><sub><b>Audience</b>: contacts, segments and topics in one place.</sub></td>
+    <td width="50%"><img src=".github/screenshots/webhook-detail.png" alt="A webhook endpoint: its URL, signing secret and subscribed events, above a log of every delivery with the response and attempt count"><br><sub><b>Webhooks</b>: signed deliveries, with a log of every attempt.</sub></td>
+  </tr>
+</table>
 
 ## Run it locally
 
