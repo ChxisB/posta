@@ -66,29 +66,28 @@ const scenes = scenarios
   .join("");
 
 const page = `<title>Migrate CLI Before and After</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap">
 <style>
   :root {
     color-scheme: dark;
-    --void: #0a0a0a; --panel: #0c0c0d; --panel-2: #121214; --line: #1f1f22; --line-2: #2a2a2e;
-    --bone: #f4f1ea; --ink-2: #b9b5ac; --steel: #7f8791;
+    --void: #09090b; --panel: #111115; --panel-2: #18181d; --line: #26262d; --line-2: #33333c;
+    --bone: #f4f4f6; --ink-2: #9b9ba6; --steel: #9b9ba6; --accent: #a98bff;
     --ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --term-bg: #0c0c0d; --term-fg: #f4f1ea; --term-dim: #7f8791; --term-bright: #ffffff;
-    --t-green: #4ade80; --t-yellow: #facc15; --t-red: #f87171; --t-cyan: #67e8f9; --t-magenta: #e879f9; --t-blue: #93c5fd;
+    --term-bg: #111115; --term-bar: #09090b; --term-line: #26262d; --term-line-2: #33333c;
+    --term-fg: #f4f4f6; --term-dim: #9b9ba6; --term-bright: #ffffff;
+    --t-green: #5fce8b; --t-yellow: #d9ae5f; --t-red: #e07f76; --t-cyan: #8fb3d9; --t-magenta: #e88bc0; --t-blue: #7ea6db;
   }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
       color-scheme: light;
-      --void: #ecebe6; --panel: #f6f5f1; --panel-2: #ffffff; --line: #d9d7d0; --line-2: #c7c5bd;
-      --bone: #0a0a0a; --ink-2: #4a4c50; --steel: #6b737d;
+      --void: #f8f8fa; --panel: #ffffff; --panel-2: #f1f1f5; --line: #e5e5eb; --line-2: #d3d3dc;
+      --bone: #16161d; --ink-2: #62626e; --steel: #62626e; --accent: #7046e8;
     }
   }
   :root[data-theme="light"] {
     color-scheme: light;
-    --void: #ecebe6; --panel: #f6f5f1; --panel-2: #ffffff; --line: #d9d7d0; --line-2: #c7c5bd;
-    --bone: #0a0a0a; --ink-2: #4a4c50; --steel: #6b737d;
+    --void: #f8f8fa; --panel: #ffffff; --panel-2: #f1f1f5; --line: #e5e5eb; --line-2: #d3d3dc;
+    --bone: #16161d; --ink-2: #62626e; --steel: #62626e; --accent: #7046e8;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--void); color: var(--bone); font-family: var(--ui); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -103,8 +102,8 @@ const page = `<title>Migrate CLI Before and After</title>
   .rail-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--steel); padding: 4px 10px 8px; }
   .rail-item { all: unset; cursor: pointer; display: grid; gap: 2px; padding: 9px 10px; border-radius: 8px; border-left: 2px solid transparent; }
   .rail-item:hover { background: var(--panel-2); }
-  .rail-item:focus-visible { outline: 2px solid var(--steel); outline-offset: 2px; }
-  .rail-item[aria-selected="true"] { background: var(--panel-2); border-left-color: var(--steel); }
+  .rail-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rail-item[aria-selected="true"] { background: var(--panel-2); border-left-color: var(--accent); }
   .rail-title { font-weight: 500; }
   .rail-meta { font-family: var(--mono); font-size: 11.5px; color: var(--steel); font-variant-numeric: tabular-nums; display: flex; gap: 5px; }
   .rail-meta .arrow { color: var(--line-2); }
@@ -116,23 +115,23 @@ const page = `<title>Migrate CLI Before and After</title>
   .notes { grid-column: 1; margin: 0; color: var(--ink-2); max-width: 78ch; }
   .view { grid-column: 2; grid-row: 1 / span 3; display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; background: var(--panel); align-self: start; }
   .view button { all: unset; cursor: pointer; padding: 5px 12px; border-radius: 6px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
-  .view button:focus-visible { outline: 2px solid var(--steel); }
+  .view button:focus-visible { outline: 2px solid var(--accent); }
   .view button[aria-pressed="true"] { background: var(--panel-2); color: var(--bone); box-shadow: inset 0 0 0 1px var(--line-2); }
   .view kbd { font-family: var(--mono); font-size: 10.5px; color: var(--steel); margin-left: 6px; }
   .stage { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
   .stage[data-view="side"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stage[data-view="before"] .win[data-build="after"], .stage[data-view="after"] .win[data-build="before"] { display: none; }
   .win { min-width: 0; background: var(--term-bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
-  .bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 9px 12px; border-bottom: 1px solid #1f1f22; background: #0a0a0a; color: var(--term-dim); font-family: var(--mono); font-size: 11.5px; }
+  .bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--term-line); background: var(--term-bar); color: var(--term-dim); font-family: var(--mono); font-size: 11.5px; }
   .dots { display: inline-flex; gap: 6px; }
-  .dots i { width: 10px; height: 10px; border-radius: 50%; background: #1f1f22; border: 1px solid #2a2a2e; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--term-line); border: 1px solid var(--term-line-2); }
   .bar-title { text-align: center; }
-  .chip { justify-self: end; padding: 2px 8px; border-radius: 999px; border: 1px solid #2a2a2e; font-size: 11px; color: #b9b5ac; }
-  .chip-after { border-color: var(--steel); color: #f4f1ea; }
-  .screen { overflow: auto; padding: 16px 18px 18px; max-height: 72vh; scrollbar-color: #2a2a2e #0c0c0d; }
-  .screen:focus-visible { outline: 2px solid var(--steel); outline-offset: -2px; }
+  .chip { justify-self: end; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--term-line-2); font-size: 11px; color: var(--term-dim); }
+  .chip-after { border-color: #a98bff; color: var(--term-fg); }
+  .screen { overflow: auto; padding: 16px 18px 18px; max-height: 72vh; scrollbar-color: var(--term-line-2) var(--term-bg); }
+  .screen:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   .term { margin: 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.5; color: var(--term-fg); min-width: calc(var(--cols) * 1ch); tab-size: 8; }
-  .foot { display: flex; gap: 16px; padding: 7px 14px; border-top: 1px solid #1f1f22; font-family: var(--mono); font-size: 11px; color: var(--term-dim); font-variant-numeric: tabular-nums; }
+  .foot { display: flex; gap: 16px; padding: 7px 14px; border-top: 1px solid var(--term-line); font-family: var(--mono); font-size: 11px; color: var(--term-dim); font-variant-numeric: tabular-nums; }
   .term .bold { font-weight: 700; color: var(--term-bright); }
   .term .dim, .term .fg-90 { color: var(--term-dim); }
   .term .fg-97 { color: var(--term-bright); }

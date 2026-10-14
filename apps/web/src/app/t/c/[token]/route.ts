@@ -108,14 +108,14 @@ async function hostServesTeam(db: Db, host: string, teamId: string): Promise<boo
 }
 
 const STYLE = [
-  ":root{color-scheme:dark light;background:#000;color:#f4f1ea;font:15px/1.5 system-ui,sans-serif}",
+  ":root{color-scheme:dark light;background:#09090b;color:#f4f4f6;font:15px/1.5 system-ui,sans-serif}",
   "body{margin:0}",
   "main{box-sizing:border-box;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center}",
-  'h1{margin:0;font:500 28px/1.1 Georgia,"Times New Roman",serif;letter-spacing:-0.02em}',
-  "p{margin:0;max-width:440px;color:#918f89}",
-  "strong{color:#f4f1ea;overflow-wrap:anywhere}",
-  "a{margin-top:8px;padding:8px 14px;border-radius:6px;background:#f4f1ea;color:#050505;font-weight:600;text-decoration:none;overflow-wrap:anywhere}",
-  "@media (prefers-color-scheme:light){:root{background:#faf8f4;color:#21201c}p{color:#6e6c66}strong{color:#21201c}a{background:#21201c;color:#f4f1ea}}",
+  "h1{margin:0;font:600 28px/1.1 system-ui,sans-serif;letter-spacing:-0.02em}",
+  "p{margin:0;max-width:440px;color:#9b9ba6}",
+  "strong{color:#f4f4f6;overflow-wrap:anywhere}",
+  "a{margin-top:8px;padding:8px 14px;border-radius:10px;background:#7046e8;color:#ffffff;font-weight:600;text-decoration:none;overflow-wrap:anywhere}",
+  "@media (prefers-color-scheme:light){:root{background:#f8f8fa;color:#16161d}p{color:#62626e}strong{color:#16161d}}",
 ].join("");
 
 /**

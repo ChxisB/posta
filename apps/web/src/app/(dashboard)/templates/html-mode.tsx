@@ -12,7 +12,7 @@ import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
 import { PreviewSchemePills } from "@/components/preview-scheme-pills";
 import { BtnSpinner } from "@/components/spinner";
 import { findMatches, nearestMatch, stepMatch } from "@/lib/code-find";
-import { emulateEmailScheme } from "@/lib/email-preview";
+import { emailFrameBackground, emulateEmailScheme } from "@/lib/email-preview";
 import { type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
 import { usePreviewScheme } from "@/lib/use-preview-scheme";
 import { fillMergeSamples } from "../broadcasts/parts";
@@ -260,7 +260,7 @@ function CodePreview({
       </div>
       <div
         className="po-tpl-code-frame"
-        style={filled ? { background: scheme === "dark" ? "#111113" : "#ffffff" } : undefined}
+        style={filled ? { background: emailFrameBackground(scheme) } : undefined}
       >
         {filled ? (
           <iframe

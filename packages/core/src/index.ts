@@ -444,6 +444,7 @@ export {
 } from "./file-type.js";
 export {
   accountMailCard,
+  EMAIL_COLOURS,
   EMAIL_WHITE_TILE_URL,
   EMAIL_WORDMARK_BONE_URL,
   EMAIL_WORDMARK_INK_URL,

@@ -33,7 +33,7 @@ describe("contrastTextColor", () => {
     expect(contrastTextColor("#000000")).toBe("#ffffff");
     expect(contrastTextColor("#1a1a2e")).toBe("#ffffff");
     expect(contrastTextColor("#ffffff")).toBe("#000000");
-    expect(contrastTextColor("#f4f1ea")).toBe("#000000");
+    expect(contrastTextColor("#f4f4f6")).toBe("#000000");
   });
 });
 

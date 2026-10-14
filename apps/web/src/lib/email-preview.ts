@@ -1,5 +1,15 @@
 export type EmailScheme = "light" | "dark";
 
+/**
+ * What shows behind a preview frame whose message is shorter than the frame.
+ * The two literals are the recipient's side of the glass, so they stay put
+ * when the dashboard changes theme: the dark one is the dashboard's dark
+ * panel (--po-panel), the light one is white.
+ */
+export function emailFrameBackground(scheme: EmailScheme): string {
+  return scheme === "dark" ? "#111115" : "#ffffff";
+}
+
 /*
  * Approximation of how dark-mode mail clients (Gmail's auto-darkening, Apple
  * Mail with supported-color-schemes) transform a light email: invert + rotate

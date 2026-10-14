@@ -139,17 +139,49 @@ export function fillTemplate(template: string, values: Record<string, string>): 
   return template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
 }
 
-const MUTED =
-  'class="po-muted" style="font-size:13px;line-height:1.5;color:#52525b;margin:24px 0 0"';
+/**
+ * The account mail's colours as literals, because email clients do not read
+ * CSS variables. Each one is a dashboard token (apps/web/src/styles/tokens/
+ * colors.css): page is --po-void, card --po-panel, text --po-bone, muted
+ * --po-muted, link --po-accent-text, button --po-accent and onButton
+ * --po-on-accent. apps/web/test/brand-rules.test.ts ties them to the tokens
+ * and holds the text pairs to 4.5:1. Light is the look a client with no
+ * theme gets; dark is what the rules below swap in.
+ */
+export const EMAIL_COLOURS = {
+  light: {
+    page: "#f8f8fa",
+    card: "#ffffff",
+    text: "#16161d",
+    muted: "#62626e",
+    link: "#7046e8",
+    button: "#7046e8",
+    onButton: "#ffffff",
+  },
+  dark: {
+    page: "#09090b",
+    card: "#111115",
+    text: "#f4f4f6",
+    muted: "#9b9ba6",
+    link: "#a98bff",
+    button: "#7046e8",
+    onButton: "#ffffff",
+  },
+} as const;
 
-/** The dark theme, in the dashboard's tokens: void, panel, bone, muted; the button flips to bone on ink. */
+const LIGHT = EMAIL_COLOURS.light;
+const DARK = EMAIL_COLOURS.dark;
+
+const MUTED = `class="po-muted" style="font-size:13px;line-height:1.5;color:${LIGHT.muted};margin:24px 0 0"`;
+
+/** The dark theme: the button stays flat violet with white text, as in the dashboard. */
 const DARK_RULES = [
-  ".po-page{background:#0a0a0a !important}",
-  ".po-card{background:#0c0c0d !important}",
-  ".po-text{color:#f4f1ea !important}",
-  ".po-muted{color:#918f89 !important}",
-  ".po-link{color:#f4f1ea !important}",
-  ".po-btn{background:#f4f1ea !important;color:#0c0c0d !important}",
+  `.po-page{background:${DARK.page} !important}`,
+  `.po-card{background:${DARK.card} !important}`,
+  `.po-text{color:${DARK.text} !important}`,
+  `.po-muted{color:${DARK.muted} !important}`,
+  `.po-link{color:${DARK.link} !important}`,
+  `.po-btn{background:${DARK.button} !important;color:${DARK.onButton} !important}`,
   ".po-ink{display:none !important}",
   ".po-bone{display:block !important}",
 ];
@@ -181,8 +213,8 @@ const STYLE = [
 ].join("\n");
 
 const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;line-height:0">
-      <img class="po-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="Posta" style="display:block;height:24px;width:auto;border:0">
-      <!--[if !mso]><!--><img class="po-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="Posta" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference"><!--<![endif]-->
+      <img class="po-ink" src="${EMAIL_WORDMARK_INK_URL}" width="174" height="24" alt="Posta" style="display:block;height:24px;width:auto;border:0;color:${LIGHT.text};font:700 20px/24px -apple-system,'Segoe UI',Roboto,sans-serif">
+      <!--[if !mso]><!--><img class="po-bone" src="${EMAIL_WORDMARK_BONE_URL}" width="174" height="24" alt="Posta" style="display:none;height:24px;width:auto;border:0;mix-blend-mode:difference;color:${DARK.text};font:700 20px/24px -apple-system,'Segoe UI',Roboto,sans-serif"><!--<![endif]-->
     </a>`;
 
 /**
@@ -192,7 +224,7 @@ const WORDMARK = `<a href="${SITE_URL}" style="display:block;margin:0 0 24px;lin
  */
 function buttons(url: string, label: string): string {
   const text = "font-size:14px;font-weight:600";
-  return `<a class="po-btn" href="${url}" style="display:inline-block;background:#18181b;color:#ffffff;${text};text-decoration:none;border-radius:8px;padding:12px 20px;margin-top:12px">${label}</a>
+  return `<a class="po-btn" href="${url}" style="display:inline-block;background:${LIGHT.button};color:${LIGHT.onButton};${text};text-decoration:none;border-radius:8px;padding:12px 20px;margin-top:12px">${label}</a>
     <!--[if !mso]><!--><a class="po-gmail" href="${url}" style="display:none;${text};background:#ffffff url(${EMAIL_WHITE_TILE_URL});mix-blend-mode:difference;border-radius:8px;padding:12px 20px;margin-top:12px;text-decoration:none"><span style="mix-blend-mode:difference"><span style="background:#000000;mix-blend-mode:screen"><span style="background:#000000;mix-blend-mode:difference"><span style="color:#ffffff">${label}</span></span></span></span></a><!--<![endif]-->`;
 }
 
@@ -217,19 +249,19 @@ export function accountMailCard(input: {
 }): { html: string; text: string } {
   const url = input.url === undefined ? undefined : escapeHtml(input.url);
   const heading = input.heading
-    ? `<p class="po-text" style="font-size:22px;line-height:1.3;font-weight:700;color:#18181b;margin:0 0 12px;font-variant-numeric:tabular-nums">${escapeHtml(input.heading)}</p>\n    `
+    ? `<p class="po-text" style="font-size:22px;line-height:1.3;font-weight:700;color:${LIGHT.text};margin:0 0 12px;font-variant-numeric:tabular-nums">${escapeHtml(input.heading)}</p>\n    `
     : "";
   const paragraphs = input.paragraphs
     .map(
       (p) =>
-        `<p class="po-text" style="font-size:14px;line-height:1.5;color:#18181b;margin:0 0 12px">${escapeHtml(p)}</p>`,
+        `<p class="po-text" style="font-size:14px;line-height:1.5;color:${LIGHT.text};margin:0 0 12px">${escapeHtml(p)}</p>`,
     )
     .join("\n    ");
   const button =
     url !== undefined && input.button ? `\n    ${buttons(url, escapeHtml(input.button))}` : "";
   const fallback =
     url !== undefined && input.linkFallback
-      ? `\n    <p ${MUTED}>${escapeHtml(input.linkFallback)}<br><a class="po-link" href="${url}" style="color:#18181b;word-break:break-all">${url}</a></p>`
+      ? `\n    <p ${MUTED}>${escapeHtml(input.linkFallback)}<br><a class="po-link" href="${url}" style="color:${LIGHT.link};word-break:break-all">${url}</a></p>`
       : "";
   const muted = input.muted.map((m) => `<p ${MUTED}>${escapeHtml(m)}</p>`).join("\n    ");
   const html = `<!DOCTYPE html>
@@ -244,8 +276,8 @@ ${STYLE}
 </style>
 </head>
 <body class="body" style="margin:0;padding:0">
-<div class="po-page" style="background:#f4f4f5;padding:32px 16px;font-family:-apple-system,'Segoe UI',Roboto,sans-serif">
-  <div class="po-card" style="max-width:440px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px">
+<div class="po-page" style="background:${LIGHT.page};padding:32px 16px;font-family:-apple-system,'Segoe UI',Roboto,sans-serif">
+  <div class="po-card" style="max-width:440px;margin:0 auto;background:${LIGHT.card};border-radius:12px;padding:32px">
     ${WORDMARK}
     ${heading}${paragraphs}${button}${fallback}
     ${muted}

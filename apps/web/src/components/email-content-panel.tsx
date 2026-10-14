@@ -8,7 +8,11 @@ import { CopyButton, CopyGlyph } from "@/components/copy-chip";
 import { Drawer } from "@/components/drawer";
 import { PreviewSchemePills } from "@/components/preview-scheme-pills";
 import { Switch } from "@/components/switch";
-import { emulateEmailScheme, lockDownReceivedHtml } from "@/lib/email-preview";
+import {
+  emailFrameBackground,
+  emulateEmailScheme,
+  lockDownReceivedHtml,
+} from "@/lib/email-preview";
 import { formatDayTime } from "@/lib/format";
 import { formatHtml } from "@/lib/html";
 import { BAND_TONE, checkGlyph, formatScoreTenths } from "@/lib/score-band";
@@ -467,7 +471,7 @@ export function EmailContentPanel({
                   height: 640,
                   border: 0,
                   borderRadius: "0 0 12px 12px",
-                  background: scheme === "dark" ? "#111113" : "#ffffff",
+                  background: emailFrameBackground(scheme),
                 }}
               />
             ) : (
