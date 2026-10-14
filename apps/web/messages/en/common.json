@@ -11,6 +11,7 @@
   "exportCsv": "Export CSV",
   "cancel": "Cancel",
   "openNav": "Open navigation",
+  "sidebar": "Sidebar",
   "signOut": "Log out",
   "nameRule": "Names can't contain links, email addresses, phone numbers, line breaks or hidden characters, and can be up to {max} characters long.",
   "accountMenu": {

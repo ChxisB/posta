@@ -11,6 +11,7 @@
   "exportCsv": "Exportar CSV",
   "cancel": "Cancelar",
   "openNav": "Abrir navegação",
+  "sidebar": "Barra lateral",
   "signOut": "Sair",
   "nameRule": "Nomes não podem ter links, endereços de e-mail, números de telefone, quebras de linha nem caracteres invisíveis, e podem ter até {max} caracteres.",
   "accountMenu": {

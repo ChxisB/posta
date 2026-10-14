@@ -199,6 +199,7 @@ export function Sidebar({
   return (
     <aside
       className={className}
+      aria-label={tCommon("sidebar")}
       style={{
         width: 240,
         flexShrink: 0,

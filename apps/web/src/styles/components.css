@@ -3660,6 +3660,17 @@ button.po-pf-issue:hover .po-pf-go {
   align-self: flex-start;
   margin-left: -6px;
 }
+/* A longer label in a narrow rail shrinks its segment (and ends in an
+   ellipsis) instead of pushing the rail sideways. */
+.po-etheme .po-seg {
+  max-width: 100%;
+}
+.po-etheme .po-seg > button {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* The rail's last line: the shortcuts link, under its own rule. */
 .po-tpl-settings-foot {
   padding-top: 12px;
