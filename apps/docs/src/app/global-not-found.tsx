@@ -1,3 +1,4 @@
+import "@fontsource-variable/geist";
 import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";

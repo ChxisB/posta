@@ -1,4 +1,4 @@
-/* MillionSend spacing (4px base) + radii. */
+/* Posta spacing (4px base) + radii. */
 :root {
   --po-sp-1: 4px;
   --po-sp-2: 8px;
@@ -13,8 +13,8 @@
   --po-sidebar-w: 300px;
   --po-r-chip: 6px; /* badges, keycaps, tag chips */
   --po-r-input: 10px; /* inputs, buttons, selects */
-  --po-r-card: 14px; /* cards, tables, code panels */
-  --po-r-tile: 16px; /* hero icon tiles, empty-state panels */
+  --po-r-card: 16px; /* cards, tables, code panels (rounded-2xl) */
+  --po-r-tile: 8px; /* hero icon tiles, empty-state panels (rounded-lg) */
   --po-r-modal: 22px; /* modals, popovers, drawers */
   --po-r-pill: 999px;
 }

@@ -8,17 +8,20 @@ sanctioned exception is the touch text-field size (Controls).
 
 ## The five rules
 
-1. **Steel `#7F8791` appears exactly once per view** — the primary CTA, the
+1. **The accent appears exactly once per view** — the primary CTA, the
    live status dot, or the lit odometer digit. If two things are lit, one is
-   wrong. The primary button is **bone-filled**, not steel.
+   wrong. The primary button is **flat violet** (`--po-accent`, white text);
+   violet as text or a mark uses `--po-accent-text`. The Coral → Rose →
+   Violet gradient (`--po-brand-gradient`) is for the mark and large brand
+   moments only, never a button or text fill.
 2. **Separation by darkness + 1px `--po-line` lines.** No shadows, no colored
    card fills, no elevation system. The only glow is the steel focus ring.
-3. **Erode at display sizes (≥20px) only, weight 500** (page titles 30px,
-   card/modal titles 22px — `.po-display`). UI/body = system grotesque. Data
-   (IDs, emails, DNS, code) = JetBrains Mono (`.po-mono`).
+3. **Geist for display and UI** (page titles 30px, card/modal titles 22px —
+   `.po-display`, weight 600). Data (IDs, emails, DNS, code) = JetBrains Mono
+   (`.po-mono`).
 4. **Every number that counts = tabular figures, weight 800** (`.po-digits`),
    animating as an odometer digit-roll — the product's only flourish
-   (`prefers-reduced-motion` → plain swap). Never Erode for numbers.
+   (`prefers-reduced-motion` → plain swap).
 5. **Status colors stay dim and desaturated and always carry text labels.**
    Semantic only, never decorative, never the accent.
 
@@ -52,9 +55,8 @@ other icon fonts or icon libraries. Logos in
 
 ## Fonts
 
-- **Erode** (Fontshare, © Indian Type Foundry): loaded from the Fontshare
-  CDN in the root layout. The EULA forbids committing the font files to this
-  repository — never vendor them. Georgia/serif is the offline fallback.
+- **Geist** (OFL): `@fontsource-variable/geist` (one variable file, 100–900),
+  imported in the root layout; the system grotesque is the fallback.
 - **JetBrains Mono** (OFL): `@fontsource/jetbrains-mono` (400/500/700).
 
 ## Layout

@@ -1,4 +1,4 @@
-/* MillionSend motion — everything is a 120–180ms fade; the odometer digit-roll is the only flourish. */
+/* Posta motion — everything is a 120–180ms fade; the odometer digit-roll is the only flourish. */
 :root {
   --po-dur-fast: 120ms; /* hovers, dropdowns in */
   --po-dur-base: 160ms; /* fades, transforms */
@@ -6,5 +6,5 @@
   --po-dur-digit: 400ms; /* odometer roll per digit-cascade step (300–500ms) */
   --po-ease: cubic-bezier(0.25, 0, 0.15, 1);
   --po-focus-border: var(--po-line-strong);
-  --po-focus-ring: 0 0 0 2px rgba(127, 135, 145, 0.35); /* steel-tinted — the only glow */
+  /* --po-focus-ring is a colour, so it lives with each theme in colors.css. */
 }

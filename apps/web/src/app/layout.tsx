@@ -1,3 +1,4 @@
+import "@fontsource-variable/geist";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/700.css";

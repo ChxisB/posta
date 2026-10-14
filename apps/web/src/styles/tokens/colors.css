@@ -1,35 +1,63 @@
-/* MillionSend colors — canonical values from design-system/tokens.css ("Rollover").
-   Dark is the default (no data-theme attribute); the light set below redefines
-   the full set. Either set also applies from any element carrying the
-   attribute, so a preview frame can show the other scheme inside the app. */
+/* Posta colors. Dark is the default (no data-theme attribute); the light set
+   below redefines the full set. Either set also applies from any element
+   carrying the attribute, so a preview frame can show the other scheme inside
+   the app. Token names are kept from the earlier palette ("bone" is the
+   primary text colour, "steel" the accent); the values are Posta's.
+   Neutrals are cool and nearly grey so the violet carries the brand; they are
+   provisional until the Brand Book (Q6) gives final ink and slate values.
+   apps/web/src/test-support/contrast.test.ts holds every text pair here to
+   4.5:1 (3:1 for non-text UI) in both themes. */
+
+/* The brand: the same in both themes. The gradient is for the mark and large
+   brand moments only (never a button or text fill: white fails on Coral and
+   Rose); interactive things use the flat violet below. */
+:root {
+  --po-brand-coral: #ff6a3d;
+  --po-brand-rose: #e8458b;
+  --po-brand-violet: #7046e8;
+  --po-brand-gradient: linear-gradient(
+    135deg,
+    var(--po-brand-coral) 0%,
+    var(--po-brand-rose) 50%,
+    var(--po-brand-violet) 100%
+  );
+}
+
 :root,
 [data-theme="dark"] {
   /* Ground & surfaces — separation comes from darkness + 1px lines, plus a
      subtle edge-lit lift on floating/card surfaces (--po-shadow-card below) */
-  --po-void: #000000; /* app/page ground */
-  --po-ground: #050505; /* alternate ground (large editorial surfaces) */
-  --po-panel: #0c0c0d; /* sidebar, cards, drawers, modals */
-  --po-panel-raised: #131316; /* table header strips, hover rows, active nav pill */
-  --po-inset: #18181b; /* inputs, code blocks, token chips */
+  --po-void: #09090b; /* app/page ground */
+  --po-ground: #0c0c0f; /* alternate ground (large editorial surfaces) */
+  --po-panel: #111115; /* sidebar, cards, drawers, modals */
+  --po-panel-raised: #18181d; /* table header strips, hover rows, active nav pill */
+  --po-inset: #1d1d23; /* inputs, code blocks, token chips */
   /* Lines */
-  --po-line: #1f1f22; /* all borders, dividers, table rules — 1px, never heavier */
-  --po-line-strong: #2a2a2e; /* menu/modal borders, focused-input border */
+  --po-line: #26262d; /* all borders, dividers, table rules — 1px, never heavier */
+  --po-line-strong: #33333c; /* menu/modal borders, focused-input border */
   /* Elevation — one edge-lit lift for cards/popovers on the void ground: a soft
-     outer shadow with a barely-there bone top-highlight folded in. Tuned far
-     gentler than the LP's hero --lp-shadow so a page dense with cards stays calm. */
+     outer shadow with a barely-there top-highlight folded in, gentle enough
+     that a page dense with cards stays calm. */
   --po-shadow-card:
     0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(244, 241, 234, 0.045);
+    inset 0 1px 0 rgba(244, 244, 246, 0.045);
   /* Top-edge highlight for glowing card borders (.po-card-glow): brighter at
      the top, fading to the normal line down the sides. */
-  --po-glow-edge: rgba(244, 241, 234, 0.18);
+  --po-glow-edge: rgba(244, 244, 246, 0.18);
   /* Text */
-  --po-bone: #f4f1ea; /* primary text — warm off-white, never pure white */
-  --po-muted: #918f89; /* secondary text, labels, timestamps (≥6:1 on panel) */
-  --po-faint: #5a5854; /* DISABLED/DECORATIVE ONLY — 2.8:1, never readable copy */
-  /* The accent — spent exactly once per view: primary CTA, live dot, or the newborn digit */
-  --po-steel: #7f8791;
-  /* Status families — dim + desaturated so steel keeps authority; always carry a text label */
+  --po-bone: #f4f4f6; /* primary text — off-white, never pure white */
+  --po-muted: #9b9ba6; /* secondary text, labels, timestamps (≥6:1 on panel) */
+  --po-faint: #5c5c66; /* DISABLED/DECORATIVE ONLY — under 3:1, never readable copy */
+  /* The accent. Fills (primary buttons, checked controls) are the flat brand
+     violet with white on it in both themes; violet as text, lines and marks
+     is lifted to a lighter tint here so it reads on the dark ground. */
+  --po-accent: #7046e8; /* primary button and checked-control fill */
+  --po-accent-hover: #7d55f0; /* primary button hover (white stays ≥4.5:1) */
+  --po-on-accent: #ffffff; /* text and ticks on an accent fill */
+  --po-accent-text: #a98bff; /* links, the lit digit, charts, the focus ring */
+  --po-steel: var(--po-accent-text); /* the accent's earlier name, kept for its users */
+  --po-focus-ring: 0 0 0 2px rgba(169, 139, 255, 0.6); /* the only glow */
+  /* Status families — dim + desaturated so the accent keeps authority; always carry a text label */
   --po-success: #5fce8b;
   --po-success-bg: #0f2519;
   --po-success-border: #1c3a28;
@@ -70,32 +98,36 @@
   --po-dot-failed: #cf5546;
 }
 
-/* Light theme — warm paper ground, ink text, cool-gray hairlines. Same roles,
+/* Light theme — near-white ground, ink text, cool-grey hairlines. Same roles,
    inverted values; separation still comes from tone + 1px lines, plus a much
-   softer edge-lit lift than dark (paper shows a heavy shadow as dirt).
+   softer edge-lit lift than dark (a light ground shows a heavy shadow as dirt).
    Status text holds ≥4.5:1 on its tinted background. The attribute is set
    pre-paint by the inline script in the root layout (explicit toggle only —
    system preference is not followed). */
 :root[data-theme="light"],
 [data-theme="light"] {
-  --po-void: #faf8f4;
-  --po-ground: #f4f1ea;
-  --po-panel: #fffefb;
-  --po-panel-raised: #f1eee7;
-  --po-inset: #f6f4ee;
-  --po-line: #e7e6e2;
-  --po-line-strong: #d7d6d1;
-  /* Softer than dark, with a white top-highlight — cards lift off paper without
-     the shadow reading as grime. */
+  --po-void: #f8f8fa;
+  --po-ground: #f3f3f6;
+  --po-panel: #ffffff;
+  --po-panel-raised: #f1f1f5;
+  --po-inset: #f5f5f8;
+  --po-line: #e5e5eb;
+  --po-line-strong: #d3d3dc;
+  /* Softer than dark, with a white top-highlight — cards lift off the ground
+     without the shadow reading as grime. */
   --po-shadow-card:
-    0 1px 2px rgba(31, 30, 26, 0.06), 0 8px 24px rgba(31, 30, 26, 0.08),
+    0 1px 2px rgba(22, 22, 29, 0.06), 0 8px 24px rgba(22, 22, 29, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --po-glow-edge: rgba(31, 30, 26, 0.16);
-  --po-bone: #21201c;
-  --po-muted: #6e6c66;
-  --po-faint: #a9a7a0;
-  /* Steel keeps its hue, dropped in lightness so accents stay readable on paper. */
-  --po-steel: #59616b;
+  --po-glow-edge: rgba(22, 22, 29, 0.16);
+  --po-bone: #16161d;
+  --po-muted: #62626e;
+  --po-faint: #a5a5b0;
+  /* The brand violet reads on a light ground as it is, as text and as a fill. */
+  --po-accent: #7046e8;
+  --po-accent-hover: #6236dc;
+  --po-on-accent: #ffffff;
+  --po-accent-text: #7046e8;
+  --po-steel: var(--po-accent-text);
   --po-success: #1f7a46;
   --po-success-bg: #e9f5ee;
   --po-success-border: #c5e2d1;
@@ -118,7 +150,7 @@
   --po-pink-bg: #fbe9f3;
   --po-pink-border: #efc3dc;
   /* Dots — same grammar (grays in flight, chroma on delivery events),
-     darkened so 8px dots survive the paper ground. */
+     darkened so 8px dots survive the light ground. */
   --po-dot-queued: #8a8880;
   --po-dot-queued-quota: #8f7336;
   --po-dot-sent: #75736d;
@@ -131,5 +163,6 @@
   --po-dot-account: #4f7aa8;
   --po-dot-suppressed: #a5a39a;
   --po-dot-failed: #c0392b;
-  --po-focus-ring: 0 0 0 2px rgba(89, 97, 107, 0.28);
+  /* 0.75 keeps the ring at 3:1 on every light surface; 0.7 does not. */
+  --po-focus-ring: 0 0 0 2px rgba(112, 70, 232, 0.75);
 }

@@ -1,3 +1,4 @@
+import "@fontsource-variable/geist";
 import "../global.css";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/next";

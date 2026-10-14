@@ -13,7 +13,7 @@ export function NotFoundPanel() {
       <div className="font-extrabold text-[clamp(64px,12vw,96px)] text-fd-foreground leading-none tabular-nums tracking-[-0.01em]">
         404
       </div>
-      <h1 className="font-[Erode,Georgia,serif] font-medium text-[28px] text-fd-foreground leading-[1.1] tracking-[-0.02em]">
+      <h1 className="font-semibold text-[28px] text-fd-foreground leading-[1.1] tracking-[-0.02em]">
         No such page.
       </h1>
       <p className="max-w-[440px] text-[15px] text-fd-muted-foreground">

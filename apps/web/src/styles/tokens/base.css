@@ -1,4 +1,4 @@
-/* Base surface + canonical helper classes (verbatim from source tokens.css). */
+/* Base surface + canonical helper classes. */
 /* iOS Safari scales up text it judges small for its block (text autosizing):
    in a list that scrolls sideways, a row with a long value would render at
    nearly twice the size of the rows around it. Safari reads only the prefixed
@@ -47,12 +47,13 @@ body.po {
   text-transform: uppercase;
   color: var(--po-muted);
 }
-/* Links — bone with dotted faint underline (table link treatment generalized) */
+/* Links — accent text with a dotted underline. Table rows, nav, crumbs and
+   buttons set their own colour (components.css). */
 a {
-  color: var(--po-bone);
-  text-decoration: underline dotted var(--po-faint);
+  color: var(--po-accent-text);
+  text-decoration: underline dotted color-mix(in srgb, var(--po-accent-text) 55%, transparent);
   text-underline-offset: 3px;
 }
 a:hover {
-  text-decoration-color: var(--po-muted);
+  text-decoration-color: var(--po-accent-text);
 }

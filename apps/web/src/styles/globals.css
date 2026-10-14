@@ -1,5 +1,5 @@
-/* Design-system entry. JetBrains Mono loads via @fontsource imports in the
-   root layout (OFL); the UI sans is the system stack, nothing to load. */
+/* Design-system entry. Geist (the UI sans) and JetBrains Mono (data) load
+   via @fontsource imports in the root layout (both OFL), never from a CDN. */
 @import "./tokens/colors.css";
 @import "./tokens/typography.css";
 @import "./tokens/spacing.css";

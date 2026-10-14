@@ -1,5 +1,5 @@
-/* MillionSend component classes — ported from design-system/components.html (reference implementations).
-   React components apply these classes; values come from token custom properties.
+/* Posta component classes. React components apply these classes; values come
+   from the token custom properties in tokens/.
    Hover/press opacity steps are inferred from the source's `transition: opacity` spec (see design-system readme). */
 
 /* Overlay stacking — portaled/floating layers sit far above any page-content
@@ -21,7 +21,7 @@
   box-sizing: border-box;
 }
 
-/* Buttons — one primary (bone) per view; keycaps ride inside modal buttons */
+/* Buttons — one primary (flat violet) per view; keycaps ride inside modal buttons */
 .po-btn {
   font: 600 var(--po-fs-ui) var(--po-font-sans);
   border-radius: var(--po-r-input);
@@ -52,8 +52,15 @@
   cursor: default;
 }
 .po-btn-primary {
-  background: var(--po-bone);
-  color: var(--po-ground);
+  background: var(--po-accent);
+  color: var(--po-on-accent);
+}
+/* The fill shifts instead of fading: a faded violet would drop white text
+   under 4.5:1 on the light ground. */
+.po-btn-primary:hover:not(:disabled),
+.po-btn-primary:active:not(:disabled) {
+  opacity: 1;
+  background: var(--po-accent-hover);
 }
 .po-btn-secondary {
   background: var(--po-panel-raised);
@@ -129,8 +136,8 @@
   color: var(--po-muted);
 }
 .po-btn-primary .po-keycap {
-  background: color-mix(in srgb, var(--po-ground) 14%, transparent);
-  color: var(--po-ground);
+  background: color-mix(in srgb, var(--po-on-accent) 18%, transparent);
+  color: var(--po-on-accent);
 }
 
 /* Status badges — semantic, dim, always labelled */
@@ -739,14 +746,15 @@ table.po-table {
   text-decoration: underline dotted var(--po-faint);
   text-underline-offset: 3px;
 }
-/* Inline text link: the same dotted underline, always on so it reads as a link mid-sentence. */
+/* Inline text link: accent text with the dotted underline, always on so it
+   reads as a link mid-sentence. */
 .po-link {
-  color: inherit;
-  text-decoration: underline dotted var(--po-faint);
+  color: var(--po-accent-text);
+  text-decoration: underline dotted color-mix(in srgb, var(--po-accent-text) 55%, transparent);
   text-underline-offset: 3px;
 }
 .po-link:hover {
-  text-decoration-color: var(--po-bone);
+  text-decoration-color: var(--po-accent-text);
 }
 
 /* Field/form error line — always block-level with breathing room so it never
@@ -843,20 +851,14 @@ table.po-table {
 }
 .po-checkbox:checked,
 .po-checkbox:indeterminate {
-  background-color: var(--po-bone);
-  border-color: var(--po-bone);
+  background-color: var(--po-accent);
+  border-color: var(--po-accent);
 }
 .po-checkbox:checked {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5' fill='none' stroke='%23050505' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 .po-checkbox:indeterminate {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' fill='none' stroke='%23050505' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
-}
-[data-theme="light"] .po-checkbox:checked {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5' fill='none' stroke='%23f4f1ea' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-[data-theme="light"] .po-checkbox:indeterminate {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' fill='none' stroke='%23f4f1ea' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 .po-checkbox:focus-visible {
   outline: none;
@@ -1545,7 +1547,7 @@ button.po-notice-strip-action {
 }
 .po-radio-card input {
   margin-top: 3px;
-  accent-color: var(--po-steel);
+  accent-color: var(--po-accent);
 }
 .po-radio-card .sub {
   color: var(--po-muted);
@@ -2141,7 +2143,7 @@ summary:focus-visible,
 .po-events {
   margin-top: 12px;
   border: 1px solid var(--po-line);
-  border-radius: 14px;
+  border-radius: var(--po-r-card);
   padding: 30px 26px;
   background-image: radial-gradient(var(--po-line) 1px, transparent 1px);
   background-size: 18px 18px;
@@ -2992,8 +2994,7 @@ summary:focus-visible,
 }
 
 /* Status pages (404 / error boundary): the counting-number treatment as the
-   hero, one serif sentence, one muted line, the app's own buttons. Erode is
-   display type only, never UI text or digits. */
+   hero, one display sentence, one muted line, the app's own buttons. */
 .po-status {
   min-height: 100dvh;
   display: flex;
@@ -3011,9 +3012,9 @@ summary:focus-visible,
 }
 .po-status-title {
   margin: 0;
-  font-family: "Erode", Georgia, "Times New Roman", serif;
+  font-family: var(--po-font-sans);
   font-size: 28px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
   color: var(--po-bone);
@@ -3310,7 +3311,7 @@ summary:focus-visible,
 .po-slider::-webkit-slider-runnable-track {
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(to right, var(--po-bone) var(--po-slider-p), var(--po-line) 0);
+  background: linear-gradient(to right, var(--po-accent) var(--po-slider-p), var(--po-line) 0);
 }
 .po-slider::-moz-range-track {
   height: 2px;
@@ -3320,7 +3321,7 @@ summary:focus-visible,
 .po-slider::-moz-range-progress {
   height: 2px;
   border-radius: 1px;
-  background: var(--po-bone);
+  background: var(--po-accent);
 }
 .po-slider::-webkit-slider-thumb {
   appearance: none;
@@ -3329,14 +3330,14 @@ summary:focus-visible,
   margin-top: -9px;
   border: 0;
   border-radius: 50%;
-  background: var(--po-bone);
+  background: var(--po-accent);
 }
 .po-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border: 0;
   border-radius: 50%;
-  background: var(--po-bone);
+  background: var(--po-accent);
 }
 .po-slider:focus-visible::-webkit-slider-thumb {
   box-shadow: var(--po-focus-ring);

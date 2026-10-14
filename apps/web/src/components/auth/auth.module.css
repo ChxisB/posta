@@ -187,13 +187,13 @@
   white-space: nowrap;
 }
 
-/* Auth links underline on hover only (the emails-table affordance). */
+/* Auth links are accent text and underline on hover only. */
 .column a {
-  color: var(--po-bone);
+  color: var(--po-accent-text);
   text-decoration: none;
 }
 .column a:hover {
-  text-decoration: underline dotted var(--po-faint);
+  text-decoration: underline dotted var(--po-accent-text);
   text-underline-offset: 3px;
 }
 
