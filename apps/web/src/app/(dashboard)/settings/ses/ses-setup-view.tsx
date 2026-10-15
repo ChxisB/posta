@@ -353,7 +353,7 @@ export function SesSetupView() {
     prevCredentialsOk.current = credentialsOk;
   }, [hasReadiness, credentialsOk, testAll]);
   if (!readiness.data || !sesEnv.data) {
-    // Ghost of the stepper chrome while the env checks resolve — real rails
+    // Ghost of the stepper chrome while the env checks resolve: real rails
     // and titles (all static), card interiors as bars.
     return (
       <div style={{ maxWidth: 880 }}>

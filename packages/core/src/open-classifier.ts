@@ -34,7 +34,7 @@ const GMAIL_PREFETCH_MARKERS = ["Chrome/42.0.2311.135", "Edge/12.246"] as const;
 /**
  * Scanner, crawler and link-preview tokens, matched case-insensitively as
  * substrings. Deliberately absent: GoogleImageProxy, YahooMailProxy and
- * ms-office — those fetch on behalf of a person reading the message. "bot"
+ * ms-office; those fetch on behalf of a person reading the message. "bot"
  * is matched only with the delimiter crawlers put after it: bare "bot" is
  * also inside Cubot handsets' user agents.
  */

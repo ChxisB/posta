@@ -1,6 +1,6 @@
 package io.github.tacklabs.posta.model;
 
-/** Response from {@code contacts().remove(...)} — carries the id in {@code contact}. */
+/** Response from {@code contacts().remove(...)}: carries the id in {@code contact}. */
 public final class RemoveContactResponse {
 
   private String object;

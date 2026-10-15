@@ -10,7 +10,7 @@ describe("combineRecordStatus", () => {
     expect(combineRecordStatus({ live: undefined, sesGate: undefined })).toBe("pending");
   });
 
-  it("our DNS is the primary gate — missing/mismatch win regardless of AWS", () => {
+  it("our DNS is the primary gate: missing/mismatch win regardless of AWS", () => {
     for (const sesGate of ["verified", "pending", undefined] as const) {
       expect(combineRecordStatus({ live: "missing", sesGate })).toBe("missing");
       expect(combineRecordStatus({ live: "mismatch", sesGate })).toBe("mismatch");
@@ -21,7 +21,7 @@ describe("combineRecordStatus", () => {
     expect(combineRecordStatus({ live: "found", sesGate: undefined })).toBe("verified");
   });
 
-  it("found but AWS still pending is not verified — passing our test alone isn't enough", () => {
+  it("found but AWS still pending is not verified: passing our test alone isn't enough", () => {
     expect(combineRecordStatus({ live: "found", sesGate: "pending" })).toBe("pending");
   });
 

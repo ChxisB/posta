@@ -143,7 +143,7 @@ export default function SuppressionDetailPage() {
     ...(row.reason === "hard_bounce" && bounce?.bounceType
       ? [bounce.bounceType.toLowerCase()]
       : []),
-  ].join(" — ");
+  ].join(", ");
   // ponytail: complaint feedbackType isn't fetched here, so complaints resolve
   // to the generic "complaint.other" guidance; pull the complaint event's
   // feedbackType into suppressions.get if per-type complaint copy is needed.
@@ -169,7 +169,7 @@ export default function SuppressionDetailPage() {
             <CrumbEnd label={t("suppressions.detail.breadcrumb")} />
           </>
         }
-        title={row.email ?? "—"}
+        title={row.email ?? "-"}
         actions={
           canRemove ? (
             <button
@@ -215,7 +215,7 @@ export default function SuppressionDetailPage() {
             {t("suppressions.detail.recipient")}
           </div>
           <div className="po-mono" style={{ fontSize: 13, marginTop: 5, overflowWrap: "anywhere" }}>
-            {row.email ? <Breakable text={row.email} /> : "—"}
+            {row.email ? <Breakable text={row.email} /> : "-"}
           </div>
         </div>
         <div>

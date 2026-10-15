@@ -5,7 +5,7 @@ require_relative "lib/posta/version"
 Gem::Specification.new do |spec|
   spec.name        = "posta"
   spec.version     = Posta::VERSION
-  spec.summary     = "Official Ruby SDK for Posta — a self-hostable, Resend-compatible email API."
+  spec.summary     = "Official Ruby SDK for Posta: a self-hostable, Resend-compatible email API."
   spec.description = "Ruby client for the Posta HTTP API: emails, batch, contacts, " \
                      "contact properties, topics, broadcasts, segments, suppressions, domains, " \
                      "webhooks, API keys, templates and usage. Wire-compatible with Resend and " \

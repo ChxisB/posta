@@ -6,7 +6,7 @@ export type ContactActivityRow = typeof schema.contactActivities.$inferInsert;
 
 /**
  * Append rows to the contact's activity timeline. Call AFTER the parent
- * mutation commits (never inside its transaction): the write is best-effort —
+ * mutation commits (never inside its transaction): the write is best-effort:
  * a timeline insert failure is logged and swallowed so it can never fail the
  * mutation it records.
  *

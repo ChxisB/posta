@@ -22,8 +22,8 @@ function proxyList(entries: readonly string[]): BlockList {
  * cf-connecting-ip; self-host walks x-forwarded-for from the right past the
  * operator's declared proxies (each proxy appends the peer it accepted from,
  * so the rightmost untrusted entry is the real client). A Cloudflare peer
- * that is itself a declared proxy — the tracking edge, which forwards branded
- * links through Cloudflare — is not the client either: Cloudflare appends
+ * that is itself a declared proxy (the tracking edge, which forwards branded
+ * links through Cloudflare) is not the client either: Cloudflare appends
  * that peer to x-forwarded-for, so the chain reads "<client>, <edge>" and the
  * same walk recovers the client. Null when nothing trustworthy is left.
  */

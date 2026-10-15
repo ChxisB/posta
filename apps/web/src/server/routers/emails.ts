@@ -344,7 +344,7 @@ export const emailsRouter = router({
         );
       } catch {
         // Undecryptable (corrupt ciphertext, unknown KEK version) reads as
-        // "no body" — the metadata and events are still worth showing.
+        // "no body": the metadata and events are still worth showing.
       }
     }
 
@@ -526,7 +526,7 @@ export const emailsRouter = router({
           });
           return { id: row.id };
         }
-        // Already suppressed (any reason) — adding is idempotent.
+        // Already suppressed (any reason): adding is idempotent.
         const [existing] = await ctx.db
           .select({ id: t.id })
           .from(t)

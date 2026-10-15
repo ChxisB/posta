@@ -43,7 +43,7 @@ function teamVisibleData(
 
 /**
  * Read-only, and never a member feed: the trail is a forensic record. A
- * support view reads it too — it is metadata, it carries that session's own
+ * support view reads it too: it is metadata, it carries that session's own
  * two rows, and answering "when did this change" is what support is for.
  */
 export const auditRouter = router({

@@ -1,6 +1,6 @@
 "use client";
 
-/** A pill toggle switch — green when on, the knob slides. Styles: .po-switch. */
+/** A pill toggle switch: green when on, the knob slides. Styles: .po-switch. */
 export function Switch({
   checked,
   disabled,

@@ -1,4 +1,4 @@
-"""Broadcasts — draft, schedule, send, and cancel campaigns.
+"""Broadcasts: draft, schedule, send, and cancel campaigns.
 
 Targeting is an optional ``segment_id`` and/or ``topic_id`` on create/update;
 neither set means every contact of the team. ``update`` and ``send`` take
@@ -38,18 +38,18 @@ class Broadcasts:
 
     @classmethod
     def update(cls, broadcast_id: Target, params: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /broadcasts/{id} — draft only."""
+        """PATCH /broadcasts/{id}: draft only."""
         ident, body = _target(broadcast_id, params)
         return request("PATCH", f"/broadcasts/{ident}", body=body)
 
     @classmethod
     def remove(cls, broadcast_id: str) -> Any:
-        """DELETE /broadcasts/{id} — draft only."""
+        """DELETE /broadcasts/{id}: draft only."""
         return request("DELETE", f"/broadcasts/{path_id(broadcast_id)}")
 
     @classmethod
     def send(cls, broadcast_id: Target, scheduled_at: Optional[str] = None) -> Any:
-        """POST /broadcasts/{id}/send — omit scheduled_at to send now."""
+        """POST /broadcasts/{id}/send: omit scheduled_at to send now."""
         ident, body = _target(
             broadcast_id, {"scheduled_at": scheduled_at} if scheduled_at is not None else {}
         )
@@ -57,5 +57,5 @@ class Broadcasts:
 
     @classmethod
     def cancel(cls, broadcast_id: str) -> Any:
-        """POST /broadcasts/{id}/cancel — scheduled only."""
+        """POST /broadcasts/{id}/cancel: scheduled only."""
         return request("POST", f"/broadcasts/{path_id(broadcast_id)}/cancel")

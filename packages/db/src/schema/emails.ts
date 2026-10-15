@@ -26,7 +26,7 @@ import { topics } from "./topics.js";
  *
  * "failed" is strictly terminal: retryable send errors keep the email in
  * "queued" (the job requeues); only permanent, non-retryable failure sets
- * "failed" — a failed email can therefore never later be delivered.
+ * "failed": a failed email can therefore never later be delivered.
  *
  * "canceled" is terminal and ranks highest so applyStatusCas can never
  * regress it: a scheduled email flips to it before its send job runs, and
@@ -95,7 +95,7 @@ export const emailParkReasonEnum = pgEnum("email_park_reason", [
 /**
  * Lifecycle split (compliance by schema): the plaintext columns here are
  * metadata and live on the events/metadata retention clock; the body*
- * columns are content — AES-256-GCM ciphertext with a per-email wrapped DEK —
+ * columns are content (AES-256-GCM ciphertext with a per-email wrapped DEK)
  * and are nulled by the retention purge (bodyPurgedAt) without touching the row.
  */
 export const emails = pgTable(

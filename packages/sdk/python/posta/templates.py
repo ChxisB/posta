@@ -10,7 +10,7 @@ from ._client import list_query, path_id, request, split_id
 class Templates:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /templates — name, html, subject?, text?, alias? (+ from, reply_to, variables passed through)"""
+        """POST /templates: name, html, subject?, text?, alias? (+ from, reply_to, variables passed through)"""
         return request("POST", "/templates", body=params)
 
     @classmethod
@@ -28,7 +28,7 @@ class Templates:
 
     @classmethod
     def update(cls, params: Dict[str, Any]) -> Any:
-        """PATCH /templates/{idOrAlias} — ``{"id": ..., "name"?, "html"?, "subject"?, "text"?, "alias"?}``."""
+        """PATCH /templates/{idOrAlias}: ``{"id": ..., "name"?, "html"?, "subject"?, "text"?, "alias"?}``."""
         template_id, body = split_id(params, "id")
         return request("PATCH", f"/templates/{template_id}", body=body)
 
@@ -38,7 +38,7 @@ class Templates:
 
     @classmethod
     def publish(cls, id_or_alias: str) -> Any:
-        """POST /templates/{idOrAlias}/publish — templates are always published; kept for Resend compatibility."""
+        """POST /templates/{idOrAlias}/publish: templates are always published; kept for Resend compatibility."""
         return request("POST", f"/templates/{path_id(id_or_alias)}/publish")
 
     @classmethod

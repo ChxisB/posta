@@ -22,7 +22,7 @@ function deriveInviteKey(secret: string): Buffer {
 
 /**
  * Invitation accept links carry an HMAC-signed, opaque token derived from the
- * invite's row id — nothing secret is stored at rest, so the server can
+ * invite's row id: nothing secret is stored at rest, so the server can
  * reproduce the link, while forgery needs the server's auth secret.
  * Single-use and expiry are enforced by the row (acceptedAt / expiresAt), not
  * the token, which is stateless.

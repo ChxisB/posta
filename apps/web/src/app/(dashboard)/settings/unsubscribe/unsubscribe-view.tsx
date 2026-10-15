@@ -35,7 +35,7 @@ function toNull(value: string): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-/** Non-empty and not a valid #rrggbb — blocks submit and shows the red note. */
+/** Non-empty and not a valid #rrggbb: blocks submit and shows the red note. */
 function badHex(value: string): boolean {
   const trimmed = value.trim();
   return trimmed !== "" && !isHexColor(trimmed);

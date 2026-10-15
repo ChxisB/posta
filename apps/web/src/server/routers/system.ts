@@ -55,7 +55,7 @@ async function canManageInstance(ctx: OperatorCtx & { role: SessionRole }) {
 /**
  * Instance-wide facts (the platform's SES account, env configuration) are
  * the operator's, not any tenant's: in cloud they do not exist for anyone
- * else. Self-host members may read them — the instance is theirs.
+ * else. Self-host members may read them: the instance is theirs.
  */
 async function assertInstanceVisible(ctx: OperatorCtx): Promise<void> {
   if (isCloudDeployment() && !(await isInstanceOperator(ctx.db, ctx.session.user.id))) {
@@ -88,7 +88,7 @@ const PRODUCTION_PROBE_TTL_MS = 60_000;
 
 export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
   // Production access per served region, for the add-domain form: one
-  // GetAccount per region at most once a minute — features runs on every
+  // GetAccount per region at most once a minute; features runs on every
   // dashboard page and the non-send SES API is throttled at one request per
   // second per region. Only a region's first probe is awaited (bounded by
   // the client's timeouts); an expired answer is served at once while the
@@ -114,7 +114,7 @@ export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
      * Env-level deployment readiness, behind team auth like everything else.
      * credentialsConfigured is honest: true only for explicit keys, or when
      * the operator opted into the default provider chain via
-     * AWS_DEFAULT_CHAIN=true — an unset env merely gets the chain "attempted",
+     * AWS_DEFAULT_CHAIN=true; an unset env merely gets the chain "attempted",
      * so the dashboard warns instead of assuming it works.
      */
     awsReadiness: teamProcedure.query(async ({ ctx }) => {
@@ -134,7 +134,7 @@ export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
     })),
 
     /**
-     * Deployment facts every tenant's screens need, cloud included — nothing
+     * Deployment facts every tenant's screens need, cloud included: nothing
      * here describes the operator's account.
      */
     features: teamProcedure.query(async () => ({
@@ -157,7 +157,7 @@ export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
 
     /**
      * Instance-wide SES event pipeline health for the dashboard banner; null =
-     * nothing to show this user (ingestion off on purpose, or a cloud tenant —
+     * nothing to show this user (ingestion off on purpose, or a cloud tenant:
      * only the operator can act on it there).
      */
     eventsHealth: teamProcedure.query(async ({ ctx }) => {
@@ -203,7 +203,7 @@ export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
     /**
      * Live SESv2 GetAccount in one served region (the default when none is
      * named), run on demand from the SES setup page. AWS failures come back
-     * as a typed { ok: false } value — raw SDK errors never propagate to the
+     * as a typed { ok: false } value; raw SDK errors never propagate to the
      * client as thrown tRPC errors.
      */
     sesAccount: teamProcedure
@@ -269,7 +269,7 @@ export function createSystemRouter(deps: SystemSesDeps = defaultSesDeps) {
       update: teamProcedure
         .input(
           z.object({
-            // null clears the override — the env value (then built-in
+            // null clears the override: the env value (then built-in
             // default) applies again.
             sesMaxSendRate: z.number().int().min(1).max(200).nullable(),
             emailRetentionDays: z.number().int().min(1).max(3650).nullable(),

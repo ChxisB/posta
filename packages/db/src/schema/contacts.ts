@@ -14,7 +14,7 @@ import { teams } from "./teams.js";
 /**
  * Team-global contacts (the Resend "new contacts experience" model): one row
  * per email address per team. Segments (saved filters) and topics reference
- * contacts directly — there is no audience container.
+ * contacts directly: there is no audience container.
  */
 export const contacts = pgTable(
   "contacts",
@@ -30,7 +30,7 @@ export const contacts = pgTable(
     // merge tokens. Non-string inputs are coerced/rejected at the API boundary.
     properties: jsonb("properties").$type<Record<string, string>>().notNull().default({}),
     unsubscribed: boolean("unsubscribed").notNull().default(false),
-    // When the contact unsubscribed (null while subscribed) — feeds the
+    // When the contact unsubscribed (null while subscribed): feeds the
     // audience growth chart alongside createdAt.
     unsubscribedAt: timestamp("unsubscribed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -43,7 +43,7 @@ export const contacts = pgTable(
     index("contacts_team_created_idx").on(t.teamId, t.createdAt, t.id),
     // The broadcast fan-out walks a team's contacts by id in keyset pages.
     index("contacts_team_id_idx").on(t.teamId, t.id),
-    // "Did any contact of this team change since T?" — the segment recount
+    // "Did any contact of this team change since T?": the segment recount
     // answers it with one EXISTS before scanning the team.
     index("contacts_team_updated_idx").on(t.teamId, t.updatedAt),
   ],

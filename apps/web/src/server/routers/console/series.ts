@@ -16,7 +16,7 @@ export interface CounterPoint {
 
 const ZERO = { sent: 0, delivered: 0, bounced: 0, hardBounced: 0, complained: 0 };
 
-// ::bigint — an instance-wide sum of int columns overflows int4 for a large
+// ::bigint, an instance-wide sum of int columns overflows int4 for a large
 // sender; the driver returns bigint as a string, exact through Number().
 const total = (col: AnyPgColumn) => sql<string>`coalesce(sum(${col}), 0)::bigint`;
 

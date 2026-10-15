@@ -1,4 +1,4 @@
-"""Sending domains — create returns the DNS records to publish; verify re-checks them."""
+"""Sending domains: create returns the DNS records to publish; verify re-checks them."""
 
 from typing import Any, Dict, Optional
 
@@ -8,7 +8,7 @@ from ._client import list_query, path_id, request, split_id
 class Domains:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /domains — name, region?, custom_return_path?, open_tracking?, click_tracking?, tracking_subdomain?"""
+        """POST /domains: name, region?, custom_return_path?, open_tracking?, click_tracking?, tracking_subdomain?"""
         return request("POST", "/domains", body=params)
 
     @classmethod
@@ -26,7 +26,7 @@ class Domains:
 
     @classmethod
     def update(cls, params: Dict[str, Any]) -> Any:
-        """PATCH /domains/{id} — ``{"id": ..., "open_tracking"?, "click_tracking"?, "tracking_subdomain"?}``."""
+        """PATCH /domains/{id}: ``{"id": ..., "open_tracking"?, "click_tracking"?, "tracking_subdomain"?}``."""
         domain_id, body = split_id(params, "id")
         return request("PATCH", f"/domains/{domain_id}", body=body)
 

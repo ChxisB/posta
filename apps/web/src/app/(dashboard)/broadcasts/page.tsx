@@ -266,7 +266,7 @@ export default function BroadcastsPage() {
                       ) : row.recipients > 0 ? (
                         nf.format(row.recipients)
                       ) : (
-                        <span style={{ color: "var(--po-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>-</span>
                       )}
                     </td>
                     <td className="right" style={{ color: "var(--po-muted)" }}>
@@ -358,7 +358,7 @@ export default function BroadcastsPage() {
           }}
         >
           <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("list.deleteBody", { name: deleteTarget?.name ?? "—" })}
+            {t("list.deleteBody", { name: deleteTarget?.name ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
@@ -394,7 +394,7 @@ export default function BroadcastsPage() {
                   waiting: nf.format(cancelTarget.stop.waiting),
                   sent: nf.format(cancelTarget.stop.sent),
                 })
-              : t("detail.cancelBody", { name: cancelTarget?.name ?? "—" })}
+              : t("detail.cancelBody", { name: cancelTarget?.name ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>

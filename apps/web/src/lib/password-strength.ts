@@ -3,7 +3,7 @@ export type PasswordStrength = 0 | 1 | 2 | 3;
 
 /**
  * Coarse strength for the signup meter. Length dominates (NIST 800-63:
- * length beats composition rules), character variety refines — a long
+ * length beats composition rules), character variety refines; a long
  * all-lowercase passphrase still rates strong.
  */
 export function passwordStrength(password: string): PasswordStrength {

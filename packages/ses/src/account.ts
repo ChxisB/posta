@@ -40,7 +40,7 @@ export function createSesAccountClient(options: {
 
 export interface SesAccountOverview {
   sendingEnabled: boolean;
-  /** ProductionAccessEnabled — false means the account is in the SES sandbox. */
+  /** ProductionAccessEnabled: false means the account is in the SES sandbox. */
   productionAccess: boolean;
   /** EnforcementStatus for this region: HEALTHY, PROBATION or SHUTDOWN; null when SES reports none. */
   enforcementStatus: string | null;

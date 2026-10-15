@@ -78,7 +78,7 @@ function TeamSection({ billing }: { billing: boolean }) {
     }),
   );
   if (!team) {
-    // Mirrors the loaded card with its real labels and wrappers — only the
+    // Mirrors the loaded card with its real labels and wrappers, only the
     // values wait on data, so field spacing, the 30px input/button row and
     // the slug/plan line boxes match the loaded card exactly.
     return (
@@ -815,7 +815,7 @@ function SupportAccessSection() {
             <SupportEndsAt expiresAt={live.expiresAt} />
           </KvRow>
           <KvRow label={t("reason")}>{t(`reasons.${live.reason}`)}</KvRow>
-          <KvRow label={t("reference")}>{live.reference ?? "—"}</KvRow>
+          <KvRow label={t("reference")}>{live.reference ?? "-"}</KvRow>
         </dl>
       ) : (
         <p style={{ margin: 0, color: "var(--po-bone)", fontSize: "var(--po-fs-ui)" }}>
@@ -938,7 +938,7 @@ function InstanceSection() {
     );
   }
 
-  // Fields show the EFFECTIVE value (db, env, or default) — saving writes
+  // Fields show the EFFECTIVE value (db, env, or default): saving writes
   // what is shown, so what you see is always what runs.
   const rate = rateDraft ?? String(data.sesMaxSendRate.value);
   const retention = retentionDraft ?? String(data.emailRetentionDays.value);

@@ -45,7 +45,7 @@ export const EMPTY_UNSUBSCRIBE_CUSTOMIZATION: UnsubscribeViewCustomization = {
 
 /** A catalog slot ("{topic}", "{brand}") → its element, keeping the catalog's word order. */
 function fillSlots(template: string, slots: Record<string, React.ReactNode>) {
-  // One split per slot, in the order they appear — the catalog never repeats a
+  // One split per slot, in the order they appear: the catalog never repeats a
   // slot, so a single pass keeps the surrounding text intact.
   const parts: React.ReactNode[] = [];
   let rest = template;
@@ -150,7 +150,7 @@ function Wordmark() {
 }
 
 /**
- * The hosted unsubscribe page, presentational only — rendered by the public
+ * The hosted unsubscribe page, presentational only: rendered by the public
  * confirm route and, scaled down, by the settings editor's live preview. It
  * ships no JS: forms POST to `formAction` (omit it for inert previews).
  * Custom colors flow exclusively through unsubscribeThemeStyle, which drops
@@ -257,7 +257,7 @@ export function UnsubscribePageView({
               <>
                 {/* Two forms, one button row: saving preferences must not
                     trigger the unsubscribe, so each button submits its own
-                    form via the `form` attribute (plain HTML — the page
+                    form via the `form` attribute (plain HTML; the page
                     ships no JS). The hidden `prefs` marker routes the POST. */}
                 <form
                   method="post"

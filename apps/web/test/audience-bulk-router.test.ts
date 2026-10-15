@@ -77,7 +77,7 @@ describe("audience.contacts.bulkAddSegments", () => {
     const acts = await activityTypes([ada, bob]);
     expect(acts.filter((a) => a.type === "segment_added")).toHaveLength(4);
 
-    // Re-run: everything conflicts away — nothing added, no new timeline rows.
+    // Re-run: everything conflicts away; nothing added, no new timeline rows.
     expect(
       await caller.audience.contacts.bulkAddSegments({
         contactIds: [ada, bob],
@@ -171,7 +171,7 @@ describe("audience.contacts.bulkRemoveSegment", () => {
 describe("audience.contacts.bulkSubscribeTopics", () => {
   it("upserts explicit opt-ins but records only real transitions", async () => {
     const { caller, ada, bob } = await seed();
-    // Opt-in topic: everyone effectively subscribed already — no transitions.
+    // Opt-in topic: everyone effectively subscribed already; no transitions.
     const { id: news } = await caller.topics.create({ name: "News", defaultSubscribed: true });
     // Opt-out topic: nobody subscribed; ada already explicitly opted in.
     const { id: beta } = await caller.topics.create({ name: "Beta", defaultSubscribed: false });
@@ -202,7 +202,7 @@ describe("audience.contacts.bulkSubscribeTopics", () => {
     expect(optIns).toHaveLength(3);
     expect(optIns.filter((a) => a.contactId === bob)).toHaveLength(2);
 
-    // Re-run: effective state is already subscribed everywhere — no new rows.
+    // Re-run: effective state is already subscribed everywhere; no new rows.
     expect(
       await caller.audience.contacts.bulkSubscribeTopics({
         contactIds: [ada, bob],

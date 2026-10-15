@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Options for {@code emails().send(...)}. camelCase fields map to the snake_case
  * wire ({@code replyTo} → {@code reply_to}, {@code scheduledAt} → {@code scheduled_at});
- * unset fields are omitted. Every field set here reaches the wire — including
+ * unset fields are omitted. Every field set here reaches the wire: including
  * {@code template}, which the server does not support yet and answers with 422.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

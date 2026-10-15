@@ -23,8 +23,8 @@
     "subject": "Assunto",
     "loadMore": "Carregar mais",
     "empty": "Nenhum e-mail ainda.",
-    "emptyHint": "Envie seu primeiro e-mail pela API — <code>POST /emails</code>.",
-    "pageOf": "Página 1 – {pages} de {total} e-mails",
+    "emptyHint": "Envie seu primeiro e-mail pela API: <code>POST /emails</code>.",
+    "pageOf": "Página 1 a {pages} de {total} e-mails",
     "pageSize": "{count} itens",
     "noMatch": "Nenhum e-mail corresponde aos filtros.",
     "statusFilter": "Status \"{status}\"",
@@ -33,10 +33,10 @@
     "retry": "Tentar novamente",
     "capBanner": {
       "reached": "Limite diário de {limit} e-mails atingido.",
-      "queued": "{count} e-mails na fila — serão enviados em {duration}.",
+      "queued": "{count} e-mails na fila: serão enviados em {duration}.",
       "upgrade": "Faça upgrade para um limite maior →",
       "reachedMonth": "Cota mensal de {limit} e-mails atingida.",
-      "queuedMonth": "{count} e-mails na fila — serão enviados quando o período renovar em {date}, ou assim que o excedente for ativado."
+      "queuedMonth": "{count} e-mails na fila: serão enviados quando o período renovar em {date}, ou assim que o excedente for ativado."
     },
     "allDomains": "Todos os domínios",
     "when": "Quando",
@@ -72,7 +72,7 @@
     "apiKey": "Chave de API",
     "events": "Eventos do e-mail",
     "noEvents": "0 eventos.",
-    "eventsStalled": "Nenhum outro evento vai aparecer — o SES só consegue enviar eventos de entrega para uma URL https pública, e esta instalação não tem uma. Rode o setup novamente para criar a fila de eventos (SQS) que o worker consulta; novos e-mails passam a ter eventos em segundos. E-mails enviados antes disso permanecem como estão.",
+    "eventsStalled": "Nenhum outro evento vai aparecer: o SES só consegue enviar eventos de entrega para uma URL https pública, e esta instalação não tem uma. Rode o setup novamente para criar a fila de eventos (SQS) que o worker consulta; novos e-mails passam a ter eventos em segundos. E-mails enviados antes disso permanecem como estão.",
     "event": {
       "rendering_failure": "Falha de renderização",
       "prefetched": "Pré-carregado",
@@ -104,7 +104,7 @@
     },
     "retriesUntil": "tenta de novo até {time}",
     "bounceBanner": {
-      "hard": "Bounce permanente — este endereço não pode receber e-mails.",
+      "hard": "Bounce permanente: este endereço não pode receber e-mails.",
       "suppressed": "Ele foi adicionado à sua <link>lista de supressão</link>."
     },
     "preview": "Prévia",
@@ -158,7 +158,7 @@
     "notCheckedWhy": "Estado do DNS indisponível no momento do envio.",
     "notApplicableToggle": "{count, plural, one {# verificação não aplicável} other {# verificações não aplicáveis}}",
     "byDesign": "garantido",
-    "byDesignNote": "O Posta garante isso estruturalmente — não há como falhar aqui.",
+    "byDesignNote": "O Posta garante isso estruturalmente: não há como falhar aqui.",
     "adviceLabel": "O que fazer",
     "detailLabel": "Detalhe",
     "kb": "{kb} KB",
@@ -170,13 +170,13 @@
       },
       "auth_alignment": {
         "title": "Alinhamento SPF e DKIM",
-        "description": "SPF e DKIM passam e se alinham ao domínio do remetente — o requisito básico de todos os grandes provedores.",
-        "advice": "Nada a fazer — o Posta verifica SPF e DKIM do seu domínio antes de qualquer envio sair."
+        "description": "SPF e DKIM passam e se alinham ao domínio do remetente: o requisito básico de todos os grandes provedores.",
+        "advice": "Nada a fazer: o Posta verifica SPF e DKIM do seu domínio antes de qualquer envio sair."
       },
       "list_unsubscribe": {
         "title": "Cabeçalhos de descadastro em um clique",
         "description": "A mensagem carrega os cabeçalhos List-Unsubscribe e List-Unsubscribe-Post. Gmail e Yahoo exigem descadastro em um clique para remetentes em massa.",
-        "advice": "Envie marketing por transmissões ou tópicos — o Posta injeta os dois cabeçalhos automaticamente."
+        "advice": "Envie marketing por transmissões ou tópicos: o Posta injeta os dois cabeçalhos automaticamente."
       },
       "link_domains_match": {
         "title": "Links no seu domínio",
@@ -185,12 +185,12 @@
       },
       "no_shorteners": {
         "title": "Sem encurtadores de link",
-        "description": "Links encurtados (bit.ly, tinyurl e similares) escondem o destino e são muito usados em abusos. Com rastreamento de cliques ativo, o link encurtado é reescrito pelo rastreador e vira um redirecionamento duplo — padrão de phishing documentado no Gmail. youtu.be é o domínio de compartilhamento do próprio YouTube e só conta quando o rastreamento de cliques reescreveria o link.",
-        "advice": "Use URLs completas — youtube.com/watch em vez de youtu.be. O rastreamento de cliques já informa o que foi clicado."
+        "description": "Links encurtados (bit.ly, tinyurl e similares) escondem o destino e são muito usados em abusos. Com rastreamento de cliques ativo, o link encurtado é reescrito pelo rastreador e vira um redirecionamento duplo: padrão de phishing documentado no Gmail. youtu.be é o domínio de compartilhamento do próprio YouTube e só conta quando o rastreamento de cliques reescreveria o link.",
+        "advice": "Use URLs completas: youtube.com/watch em vez de youtu.be. O rastreamento de cliques já informa o que foi clicado."
       },
       "body_size": {
         "title": "Tamanho do HTML",
-        "description": "O Gmail corta mensagens cujo HTML passa de 102KB — tudo depois do corte, incluindo o rodapé de descadastro, só aparece ao clicar em \"Exibir toda a mensagem\".",
+        "description": "O Gmail corta mensagens cujo HTML passa de 102KB: tudo depois do corte, incluindo o rodapé de descadastro, só aparece ao clicar em \"Exibir toda a mensagem\".",
         "advice": "Mantenha o HTML abaixo de 102KB: menos estilos inline, conteúdo mais curto, nada embutido."
       },
       "plain_text": {
@@ -205,7 +205,7 @@
       },
       "phishing_links": {
         "title": "Sem padrões de phishing nos links",
-        "description": "Nenhum texto de link que mostre um domínio diferente do destino, nenhum link para endereço IP, nenhum link http se passando por https — os padrões que filtros de phishing procuram.",
+        "description": "Nenhum texto de link que mostre um domínio diferente do destino, nenhum link para endereço IP, nenhum link http se passando por https: os padrões que filtros de phishing procuram.",
         "advice": "Faça o texto do link corresponder ao destino e nunca aponte para IPs."
       },
       "no_reply_from": {
@@ -215,7 +215,7 @@
       },
       "svg_images": {
         "title": "Sem imagens SVG",
-        "description": "SVG não renderiza na maioria dos clientes de e-mail — Gmail e Outlook mostram um espaço em branco no lugar.",
+        "description": "SVG não renderiza na maioria dos clientes de e-mail. Gmail e Outlook mostram um espaço em branco no lugar.",
         "advice": "Exporte as imagens como PNG ou JPEG."
       },
       "attachments_marketing": {
@@ -245,12 +245,12 @@
       },
       "subject_lint": {
         "title": "Linha de assunto",
-        "description": "O assunto evita caixa alta e sequências de !!! ou ??? — os dois disparam filtros de conteúdo.",
+        "description": "O assunto evita caixa alta e sequências de !!! ou ???: os dois disparam filtros de conteúdo.",
         "advice": "Use caixa normal no assunto e remova a pontuação repetida."
       },
       "image_alt_text": {
         "title": "Texto alternativo nas imagens",
-        "description": "Toda imagem carrega texto alternativo — o que o destinatário vê enquanto as imagens carregam ou ficam bloqueadas, e o que leitores de tela leem.",
+        "description": "Toda imagem carrega texto alternativo: o que o destinatário vê enquanto as imagens carregam ou ficam bloqueadas, e o que leitores de tela leem.",
         "advice": "Dê um atributo alt a cada imagem relevante."
       },
       "images_offsite": {
@@ -291,10 +291,10 @@
       "hint": "Registre todo domínio e subdomínio de envio e todo endereço de remetente, exatamente como você os usa. Endereços do relay só aceitam remetentes registrados.",
       "article": "Como parar os bounces para destinatários @privaterelay.appleid.com"
     },
-    "acceptedThenBounced": "O servidor do destinatário aceitou esta mensagem primeiro (veja o evento Entregue) e depois a devolveu de dentro do próprio sistema — um encaminhamento, uma caixa cheia ou uma resposta automática interpretada como bounce. Não há novas tentativas."
+    "acceptedThenBounced": "O servidor do destinatário aceitou esta mensagem primeiro (veja o evento Entregue) e depois a devolveu de dentro do próprio sistema: um encaminhamento, uma caixa cheia ou uma resposta automática interpretada como bounce. Não há novas tentativas."
   },
   "occurrencesDrawer": {
-    "title": "{label} — {count, plural, one {# evento} other {# eventos}}",
+    "title": "{label}: {count, plural, one {# evento} other {# eventos}}",
     "subtitle": "Mais recentes primeiro · intervalo desde o envio"
   },
   "suppressedDrawer": {
@@ -304,7 +304,7 @@
     "recipient": "Destinatário",
     "blocked": "Envios para este endereço são bloqueados para proteger a reputação do seu domínio. A API retorna <code>422 suppressed_recipient</code>.",
     "suggestedActions": "Ações sugeridas",
-    "step1": "Confirme que a caixa postal existe agora — remover cedo demais costuma gerar novo bounce.",
+    "step1": "Confirme que a caixa postal existe agora: remover cedo demais costuma gerar novo bounce.",
     "step2": "Depois remova a supressão; o próximo envio segue normalmente.",
     "remove": "Remover endereço de e-mail"
   },
@@ -340,7 +340,7 @@
     "clearFilters": "Limpar filtros",
     "loadError": "Não foi possível carregar as supressões.",
     "retry": "Tentar novamente",
-    "pageOf": "Página 1 – {pages} de {total} supressões",
+    "pageOf": "Página 1 a {pages} de {total} supressões",
     "pageSize": "{count} itens",
     "reason": {
       "hard_bounce": "Bounce",
@@ -355,7 +355,7 @@
       "recipient": "Destinatário",
       "added": "Adicionado",
       "details": "Detalhes",
-      "removeNote": "Se você remover um endereço que deu bounce permanente, ele provavelmente vai dar bounce de novo — remova apenas depois que a caixa postal for corrigida."
+      "removeNote": "Se você remover um endereço que deu bounce permanente, ele provavelmente vai dar bounce de novo: remova apenas depois que a caixa postal for corrigida."
     },
     "removeDialog": {
       "title": "Remover endereço de e-mail",

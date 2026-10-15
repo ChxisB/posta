@@ -2,7 +2,7 @@
  * Single source for merge-field metadata and the {{{NAME}}} token grammar,
  * reused by the editor, the field picker, and the preview. The regex and
  * builtin set MUST stay identical to the send worker's substitution, which is
- * where tokens are actually resolved — mirror of apps/worker/src/handlers/send-broadcast.ts.
+ * where tokens are actually resolved: mirror of apps/worker/src/handlers/send-broadcast.ts.
  * UNSUBSCRIBE_URL is resolved there by a literal string replace before merge,
  * so it is only a builtin here for the picker, never for name validation.
  */
@@ -11,7 +11,7 @@
 export const MERGE_FIELDS_I18N_NS = "merge-fields";
 
 export interface MergeFieldOption {
-  /** Token name — a builtin or a contact-property key. Restricted to [A-Za-z0-9_]. */
+  /** Token name: a builtin or a contact-property key. Restricted to [A-Za-z0-9_]. */
   name: string;
   /** i18n key under MERGE_FIELDS_I18N_NS; set for builtins, absent for custom keys. */
   labelKey?: string;
@@ -44,7 +44,7 @@ export const MERGE_TOKEN_RE = /\{\{\{([A-Za-z0-9_]+)(?:\|([^{}]*))?\}\}\}/g;
  *
  * Fallback precedence, for a future reader: a token's own `|fallback` always
  * wins. A definition's fallbackValue is only the default when the token has
- * none — and even then it is advisory in the editor, because the send worker
+ * none, and even then it is advisory in the editor, because the send worker
  * resolves tokens without reading definitions. Wiring it into the worker is a
  * separate change.
  */
@@ -75,7 +75,7 @@ export function parseMergeToken(token: string): { name: string; fallback?: strin
  * True when every `{{{…}}}` group in `html` is a well-formed merge token. The
  * Maily editor only inserts valid names, so a malformed group (a stray brace,
  * a space, a fallback with a brace) means the html was tampered with or
- * hand-edited — the send worker would ship it as literal broken text. A save
+ * hand-edited: the send worker would ship it as literal broken text. A save
  * guard rejects such html before it can become a send.
  */
 export function hasWellFormedMergeTokens(html: string): boolean {

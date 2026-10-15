@@ -194,7 +194,7 @@ describe("topic-scoped sends (topicId)", () => {
     expect(optOut.error).toBeNull();
   });
 
-  it("strips opted-out recipients — the drop is visible via emails.get", async () => {
+  it("strips opted-out recipients: the drop is visible via emails.get", async () => {
     const sent = await resend.emails.send({
       from: "Acme <onboarding@acme.dev>",
       to: ["optedout@example.com", "kept@example.com"],

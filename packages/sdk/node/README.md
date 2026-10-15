@@ -1,6 +1,6 @@
 # @tack-labs/posta
 
-Official Node.js / TypeScript SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
+Official Node.js / TypeScript SDK for [Posta](https://github.com/ChxisB/posta): a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of `resend`, so migrating is mostly a find-and-replace: swap the import
@@ -55,7 +55,7 @@ new Posta(apiKey?, {
 
 ## Errors
 
-No method throws for an API error — every call resolves to `{ data, error }`.
+No method throws for an API error: every call resolves to `{ data, error }`.
 `error` is `null` on success; otherwise `{ name, message, statusCode }` where
 `name` is a stable snake_case code you can switch on (`validation_error`,
 `not_found`, `restricted_api_key`, `sending_paused`,
@@ -116,7 +116,7 @@ data.errors; // permissive only: [{ index, message }] for the rejected ones
 
 ### Contacts
 
-Contacts are team-global — one list per team, no audiences.
+Contacts are team-global: one list per team, no audiences.
 
 ```ts
 await ms.contacts.create({
@@ -138,7 +138,7 @@ await ms.contacts.list({ segmentId });             // GET /segments/:id/contacts
 await ms.contacts.list({ limit: 100, include: ["properties", "topics"] });
 
 // Hosted preference page (Posta extension): the same page the unsubscribe links open.
-// The URL is a non-expiring, contact-scoped capability — show it only to the contact.
+// The URL is a non-expiring, contact-scoped capability: show it only to the contact.
 const { data } = await ms.contacts.preferencesLink({ email }); // POST /contacts/:id/preferences-link
 data.url; // 422 when the instance cannot mint links (APP_BASE_URL unset)
 
@@ -152,15 +152,15 @@ data.counts; // { created, updated, skipped, failed }
 data.errors; // permissive only
 
 // Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
-// in request order; unknown entries are listed, not errors — one request against the rate limit
+// in request order; unknown entries are listed, not errors: one request against the rate limit
 const { data } = await ms.contacts.batch.get([contactId, { email }], { include: ["topics"] });
-data.data;    // [{ object: "contact", id, email, ..., topics }] — the contacts found
-data.missing; // [{ index, email }] — request entries that matched nobody
+data.data;    // [{ object: "contact", id, email, ..., topics }]: the contacts found
+data.missing; // [{ index, email }]: request entries that matched nobody
 
 // Bulk delete (Posta extension): up to 1000 per call, by ids or by emails.
 // Their emails stay in the send log; erase: true also scrubs each address from email history
 const { data } = await ms.contacts.batch.remove({ emails, erase: true }); // or { ids }
-data.data; // [{ object: "contact", contact, deleted: true }] — only the rows actually deleted
+data.data; // [{ object: "contact", contact, deleted: true }]: only the rows actually deleted
 
 // Segment membership
 await ms.contacts.segments.add({ email, segmentId });
@@ -190,7 +190,7 @@ await ms.contactProperties.remove(id);
 ```ts
 await ms.topics.create({ name: "Product updates", defaultSubscription: "opt_in", visibility: "public" });
 await ms.topics.get(id);
-await ms.topics.list();     // { object: "list", data, has_more: false } — topics are unpaginated
+await ms.topics.list();     // { object: "list", data, has_more: false }: topics are unpaginated
 await ms.topics.update(id, { name: "Product news" });
 await ms.topics.remove(id);
 ```
@@ -253,7 +253,7 @@ await ms.webhooks.get(id);   // includes signing_secret and previous_secret_expi
 await ms.webhooks.update(id, { status: "disabled" });
 await ms.webhooks.remove(id);
 
-// Rotate the signing secret (Posta extension). During `overlapHours` (0–72, default 24)
+// Rotate the signing secret (Posta extension). During `overlapHours` (0 to 72, default 24)
 // every delivery carries both signatures, so the receiver can switch without a gap.
 const { data } = await ms.webhooks.rotate(id, { overlapHours: 24 }); // or { signingSecret: "whsec_…" }
 data.signing_secret; data.previous_secret_expires_at; // null when the old secret is dropped at once
@@ -288,7 +288,7 @@ await ms.templates.remove(id);
 
 ### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a Posta
+Dynamic segments are a saved filter over the team's contacts: a Posta
 superset with no Resend equivalent.
 
 ```ts
@@ -305,7 +305,7 @@ await ms.segments.remove(id);
 ### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing 30 days. Scores are
-0–10 (`null` until there is enough data); per-email reports live on
+0 to 10 (`null` until there is enough data); per-email reports live on
 `ms.emails.getInsights(id)`.
 
 ```ts
@@ -333,7 +333,7 @@ Method names, payloads and request options (`idempotencyKey`, `batchValidation`)
 match `resend`. Notes:
 
 - **No audiences.** Contacts are team-global, so `.audiences` calls have no
-  equivalent — drop them and call `.contacts` directly. The API keeps
+  equivalent: drop them and call `.contacts` directly. The API keeps
   `/audiences/*` routes as a compatibility shim, but the SDK does not expose them.
   For subsets of contacts, use `.segments` (dynamic filters) or topics.
 - **Templates** cannot be sent yet: `emails.send({ template })` is forwarded and

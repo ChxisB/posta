@@ -61,7 +61,7 @@ async function statusOf(emailId: string): Promise<string> {
   return row?.s ?? "missing";
 }
 
-it("drain reserves against the NEW day's cap — parking is not a quota bypass", async () => {
+it("drain reserves against the NEW day's cap: parking is not a quota bypass", async () => {
   // Free ceiling is 150 (100 + tolerance); today's counter already holds one less
   // → only ONE parked email may drain, oldest first.
   await db
@@ -297,7 +297,7 @@ it("reconcile re-enqueues stale queued emails but never claimed or fresh ones", 
     .insert(schema.emails)
     .values({ ...base, latestStatus: "queued" as const, createdAt: old(30) })
     .returning({ id: schema.emails.id });
-  // Claimed: a previous attempt may already be at SES — must NOT resend.
+  // Claimed: a previous attempt may already be at SES; must NOT resend.
   await db
     .insert(schema.emails)
     .values({ ...base, latestStatus: "queued" as const, createdAt: old(30), sentAt: now });
@@ -413,7 +413,7 @@ it("retention purge nulls only expired bodies and stamps bodyPurgedAt", async ()
   expect(freshRow?.bodyCiphertext).not.toBeNull();
   expect(freshRow?.attachments).toBe("sealed-attachments-blob");
 
-  // An old-but-still-future-scheduled email keeps its body — the send needs it.
+  // An old-but-still-future-scheduled email keeps its body: the send needs it.
   const [scheduled] = await db
     .insert(schema.emails)
     .values({
@@ -435,7 +435,7 @@ it("retention purge nulls only expired bodies and stamps bodyPurgedAt", async ()
     .where(eq(schema.emails.id, scheduled.id));
   expect(scheduledRow?.bodyCiphertext).not.toBeNull();
 
-  // Second run: already-purged rows are not re-stamped. Same fixed clock —
+  // Second run: already-purged rows are not re-stamped. Same fixed clock:
   // the wall clock must never enter this test or the absolute fixture dates
   // silently expire.
   expect(await purgeExpiredEmailBodies(db, { defaultRetentionDays: 30, now })).toBe(0);

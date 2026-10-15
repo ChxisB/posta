@@ -39,7 +39,7 @@ export class ContactProperties {
     });
   }
 
-  /** PATCH /contact-properties/:id — `fallbackValue: null` clears it. */
+  /** PATCH /contact-properties/:id: `fallbackValue: null` clears it. */
   update(payload: UpdateContactPropertyOptions): Promise<Result<ContactPropertyId>> {
     return this.http.request({
       method: "PATCH",

@@ -66,7 +66,7 @@ describe("apiKeys.create", () => {
     expect(row.teamId).toBe(teamId);
     expect(token.startsWith(row.tokenPrefix)).toBe(true);
     expect(row.last4).toBe(token.slice(-4));
-    // The secret itself is never stored — only its hash verifies the token.
+    // The secret itself is never stored, only its hash verifies the token.
     expect(row.keyHash).not.toContain(token);
     expect(verifyApiKey(token, row.keyHash)).toBe(true);
     expect(verifyApiKey(`${token}x`, row.keyHash)).toBe(false);

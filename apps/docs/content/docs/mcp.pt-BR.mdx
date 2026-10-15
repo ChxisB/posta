@@ -6,7 +6,7 @@ description: Conecte agentes de IA ao Posta pelo Model Context Protocol.
 Toda implantação do Posta inclui um servidor MCP (Model Context
 Protocol), para que agentes de IA como Claude Code, Claude Desktop, Cursor e
 VS Code possam enviar e-mails e gerenciar sua audiência. As chamadas de
-ferramenta passam exatamente pelo mesmo pipeline da API REST — domínios
+ferramenta passam exatamente pelo mesmo pipeline da API REST: domínios
 verificados, supressões, opt-outs de tópico, cotas e escopo de equipe se
 aplicam sem alteração.
 
@@ -22,7 +22,7 @@ O endpoint MCP (Streamable HTTP) fica em `/mcp` na origem da API:
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
-A origem da API da sua instância mais `/mcp` — ex.: `https://api.acme.dev/mcp`,
+A origem da API da sua instância mais `/mcp`: ex.: `https://api.acme.dev/mcp`,
 ou `http://localhost:3001/mcp` em um compose local. O painel mostra a URL
 exata em **Configurações → MCP**.
 
@@ -48,7 +48,7 @@ Depois rode `/mcp` dentro do Claude Code e escolha `posta` para entrar.
 
 No Claude na web, no desktop ou no celular, adicione um conector personalizado
 em **Settings → Connectors → Add custom connector** e cole a URL do servidor.
-Ou, no Claude Desktop, use o arquivo de configuração — o
+Ou, no Claude Desktop, use o arquivo de configuração: o
 `claude_desktop_config.json` do Claude Desktop só inicia servidores stdio,
 então o `mcp-remote` faz a ponte para o endpoint HTTP:
 
@@ -102,8 +102,8 @@ da sua instância, mostrada acima.
 
 O servidor MCP usa OAuth, não chaves de API. Na primeira conexão o cliente
 abre seu navegador: entre no Posta, escolha a **equipe** em que o cliente
-pode agir — uma equipe específica ou **Todas as equipes** — e desmarque as
-**permissões** que não quiser conceder. Nada é copiado ou colado — nenhum
+pode agir (uma equipe específica ou **Todas as equipes**) e desmarque as
+**permissões** que não quiser conceder. Nada é copiado ou colado: nenhum
 segredo fica na configuração do cliente.
 
 - Uma autorização vinculada a uma equipe só age naquela equipe. Uma autorização
@@ -111,7 +111,7 @@ segredo fica na configuração do cliente.
   incluindo equipes futuras: cada ferramenta ganha um argumento opcional
   `team_id` (o padrão é sua equipe mais antiga) e a ferramenta `list_teams`
   aparece para consultar os ids.
-- Permissões desmarcadas no consentimento simplesmente não são concedidas —
+- Permissões desmarcadas no consentimento simplesmente não são concedidas:
   o cliente não vê as ferramentas que elas cobrem.
 - As autorizações ficam em **Configurações → Aplicativos conectados** no
   painel. Você pode revogar as suas; proprietários e administradores podem revogar as de
@@ -168,7 +168,7 @@ outra configuração de segurança.
 | --- | --- | --- |
 | `list_emails` | `emails:read` | Lista e-mails enviados, na fila e agendados. |
 | `get_email` | `emails:read` | Busca um e-mail com o status de entrega. |
-| `get_usage` | `emails:read` | Plano, limite de envio (diário no Free e Starter, mensal no Pro e Scale), limite de domínios, o total aceito hoje e, em planos mensais, o uso do período de cobrança — consulte antes de trabalho em massa. |
+| `get_usage` | `emails:read` | Plano, limite de envio (diário no Free e Starter, mensal no Pro e Scale), limite de domínios, o total aceito hoje e, em planos mensais, o uso do período de cobrança: consulte antes de trabalho em massa. |
 | `list_received_emails` | `receiving:read` | Lista os e-mails recebidos nos seus [domínios de recebimento](/pt-BR/concepts/receiving), do mais novo para o mais antigo; filtra por caixa, remetente, destinatário ou não lidos. |
 | `get_received_email` | `receiving:read` | Busca um e-mail recebido. O `format` escolhe o conteúdo: `extracted` (o padrão: remetente, confiança, análise e o texto limpo da resposta), `text`, `html` ou `raw` (só um link de download). Com `html`, o `html_format` é `cid` por padrão, para as imagens inline não incharem o resultado. |
 | `list_received_email_attachments` | `receiving:read` | Lista os anexos de um e-mail recebido com os links de download. |
@@ -185,7 +185,7 @@ outra configuração de segurança.
 | `list_contacts` | `audience:read` | Lista contatos, opcionalmente os membros de um segmento. |
 | `get_contact` | `audience:read` | Busca um contato por id ou endereço de e-mail. |
 | `get_contact_topics` | `audience:read` | Cada tópico com a inscrição efetiva do contato e se ela foi explícita. |
-| `list_segments` | `audience:read` | Lista segmentos — os alvos das transmissões. |
+| `list_segments` | `audience:read` | Lista segmentos: os alvos das transmissões. |
 | `get_segment` | `audience:read` | Busca um segmento com o filtro ou a lista manual. |
 | `list_topics` | `audience:read` | Lista tópicos de inscrição. |
 | `get_topic` | `audience:read` | Busca um tópico de inscrição. |
@@ -214,7 +214,7 @@ outra configuração de segurança.
 | `create_contact_preferences_link` | `audience:write` | Gera a URL da central de preferências de um contato. |
 | `add_contact_to_segment` | `audience:write` | Adiciona um contato a um segmento manual. |
 | `remove_contact_from_segment` | `audience:write` | Remove um contato de um segmento manual. |
-| `create_segment` | `audience:write` | Cria um segmento — com filtro, ou manual sem um. |
+| `create_segment` | `audience:write` | Cria um segmento: com filtro, ou manual sem um. |
 | `update_segment` | `audience:write` | Renomeia um segmento ou muda o filtro. |
 | `delete_segment` | `audience:write` | Exclui um segmento; os contatos permanecem. |
 | `create_topic` | `audience:write` | Cria um tópico de inscrição. |
@@ -253,7 +253,7 @@ outra configuração de segurança.
 ## Resultados das ferramentas
 
 Toda ferramenta retorna um único bloco de texto JSON, e os mesmos erros de
-validação da API REST se aplicam — um domínio remetente não verificado falha
+validação da API REST se aplicam: um domínio remetente não verificado falha
 em `send_email` exatamente como falha em `POST /emails`. A resposta REST vem
 dentro de um envelope que a marca como dado não confiável:
 

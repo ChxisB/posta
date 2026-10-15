@@ -98,7 +98,7 @@ it("scheduled_at beyond 30 days is rejected loudly", async () => {
   expect(enqueued).toEqual([]);
 });
 
-it("a quota-parked email is NOT enqueued — the midnight drain owns it", async () => {
+it("a quota-parked email is NOT enqueued: the midnight drain owns it", async () => {
   const today = utcDay();
   const limit = teamRung("free", null).included;
   await db

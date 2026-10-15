@@ -86,7 +86,7 @@ describe("sending_access keys are confined to the send surface", () => {
   });
 
   it("still reaches the send surface's other routes (not 403)", async () => {
-    // A nonexistent id is a 404 from the handler — proof the scope gate let it through.
+    // A nonexistent id is a 404 from the handler: proof the scope gate let it through.
     const res = await call(sendKey, "POST", `/emails/${crypto.randomUUID()}/cancel`);
     expect(res.status).not.toBe(403);
   });

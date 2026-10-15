@@ -360,7 +360,7 @@ describe("posta migrate", () => {
       ]);
       fake.data.contacts.pop();
       expect(code).toBe(3);
-      expect(stdout).toContain("✗ Contacts — 1 of 4 failed");
+      expect(stdout).toContain("✗ Contacts: 1 of 4 failed");
       expect(stdout).toContain("contacts/not-an-email");
       const state = readState();
       expect(state?.failures).toEqual([
@@ -449,7 +449,7 @@ describe("posta migrate", () => {
         readFileSync(new URL("../package.json", import.meta.url), "utf8"),
       ) as { version: string };
       expect(result.stdout).toContain(
-        `posta ${packageVersion} — Moves your Resend account into Posta.`,
+        `posta ${packageVersion}: Moves your Resend account into Posta.`,
       );
       expect(result.stdout).toContain("contacts (3)\n  + contacts  batch upsert");
       expect(result.stdout).toContain("Estimate: ~");
@@ -581,7 +581,7 @@ describe("migrate rollback", () => {
       expect(JSON.parse(stdout)).toEqual({ deleted: { contacts: 5 }, failures: [] });
       // The plain header wraps at the layout width (80 here) with a hanging indent.
       expect(stderr).toContain(
-        "— Deletes what an earlier run created on your Posta instance;\n  nothing on Resend is touched.\n",
+        ": Deletes what an earlier run created on your Posta instance;\n  nothing on Resend is touched.\n",
       );
       expect(stderr).not.toContain("Reads only");
       expect(stderr).toContain(`${ids.slice(0, 3).join(", ")} … and 2 more`);
@@ -834,7 +834,7 @@ describe("plan, apply and status edge cases (own target)", () => {
     });
     const { code, stdout } = await run(["migrate", "status"], { cwd: dir });
     expect(code).toBe(0);
-    expect(stdout).toContain("✗ topics/News — bad row");
+    expect(stdout).toContain("✗ topics/News: bad row");
     expect(stdout).not.toContain("\x1b");
     expect(stdout).not.toContain("\x07");
   });

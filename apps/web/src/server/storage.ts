@@ -3,7 +3,7 @@ import { env } from "@posta/config";
 
 /**
  * Optional S3-compatible object storage (team logo uploads). Enabled only
- * when the shared S3 credentials and both S3_STORAGE_* variables are set —
+ * when the shared S3 credentials and both S3_STORAGE_* variables are set:
  * boot validation rejects partial configuration, so here any missing value
  * simply means "off".
  */
@@ -64,7 +64,7 @@ export async function putPublicObject(
   return `${cfg.publicUrl}/${key}`;
 }
 
-/** Best-effort delete — storage cleanup must never fail the db-side operation. */
+/** Best-effort delete: storage cleanup must never fail the db-side operation. */
 export async function deletePublicObject(key: string): Promise<void> {
   const cfg = storageConfig();
   if (!cfg) return;

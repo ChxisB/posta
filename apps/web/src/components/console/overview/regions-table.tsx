@@ -126,7 +126,7 @@ function Row({
                 ? t("queueHeld", { count: r.waitingBroadcasts })
                 : t("queueClears", {
                     count: r.waitingBroadcasts,
-                    clears: r.lastFinishesAt ? f.clearsAbout(r.lastFinishesAt) : "—",
+                    clears: r.lastFinishesAt ? f.clearsAbout(r.lastFinishesAt) : "-",
                   })
             }
           >
@@ -144,7 +144,7 @@ function Row({
             text={[
               t(r.sesComplaintRead ? "sesNone" : "sesUnreadable"),
               t("oursWatched", {
-                ours: r.week ? f.pct3(r.week.complaintRate) : "—",
+                ours: r.week ? f.pct3(r.week.complaintRate) : "-",
                 limit: f.pctLimit(lines.breaker),
               }),
               tr("complaintEstimate"),
@@ -163,7 +163,7 @@ function Row({
               }),
               t("ourLines", {
                 limit: f.pctLimit(lines.breaker),
-                ours: r.week ? f.pct3(r.week.complaintRate) : "—",
+                ours: r.week ? f.pct3(r.week.complaintRate) : "-",
               }),
               tr("complaintEstimate"),
             ].join("\n")}

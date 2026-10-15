@@ -13,8 +13,8 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 const MESSAGES = { en, "pt-BR": ptBR } as const;
 
 /**
- * Where the confirmation link lands. Opening it commits to nothing — mail
- * gateways open links — so the page shows a button whose form post
+ * Where the confirmation link lands. Opening it commits to nothing, mail
+ * gateways open links, so the page shows a button whose form post
  * (/api/updates/confirm) is the consent, then returns here with ?done=1.
  */
 export default async function UpdatesConfirmPage({

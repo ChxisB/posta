@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for broadcasts: the official `resend` npm SDK against a
- * live Posta API — create/list/get/update/send/cancel/remove, plus the
+ * live Posta API; create/list/get/update/send/cancel/remove, plus the
  * draft-only rules after a send.
  */
 
@@ -146,7 +146,7 @@ describe("official resend SDK: broadcasts", () => {
     expect(enqueued).toEqual([{ broadcastId, startAfter: new Date(at) }]);
 
     const fetched = await resend.broadcasts.get(broadcastId);
-    // Internally 'scheduled', mapped to 'queued' on the wire — the SDK's
+    // Internally 'scheduled', mapped to 'queued' on the wire: the SDK's
     // Broadcast.status union is 'draft' | 'sent' | 'queued'.
     expect(fetched.data).toMatchObject({ status: "queued", scheduled_at: at });
   });

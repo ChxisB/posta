@@ -6,7 +6,7 @@ let instance: Promise<Queue> | undefined;
 
 /**
  * Lazy singleton, mirroring getDb: importing this module must not open a
- * queue connection — pg-boss only starts on the first enqueue.
+ * queue connection; pg-boss only starts on the first enqueue.
  */
 export function getQueue(): Promise<Queue> {
   // A rejected start is dropped so the next caller retries instead of

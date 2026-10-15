@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { trpcErrorCode } from "@/lib/trpc-error";
 
 /**
- * A detail page whose record failed to load. NOT_FOUND — deleted from another
- * session or the API, or another team's id — reads as gone, with the way
+ * A detail page whose record failed to load. NOT_FOUND (deleted from another
+ * session or the API, or another team's id) reads as gone, with the way
  * back; anything else reads as our fault, with a retry.
  */
 export function LoadError({

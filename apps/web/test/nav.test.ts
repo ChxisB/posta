@@ -38,7 +38,7 @@ describe("safeNextPath (open-redirect guard)", () => {
   });
 
   it("keeps percent-encoded slashes as an ordinary same-origin path", () => {
-    // %2f/%5c stay literal in the path — browsers never decode them into a
+    // %2f/%5c stay literal in the path: browsers never decode them into a
     // second leading slash, so the value is a safe same-origin path.
     expect(safeNextPath("/%2f%2fhost", "/emails")).toBe("/%2f%2fhost");
   });

@@ -27,7 +27,7 @@ import { CodeHighlight, type HighlightLanguage } from "@/components/code-highlig
 import { Drawer } from "@/components/drawer";
 import { CodeGlyph } from "@/components/icons/nav-icons";
 
-/* Snippets per SDK — the real published packages, shown with a placeholder
+/* Snippets per SDK: the real published packages, shown with a placeholder
    key. Kept to the three calls people reach for from the Emails surface. */
 
 export const LANG_META: Record<

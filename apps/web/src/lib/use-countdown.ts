@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * Milliseconds left until `until`, ticking once a second and floored at zero;
  * the interval is cleared when the target changes and when the caller
  * unmounts. A new target is measured during the render that brings it, so a
- * countdown never paints a frame of zero before its first tick — callers read
+ * countdown never paints a frame of zero before its first tick: callers read
  * zero as "the window closed". Zero while `until` is null, which is also what
  * a server render sees, so hydration agrees.
  */

@@ -27,7 +27,7 @@ import { ConvertBlocksDialog, HtmlAuthoredBanner, HtmlCodeMode } from "../templa
 import { PreviewTextField } from "../templates/preview-text-field";
 import { ContentPreview, SendPlanSummary } from "./parts";
 
-/** Everything a crash would lose — mirrored into the local draft. */
+/** Everything a crash would lose: mirrored into the local draft. */
 interface ComposerDraft {
   topicId: string;
   segmentId: string;
@@ -62,7 +62,7 @@ export interface ComposerInitial {
   document: unknown;
 }
 
-/** Ghost of the composer while an existing draft loads — same field boxes, no shift. */
+/** Ghost of the composer while an existing draft loads: same field boxes, no shift. */
 export function ComposerSkeleton() {
   return (
     <>
@@ -114,7 +114,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   const [document, setDocument] = useState<unknown>(initial?.document ?? null);
   // Armed by "Convert this broadcast": the block editor then mounts on the
   // html seed and emits its parse. Until then an html-authored body never
-  // reaches the block editor — its html would be flattened on the first edit.
+  // reaches the block editor: its html would be flattened on the first edit.
   const [converting, setConverting] = useState(false);
   const mode = bodyEditorMode({ document, html, converting });
   // An html-authored body opens on its faithful preview, not on an editor.
@@ -188,7 +188,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     setText(data.text);
     setDocument(data.document);
     setStep(2);
-    // The editor and From field seed once from their mount value — remount them.
+    // The editor and From field seed once from their mount value: remount them.
     setEditorNonce((n) => n + 1);
     // A restored draft is unsaved by definition: poison the baseline so the
     // editor's next emit differs and the leave-guard arms immediately.
@@ -224,7 +224,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
   );
 
   // Send html is rendered server-side (Maily needs juice), so a design-mode
-  // edit cannot emit it — this debounced render both feeds the preview and
+  // edit cannot emit it: this debounced render both feeds the preview and
   // supplies the html we persist. A legacy raw-html document keeps its stored
   // html untouched until the first real edit converts it (see MailyEditor).
   const [debouncedDoc, setDebouncedDoc] = useState<unknown>(document);
@@ -244,7 +244,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
     setText(rendered.data.text);
   }, [rendered.data]);
 
-  /** Copies the template's content in as a starting snapshot — no link back;
+  /** Copies the template's content in as a starting snapshot: no link back;
    * later template edits change nothing here. */
   async function applyTemplate(id: string) {
     if (!id) {
@@ -536,7 +536,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
               <label htmlFor="bc-name">
                 {t("composer.nameLabel")}{" "}
                 <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                  — {t("composer.optional")}
+                  , ({t("composer.optional")})
                 </span>
               </label>
               <input
@@ -628,7 +628,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
         <div className="po-step-col" style={{ display: "flex", flexDirection: "column" }}>
           <MobileStepBar steps={[t("composer.steps.one"), t("composer.steps.two")]} active={2} />
 
-          {/* Step 01 — done: targeting recap with a way back */}
+          {/* Step 01: done: targeting recap with a way back */}
           <div className="po-step" style={{ display: "flex", gap: 44 }}>
             <MarkerRail marker="01" done color="var(--po-success)" />
             <div style={{ flex: 1, minWidth: 0, paddingBottom: 24 }}>
@@ -686,7 +686,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             </div>
           </div>
 
-          {/* Step 02 — content */}
+          {/* Step 02: content */}
           <div className="po-step" style={{ display: "flex", gap: 44 }}>
             <MarkerRail marker="02" color="var(--po-bone)" line={false} />
             <div
@@ -735,7 +735,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                   <label htmlFor="bc-reply-to">
                     {t("composer.replyToLabel")}{" "}
                     <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                      — {t("composer.optional")}
+                      , ({t("composer.optional")})
                     </span>
                   </label>
                   <input
@@ -916,7 +916,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             <label htmlFor="bc-schedule">
               {t("guard.scheduleLabel")}{" "}
               <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                — {t("composer.optional")}
+                , ({t("composer.optional")})
               </span>
             </label>
             <input

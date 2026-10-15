@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Nav glyphs — path data derived from Lucide 1.31.0 (© Lucide contributors,
+ * Nav glyphs: path data derived from Lucide 1.31.0 (© Lucide contributors,
  * ISC license: https://lucide.dev/license), inlined so individual sub-paths
  * can carry semantic hover micro-animations (mail flap opens, gear turns…).
  * 16px default, stroke 1.4, currentColor. The PARENT nav item drives the
@@ -39,7 +39,7 @@ function Svg({
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      // display:block — inline SVGs sit on the text baseline and drift ~3px
+      // display:block, inline SVGs sit on the text baseline and drift ~3px
       // below flex-centered labels; block removes the baseline entirely.
       style={{ flex: "none", display: "block" }}
     >
@@ -273,7 +273,7 @@ export function CodeGlyph({ size = 16 }: { size?: number }) {
 }
 
 /**
- * Canonical dropdown/disclosure chevron (the Select trigger's glyph) — never
+ * Canonical dropdown/disclosure chevron (the Select trigger's glyph), never
  * a text "⌄". Inherits currentColor; `direction="up"` rotates 180° with a
  * transition so open/close flips animate.
  */
@@ -320,7 +320,7 @@ export function MenuGlyph({ size = 16 }: { size?: number }) {
   );
 }
 
-/** Static plus glyph for "add / create" buttons — never a text "+" in labels. */
+/** Static plus glyph for "add / create" buttons, never a text "+" in labels. */
 export function PlusGlyph({ size = 14 }: { size?: number }) {
   return (
     // Heavier stroke so the glyph reads as bold as the 600-weight label beside it.
@@ -361,7 +361,7 @@ export function NavGlyph({
   return <Glyph on={hovered && !(reduced ?? false)} size={size} />;
 }
 
-/** Three-dot overflow glyph — replaces text ellipsis in menu triggers. */
+/** Three-dot overflow glyph: replaces text ellipsis in menu triggers. */
 export function EllipsisGlyph({ size = 14 }: { size?: number }) {
   return (
     <svg

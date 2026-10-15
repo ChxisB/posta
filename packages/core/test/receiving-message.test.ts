@@ -39,7 +39,7 @@ const richMessage = () =>
     to: "agent@inbound.acme.test, Other <other@elsewhere.example>",
     cc: "cc@elsewhere.example",
     replyTo: "replies@sender.example",
-    subject: "Pedido nº 42 — olá",
+    subject: "Pedido nº 42, olá",
     messageId: "<abc-123@sender.example>",
     text: "Plain body",
     html: '<p>Hi <img src="cid:logo@sender"></p>',
@@ -117,7 +117,7 @@ describe("parseReceivedMetadata", () => {
       cc: ["cc@elsewhere.example"],
       bcc: [],
       replyTo: ["replies@sender.example"],
-      subject: "Pedido nº 42 — olá",
+      subject: "Pedido nº 42, olá",
       messageId: "<abc-123@sender.example>",
     });
     expect(metadata.attachments).toEqual([
@@ -248,7 +248,7 @@ describe("Resend shapes", () => {
       to: ["agent@inbound.acme.test", "other@elsewhere.example"],
       from: "ana@sender.example",
       created_at: "2026-10-11T12:00:00.000Z",
-      subject: "Pedido nº 42 — olá",
+      subject: "Pedido nº 42, olá",
       bcc: [],
       cc: ["cc@elsewhere.example"],
       reply_to: ["replies@sender.example"],
@@ -287,7 +287,7 @@ describe("Resend shapes", () => {
     expect(detail.html).toContain(`src="data:image/png;base64,${PNG.toString("base64")}"`);
     expect(detail.html).not.toContain("cid:");
     expect(detail.text).toBe("Plain body");
-    expect(detail.headers?.subject).toBe("=?UTF-8?Q?Pedido_n=C2=BA_42_=E2=80=94_ol=C3=A1?=");
+    expect(detail.headers?.subject).toBe("=?UTF-8?Q?Pedido_n=C2=BA_42=2C_ol=C3=A1?=");
     expect(detail.headers?.["message-id"]).toBe("<abc-123@sender.example>");
     expect(detail.headers?.received).toBe(
       "from a by b; Sat, 10 Oct 2026 10:00:00 +0000\nfrom c by d",
@@ -435,7 +435,7 @@ describe("Resend shapes", () => {
       cc: ["cc@elsewhere.example"],
       received_for: ["agent@inbound.acme.test"],
       message_id: "<abc-123@sender.example>",
-      subject: "Pedido nº 42 — olá",
+      subject: "Pedido nº 42, olá",
       attachments: [
         {
           id: attachments[0]?.id,

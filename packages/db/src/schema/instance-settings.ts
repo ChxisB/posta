@@ -5,7 +5,7 @@ import { monitorSettingColumns } from "./monitor.js";
 /**
  * Instance-wide operator settings (self-host application config), one row
  * enforced by the CHECK. A NULL column means "unset": readers fall back to
- * the env var, then its built-in default — env stays the bootstrap value,
+ * the env var, then its built-in default; env stays the bootstrap value,
  * the dashboard (Settings → Instance) is the runtime override.
  */
 export const instanceSettings = pgTable(

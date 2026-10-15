@@ -10,7 +10,7 @@ import { useDismiss } from "./popover-menu";
 export interface GroupedOption {
   value: string;
   label: string;
-  /** Group key — must match one of the `groups` keys. */
+  /** Group key: must match one of the `groups` keys. */
   group: string;
   /** Leading adornment in the option row, e.g. a colored dot. */
   adornment?: React.ReactNode;
@@ -29,7 +29,7 @@ export interface OptionGroup {
  * Multi-select sibling of <Select>: a searchable .po-menu popover whose rows
  * are grouped under headers and toggle on and off (checkmark on the right),
  * with an optional "all" row at the top. The menu stays open across picks.
- * ARIA combobox pattern — focus rests on the search input; the trigger shows a
+ * ARIA combobox pattern: focus rests on the search input; the trigger shows a
  * caller-supplied summary. Controlled: `value` is the selected option values.
  *
  * `allOption` models an "everything" toggle distinct from the value array
@@ -58,7 +58,7 @@ export function GroupedMultiSelect({
   options: GroupedOption[];
   groups: OptionGroup[];
   ariaLabel: string;
-  /** Rendered inside the trigger — e.g. "All events" or "3 events". */
+  /** Rendered inside the trigger, e.g. "All events" or "3 events". */
   summary: React.ReactNode;
   searchPlaceholder: string;
   noResultsLabel: string;

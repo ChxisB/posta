@@ -267,7 +267,7 @@ describe("audience.contacts.addMany", () => {
     const caller = callerFor(teamId);
 
     // Both imports carry the same address (plus an in-batch dupe); neither
-    // may 500 on the unique index — the loser counts it as skipped.
+    // may 500 on the unique index: the loser counts it as skipped.
     const [a, b] = await Promise.all([
       caller.audience.contacts.addMany({
         rows: [{ email: "raced@example.com" }, { email: "RACED@example.com" }],
@@ -647,7 +647,7 @@ describe("audience.contacts.list segment names", () => {
       name: "Alpha",
       filter: { match: "all", conditions: [] },
     });
-    // A filter segment everyone matches — never a manual membership.
+    // A filter segment everyone matches, never a manual membership.
     await caller.segments.create({
       name: "Everyone",
       filter: { match: "all", conditions: [{ field: "email", op: "ends_with", value: "@x.com" }] },
@@ -725,7 +725,7 @@ describe("audience.contacts.update", () => {
       properties: { plan: "pro", city: "London" },
     });
 
-    // Provided map replaces wholesale — the dropped key does not survive.
+    // Provided map replaces wholesale: the dropped key does not survive.
     await caller.audience.contacts.update({ id, properties: { plan: "free" } });
     expect((await contactRow(id))?.properties).toEqual({ plan: "free" });
 
@@ -860,7 +860,7 @@ describe("audience.properties.list", () => {
     const props = await caller.audience.properties.list();
     expect(props.map((p) => p.key)).toEqual([hostile]);
     expect(props[0]?.sampleValue).toBe("harmless");
-    // The contact survives — nothing was dropped or truncated.
+    // The contact survives: nothing was dropped or truncated.
     expect((await caller.audience.contacts.stats()).contacts).toBe(1);
   });
 });
@@ -916,7 +916,7 @@ describe("audience.properties definitions", () => {
     const hostile = `x")-- drop`;
     await caller.audience.properties.define({ key: hostile });
     expect((await caller.audience.properties.defineList()).map((p) => p.key)).toEqual([hostile]);
-    // The table survives — nothing dropped.
+    // The table survives: nothing dropped.
     await expect(caller.audience.properties.define({ key: "plan" })).resolves.toMatchObject({
       id: expect.any(String),
     });
@@ -1020,7 +1020,7 @@ describe("unsubscribe route", () => {
 
     expect((await post(tampered)).status).toBe(404);
     expect((await post("garbage")).status).toBe(404);
-    // Validly signed token for a contact that no longer exists — same 404.
+    // Validly signed token for a contact that no longer exists: same 404.
     const caller = callerFor((await db.select().from(schema.teams))[0]?.id ?? "");
     await caller.audience.contacts.delete({ id });
     expect((await post(token)).status).toBe(404);

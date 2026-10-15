@@ -9,7 +9,7 @@ const boolFromString = z
 
 /**
  * Comma-separated ARNs → non-empty array, or undefined. Values like "," or
- * whitespace must yield undefined, not [] — a truthy empty allowlist would
+ * whitespace must yield undefined, not []: a truthy empty allowlist would
  * mount the SNS endpoint yet 403 every delivery, including the
  * SubscriptionConfirmation needed to ever receive events.
  */
@@ -28,7 +28,7 @@ export function parseCommaList(value: string | undefined): string[] | undefined 
 }
 
 // Built-in defaults, exported for the settings screen's "effective value"
-// display — the env proxy is raw process.env under SKIP_ENV_VALIDATION, so
+// display: the env proxy is raw process.env under SKIP_ENV_VALIDATION, so
 // consumers needing the default without zod's parsing read these.
 export const SES_MAX_SEND_RATE_DEFAULT = 14;
 /** Percent of each region's SES 24-hour quota kept for transactional mail; broadcasts get the rest. */
@@ -95,7 +95,7 @@ const REVISION_UNKNOWN = "unknown";
 const emailAddress = z.email();
 
 /**
- * Parse a mail From value — `Name <user@domain>` or a bare address — into its
+ * Parse a mail From value (`Name <user@domain>` or a bare address) into its
  * display name and address. Null when the address part is not a valid email,
  * so boot validation can reject a typo instead of failing on the first send.
  */
@@ -108,7 +108,7 @@ export function parseEmailFrom(value: string): { name: string | null; address: s
 }
 
 // Canonical base64 only: Buffer.from silently skips foreign characters, so a
-// mangled key could pass a length check yet decode differently elsewhere —
+// mangled key could pass a length check yet decode differently elsewhere,
 // which would make previously encrypted bodies unrecoverable.
 const canonicalBase64Key = z.string().refine(
   (v) => {
@@ -187,12 +187,12 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
 
     // SNS topics allowed to deliver SES events (comma-separated ARNs).
-    // Unset disables the ingestion endpoint entirely — signature checks
+    // Unset disables the ingestion endpoint entirely: signature checks
     // without a topic allowlist would accept any AWS account's topic.
     SNS_TOPIC_ARNS: z.string().optional().transform(parseSnsTopicArns),
 
     // SQS queue the worker long-polls for SES events when SNS has no public
-    // https endpoint to push to. Requires SNS_TOPIC_ARNS — the same allowlist
+    // https endpoint to push to. Requires SNS_TOPIC_ARNS, the same allowlist
     // authenticates messages read from the queue.
     SQS_QUEUE_URL: z.url().optional(),
 
@@ -211,13 +211,13 @@ export const env = createEnv({
     // vertically only, or divide this value by the replica count. Each
     // region runs at the lower of its own SES MaxSendRate and this, so a
     // sandbox region paces itself at 1/s without lowering it. 14/s is SES's
-    // standard production default. Bootstrap value only — the
+    // standard production default. Bootstrap value only: the
     // instance_settings row overrides it.
     SES_MAX_SEND_RATE: z.coerce.number().positive().default(SES_MAX_SEND_RATE_DEFAULT),
     // Share of every served region's rolling 24-hour SES quota that
     // broadcasts never touch, as a percent. Transactional mail may use all
     // of it and borrow beyond it; broadcasts get the rest and are paced over
-    // days past it. One value for every region. Bootstrap value only — the
+    // days past it. One value for every region. Bootstrap value only: the
     // instance_settings row (Console → Regions) overrides it.
     SES_TRANSACTIONAL_RESERVE: z.coerce
       .number()
@@ -240,7 +240,7 @@ export const env = createEnv({
     WEBHOOK_DELIVERY_RETENTION_DAYS: z.coerce.number().int().min(1).default(30),
 
     // Days email BODIES are kept; metadata and events are unaffected.
-    // Bootstrap value only — the instance_settings row overrides it.
+    // Bootstrap value only: the instance_settings row overrides it.
     EMAIL_RETENTION_DAYS: z.coerce.number().int().min(1).default(EMAIL_RETENTION_DAYS_DEFAULT),
     // Whole email rows (recipients, subject, status, events) age out on this
     // window; bodies leave earlier on EMAIL_RETENTION_DAYS. Thirty days is the
@@ -379,7 +379,7 @@ export const env = createEnv({
 
     // Shared first-email sender for the onboarding flow, as `Name <user@domain>`
     // or a bare address on a domain verified in this instance's SES account.
-    // Any team may send from it — but only to its own members' inboxes — so
+    // Any team may send from it (but only to its own members' inboxes) so
     // the onboarding snippet runs before a domain is verified. Unset hides the
     // "Send email" button and the snippet asks for the team's own domain.
     ONBOARDING_EMAIL_FROM: z.string().optional(),
@@ -421,7 +421,7 @@ export const env = createEnv({
     ALLOW_TRACKING_SUBDOMAINS: boolFromString,
 
     // Host a customer's branded tracking subdomain CNAMEs at. Set to a
-    // dedicated tracking edge (e.g. track.posta-dns.example — a small box
+    // dedicated tracking edge (e.g. track.posta-dns.example, a small box
     // that terminates TLS per customer hostname and proxies /t/* here) when
     // this app itself cannot hold a certificate for customer hostnames, as on
     // a multi-tenant cloud behind a CDN. Unset: the CNAME targets this app's
@@ -491,7 +491,7 @@ export const env = createEnv({
 export type Env = typeof env;
 
 // Under SKIP_ENV_VALIDATION the env proxy carries raw process.env strings,
-// where the string "false" is truthy — so boolean flags are read through
+// where the string "false" is truthy, so boolean flags are read through
 // this instead of tested for truthiness.
 function envFlag(value: unknown): boolean {
   return value === true || value === "true" || value === "1";
@@ -564,7 +564,7 @@ export function accountEmailFrom(e: Env = env): string | undefined {
 /**
  * Whether this process can deliver account mail: explicit SES keys, or the
  * operator's explicit opt-in to the SDK default provider chain, plus the
- * auth sender. AWS_DEFAULT_CHAIN is read raw — an opt-in flag outside the
+ * auth sender. AWS_DEFAULT_CHAIN is read raw: an opt-in flag outside the
  * validated schema. Password recovery and email verification exist on
  * exactly these terms, and so does requiring verified recipients anywhere.
  */
@@ -591,7 +591,7 @@ export interface AbuseJudgeConfig {
 /**
  * Whether the console may unwrap content, read as a function so a process
  * under SKIP_ENV_VALIDATION (raw strings) reads the same answer as a
- * validated one — as abuseJudgeConfig does for the judge.
+ * validated one, as abuseJudgeConfig does for the judge.
  */
 export function contentRevealOn(e: Env = env): boolean {
   return ((e.CONTENT_REVEAL as unknown as string | undefined) || "off") === "on";
@@ -676,7 +676,7 @@ export function errorTrackingConfig(
 
 /**
  * Whether strangers may register. Cloud is always open; a self-host is open
- * only by explicit choice, and a closed one has nobody to market to — sign-ups
+ * only by explicit choice, and a closed one has nobody to market to: sign-ups
  * become contacts only where this is true.
  */
 export function signupOpen(e: Env = env): boolean {
@@ -684,8 +684,8 @@ export function signupOpen(e: Env = env): boolean {
 }
 
 /**
- * Whether a domain's branded tracking subdomain — a customer CNAME pointing
- * at this app — can actually be served here.
+ * Whether a domain's branded tracking subdomain (a customer CNAME pointing
+ * at this app) can actually be served here.
  *
  * Self-host: yes, unconditionally. The operator owns the reverse proxy and
  * its certificates, so pointing another hostname at the app is theirs to
@@ -770,7 +770,7 @@ export function assertEnvConsistency(e: Env): void {
     );
   }
   // Half a keypair would silently fall back to the default provider chain
-  // everywhere AWS clients are built (SES, KMS) — reject it instead. A fully
+  // everywhere AWS clients are built (SES, KMS): reject it instead. A fully
   // absent pair stays valid: the chain (instance profile, SSO) is a real
   // credential source that env vars cannot attest to.
   if (Boolean(e.AWS_ACCESS_KEY_ID) !== Boolean(e.AWS_SECRET_ACCESS_KEY)) {
@@ -849,7 +849,7 @@ export function assertEnvConsistency(e: Env): void {
     }
   } else if (e.KMS_KEY_ID) {
     // A self-host boot would silently ignore the KMS key and seal everything
-    // under the env KEK — almost certainly an IS_CLOUD line lost in env drift.
+    // under the env KEK: almost certainly an IS_CLOUD line lost in env drift.
     throw new Error("KMS_KEY_ID is set but IS_CLOUD is false");
   }
 }

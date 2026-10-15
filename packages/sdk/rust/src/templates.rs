@@ -43,7 +43,7 @@ impl Templates {
         self.0.delete(&["templates", id_or_alias]).await
     }
 
-    /// `POST /templates/:idOrAlias/publish` — kept for Resend compatibility;
+    /// `POST /templates/:idOrAlias/publish`: kept for Resend compatibility;
     /// Posta templates are always published.
     pub async fn publish(&self, id_or_alias: &str) -> Result<TemplateId> {
         self.0
@@ -51,7 +51,7 @@ impl Templates {
             .await
     }
 
-    /// `POST /templates/:idOrAlias/duplicate` — a copy with a fresh id and no alias.
+    /// `POST /templates/:idOrAlias/duplicate`: a copy with a fresh id and no alias.
     pub async fn duplicate(&self, id_or_alias: &str) -> Result<TemplateId> {
         self.0
             .post_empty(&["templates", id_or_alias, "duplicate"])

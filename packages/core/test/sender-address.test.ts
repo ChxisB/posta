@@ -58,7 +58,7 @@ describe("parseSingleSender", () => {
 
   it("rejects the multi-angle-addr spoof (first/last parser divergence)", () => {
     // A lenient last-<addr> extractor authorizes mine.com while a first-addr
-    // MIME builder emits evil@other.com — must never parse.
+    // MIME builder emits evil@other.com: must never parse.
     expect(parseSingleSender("Acme <evil@other.com> <ok@mine.com>")).toBeNull();
     expect(parseSingleSender("<ok@mine.com> <evil@other.com>")).toBeNull();
     expect(parseSingleSender("evil@other.com <ok@mine.com>")).toBeNull();
@@ -95,7 +95,7 @@ describe("parseSingleSender", () => {
     ["Acme <ok@[10.0.0.1]>"], // domain literal never matches a verified domain
     ["(comment) ok@mine.com <x@y.com>"],
     // A display name carrying an address reads as mail from that address on
-    // clients that hide the addr-spec — quoted or not.
+    // clients that hide the addr-spec: quoted or not.
     ['"ceo@victim.com" <a@team.com>'],
     ['"CEO ceo@victim.com" <a@team.com>'],
     ['"weird@name" <a@b.com>'],

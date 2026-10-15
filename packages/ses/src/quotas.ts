@@ -3,7 +3,7 @@ import {
   ServiceQuotasClient,
 } from "@aws-sdk/client-service-quotas";
 
-/** Service Quotas code of SES "Sending quota" — emails per 24 hours, per region. */
+/** Service Quotas code of SES "Sending quota": emails per 24 hours, per region. */
 export const SES_DAILY_QUOTA_CODE = "L-804C8AE8";
 
 /** Structural subset of ServiceQuotasClient so tests inject a fake. */

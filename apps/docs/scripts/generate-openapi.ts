@@ -11,7 +11,7 @@ import { openapi } from "../src/lib/openapi";
  *
  * Importing @posta/api opens no connections (queue/db/keyring live in
  * its server entrypoint, src/server.ts), but it transitively imports
- * @posta/config, which validates env at import time — so this script
+ * @posta/config, which validates env at import time, so this script
  * must run with SKIP_ENV_VALIDATION=1, the same escape hatch apps/web's build
  * uses. The deps below are never dereferenced: createApi only registers
  * routes, and serving /openapi.json executes no route handler.
@@ -22,7 +22,7 @@ const inertDeps: ApiDeps = {
   isCloud: false,
   enqueueEmailSend: async () => {},
   // Must be truthy: /domains routes register only when the SES seam is
-  // present. An empty object is safe — registration never dereferences it.
+  // present. An empty object is safe: registration never dereferences it.
   ses: {} as ApiDeps["ses"],
 };
 

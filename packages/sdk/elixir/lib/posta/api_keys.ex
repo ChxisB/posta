@@ -1,6 +1,6 @@
 defmodule Posta.ApiKeys.ApiKey do
   @moduledoc """
-  An API key. `token` is returned only by `create/2` — store it, it cannot be
+  An API key. `token` is returned only by `create/2`: store it, it cannot be
   fetched again. `remove/2` populates `id` plus `deleted`.
   """
   @type t :: %__MODULE__{}
@@ -20,13 +20,13 @@ defmodule Posta.ApiKeys do
   alias Posta.{Client, Request}
   alias Posta.ApiKeys.ApiKey
 
-  @doc "`POST /api-keys` — the response carries the one-time `token`."
+  @doc "`POST /api-keys`: the response carries the one-time `token`."
   @spec create(Client.t(), map()) :: {:ok, ApiKey.t()} | {:error, Posta.Error.t()}
   def create(client \\ Posta.client(), params) when is_map(params) do
     Request.run(client, method: :post, path: "/api-keys", body: params, as: ApiKey)
   end
 
-  @doc "`GET /api-keys` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /api-keys`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])

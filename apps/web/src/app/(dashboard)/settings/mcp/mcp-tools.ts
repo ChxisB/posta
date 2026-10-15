@@ -1,6 +1,6 @@
 import type { McpScope } from "@posta/core";
 
-/* Mirror of the tool registry in apps/api/src/mcp.ts — the API is the
+/* Mirror of the tool registry in apps/api/src/mcp.ts: the API is the
    source of truth; test/mcp-tools-sync.test.ts fails when they drift. */
 export const MCP_TOOLS: { name: string; scope: McpScope; readOnly?: boolean }[] = [
   { name: "list_emails", scope: "emails:read", readOnly: true },

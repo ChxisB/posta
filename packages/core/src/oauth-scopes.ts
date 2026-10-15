@@ -57,7 +57,7 @@ export const MCP_RESOURCE_PATH = "/mcp";
  * Public origin of the API. Without an explicit value this assumes the API
  * listens on port 3001 of the dashboard host, which is the docker-compose
  * shape every self-host starts from. A deployment whose reverse proxy serves
- * the API on its own hostname (PUBLIC_API_URL) gets that instead — the
+ * the API on its own hostname (PUBLIC_API_URL) gets that instead: the
  * derived host:port is unroutable there, and it is what the dashboard prints
  * as the API base and what MCP tokens are bound to.
  *
@@ -75,7 +75,7 @@ export function apiBaseUrl(
 
 /**
  * Canonical RFC 8707 resource identifier OAuth access tokens are bound to.
- * The authorization server stamps it as `aud`; the API verifies it — both
+ * The authorization server stamps it as `aud`; the API verifies it: both
  * derive it through this one function so they can't drift.
  */
 export function mcpResourceUrl(

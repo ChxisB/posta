@@ -26,13 +26,13 @@ public final class Webhooks {
     this.http = http;
   }
 
-  /** POST /webhooks — returns the id and the signing secret. */
+  /** POST /webhooks: returns the id and the signing secret. */
   public CreateWebhookResponse create(CreateWebhookOptions options) throws PostaException {
     return http.request(
         "POST", "/webhooks", options, null, null, new TypeReference<CreateWebhookResponse>() {});
   }
 
-  /** GET /webhooks/{id} — includes {@code signingSecret}. */
+  /** GET /webhooks/{id}: includes {@code signingSecret}. */
   public Webhook get(String id) throws PostaException {
     return http.request(
         "GET", "/webhooks/" + enc(id), null, null, null, new TypeReference<Webhook>() {});
@@ -62,7 +62,7 @@ public final class Webhooks {
   }
 
   /**
-   * POST /webhooks/{id}/rotate — a Posta extension. During the overlap
+   * POST /webhooks/{id}/rotate: a Posta extension. During the overlap
    * window every delivery carries both the new and the previous signature.
    */
   public RotateWebhookResponse rotate(String id, RotateWebhookOptions options)

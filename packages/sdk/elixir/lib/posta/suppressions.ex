@@ -11,7 +11,7 @@ end
 
 defmodule Posta.Suppressions do
   @moduledoc """
-  The suppression list — addresses that are never sent to. Entries come from
+  The suppression list: addresses that are never sent to. Entries come from
   bounces, complaints and unsubscribes, or are added here. Addressable by id
   or email.
 
@@ -23,7 +23,7 @@ defmodule Posta.Suppressions do
   alias Posta.{Client, Request}
   alias Posta.Suppressions.Suppression
 
-  @doc "`POST /suppressions` — `email:` plus an optional `origin:` (default `manual`)."
+  @doc "`POST /suppressions`: `email:` plus an optional `origin:` (default `manual`)."
   @spec create(Client.t(), map()) :: {:ok, Suppression.t()} | {:error, Posta.Error.t()}
   def create(client \\ Posta.client(), params) when is_map(params) do
     Request.run(client, method: :post, path: "/suppressions", body: params, as: Suppression)
@@ -35,7 +35,7 @@ defmodule Posta.Suppressions do
     Request.run(client, method: :get, path: member_path(id_or_email), as: Suppression)
   end
 
-  @doc "`GET /suppressions` — accepts `limit:`, `after:`, `before:` and `origin:`."
+  @doc "`GET /suppressions`: accepts `limit:`, `after:`, `before:` and `origin:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -58,7 +58,7 @@ defmodule Posta.Suppressions do
   end
 
   @doc """
-  `POST /suppressions/batch/add` — block up to 1000 addresses at once. Options:
+  `POST /suppressions/batch/add`: block up to 1000 addresses at once. Options:
   `origin:` (default `manual`). Returns the created entries (id only).
   """
   @spec batch_add([String.t()]) :: {:ok, [Suppression.t()]} | {:error, Posta.Error.t()}
@@ -84,7 +84,7 @@ defmodule Posta.Suppressions do
   end
 
   @doc """
-  `POST /suppressions/batch/remove` — unblock by `%{emails: [...]}` or
+  `POST /suppressions/batch/remove`: unblock by `%{emails: [...]}` or
   `%{ids: [...]}` (up to 1000). Returns the removed entries with `deleted: true`.
   """
   @spec batch_remove(Client.t(), map()) :: {:ok, [Suppression.t()]} | {:error, Posta.Error.t()}

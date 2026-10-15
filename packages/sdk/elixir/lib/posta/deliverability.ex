@@ -2,7 +2,7 @@ defmodule Posta.Deliverability do
   @moduledoc """
   Account-level deliverability score over the trailing window.
 
-  Scores are 0–10 with one decimal; `score`, `band`, `content_score` and
+  Scores are 0 to 10 with one decimal; `score`, `band`, `content_score` and
   `outcome_score` are `nil` when there is not enough data to compute them.
   `band` (`"excellent" | "good" | "needs_attention" | "at_risk"`) and
   `guardrail_status` (`"ok" | "warning" | "paused"`) are plain strings so

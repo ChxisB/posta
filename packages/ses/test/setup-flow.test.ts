@@ -101,7 +101,7 @@ describe("secretLaterHint", () => {
 });
 
 describe("confirmed", () => {
-  it("empty answer takes the caller's default — piped runs (default no) skip", () => {
+  it("empty answer takes the caller's default: piped runs (default no) skip", () => {
     expect(confirmed("", false)).toBe(false);
     expect(confirmed("  ", false)).toBe(false);
     expect(confirmed("", true)).toBe(true);

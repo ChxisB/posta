@@ -26,7 +26,7 @@ import { useLocalDraft } from "@/lib/use-local-draft";
 import { confirmUnsavedNavigation, useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
 import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID, themeFieldId } from "./field-ids";
 
-/** Everything a crash would lose — mirrored into the local draft. */
+/** Everything a crash would lose: mirrored into the local draft. */
 interface TemplateDraft {
   name: string;
   subject: string;
@@ -84,7 +84,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
   const [document, setDocument] = useState<unknown>(start?.document ?? null);
   // Armed by "Convert this template": the block editor then mounts on the
   // html seed and emits its parse. Until then a document-less row never
-  // reaches the block editor — its html would be flattened on the first edit.
+  // reaches the block editor: its html would be flattened on the first edit.
   const [converting, setConverting] = useState(false);
   const mode = bodyEditorMode({ document, html, converting });
   // Html-authored rows open on their faithful preview, not on an editor.
@@ -151,7 +151,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     setHtml(data.html);
     setText(data.text);
     setDocument(data.document);
-    // The editor seeds once from its mount value — remount it.
+    // The editor seeds once from its mount value: remount it.
     setEditorNonce((n) => n + 1);
     // A restored draft is unsaved by definition: poison the baseline so the
     // editor's next emit differs and the leave-guard arms immediately.
@@ -185,7 +185,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
   );
 
   // Send html is rendered server-side (Maily needs juice), so a design-mode
-  // edit cannot emit it — this debounced render both feeds the preview and
+  // edit cannot emit it: this debounced render both feeds the preview and
   // supplies the html we persist. Code mode never renders: its html is the
   // source itself.
   const [debouncedDoc, setDebouncedDoc] = useState<unknown>(document);
@@ -351,7 +351,7 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     }
   }
 
-  // ⌘S saves, ⌘↵ saves and closes — matching the keycaps on the buttons.
+  // ⌘S saves, ⌘↵ saves and closes: matching the keycaps on the buttons.
   // An open dialog (the convert dialog) owns ⌘↵ as its confirm. The block
   // editor hands ⌘↵ on to here rather than inserting a line break. Capture
   // phase: the open dialog is read before its own handler closes it (React

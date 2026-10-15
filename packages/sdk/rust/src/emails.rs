@@ -53,7 +53,7 @@ impl Emails {
         self.0.get(&["emails"], &list_query(options)).await
     }
 
-    /// `PATCH /emails/:id` — reschedule a scheduled, unsent email.
+    /// `PATCH /emails/:id`: reschedule a scheduled, unsent email.
     pub async fn update(
         &self,
         id: &str,
@@ -62,13 +62,13 @@ impl Emails {
         self.0.patch(&["emails", id], changes).await
     }
 
-    /// `GET /emails/:id/insights` — the pre-send best-practice report. 404
+    /// `GET /emails/:id/insights`: the pre-send best-practice report. 404
     /// (`not_found`) when the email is unknown or has no insights yet.
     pub async fn get_insights(&self, id: &str) -> Result<EmailInsights> {
         self.0.get(&["emails", id, "insights"], &[]).await
     }
 
-    /// `POST /emails/:id/cancel` — only scheduled, unsent emails.
+    /// `POST /emails/:id/cancel`: only scheduled, unsent emails.
     pub async fn cancel(&self, id: &str) -> Result<CancelEmailResponse> {
         self.0.post_empty(&["emails", id, "cancel"]).await
     }
@@ -84,7 +84,7 @@ impl Emails {
 pub struct Batch(pub(crate) Arc<Config>);
 
 impl Batch {
-    /// `POST /emails/batch` — 1–100 emails as a bare array. Pass `&emails`, or
+    /// `POST /emails/batch`: 1 to 100 emails as a bare array. Pass `&emails`, or
     /// `emails.with_idempotency_key("k")`.
     pub async fn send<'a>(
         &self,

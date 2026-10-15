@@ -74,8 +74,8 @@ jobs:
   # main → :edge (moving head); version tags → :1.2.3, :1.2 and :latest
   # (metadata-action adds :latest to semver tags by itself).
   #
-  # Each platform builds on its own native runner — the Next.js build under
-  # QEMU emulation was the whole cost of a multi-arch build — and pushes by
+  # Each platform builds on its own native runner (the Next.js build under
+  # QEMU emulation was the whole cost of a multi-arch build) and pushes by
   # digest only; publish then stitches the digests into one tag per image.
   build:
     needs: [check, secrets]

@@ -5,7 +5,7 @@ module Posta
   # an update hash carries both).
   module Contacts
     class << self
-      # POST /contacts — email, first_name, last_name, unsubscribed, properties,
+      # POST /contacts: email, first_name, last_name, unsubscribed, properties,
       # segments: [{ id: }], topics: [{ id:, subscription: }].
       def create(params)
         Posta::Request.new(method: :post, path: "/contacts", body: params).perform
@@ -33,7 +33,7 @@ module Posta
         Posta::Request.new(method: :delete, path: member_path(id_or_email), query: { erase: erase }).perform
       end
 
-      # GET /contacts — accepts limit:/after:/before: and include:
+      # GET /contacts: accepts limit:/after:/before: and include:
       # (["properties", "topics"]) to carry the property map and the topic
       # subscriptions on every item, as Contacts.get and Topics.list return them.
       def list(options = {})
@@ -47,7 +47,7 @@ module Posta
         Posta::Request.new(method: :patch, path: "#{member_path(id_or_email)}/topics", body: topics).perform
       end
 
-      # POST /contacts/:id_or_email/preferences-link — the contact's hosted
+      # POST /contacts/:id_or_email/preferences-link: the contact's hosted
       # preference page, { object: "preferences_link", contact:, url: }. The
       # url is a contact-scoped capability with no expiry: hand it only to that
       # contact. 422 when the instance cannot build hosted links.
@@ -78,7 +78,7 @@ module Posta
     # Topic subscriptions of one contact, in resend-ruby's nested shape.
     module Topics
       class << self
-        # GET /contacts/:id_or_email/topics — { id: | email: } or a bare id/email.
+        # GET /contacts/:id_or_email/topics: { id: | email: } or a bare id/email.
         # Every topic comes back with the contact's effective subscription
         # (explicit: false means it is the topic's default, not a stored
         # choice) and its visibility ("public" | "private"). Unpaginated, like
@@ -87,14 +87,14 @@ module Posta
           Posta::Request.new(method: :get, path: "#{Posta::Contacts.member_path(params)}/topics").perform
         end
 
-        # PATCH /contacts/:id_or_email/topics — { id: | email:, topics: [{ id:, subscription: }] }.
+        # PATCH /contacts/:id_or_email/topics: { id: | email:, topics: [{ id:, subscription: }] }.
         def update(params)
           Posta::Contacts.topics_update(params, params[:topics])
         end
       end
     end
 
-    # Bulk contact creation and deletion — Posta extensions (Resend
+    # Bulk contact creation and deletion. Posta extensions (Resend
     # imports via CSV and deletes one at a time).
     module Batch
       class << self
@@ -113,18 +113,18 @@ module Posta
           ).perform
         end
 
-        # POST /contacts/batch/get — up to 1000 contacts by id or email (bare
+        # POST /contacts/batch/get: up to 1000 contacts by id or email (bare
         # values or addressing hashes, like Contacts.get) in one request, one
         # call against the rate limit. Returns { data: [...] } in request order
         # plus missing: [{ index:, id: | email: }] for the entries that matched
-        # nobody — those never fail the call. include: ["properties", "topics"]
+        # nobody; those never fail the call. include: ["properties", "topics"]
         # attaches the same extras as Contacts.list.
         def get(addresses, options = {})
           body = { contacts: addresses.map { |a| Posta::Contacts.address(a) }, include: options[:include] }
           Posta::Request.new(method: :post, path: "/contacts/batch/get", body: body.compact).perform
         end
 
-        # POST /contacts/batch/remove — { ids: [...] } or { emails: [...] }
+        # POST /contacts/batch/remove: { ids: [...] } or { emails: [...] }
         # (exactly one, up to 1000), plus erase: true to also scrub each
         # address from email history, event payloads and API logs, as
         # Contacts.remove does. Returns { data: [{ object:, contact:,
@@ -146,7 +146,7 @@ module Posta
           Posta::Request.new(method: :post, path: path(id_or_email, segment_id)).perform
         end
 
-        # DELETE /contacts/:id_or_email/segments/:segment_id — same shapes as add.
+        # DELETE /contacts/:id_or_email/segments/:segment_id: same shapes as add.
         def remove(id_or_email, segment_id = nil)
           Posta::Request.new(method: :delete, path: path(id_or_email, segment_id)).perform
         end

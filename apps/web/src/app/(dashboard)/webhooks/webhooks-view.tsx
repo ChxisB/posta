@@ -285,7 +285,7 @@ export function WebhooksView() {
                   </td>
                   <td>
                     <span className="po-mono">
-                      {webhook.successRate === null ? "—" : `${webhook.successRate}%`}
+                      {webhook.successRate === null ? "-" : `${webhook.successRate}%`}
                     </span>
                   </td>
                   <td>

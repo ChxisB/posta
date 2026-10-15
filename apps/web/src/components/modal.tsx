@@ -45,7 +45,7 @@ export function Modal({
   open: boolean;
   onClose: () => void;
   /**
-   * The dialog's primary action, fired on ⌘↵ / Ctrl↵ — the one confirm
+   * The dialog's primary action, fired on ⌘↵ / Ctrl↵: the one confirm
    * shortcut every dialog shares (plain Enter only works while focus is in
    * a form field, and the modal itself holds focus on open). Callers must
    * guard it exactly like the primary button (pending/invalid → no-op).

@@ -31,7 +31,7 @@ export function formatDay(date: Date | string | number, locale: string): string 
 }
 
 /**
- * Short day label for a UTC day key ("2026-08-13" → "Aug 13"), pinned to UTC —
+ * Short day label for a UTC day key ("2026-08-13" → "Aug 13"), pinned to UTC:
  * local-zone formatting would shift the day in negative-offset timezones.
  */
 export function formatDayUtc(day: string, locale: string): string {
@@ -99,7 +99,7 @@ function trimFixed(value: number, decimals: number): string {
 
 /**
  * Compact duration for event deltas and mastheads: "21 ms", "1.92 s",
- * "6.4 m", "1.2 h", "3 d" — the unit always spaced, mono-friendly.
+ * "6.4 m", "1.2 h", "3 d"; the unit always spaced, mono-friendly.
  */
 /** Countdown rendering ("5h 32m", "48m") for quota-reset banners. */
 export function formatHoursMinutes(ms: number): string {
@@ -177,7 +177,7 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * "po_••••••••abcd" — drops the 6 indexed secret chars the stored
+ * "po_••••••••abcd", drops the 6 indexed secret chars the stored
  * tokenPrefix carries; the mask shows only the scheme and the last 4.
  */
 export function maskApiKey(tokenPrefix: string, last4: string): string {
@@ -187,7 +187,7 @@ export function maskApiKey(tokenPrefix: string, last4: string): string {
 
 /**
  * URL for display surfaces (chips, table cells, headings): the scheme is
- * noise there — endpoints are https-only, so it carries no information.
+ * noise there; endpoints are https-only, so it carries no information.
  * Copy affordances must still copy the full URL; pass this only as the
  * visible text.
  */

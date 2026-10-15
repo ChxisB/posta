@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Keyset pagination for list endpoints. {@code after} and {@code before} are
- * mutually exclusive UUID cursors; {@code limit} is 1–100 (server default 20).
+ * mutually exclusive UUID cursors; {@code limit} is 1 to 100 (server default 20).
  */
 public final class ListOptions {
 

@@ -222,7 +222,7 @@
     "emptyHint": "Turn on receiving for a domain in <link>Domains</link>, then point its MX record here.",
     "noMatch": "No received emails match these filters.",
     "clearFilters": "Clear filters",
-    "pageOf": "Page 1 – {pages} of {total} received emails",
+    "pageOf": "Page 1 to {pages} of {total} received emails",
     "col": {
       "from": "From",
       "subject": "Subject",

@@ -34,7 +34,7 @@ describe("lineReader", () => {
     const { input, rl } = reader();
     input.end("first\nsecond\nthird\n");
     expect(await rl.question("q1? ")).toBe("first");
-    // The burst delivered these while no question was pending — the
+    // The burst delivered these while no question was pending: the
     // readline/promises API drops them; the queue must not.
     expect(await rl.question("q2? ")).toBe("second");
     expect(await rl.question("q3? ")).toBe("third");
@@ -225,7 +225,7 @@ describe("banner coloring", () => {
     }
   }
 
-  it("is uncolored — art carries its tones through character density", () => {
+  it("is uncolored, art carries its tones through character density", () => {
     for (const line of banner("full")) {
       expect(line).not.toContain("\x1b");
     }
@@ -387,9 +387,9 @@ describe("secretPromptMode", () => {
 });
 
 describe("answerLine", () => {
-  it("uses a dash after a question and a colon otherwise", () => {
+  it("uses a space after a question and a colon otherwise", () => {
     expect(answerLine("Where is Posta running?", "Posta Cloud")).toBe(
-      "Where is Posta running? — Posta Cloud",
+      "Where is Posta running? Posta Cloud",
     );
     expect(answerLine("Domain limit", "First 3 domains")).toBe("Domain limit: First 3 domains");
   });
@@ -397,10 +397,10 @@ describe("answerLine", () => {
 
 describe("rowsFor", () => {
   const row =
-    "❯ [x] Enrichment — properties and topic subscriptions, read per contact (12,847 contacts)";
+    "❯ [x] Enrichment: properties and topic subscriptions, read per contact (12,847 contacts)";
 
   it("counts wrapped rows per line, ANSI excluded", () => {
-    expect([...row].length).toBe(89);
+    expect([...row].length).toBe(88);
     expect(rowsFor([row], 80)).toBe(2);
     expect(rowsFor([row], 40)).toBe(3);
     expect(rowsFor(["Resources", row, "short"], 80)).toBe(4);
@@ -413,18 +413,18 @@ describe("rowsFor", () => {
 describe("optionRow", () => {
   const option = {
     value: "enrichment",
-    label: "Enrichment — properties and topic subscriptions",
+    label: "Enrichment: properties and topic subscriptions",
     hint: "12,847 contacts",
   };
 
   it("fits in columns - 1 with an ellipsis, hint cut first", () => {
     const full = optionRow("❯ [x] ", option, true, 120);
-    expect(full).toBe("❯ [x] Enrichment — properties and topic subscriptions (12,847 contacts)");
+    expect(full).toBe("❯ [x] Enrichment: properties and topic subscriptions (12,847 contacts)");
     const cut = optionRow("❯ [x] ", option, true, 60);
     expect([...cut].length).toBe(59);
-    expect(cut).toBe("❯ [x] Enrichment — properties and topic subscriptions (12,…");
+    expect(cut).toBe("❯ [x] Enrichment: properties and topic subscriptions (12,8…");
     const short = optionRow("  ", option, false, 20);
-    expect(short).toBe("  Enrichment — pro…");
+    expect(short).toBe("  Enrichment: prop…");
   });
 });
 

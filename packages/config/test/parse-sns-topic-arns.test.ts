@@ -9,7 +9,7 @@ it("parses comma-separated ARNs with whitespace tolerance", async () => {
 });
 
 it("degenerate inputs yield undefined, never a truthy empty allowlist", async () => {
-  // [] would mount the SNS endpoint yet 403 every delivery — including the
+  // [] would mount the SNS endpoint yet 403 every delivery: including the
   // SubscriptionConfirmation needed to ever receive events.
   expect(parseSnsTopicArns(undefined)).toBeUndefined();
   expect(parseSnsTopicArns("")).toBeUndefined();

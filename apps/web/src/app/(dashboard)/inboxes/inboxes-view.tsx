@@ -24,7 +24,7 @@ import { kindWord } from "./parts";
 const TABS = ["all", "agent", "human"] as const;
 
 const muted: React.CSSProperties = { color: "var(--po-muted)", fontSize: 12.5 };
-const none = <span style={{ color: "var(--po-faint)" }}>—</span>;
+const none = <span style={{ color: "var(--po-faint)" }}>-</span>;
 
 function InboxesHead() {
   const t = useTranslations("inboxes");

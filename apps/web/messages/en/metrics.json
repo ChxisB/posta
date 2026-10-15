@@ -8,7 +8,7 @@
   "kpi": {
     "emails": "Emails",
     "deliverability": "Deliverability rate",
-    "allTimeDelivered": "Emails delivered — all-time"
+    "allTimeDelivered": "Emails delivered, all-time"
   },
   "bounce": {
     "title": "Hard-bounce rate",
@@ -78,7 +78,7 @@
     "clicked": "Clicked"
   },
   "empty": "No metrics yet.",
-  "emptyHint": "Metrics appear after your first send — <code>POST /emails</code>.",
+  "emptyHint": "Metrics appear after your first send: <code>POST /emails</code>.",
   "guardrail": {
     "window": "last {days} days"
   }

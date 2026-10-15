@@ -11,7 +11,7 @@ import (
 // "restricted_api_key", "sending_paused", "all_recipients_suppressed").
 type PostaError struct {
 	// StatusCode is the HTTP status. It is 0 when the request never reached the
-	// API (a transport or client-side failure) — the wire's "statusCode: null".
+	// API (a transport or client-side failure): the wire's "statusCode: null".
 	StatusCode int `json:"statusCode"`
 	// Name is the stable discriminant you can switch on.
 	Name    string `json:"name"`

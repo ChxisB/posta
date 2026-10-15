@@ -22,7 +22,7 @@ export function emailFrameBackground(scheme: EmailScheme): string {
  * Approximation of how dark-mode mail clients (Gmail's auto-darkening, Apple
  * Mail with supported-color-schemes) transform a light email: invert + rotate
  * hues, then re-invert media so photos and logos keep their real colors. Full
- * invert(1) both ways keeps images pixel-exact. Preview-only — nothing here
+ * invert(1) both ways keeps images pixel-exact. Preview-only, nothing here
  * ships in a send.
  */
 export const DARK_CLIENT_SIM = `<style>

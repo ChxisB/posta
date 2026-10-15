@@ -53,7 +53,7 @@ export type { MailLocale };
 /**
  * Honest "this process can reach SES": explicit keys, or the operator's
  * explicit opt-in to the SDK default provider chain. AWS_DEFAULT_CHAIN is
- * read raw — it is an opt-in flag outside the validated env schema.
+ * read raw: it is an opt-in flag outside the validated env schema.
  */
 export function awsCredentialsConfigured(): boolean {
   return (
@@ -315,7 +315,7 @@ export function buildMcpConnectedEmail(input: {
 /**
  * A mail about the account itself, sent without holding the request: the
  * endpoint's answer must not depend on the send, and a failure is logged
- * rather than surfaced — the account state it reports on already exists.
+ * rather than surfaced; the account state it reports on already exists.
  */
 export function sendAccountMail(
   message: SystemMailMessage,
@@ -334,7 +334,7 @@ export interface SystemMailDeps {
 /**
  * Account mail rides the team pipeline when a team holds the sender's
  * verified domain (core sendSystemMail), else SESv2 Simple content as
- * before — in that domain's region when a team holds it, else the default
+ * before: in that domain's region when a team holds it, else the default
  * served region. Clients are built per send: system mail is rare, so there
  * is nothing worth caching.
  */
@@ -364,13 +364,13 @@ export const defaultSystemMailDeps: SystemMailDeps = {
 
 /**
  * Better Auth's sendResetPassword hook body. Never throws and never awaits
- * the SES call: the endpoint's response — shape and timing — must not depend
+ * the SES call: the endpoint's response (shape and timing) must not depend
  * on whether or how the send went, or it would leak account existence.
  *
  * Per-account throttle: Better Auth writes a verification row per reset token
  * (identifier `reset-password:<token>`, value = user id) BEFORE invoking this
  * hook, so any other row for this user newer than the window means an email
- * already went out — skip silently, the caller still sees success.
+ * already went out; skip silently, the caller still sees success.
  */
 export async function sendPasswordResetEmail(
   db: Db,
@@ -409,7 +409,7 @@ export async function sendPasswordResetEmail(
  * Better Auth's sendVerificationEmail hook body, on sign-up and on a sign-in
  * that finds the address unverified. Detached like the reset: the endpoint's
  * response must not depend on the send (a duplicate sign-up already answers
- * generically), and a failure is logged, never surfaced — the screen offers
+ * generically), and a failure is logged, never surfaced; the screen offers
  * the link again.
  */
 export function sendVerificationEmail(

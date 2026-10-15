@@ -8,7 +8,7 @@ import { OPEN_TRACKING_DOCS_URL } from "@/lib/docs-links";
 import { useTRPC } from "@/lib/trpc";
 
 // Client-side pre-check only; the router's zod schema is authoritative. A
-// single lowercase DNS label — the CNAME host that sits under the domain.
+// single lowercase DNS label: the CNAME host that sits under the domain.
 const DNS_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 const optionHint: React.CSSProperties = {

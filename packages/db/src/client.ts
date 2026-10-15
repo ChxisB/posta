@@ -5,7 +5,7 @@ import * as schema from "./schema/index.js";
 
 export type Db = ReturnType<typeof createDb>;
 
-/** timestamptz, timestamp, date — the scalar OIDs a Date param can bind to. */
+/** timestamptz, timestamp, date: the scalar OIDs a Date param can bind to. */
 const DATE_OIDS = [1184, 1114, 1082];
 
 // Sized for the worker's concurrent send lanes (apps/worker SEND_CONCURRENCY)

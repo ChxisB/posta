@@ -6,7 +6,7 @@ import styles from "./auth.module.css";
 /**
  * Live silk backdrop: a dependency-free WebGL fragment shader draws endlessly
  * flowing cloth folds (domain-warped fbm noise, lit top-left with a specular
- * sheen). Renders nothing under prefers-reduced-motion or without WebGL — the
+ * sheen). Renders nothing under prefers-reduced-motion or without WebGL: the
  * static webp beneath stays visible instead. Palette follows [data-theme].
  */
 
@@ -128,7 +128,7 @@ export function SilkCanvas() {
     });
 
     // fbm per pixel is the cost driver: render into a small backing store and
-    // let CSS stretch it — soft silk upscaled is indistinguishable, and this
+    // let CSS stretch it; soft silk upscaled is indistinguishable, and this
     // plus the 30fps cap is what keeps GPUs cool and contexts alive.
     const RENDER_MAX_WIDTH = 640;
     const resize = () => {

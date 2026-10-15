@@ -5,7 +5,7 @@ import { firstRow } from "./driver-result.js";
 
 export type EmailStatus = (typeof schema.emailStatusEnum.enumValues)[number];
 
-/** Event-driven ladder statuses — everything from "sent" upward. */
+/** Event-driven ladder statuses: everything from "sent" upward. */
 const EVENT_LADDER_FLOOR: EmailStatus = "sent";
 
 /**
@@ -13,7 +13,7 @@ const EVENT_LADDER_FLOOR: EmailStatus = "sent";
  * Postgres's native enum ordering (declaration order = comparison order).
  * Applies ONLY to event-driven statuses ("sent" and above): queue-internal
  * states (queued_quota/queued) sit below the ladder and move via
- * transitionQueueState — the CAS could never reach them (the column default
+ * transitionQueueState; the CAS could never reach them (the column default
  * "queued" already outranks "queued_quota"). Returns whether the update applied.
  */
 export async function applyStatusCas(db: Db, emailId: string, next: EmailStatus): Promise<boolean> {

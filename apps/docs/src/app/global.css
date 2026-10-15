@@ -52,7 +52,7 @@
 }
 
 /* Code-block copy button: pop the check in, matching the dashboard/LP copy
- * affordance (po-copy-pop / lp-copy-pop — keep the three in step). Fumadocs
+ * affordance (po-copy-pop / lp-copy-pop: keep the three in step). Fumadocs
  * stamps data-checked on the button while the copied state shows. */
 button[data-checked] svg {
   color: hsl(140, 35%, 62%);
@@ -78,7 +78,7 @@ button[data-checked] svg {
 
 /* fumadocs-openapi's MethodLabel colors a method with a Tailwind text utility
    (GET green, POST blue, PUT yellow, PATCH orange, DELETE red). Developers
-   read Postman's palette — POST yellow, PUT blue, PATCH purple — so the three
+   read Postman's palette (POST yellow, PUT blue, PATCH purple) so the three
    that differ are re-mapped by those utilities; an upgrade that renames them
    only restores fumadocs' defaults. */
 span.font-mono.font-medium.text-blue-600 {

@@ -40,7 +40,7 @@ export interface UnsubscribeTarget {
   topic: { id: string; name: string } | null;
   /** The email whose link was used, when the token carries one. */
   emailId: string | null;
-  /** Already unsubscribed from this scope — the confirm page reads as done. */
+  /** Already unsubscribed from this scope: the confirm page reads as done. */
   alreadyDone: boolean;
   /** The contact's team's customization for the confirm page. */
   customization: UnsubscribeCustomization;
@@ -55,7 +55,7 @@ export interface PreferenceTopic {
 
 /**
  * Topics the confirm page's preferences list shows and the POST handler may
- * write: the team's public topics, plus the token's own topic when private —
+ * write: the team's public topics, plus the token's own topic when private:
  * a private topic's own unsubscribe link must still render it. This set is
  * the write allowlist too: ids posted outside it are ignored.
  */
@@ -99,7 +99,7 @@ export function postUnsubscribeLocation(token: string, redirectUrl: string | nul
  * Token → the exact thing it unsubscribes from, or null for anything invalid
  * (bad signature, non-uuid ids, unknown/deleted contact, or a topic-scoped
  * token whose topic was deleted). Callers must render every null the same
- * way — the public page never confirms whether a contact or topic exists.
+ * way: the public page never confirms whether a contact or topic exists.
  */
 export async function targetForToken(db: Db, token: string): Promise<UnsubscribeTarget | null> {
   if (!env.MASTER_ENCRYPTION_KEY) return null;
@@ -108,7 +108,7 @@ export async function targetForToken(db: Db, token: string): Promise<Unsubscribe
   if (!parsed) return null;
   const { contactId, topicId, emailId } = parsed;
   // Non-uuid payloads can't be minted by us, but a raw string must never
-  // reach a uuid column — Postgres would 500 instead of rendering neutral.
+  // reach a uuid column. Postgres would 500 instead of rendering neutral.
   if (!z.uuid().safeParse(contactId).success) return null;
   if (topicId !== null && !z.uuid().safeParse(topicId).success) return null;
   if (emailId !== null && !z.uuid().safeParse(emailId).success) return null;
@@ -183,7 +183,7 @@ export async function targetForToken(db: Db, token: string): Promise<Unsubscribe
   if (!topic) return null;
 
   // Effective state: the explicit override, else the topic's default. Absence
-  // of a row is not "unsubscribed" — it is the default.
+  // of a row is not "unsubscribed": it is the default.
   const s = schema.contactTopicSubscriptions;
   const [sub] = await db
     .select({ subscribed: s.subscribed })

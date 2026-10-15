@@ -13,7 +13,7 @@ describe("api keys", () => {
   it("verifies the original token and rejects others", () => {
     const key = generateApiKey();
     expect(verifyApiKey(key.token, key.keyHash)).toBe(true);
-    // Flip the last char to one guaranteed different — a fixed "x" collides
+    // Flip the last char to one guaranteed different: a fixed "x" collides
     // with tokens that already end in "x".
     const flipped = key.token.endsWith("x") ? "y" : "x";
     expect(verifyApiKey(`${key.token.slice(0, -1)}${flipped}`, key.keyHash)).toBe(false);

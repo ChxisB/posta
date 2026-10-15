@@ -12,8 +12,8 @@ export interface Mailbox {
  * groups), so `Acme <evil@other.com> <ok@mine.com>` could pass domain
  * verification or a suppression check for one address yet be delivered to
  * another. The only safe policy is to accept EXACTLY one unambiguous mailbox
- * — `local@domain`, `Display Name <local@domain>` or `"Display Name"
- * <local@domain>` — and reject everything else. A rejected send is safe; a
+ * (`local@domain`, `Display Name <local@domain>` or `"Display Name"
+ * <local@domain>`) and reject everything else. A rejected send is safe; a
  * silently-rewritten one is not.
  *
  * A display name containing '@' is rejected even when quoted: mobile clients

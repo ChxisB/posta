@@ -12,7 +12,7 @@ final class ContactTopics
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * GET /contacts/:idOrEmail/topics — every topic with the contact's effective
+     * GET /contacts/:idOrEmail/topics: every topic with the contact's effective
      * `subscription` (opt_in|opt_out); `explicit` is false when that is just the
      * topic default; `visibility` (public|private) says whether the hosted
      * preference page lists it. resend-php's name; {@see list()} is an alias.
@@ -31,7 +31,7 @@ final class ContactTopics
     }
 
     /**
-     * PATCH /contacts/:idOrEmail/topics — body is the bare subscription array.
+     * PATCH /contacts/:idOrEmail/topics: body is the bare subscription array.
      * Two shapes: resend-php's `update($idOrEmail, $topics)` where `$topics` is
      * the list itself (or `['topics' => $list]`), or a single array carrying the
      * address (`email` wins over `id`) alongside `topics`.

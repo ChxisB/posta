@@ -6,7 +6,7 @@ export const en = {
     body: [
       "Hi {name}, your account is ready.",
       "First add a sending domain and publish its DNS records; sends go out the moment it verifies.",
-      "Then create an API key under API keys — it is shown once, and it is what the SDKs, SMTP and the MCP server send with.",
+      "Then create an API key under API keys: it is shown once, and it is what the SDKs, SMTP and the MCP server send with.",
     ],
     button: "Add a domain",
     muted: ["Docs: {docsUrl}"],
@@ -15,7 +15,7 @@ export const en = {
     subject: "Your Posta password was changed",
     body: [
       "The password for {email} was just changed and every other session was signed out.",
-      "If this was you, nothing to do. If it wasn't, reset it now — that signs out whoever did it — and review your API keys and connected apps.",
+      "If this was you, nothing to do. If it wasn't, reset it now (that signs out whoever did it) and review your API keys and connected apps.",
     ],
     button: "Reset password",
   },
@@ -68,7 +68,7 @@ export const en = {
   "domain.verified": {
     subject: "Your domain is verified",
     body: [
-      "The DNS records for {domain} check out and it can send from any address on it — API, SMTP and broadcasts.",
+      "The DNS records for {domain} check out and it can send from any address on it; API, SMTP and broadcasts.",
       "We keep re-checking the records and will tell you if one disappears.",
     ],
     button: "Open domain",
@@ -76,7 +76,7 @@ export const en = {
   "domain.lost": {
     subject: "A domain lost its verification",
     body: [
-      "A required DNS record for {domain} (DKIM or MAIL FROM) no longer resolves, so sends from it are refused until it's back — API calls fail and scheduled broadcasts stop at send time.",
+      "A required DNS record for {domain} (DKIM or MAIL FROM) no longer resolves, so sends from it are refused until it's back; API calls fail and scheduled broadcasts stop at send time.",
       "Restore the record at your DNS host; verification returns on its own at the next check or when you press Verify.",
     ],
     button: "Open domain",

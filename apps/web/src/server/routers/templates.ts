@@ -10,7 +10,7 @@ import { beforeCursor, createdAtCursorField, cursorSchema, paginate } from "../k
 import { router, teamProcedure } from "../trpc";
 
 const nameSchema = z.string().trim().min(1).max(200);
-// "" clears the field — stored as null, never as an empty string.
+// "" clears the field: stored as null, never as an empty string.
 const subjectSchema = z.string().trim().max(998);
 const previewTextSchema = z.string().trim().max(PREVIEW_TEXT_MAX);
 const bodySchema = z.string().max(500_000);

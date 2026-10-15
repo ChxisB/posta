@@ -12,7 +12,7 @@ import { teams } from "./teams.js";
 
 /**
  * Daily send counters (UTC day). Quota is reserved with an atomic
- * `UPDATE ... RETURNING` at accept time — never from cached aggregates —
+ * `UPDATE ... RETURNING` at accept time (never from cached aggregates),
  * so the plan limit cannot be overshot by concurrent requests.
  * Aggregate lifecycle: rows are kept forever (they feed Metrics and the
  * all-time counter).
@@ -35,7 +35,7 @@ export const usageCounters = pgTable(
     delivered: integer("delivered").notNull().default(0),
     bounced: integer("bounced").notNull().default(0),
     // bounced counts ALL bounce events including Transient; hardBounced counts
-    // only Permanent — the deliverability score's bounce-rate input (transient
+    // only Permanent: the deliverability score's bounce-rate input (transient
     // greylisting must not read as a hard-bounce crisis).
     hardBounced: integer("hard_bounced").notNull().default(0),
     complained: integer("complained").notNull().default(0),

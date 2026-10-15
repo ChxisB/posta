@@ -4,7 +4,7 @@
 
 <p align="center"><b>The open-source email platform. Send one. Send a million.</b></p>
 
-Self-host on your own AWS SES, or use the hosted cloud. Resend-compatible API — migrating
+Self-host on your own AWS SES, or use the hosted cloud. Resend-compatible API, migrating
 means changing two environment variables, not rewriting your integration.
 
 <p align="center">
@@ -18,7 +18,7 @@ means changing two environment variables, not rewriting your integration.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Emails API (Resend-compatible) | ✅ | Send, batch, get, cancel — same request/response shapes as Resend. |
+| Emails API (Resend-compatible) | ✅ | Send, batch, get, cancel: same request/response shapes as Resend. |
 | Idempotency | ✅ | `Idempotency-Key` header dedupes retried sends. |
 | API keys | ✅ | Create and revoke `po_` keys from the dashboard, with last-used tracking. |
 | Suppression list | ✅ | Hard bounces and complaints suppressed automatically; review and remove per address, or manage via `/suppressions` (batch add/remove up to 1000). |
@@ -54,7 +54,7 @@ The hosted monitor uses [TypeSafe](https://typesafe.ai)'s Jev, a System One mode
 
 ## Run it locally
 
-One command, in an empty directory — no clone needed:
+One command, in an empty directory, no clone needed:
 
 ```sh
 npx @tack-labs/posta-setup
@@ -64,8 +64,8 @@ The wizard creates `.env` (secrets generated for you), optionally provisions
 the AWS resources (IAM user, SNS event topic, SES configuration set), and
 starts the prebuilt image with `docker compose up -d`. Every step is offered,
 skippable, and safe to re-run. Prefer doing it by hand? The manual curl path
-and everything else — from-source build, SES/SNS event pipeline, Docker-less
-development — is in [SELF_HOSTING.md](SELF_HOSTING.md).
+and everything else (from-source build, SES/SNS event pipeline, Docker-less
+development) is in [SELF_HOSTING.md](SELF_HOSTING.md).
 
 Dashboard at http://localhost:3000, API at http://localhost:3001.
 

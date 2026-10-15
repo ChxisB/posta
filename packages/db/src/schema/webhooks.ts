@@ -13,7 +13,7 @@ export const webhookEndpoints = pgTable("webhook_endpoints", {
   url: text("url").notNull(),
   description: text("description"),
   // Standard Webhooks whsec_ secret, envelope-encrypted like email bodies
-  // (per-row DEK wrapped by the keyring KEK — never plaintext at rest).
+  // (per-row DEK wrapped by the keyring KEK, never plaintext at rest).
   secretCiphertext: bytea("secret_ciphertext").notNull(),
   secretIv: bytea("secret_iv").notNull(),
   secretWrappedDek: bytea("secret_wrapped_dek").notNull(),

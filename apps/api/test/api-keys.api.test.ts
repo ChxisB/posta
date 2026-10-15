@@ -200,7 +200,7 @@ describe("GET /api-keys", () => {
     expect(body.object).toBe("list");
     expect(body.data.length).toBeGreaterThan(0);
     for (const item of body.data) {
-      // Exactly the oracle's masked item shape plus the inbox_id extension — no token, prefix, or hash.
+      // Exactly the oracle's masked item shape plus the inbox_id extension: no token, prefix, or hash.
       expect(Object.keys(item).sort()).toEqual([
         "created_at",
         "id",

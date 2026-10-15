@@ -24,7 +24,7 @@
     "convert": "Converter em blocos",
     "source": "HTML",
     "textStored": "Texto simples: enviado como está armazenado.",
-    "textNone": "Texto simples: nenhum — só HTML.",
+    "textNone": "Texto simples: nenhum, só HTML.",
     "convertTitle": "Converter em blocos?",
     "convertBody": "O layout será simplificado para o formato do editor de blocos: tabelas, CSS inline e tudo que os blocos não expressam se perdem. O HTML armazenado só muda quando você salvar.",
     "convertCopy": "Duplicar e converter",

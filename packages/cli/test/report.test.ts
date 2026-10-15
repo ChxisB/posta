@@ -49,13 +49,13 @@ describe("printSummary / renderReportMd", () => {
     const chunks: string[] = [];
     await printSummary({ write: (c: string) => chunks.push(String(c)) } as never, report);
     const text = chunks.join("");
-    expect(text).toContain("  ! topics/News — News\n");
-    expect(text).toContain("  ✗ topics/News — News\n");
+    expect(text).toContain("  ! topics/News: News\n");
+    expect(text).toContain("  ✗ topics/News: News\n");
     expect(text).toContain("resend._domainkeyNews");
     expect(text).not.toContain("\x1b");
     expect(text).not.toContain("\x07");
     const md = renderReportMd(report);
-    expect(md).toContain("- topics/News — News");
+    expect(md).toContain("- topics/News: News");
     expect(md).toContain("- News");
     expect(md).not.toContain("\x1b");
     expect(md).not.toContain("\x07");
@@ -125,7 +125,7 @@ describe("printSummary layout", () => {
     expect(text).toContain("\nResend was only read; nothing there was changed.\n");
     expect(text).toContain("  https://hook.example  whsec_abc\n");
     expect(text).toContain(
-      "\n2 of 3 steps done — left:\n  [ ] add DNS records for news.example.com\n",
+      "\n2 of 3 steps done. Left:\n  [ ] add DNS records for news.example.com\n",
     );
     expect(text).toContain(
       "\nDNS records for news.example.com:\n  TXT  ms._domainkey.news.example.com\n    v=DKIM1\n\n  MX  news.example.com  priority 10\n    mx.example\n",
@@ -134,7 +134,7 @@ describe("printSummary layout", () => {
       `\nId map (Resend → Posta; full pairs in migrate-report.md):\n  topics/Product updates\n    05cda767… → ${UUID}\n`,
     );
     expect(text).toContain(
-      "\nManual notes:\n  ! topics/T — from domain x is not verified here\n  ! 4 broadcasts — from domain x is not verified here\n    A, B … and 2 more\n  ! broadcasts/E — something else\n",
+      "\nManual notes:\n  ! topics/T: from domain x is not verified here\n  ! 4 broadcasts: from domain x is not verified here\n    A, B … and 2 more\n  ! broadcasts/E: something else\n",
     );
     // Prose wraps at the layout width (80 here); the words and their order are what matter.
     const prose = text.replace(/\n/g, " ");
@@ -153,14 +153,14 @@ describe("printSummary layout", () => {
     expect(text).toContain("\x1b[2mResend was only read; nothing there was changed.\x1b[22m");
     expect(text).toContain("  https://hook.example  \x1b[1mwhsec_abc\x1b[22m\n");
     expect(text).toContain(
-      "\x1b[1m2\x1b[22m of 3 steps done — left:\n  \x1b[2m[\x1b[22m \x1b[2m]\x1b[22m add DNS",
+      "\x1b[1m2\x1b[22m of 3 steps done. Left:\n  \x1b[2m[\x1b[22m \x1b[2m]\x1b[22m add DNS",
     );
     expect(text).toContain(
       "  \x1b[36mTXT\x1b[39m  ms._domainkey.news.example.com\n    \x1b[1mv=DKIM1\x1b[22m\n",
     );
     expect(text).toContain("  \x1b[36mMX\x1b[39m  news.example.com\x1b[2m  priority 10\x1b[22m\n");
     expect(text).toContain(`    \x1b[2m05cda767…\x1b[22m → \x1b[1m${UUID}\x1b[22m\n`);
-    expect(text).toContain("  \x1b[35m!\x1b[39m 4 broadcasts — from domain x");
+    expect(text).toContain("  \x1b[35m!\x1b[39m 4 broadcasts: from domain x");
     expect(text).toContain("\x1b[2mA, B … and 2 more\x1b[22m");
     expect(text).toContain(
       "sent \x1b[1m41,208\x1b[22m emails in the last \x1b[1m30\x1b[22m days (~\x1b[1m1,374\x1b[22m/day).",
@@ -177,7 +177,7 @@ describe("printSummary layout", () => {
     const text = await summary({ ...report, manual: [{ title: "topics/T", detail }] });
     const lines = text.split("\n").filter((l) => l.includes("word"));
     expect(lines.length).toBeGreaterThan(1);
-    expect(lines[0]).toMatch(/^ {2}! topics\/T — word/);
+    expect(lines[0]).toMatch(/^ {2}! topics\/T: word/);
     for (const l of lines.slice(1)) expect(l).toMatch(/^ {4}word/);
     for (const l of lines) expect(l.length).toBeLessThanOrEqual(80);
   });

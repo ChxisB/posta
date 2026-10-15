@@ -34,7 +34,7 @@ public final class Suppressions {
     return batch;
   }
 
-  /** POST /suppressions — idempotent: an already-suppressed address returns its existing id. */
+  /** POST /suppressions: idempotent: an already-suppressed address returns its existing id. */
   public Id add(AddSuppressionOptions options) throws PostaException {
     return http.request("POST", "/suppressions", options, null, null, new TypeReference<Id>() {});
   }
@@ -64,7 +64,7 @@ public final class Suppressions {
         new TypeReference<ListResponse<Suppression>>() {});
   }
 
-  /** DELETE /suppressions/{idOrEmail} — the address can receive mail again. */
+  /** DELETE /suppressions/{idOrEmail}: the address can receive mail again. */
   public DeletedResponse remove(String idOrEmail) throws PostaException {
     return http.request(
         "DELETE", "/suppressions/" + enc(idOrEmail), null, null, null,
@@ -80,14 +80,14 @@ public final class Suppressions {
       this.http = http;
     }
 
-    /** POST /suppressions/batch/add — one id per distinct address, in input order. */
+    /** POST /suppressions/batch/add: one id per distinct address, in input order. */
     public DataResponse<Id> add(AddSuppressionsOptions options) throws PostaException {
       return http.request(
           "POST", "/suppressions/batch/add", options, null, null,
           new TypeReference<DataResponse<Id>>() {});
     }
 
-    /** POST /suppressions/batch/remove — by emails or by ids; lists only the rows actually removed. */
+    /** POST /suppressions/batch/remove: by emails or by ids; lists only the rows actually removed. */
     public DataResponse<DeletedResponse> remove(RemoveSuppressionsOptions options)
         throws PostaException {
       return http.request(

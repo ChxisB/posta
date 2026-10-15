@@ -247,7 +247,7 @@ export function RegionsView() {
                         waiting: f.n(oversold.bulkParked),
                         clears: oversold.lastFinishesAt
                           ? f.clearsAbout(oversold.lastFinishesAt)
-                          : "—",
+                          : "-",
                       })
                     : null}
                 </>

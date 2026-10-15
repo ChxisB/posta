@@ -4,7 +4,7 @@ import type { SesSender } from "./handlers/send-email.js";
 
 /**
  * Envelope recipients are derived from the stored, validated recipient
- * fields — never from the raw MIME headers — so a To header can never widen
+ * fields (never from the raw MIME headers) so a To header can never widen
  * delivery beyond what accept checked (suppression, opt-outs, the cap).
  */
 function toAddrSpecs(recipients: readonly string[] | null | undefined): string[] | undefined {

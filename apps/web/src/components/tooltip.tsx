@@ -18,7 +18,7 @@ export function CircleInfoGlyph() {
 }
 
 /**
- * Info tooltip — the default muted 14px circle-i trigger (or any custom
+ * Info tooltip: the default muted 14px circle-i trigger (or any custom
  * trigger passed as children) opening a portaled .po-tooltip panel centered
  * above the anchor (flipping below near the viewport top, clamped inside the
  * viewport horizontally). Opens on hover and focus; click/tap toggles it
@@ -26,7 +26,7 @@ export function CircleInfoGlyph() {
  * to the trigger via aria-describedby while visible.
  *
  * `inline` swaps the button for a focusable <span> that only opens on
- * hover/focus — for passive content such as a time inside a clickable row,
+ * hover/focus, for passive content such as a time inside a clickable row,
  * where a click must keep falling through to the row. With `focusableChild`
  * the span adds no tab stop of its own: the child (an enabled button) takes
  * focus, and that focus still opens the panel.
@@ -91,7 +91,7 @@ export function Tooltip({
   }, [open]);
 
   // Measured at render time: the panel is transient, so a rect from the
-  // moment it opened is accurate enough — no scroll/resize tracking.
+  // moment it opened is accurate enough; no scroll/resize tracking.
   const rect = open ? triggerRef.current?.getBoundingClientRect() : undefined;
 
   const setTrigger = (el: HTMLElement | null) => {

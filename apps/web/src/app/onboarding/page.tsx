@@ -20,7 +20,7 @@ export default async function OnboardingPage() {
   );
   if (!membership) return <OnboardingForm logoUploadsEnabled={uploadsEnabled()} />;
   // Post-team onboarding lives in the app chrome (canvas Row 2): the sidebar
-  // itself is the skip affordance — every nav link leads to the dashboard.
+  // itself is the skip affordance; every nav link leads to the dashboard.
   return (
     <AppShell
       teamName={membership.teamName}

@@ -34,7 +34,7 @@ const REASON_VARIANT: Record<Reason, "warn" | "danger" | "neutral"> = {
   one_click_unsubscribe: "neutral",
 };
 
-// Filter-dot hue per reason — borrows the email status each reason stems from.
+// Filter-dot hue per reason: borrows the email status each reason stems from.
 const REASON_DOT: Record<Reason, BadgeStatus> = {
   complaint: "complained",
   hard_bounce: "bounced",
@@ -121,7 +121,7 @@ export default function SuppressionsPage() {
   const closeAdd = useCallback(() => setAddOpen(false), []);
   const closeRemove = useCallback(() => setRemoveTarget(null), []);
 
-  // Guards mirror the primary buttons' disabled state — the same checks gate
+  // Guards mirror the primary buttons' disabled state: the same checks gate
   // both the form submit and Modal's Cmd+Enter path.
   const submitAdd = () => {
     if (addMutation.isPending || newEmail.trim().length === 0) return;
@@ -226,7 +226,7 @@ export default function SuppressionsPage() {
                 </th>
                 <th style={{ width: "18%" }}>{t("suppressions.origin")}</th>
                 <th>{t("suppressions.added")}</th>
-                {/* Overflow-action column — no header label. */}
+                {/* Overflow-action column; no header label. */}
                 <th className="right" />
               </tr>
             </thead>
@@ -241,7 +241,7 @@ export default function SuppressionsPage() {
                           <Breakable text={row.email} />
                         </Link>
                       ) : (
-                        <span style={{ color: "var(--po-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>-</span>
                       )}
                     </span>
                   </td>
@@ -360,7 +360,7 @@ export default function SuppressionsPage() {
           }}
         >
           <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("suppressions.removeBody", { email: removeTarget?.email ?? "—" })}
+            {t("suppressions.removeBody", { email: removeTarget?.email ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeRemove}>

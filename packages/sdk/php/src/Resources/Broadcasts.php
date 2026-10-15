@@ -47,7 +47,7 @@ final class Broadcasts
     }
 
     /**
-     * PATCH — draft only. `topicId => null` / `segmentId => null` clear the target.
+     * PATCH: draft only. `topicId => null` / `segmentId => null` clear the target.
      *
      * @param array<string,mixed> $params
      * @return array<mixed>
@@ -58,7 +58,7 @@ final class Broadcasts
     }
 
     /**
-     * DELETE — draft only.
+     * DELETE: draft only.
      *
      * @return array<mixed>
      */
@@ -68,7 +68,7 @@ final class Broadcasts
     }
 
     /**
-     * POST /broadcasts/:id/send — omit `scheduledAt` to send now.
+     * POST /broadcasts/:id/send: omit `scheduledAt` to send now.
      *
      * @param array{scheduledAt?: string, scheduled_at?: string} $options
      * @return array<mixed>
@@ -79,7 +79,7 @@ final class Broadcasts
     }
 
     /**
-     * POST /broadcasts/:id/cancel — scheduled only.
+     * POST /broadcasts/:id/cancel: scheduled only.
      *
      * @return array<mixed>
      */

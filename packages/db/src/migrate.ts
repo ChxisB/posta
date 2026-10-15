@@ -12,7 +12,7 @@ export const MIGRATION_LOCK_ID = 727_515_368_400_113;
 
 /**
  * Serializes concurrent migrators. drizzle's migrator takes NO lock of its
- * own — it check-then-runs against the migrations table — so two services
+ * own (it check-then-runs against the migrations table) so two services
  * booting together (e.g. the web and smtp compose services) would race the
  * same DDL. The session-level advisory lock makes the loser wait until the
  * winner commits, after which its own migrate() sees the recorded migrations
@@ -42,7 +42,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(1);
   }
 
-  // max: 1 — the advisory lock is session-scoped; a pool could migrate on a
+  // max: 1, the advisory lock is session-scoped; a pool could migrate on a
   // different connection than the one holding the lock.
   const client = postgres(databaseUrl, { max: 1 });
   const db = drizzle(client);

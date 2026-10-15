@@ -83,7 +83,7 @@ describe("email verification", () => {
     await expect(signIn(a)).rejects.toMatchObject({ status: "FORBIDDEN" });
     await vi.waitFor(() => expect(sent).toHaveLength(2));
 
-    // Over HTTP, as the browser opens the link — here one reading English,
+    // Over HTTP, as the browser opens the link: here one reading English,
     // as a phone or a link scanner may: the account's stored language wins.
     const opened = await a.handler(new Request(url, { headers: { "accept-language": "en-US" } }));
     expect(opened.status).toBe(302);

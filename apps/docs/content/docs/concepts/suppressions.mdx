@@ -3,7 +3,7 @@ title: Suppressions
 description: Automatic protection for your sender reputation.
 ---
 
-The suppression list protects your sender reputation — and your SES account —
+The suppression list protects your sender reputation, and your SES account,
 by making sure you never repeatedly mail an address that hard-bounced or
 marked you as spam.
 
@@ -11,15 +11,15 @@ marked you as spam.
 
 ## How addresses get suppressed
 
-- **Hard bounce** — the receiving server permanently rejected the address.
-- **Complaint** — the recipient marked a message as spam.
-- **Unsubscribe** — the recipient opted out of all marketing email, through
+- **Hard bounce**: the receiving server permanently rejected the address.
+- **Complaint**: the recipient marked a message as spam.
+- **Unsubscribe**: the recipient opted out of all marketing email, through
   the one-click header or the hosted preference page. Besides flagging the
   contact, the opt-out is retained here so it survives deleting and
   re-importing the contact; only an explicit `PATCH /contacts/{id}` with
   `unsubscribed: false` clears it. Unlike the other origins it covers
   marketing mail only (see below).
-- **Manual** — you added the address, in the dashboard or via the API.
+- **Manual**: you added the address, in the dashboard or via the API.
 
 Bounces and complaints arrive as SES events and suppress the address
 automatically. Suppressions are per team.
@@ -32,7 +32,7 @@ automatically. Suppressions are per team.
   suppressed, the send is rejected with `422 all_recipients_suppressed`
   (message `All recipients are suppressed`). An **unsubscribe** entry does not
   apply here: someone who opted out of marketing still receives password
-  resets, receipts and other account mail — the same meaning Resend gives
+  resets, receipts and other account mail; the same meaning Resend gives
   `unsubscribed` ("unsubscribed from all Broadcasts").
 - **Topic sends** (`POST /emails` with a `topic_id`) and **broadcasts**: every
   entry applies, unsubscribes included, plus the recipient's opt-out of that
@@ -47,7 +47,7 @@ Every change to the list publishes a `suppression.added` or
 ## Reviewing and removing
 
 The dashboard lists every suppressed address with the reason and date. You can
-remove an address to allow sending again — do this only when you know the
+remove an address to allow sending again: do this only when you know the
 cause is fixed (e.g. a mailbox that existed all along but was rejected by a
 misconfigured server). Re-suppression is automatic on the next bounce or
 complaint.
@@ -70,11 +70,11 @@ Resend SDK's `suppressions.*` methods work as-is. Each entry reads as
 `complaint`, `manual` or `unsubscribe` and `source_id` is the email whose
 bounce or complaint created it.
 
-- `GET /suppressions?origin=bounce` — keyset-paginated list, optionally
+- `GET /suppressions?origin=bounce`: keyset-paginated list, optionally
   filtered by origin.
-- `GET /suppressions/{id}` and `DELETE /suppressions/{id}` — the path
+- `GET /suppressions/{id}` and `DELETE /suppressions/{id}`: the path
   segment is the suppression id or the email address.
-- `POST /suppressions` with `{ "email": "...", "origin": "manual" }` — blocks
+- `POST /suppressions` with `{ "email": "...", "origin": "manual" }`, blocks
   the address. `origin` is optional (`bounce`, `complaint`, `manual` or
   `unsubscribe`, default `manual`) and lets an import from another provider
   keep its bounce and complaint history, or a migrated opt-out list keep its
@@ -82,7 +82,7 @@ bounce or complaint created it.
   reason keeps its entry and origin, and its existing id is returned.
 - `POST /suppressions/batch/add` with `{ "emails": [...], "origin": "bounce" }`
   and `POST /suppressions/batch/remove` with `{ "emails": [...] }` or
-  `{ "ids": [...] }` — up to 1000 entries per call (Resend caps at 100).
+  `{ "ids": [...] }`, up to 1000 entries per call (Resend caps at 100).
   Add applies the one optional `origin` to every row it creates and returns
   one id per distinct address in input order; remove lists only the rows
   actually removed.
@@ -90,10 +90,10 @@ bounce or complaint created it.
 Three Posta specifics: `origin` on add is accepted (Resend's SDK type
 has no such field, so pass it through a raw request), `origin: "unsubscribe"`
 is a superset value Resend does not have (its SDK's type union lacks it) and
-behaves like a one-click opt-out — only an explicit re-subscribe of the
-contact clears it — and an address whose personal
+behaves like a one-click opt-out (only an explicit re-subscribe of the
+contact clears it) and an address whose personal
 data was erased (GDPR/LGPD) keeps blocking sends but is hidden from the list
-and from lookups by email — it is reachable by id only, reading
+and from lookups by email: it is reachable by id only, reading
 `"[erased]"` as its email, and re-suppressing the address returns that id
 without restoring it.
 
@@ -106,7 +106,7 @@ blocked automatically when a rate crosses the pause line.
 
 <Callout type="info">
 On Cloud, sending volume is governed by your plan's limits. Self-hosted, the
-limits are your own AWS SES account's quotas and reputation — crossing SES's
+limits are your own AWS SES account's quotas and reputation: crossing SES's
 thresholds can pause the whole account, which is exactly what suppression
 protects you from.
 </Callout>

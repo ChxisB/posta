@@ -31,7 +31,7 @@ import { assertSegment, segmentPredicate } from "./segments";
 import { assertTopic, topicMembershipSql } from "./topics";
 
 const emailSchema = z.string().trim().pipe(z.email()).pipe(z.string().max(320));
-// "" clears the field — stored as null, never as an empty string.
+// "" clears the field: stored as null, never as an empty string.
 const personName = z.string().trim().max(200);
 // Resend-style custom fields: a flat map of string→string. Non-string
 // values and empty keys are rejected at the boundary.
@@ -77,7 +77,7 @@ async function assertContactRoom(ctx: { db: Db; teamId: string }, count: number)
 const bulkContactIds = z.array(z.uuid()).min(1).max(100);
 
 /**
- * Guards bulk procedures: EVERY id must be one of the team's contacts —
+ * Guards bulk procedures: EVERY id must be one of the team's contacts:
  * NOT_FOUND before any write when even one is foreign. Returns the deduped
  * ids the writes below fan out over.
  */
@@ -246,7 +246,7 @@ export const audienceRouter = router({
           }
         }
         // Manual segment names for the page's rows in ONE grouped query
-        // (segment_members only — filter matches are not memberships).
+        // (segment_members only: filter matches are not memberships).
         const segmentsByContact = new Map<string, string[]>();
         if (page.items.length > 0) {
           const m = schema.segmentMembers;
@@ -340,7 +340,7 @@ export const audienceRouter = router({
 
     /**
      * CSV import path. Rows with invalid addresses, batch-internal
-     * duplicates, or addresses the team already has count as skipped —
+     * duplicates, or addresses the team already has count as skipped:
      * one bad CSV line must not reject the batch.
      */
     addMany: teamProcedure
@@ -380,7 +380,7 @@ export const audienceRouter = router({
         await assertContactRoom(ctx, valid.length);
         // ON CONFLICT, not a pre-SELECT: a concurrent import racing the same
         // address must count as skipped, never abort the batch on the unique
-        // violation. Targetless is exact here — the only conflict a generated
+        // violation. Targetless is exact here: the only conflict a generated
         // uuid pkey leaves possible is the case-insensitive (teamId,
         // lower(email)) index. `returning` yields only the rows actually
         // inserted, so created/skipped stay exact.
@@ -648,7 +648,7 @@ export const audienceRouter = router({
     /**
      * The team's topics, each with this contact's EFFECTIVE subscribe state:
      * the explicit subscription row when one exists, else the topic's
-     * defaultSubscribed. Absence of a row is not "unsubscribed" — it is the
+     * defaultSubscribed. Absence of a row is not "unsubscribed": it is the
      * default. (Global unsubscribe is a separate contact flag, surfaced
      * elsewhere; it does not change per-topic effective state here.)
      */
@@ -752,7 +752,7 @@ export const audienceRouter = router({
             .from(a)
             .where(and(eq(a.contactId, input.contactId), eq(a.teamId, ctx.teamId)))
             .orderBy(desc(a.createdAt), desc(a.id))
-            // ponytail: hard cap, no paging — add a keyset cursor if timelines outgrow it
+            // ponytail: hard cap, no paging; add a keyset cursor if timelines outgrow it
             .limit(100)
         );
       }),
@@ -765,7 +765,7 @@ export const audienceRouter = router({
         const topic = await assertTopic(ctx, input.topicId);
         const s = schema.contactTopicSubscriptions;
         // Effective state before the write (explicit row, else the topic's
-        // default) — the timeline records only real transitions.
+        // default): the timeline records only real transitions.
         const [prior] = await ctx.db
           .select({ subscribed: s.subscribed })
           .from(s)
@@ -800,7 +800,7 @@ export const audienceRouter = router({
 
   /**
    * Explicit erasure request for any address, contact or not: drops the
-   * contact row when one exists, then scrubs every other copy. Admin-only —
+   * contact row when one exists, then scrubs every other copy. Admin-only:
    * it rewrites history the whole team relies on.
    */
   eraseRecipient: adminProcedure
@@ -829,7 +829,7 @@ export const audienceRouter = router({
     /**
      * Distinct custom-property keys in use across the team's contacts, each
      * with how many carry a non-empty value (coverage over totalContacts) and
-     * one sample value. Derived from the free-form contacts.properties map —
+     * one sample value. Derived from the free-form contacts.properties map:
      * there is no property-definition table. Also the source of truth for the
      * broadcast merge-field variable picker.
      */
@@ -859,7 +859,7 @@ export const audienceRouter = router({
     }),
 
     /**
-     * A property's most common values with how many contacts carry each —
+     * A property's most common values with how many contacts carry each:
      * the segment builder's suggestions. The key is a bound parameter.
      */
     values: teamProcedure
@@ -911,7 +911,7 @@ export const audienceRouter = router({
             type: z.enum(["string", "number"]).default("string"),
             fallbackValue: z.string().max(CONTACT_PROPERTY_VALUE_MAX_LENGTH).optional(),
           })
-          // A number property's fallback must read back as a finite number —
+          // A number property's fallback must read back as a finite number:
           // it is stored as text and coerced per type at the wire.
           .refine(
             (v) =>

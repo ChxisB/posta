@@ -22,7 +22,7 @@
     "password": "Senha",
     "passwordNote": "Use qualquer chave de API como senha.",
     "passwordLink": "Chaves de API",
-    "passwordTooltip": "O relay autentica com qualquer uma das suas chaves de API — cole uma no lugar de YOUR_API_KEY. As chaves nunca são exibidas aqui.",
+    "passwordTooltip": "O relay autentica com qualquer uma das suas chaves de API: cole uma no lugar de YOUR_API_KEY. As chaves nunca são exibidas aqui.",
     "tlsWarnTitle": "O relay SMTP não está rodando",
     "tlsWarnBody": "Esta implantação não tem certificado TLS para o relay, então o serviço smtp se recusa a iniciar e fica reiniciando. Defina <code>SMTP_TLS_CERT_PATH</code> e <code>SMTP_TLS_KEY_PATH</code>, ou ative <code>SMTP_ALLOW_INSECURE_AUTH</code> apenas em uma rede privada e confiável.",
     "insecureNote": "TLS não está configurado e <code>SMTP_ALLOW_INSECURE_AUTH</code> está ativo: os clientes autenticam sem criptografia. Defina <code>SMTP_TLS_CERT_PATH</code> e <code>SMTP_TLS_KEY_PATH</code> para exigir STARTTLS.",
@@ -76,34 +76,34 @@
       "viewInstructions": "Ver instruções",
       "recommended": "Recomendado",
       "cliTitle": "Execute o CLI de configuração",
-      "cliNote": "Execute em qualquer lugar com Node 18+ e as SUAS credenciais AWS de administrador — seu notebook ou o servidor. Ele cria tudo e imprime as linhas do <code>.env</code> para colar se o Posta rodar em outro lugar.",
+      "cliNote": "Execute em qualquer lugar com Node 18+ e as SUAS credenciais AWS de administrador: seu notebook ou o servidor. Ele cria tudo e imprime as linhas do <code>.env</code> para colar se o Posta rodar em outro lugar.",
       "cfnButton": "Criar a stack no CloudFormation",
       "scriptTitle": "Alternativa: cole este script",
       "scriptNote": "Cole em um terminal onde o AWS CLI tenha credenciais de administrador. Ele cria o usuário IAM, a política, o tópico SNS, a fila SQS de eventos e o conjunto de configuração, e então imprime as linhas do seu <code>.env</code>.",
       "eventsSkipped": "<code>APP_BASE_URL</code> não é uma URL https pública, então o script pula o push por https; os eventos continuam chegando pela fila SQS. Defina-a e recarregue para adicionar o push.",
-      "cfnNote": "Um clique: abre a página de revisão do CloudFormation com o template hospedado — a mesma stack de <code>infra/posta-ses.cfn.yaml</code>. Se preferir o terminal:",
+      "cfnNote": "Um clique: abre a página de revisão do CloudFormation com o template hospedado; a mesma stack de <code>infra/posta-ses.cfn.yaml</code>. Se preferir o terminal:",
       "manualTitle": "Manual: passos no console",
-      "step1": "Crie uma política: console IAM → Policies → Create policy → JSON — cole este documento.",
+      "step1": "Crie uma política: console IAM → Policies → Create policy → JSON; cole este documento.",
       "step1Link": "Abrir o editor de políticas",
       "step2": "Crie um usuário chamado <code>posta</code> e anexe a política.",
       "step2Link": "Abrir criação de usuário",
       "step3": "Crie uma chave de acesso para o usuário e cole no <code>.env</code>.",
-      "step4": "Eventos opcionais: tópico SNS + conjunto de configuração — o script acima automatiza esta parte; veja <code>SELF_HOSTING.md</code>."
+      "step4": "Eventos opcionais: tópico SNS + conjunto de configuração; o script acima automatiza esta parte; veja <code>SELF_HOSTING.md</code>."
     },
     "credentials": {
       "title": "Credenciais",
       "set": "definido",
       "notSet": "não definido",
       "keysConfigured": "configuradas",
-      "keysChain": "não definidas — a cadeia padrão de provedores será tentada",
-      "snsNote": "não definido — a ingestão de eventos está desativada",
-      "configSetNote": "não definido — o SES não publica eventos",
-      "authEmailNote": "não definido — a recuperação de senha fica oculta"
+      "keysChain": "não definidas, a cadeia padrão de provedores será tentada",
+      "snsNote": "não definido, a ingestão de eventos está desativada",
+      "configSetNote": "não definido, o SES não publica eventos",
+      "authEmailNote": "não definido, a recuperação de senha fica oculta"
     },
     "test": {
       "title": "Testar conexão",
       "button": "Testar conexão",
-      "note": "executa <code>GetAccount</code> a partir da instância — somente leitura, nada é enviado",
+      "note": "executa <code>GetAccount</code> a partir da instância: somente leitura, nada é enviado",
       "sendingEnabled": "Envio habilitado",
       "sendingDisabled": "Envio desabilitado",
       "production": "Acesso de produção",
@@ -116,11 +116,11 @@
       "sandboxBody": "Os destinatários precisam ser verificados até a AWS conceder acesso de produção.",
       "sandboxLink": "Solicitar acesso de produção",
       "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through Posta, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
-      "requestTemplateNote": "Substitua <code>[VOLUME]</code> e cole no formulário de acesso de produção da AWS — o formulário deve ser preenchido em inglês.",
-      "rateHint": "SES_MAX_SEND_RATE={envRate} no .env · máximo da conta nesta região {accountRate}/s — o worker envia no menor dos dois.",
+      "requestTemplateNote": "Substitua <code>[VOLUME]</code> e cole no formulário de acesso de produção da AWS: o formulário deve ser preenchido em inglês.",
+      "rateHint": "SES_MAX_SEND_RATE={envRate} no .env · máximo da conta nesta região {accountRate}/s: o worker envia no menor dos dois.",
       "errors": {
-        "credentials": "A AWS rejeitou as credenciais — verifique <code>AWS_ACCESS_KEY_ID</code> e <code>AWS_SECRET_ACCESS_KEY</code> no <code>.env</code>.",
-        "unreachable": "O SES não respondeu — verifique <code>AWS_REGION</code> / <code>AWS_REGIONS</code> e o caminho de rede."
+        "credentials": "A AWS rejeitou as credenciais: verifique <code>AWS_ACCESS_KEY_ID</code> e <code>AWS_SECRET_ACCESS_KEY</code> no <code>.env</code>.",
+        "unreachable": "O SES não respondeu: verifique <code>AWS_REGION</code> / <code>AWS_REGIONS</code> e o caminho de rede."
       },
       "disabledHint": "Defina suas credenciais AWS primeiro.",
       "committedPerDay": "Contratado por dia"
@@ -170,7 +170,7 @@
     "name": "Nome",
     "email": "E-mail",
     "role": "Função",
-    "pageOf": "Página 1 – {pages} de {total} membros",
+    "pageOf": "Página 1 a {pages} de {total} membros",
     "roles": {
       "owner": "Proprietário",
       "admin": "Administrador",
@@ -209,7 +209,7 @@
     "created": {
       "title": "Link do convite",
       "sentTitle": "Convite enviado",
-      "emailedBody": "Enviamos um e-mail para {email}. Você também pode compartilhar este link — ele funciona uma vez e expira em 3 dias.",
+      "emailedBody": "Enviamos um e-mail para {email}. Você também pode compartilhar este link: ele funciona uma vez e expira em 3 dias.",
       "bodyTtl": "Compartilhe este link com {email}. Ele funciona uma vez e expira em 3 dias.",
       "noSender": "Esta instância não tem remetente de e-mail configurado, então o link é a única forma de entrar.",
       "done": "Concluído",
@@ -224,7 +224,7 @@
       "revoke": "Revogar",
       "actions": "Ações",
       "resendError": "Não foi possível reenviar: {reason}",
-      "pageOf": "Página 1 – {pages} de {total} convites",
+      "pageOf": "Página 1 a {pages} de {total} convites",
       "revokeTitle": "Revogar convite",
       "revokeBody": "O link enviado para {email} deixa de funcionar. Você pode convidar de novo quando quiser."
     },
@@ -303,7 +303,7 @@
     "manageHint": "Você troca de plano aqui. Faturas, forma de pagamento, CNPJ/CPF e cancelamento ficam no portal de cobrança.",
     "readOnly": "Apenas proprietários e administradores podem alterar a cobrança.",
     "systemNotice": "Esta é a equipe da própria instância: envia os e-mails de conta e as novidades, nunca é cobrada e não tem limite de envio. O plano é definido pelo operador.",
-    "pastDue": "O pagamento falhou — atualize seu cartão para manter o plano.",
+    "pastDue": "O pagamento falhou: atualize seu cartão para manter o plano.",
     "updateCard": "Atualizar forma de pagamento",
     "usageTitle": "Uso",
     "overage": "Excedente",
@@ -339,7 +339,7 @@
       "integrations": "Webhooks e chaves de API",
       "agents": "Servidor MCP, CLI e nove SDKs"
     },
-    "checkoutSuccess": "Obrigado! Seu plano é atualizado assim que o Stripe confirmar o pagamento — normalmente em poucos segundos.",
+    "checkoutSuccess": "Obrigado! Seu plano é atualizado assim que o Stripe confirmar o pagamento: normalmente em poucos segundos.",
     "checkoutCancel": "Checkout cancelado. Seu plano não mudou.",
     "error": "Algo deu errado com o Stripe. Tente novamente."
   },
@@ -348,11 +348,11 @@
     "intro": "Deixe agentes de IA enviarem e-mails e gerenciarem sua audiência pelo Model Context Protocol.",
     "subtitle": "Toda chamada de ferramenta passa pelas mesmas regras da API REST: domínios verificados, supressões, cotas e escopo de equipe.",
     "serverUrl": "URL do servidor",
-    "serverUrlNote": "Endpoint HTTP (Streamable). Os clientes entram com sua conta Posta via OAuth — sem chaves de API e nada secreto para colar.",
+    "serverUrlNote": "Endpoint HTTP (Streamable). Os clientes entram com sua conta Posta via OAuth, sem chaves de API e nada secreto para colar.",
     "connectTitle": "Conectar um cliente",
     "notes": {
       "claudeCode": "Depois rode <code>/mcp</code> dentro do Claude Code e escolha posta para entrar.",
-      "claudeDesktop": "Adicione ao <code>claude_desktop_config.json</code> — ou pule o arquivo: Settings → Connectors → Add custom connector, e cole a URL do servidor.",
+      "claudeDesktop": "Adicione ao <code>claude_desktop_config.json</code>, ou pule o arquivo: Settings → Connectors → Add custom connector, e cole a URL do servidor.",
       "cursor": "Salve como <code>.cursor/mcp.json</code> no projeto, ou <code>~/.cursor/mcp.json</code> para todos os projetos.",
       "vscode": "Salve como <code>.vscode/mcp.json</code> no workspace e inicie o servidor pelo painel de MCP do editor."
     },

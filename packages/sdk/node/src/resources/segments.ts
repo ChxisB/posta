@@ -11,7 +11,7 @@ import type {
 } from "../types.js";
 
 /**
- * Dynamic segments — a saved filter over the team's contacts (Posta
+ * Dynamic segments: a saved filter over the team's contacts (Posta
  * extension, no Resend equivalent). `get` returns a live `contact_count`.
  */
 export class Segments {

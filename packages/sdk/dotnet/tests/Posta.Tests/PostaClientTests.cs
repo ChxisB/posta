@@ -494,7 +494,7 @@ public partial class PostaClientTests
 
         await client.TopicListAsync();
         Assert.Equal("/topics", handler.Last.Path);
-        // GET /topics is unpaginated — no query string.
+        // GET /topics is unpaginated: no query string.
         Assert.Equal(string.Empty, handler.Last.Query);
 
         await client.TopicDeleteAsync(T1);

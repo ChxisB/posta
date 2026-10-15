@@ -5,7 +5,7 @@
  * composer: a vertical number rail beside the card on desktop, per-row marker
  * rails on the second screen, and a labelled horizontal bar that replaces the
  * rail on narrow screens (the rail's wrapped numbers read as detached
- * otherwise — see the .po-stepbar rules in components.css).
+ * otherwise; see the .po-stepbar rules in components.css).
  */
 
 /** Vertical rail for the first screen: the current number lit, the rest faint. */

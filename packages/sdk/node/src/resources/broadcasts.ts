@@ -31,7 +31,7 @@ function toWire(o: UpdateBroadcastOptions) {
 export class Broadcasts {
   constructor(private readonly http: HttpClient) {}
 
-  /** POST /broadcasts — a draft unless `send: true` (optionally with `scheduledAt`). */
+  /** POST /broadcasts: a draft unless `send: true` (optionally with `scheduledAt`). */
   create(payload: CreateBroadcastOptions): Promise<Result<BroadcastId>> {
     return this.http.request({
       method: "POST",
@@ -60,7 +60,7 @@ export class Broadcasts {
     return this.http.request({ method: "DELETE", path: `/broadcasts/${encodeURIComponent(id)}` });
   }
 
-  /** POST /broadcasts/:id/send — omit scheduledAt to send now. */
+  /** POST /broadcasts/:id/send: omit scheduledAt to send now. */
   send(id: string, options: SendBroadcastOptions = {}): Promise<Result<BroadcastId>> {
     return this.http.request({
       method: "POST",

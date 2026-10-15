@@ -10,7 +10,7 @@
     <PackageId>Posta</PackageId>
     <Version>0.8.0</Version>
     <Authors>Tack Labs</Authors>
-    <Description>Official .NET SDK for Posta — a self-hostable, Resend-wire-compatible email API. Emails, batches, contacts, contact properties, topics, broadcasts, segments, suppressions, domains, webhooks, API keys, templates and usage.</Description>
+    <Description>Official .NET SDK for Posta: a self-hostable, Resend-wire-compatible email API. Emails, batches, contacts, contact properties, topics, broadcasts, segments, suppressions, domains, webhooks, API keys, templates and usage.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ChxisB/posta/tree/main/packages/sdk/dotnet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ChxisB/posta</RepositoryUrl>

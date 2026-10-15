@@ -1,6 +1,6 @@
 # posta-go
 
-Official Go client for [Posta](https://github.com/ChxisB/posta) — a
+Official Go client for [Posta](https://github.com/ChxisB/posta): a
 self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK mirrors the shape of
@@ -63,9 +63,9 @@ client.AllowInsecureHTTP = true                          // accept a non-loopbac
   key is sent as a bearer header. Set `AllowInsecureHTTP = true` to talk to a non-TLS
   instance elsewhere (e.g. inside a private network).
 
-Every method has a non-context form. The transactional hot path — every
+Every method has a non-context form. The transactional hot path: every
 `Emails.*` method, `Batch.Send`, `Contacts.Batch.*`,
-`Suppressions.Batch.*`, `Deliverability.Get` and `Usage.Get` — also exposes a
+`Suppressions.Batch.*`, `Deliverability.Get` and `Usage.Get`, also exposes a
 `…WithContext(ctx, …)` variant.
 
 ## Errors
@@ -92,7 +92,7 @@ if err != nil {
 ```
 
 `StatusCode` is `0` when the request never reached the API (a transport or
-client-side failure) — the wire's `statusCode: null`.
+client-side failure): the wire's `statusCode: null`.
 
 `Emails.Send` and `Batch.Send` answer `422 all_recipients_suppressed` when every
 `To` recipient is on the suppression list or opted out of the send's `TopicId`;
@@ -225,7 +225,7 @@ client.Contacts.Segments.Add(&posta.AddContactSegmentRequest{SegmentId: segmentI
 client.Contacts.Segments.Remove(&posta.RemoveContactSegmentRequest{SegmentId: segmentID, Email: "ada@acme.dev"})
 ```
 
-`Contact.Properties` is `map[string]ContactPropertyValue{Type, Value}` — the
+`Contact.Properties` is `map[string]ContactPropertyValue{Type, Value}`: the
 typed `{type, value}` objects the API returns.
 
 #### Bulk create, read and delete (Posta extension)
@@ -342,7 +342,7 @@ client.Domains.Update(d.Id, &posta.UpdateDomainRequest{OpenTracking: posta.Ptr(t
 client.Domains.Remove(d.Id)
 ```
 
-`Region` must match the deployment's SES region — omit it to use the default.
+`Region` must match the deployment's SES region: omit it to use the default.
 `UpdateDomainRequest.Tls` is passed through unchanged: the API does not expose
 a TLS policy and answers `422` rather than dropping it.
 
@@ -389,7 +389,7 @@ client.ApiKeys.Remove(k.Id)
 ### Templates
 
 Every method takes the template id or its alias. Templates have no
-draft/publish cycle — every save is live — so `Publish` is a no-op kept for
+draft/publish cycle (every save is live) so `Publish` is a no-op kept for
 resend-go compatibility.
 
 ```go
@@ -410,7 +410,7 @@ passed through unchanged; the API does not support them yet and answers `422`
 
 ### Segments (Posta extension)
 
-Segments are a saved filter over the team's contacts — a Posta superset
+Segments are a saved filter over the team's contacts: a Posta superset
 with no Resend equivalent (served at `/segments`). Omit `Filter` to create a
 manual segment, whose members come only from `Contacts.Segments.Add` and
 `CreateContactRequest.Segments`.
@@ -440,7 +440,7 @@ segment into a manual one.
 ### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing window. Nullable
-scores (`Score`, `Band`, `ContentScore`, `OutcomeScore`) are pointers — nil
+scores (`Score`, `Band`, `ContentScore`, `OutcomeScore`) are pointers: nil
 means not enough data yet. Band, check severity/status and guardrail status
 are plain strings: new values may appear without an SDK update.
 

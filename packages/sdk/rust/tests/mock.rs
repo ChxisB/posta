@@ -544,7 +544,7 @@ async fn topics_cover_create_get_list_delete() {
         })))
         .mount(&server)
         .await;
-    // Bare { data } — no object/has_more.
+    // Bare { data }: no object/has_more.
     Mock::given(method("GET"))
         .and(path("/topics"))
         .respond_with(ok_json(json!({ "data": [] })))

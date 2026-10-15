@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for contactProperties: the official `resend` npm SDK
- * against a live Posta API — create/list/get/update/remove, plus the
+ * against a live Posta API; create/list/get/update/remove, plus the
  * typed {type, value} property wrappers on GET /contacts/{id}.
  */
 

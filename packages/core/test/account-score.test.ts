@@ -58,7 +58,7 @@ describe("computeAccountScore", () => {
     expect(s.scoreTenths).toBe(100);
   });
 
-  it("ramps the complaint penalty across Google's 0.1%–0.3% lines", () => {
+  it("ramps the complaint penalty across Google's 0.1% to 0.3% lines", () => {
     // 0.2% sits midway through the 0→6pt ramp.
     const s = computeAccountScore(input({ sent: 10_000, complained: 20 }));
     expect(s.complaintRate).toBeCloseTo(0.002);

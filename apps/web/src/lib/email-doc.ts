@@ -4,8 +4,8 @@ import { type EmailTheme, hasValidTheme } from "./email-theme";
 /**
  * The editor `document` jsonb once the editor is Maily: a Tiptap doc node
  * stored verbatim (editor.getJSON()). The `html` column, re-rendered from this
- * on save, stays the source of send. This module is client-safe — it carries no
- * heavy render deps — so both the editor and the server routers share the guard.
+ * on save, stays the source of send. This module is client-safe (it carries no
+ * heavy render deps) so both the editor and the server routers share the guard.
  *
  * `theme` is the email's own look (email-theme.ts). It sits on the doc node
  * beside `content`, so it is stored, copied and compared with the body.

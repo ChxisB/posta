@@ -50,7 +50,7 @@ describe("unsubscribeThemeStyle", () => {
     expect(style["--po-muted"]).toContain("#f0f0f0");
   });
 
-  it("drops anything that is not a strict hex — the last boundary before inline styles", () => {
+  it("drops anything that is not a strict hex: the last boundary before inline styles", () => {
     expect(
       unsubscribeThemeStyle({
         backgroundColor: "url(javascript:x)",

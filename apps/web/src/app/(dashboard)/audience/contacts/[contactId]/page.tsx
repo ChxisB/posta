@@ -49,7 +49,7 @@ const ACTIVITY_DOT: Record<KnownActivityType, string> = {
 };
 
 function EmptyValue() {
-  return <span style={{ color: "var(--po-faint)" }}>—</span>;
+  return <span style={{ color: "var(--po-faint)" }}>-</span>;
 }
 
 /** Wrapping row of linked name pills (segments on the detail page). */
@@ -719,7 +719,7 @@ export default function ContactDetailPage() {
           }}
         >
           <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("contacts.deleteBody", { email: row?.email ?? "—" })}
+            {t("contacts.deleteBody", { email: row?.email ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>

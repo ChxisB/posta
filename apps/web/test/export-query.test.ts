@@ -102,7 +102,7 @@ describe("contact export", () => {
     const teamB = await createTeam(db, "team-b");
     await callerFor(teamA).audience.contacts.add({ email: "a@example.com" });
 
-    // The caller's team is B — the teamId gate returns no rows.
+    // The caller's team is B: the teamId gate returns no rows.
     const leaked = await contactRowsForExport(db, teamB, {});
     expect(leaked).toEqual([]);
   });
@@ -128,7 +128,7 @@ describe("buildExport dispatch", () => {
     const result = await buildExport(db, teamId, "api-keys", new URLSearchParams());
     expect(result?.filename).toBe("api-keys.csv");
     expect(result?.csv).toContain("Production");
-    // Only the shown prefix/last4 are exported — never the plaintext token.
+    // Only the shown prefix/last4 are exported, never the plaintext token.
     expect(result?.csv).not.toContain(token);
   });
 });

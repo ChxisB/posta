@@ -2,7 +2,7 @@ import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { asc } from "drizzle-orm";
 
-/** The first registered user is the deployment operator — the one who gets instance-wide alerts. */
+/** The first registered user is the deployment operator: the one who gets instance-wide alerts. */
 export async function findInstanceOperator(
   db: Db,
 ): Promise<{ id: string; email: string; name: string } | null> {

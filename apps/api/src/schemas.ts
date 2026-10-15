@@ -29,11 +29,11 @@ import {
 /**
  * Wire-compatible with Resend's documented /emails surface
  * (docs/resend-compatibility.md): field names, shapes, and error format must
- * not drift — the contract test runs the official `resend` SDK against us.
+ * not drift; the contract test runs the official `resend` SDK against us.
  */
 
 /**
- * SECURITY: every recipient is a trust boundary too — suppression, opt-out
+ * SECURITY: every recipient is a trust boundary too; suppression, opt-out
  * and quota checks all key off the parsed address, so an entry the MIME
  * builder would split into several mailboxes ('a@x.com, b@y.com <c@z.com>')
  * must be rejected outright. Stored in the canonical single-mailbox form.
@@ -48,7 +48,7 @@ const emailAddress = z.string().transform((v, ctx) => {
 });
 
 /**
- * SECURITY: `from` is a trust boundary — multi-mailbox or ambiguous input
+ * SECURITY: `from` is a trust boundary; multi-mailbox or ambiguous input
  * (e.g. 'Acme <evil@a.test> <ok@b.test>') could pass domain verification for
  * one address yet be emitted as the other, so it must parse as exactly one
  * mailbox (parseSingleSender, the same parser verifySenderDomain uses).
@@ -130,7 +130,7 @@ const attachmentSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["path"],
-        message: "path attachments are not supported — inline the file as base64 content",
+        message: "path attachments are not supported; inline the file as base64 content",
       });
       return;
     }
@@ -165,7 +165,7 @@ const customHeadersSchema = z.record(z.string(), z.string()).superRefine((header
 /**
  * ISO 8601 with offset, or Resend's relative forms ("in 5 mins"). Validated
  * here but kept as the raw string: idempotency hashes the body, and a
- * relative form must hash identically across retries — handlers re-resolve
+ * relative form must hash identically across retries; handlers re-resolve
  * it via parseScheduledAt.
  */
 const scheduledAtSchema = z.string().superRefine((v, ctx) => {
@@ -274,10 +274,10 @@ export const sendEmailResponseSchema = z.object({ id: z.uuid() }).openapi("SendE
 
 /**
  * Batch send (resend.batch.send → POST /emails/batch). The SDK posts a bare
- * array of email options, capped at Resend's 100-email limit — an over-cap
+ * array of email options, capped at Resend's 100-email limit: an over-cap
  * array is a 422. Items are deliberately untyped here: the handler validates
  * each against sendEmailRequestSchema itself (so batch items carry
- * attachments/headers too — Resend omits attachments only at the type
+ * attachments/headers too. Resend omits attachments only at the type
  * level), because the x-batch-validation header decides whether one invalid
  * item fails the whole batch (strict, the default) or becomes a per-index
  * error while the valid subset is accepted (permissive).
@@ -761,7 +761,7 @@ const contactIncludeQuery = z
     message: "include accepts properties and topics, comma-separated",
   })
   .describe(
-    "Posta extension: comma-separated facets attached to every item — `properties` (the {type, value} map GET /contacts/{id} returns) and `topics` (the rows GET /contacts/{id}/topics returns). Omitted, each item has the Resend shape.",
+    "Posta extension: comma-separated facets attached to every item; `properties` (the {type, value} map GET /contacts/{id} returns) and `topics` (the rows GET /contacts/{id}/topics returns). Omitted, each item has the Resend shape.",
   );
 export const listContactsQuerySchema = oneCursor(
   listQueryFields.extend({ include: contactIncludeQuery }),
@@ -795,7 +795,7 @@ const contactPropertiesInputSchema = z
 
 export const createContactRequestSchema = z
   .object({
-    // Bare addr-spec only — a contact record is an address, not a mailbox
+    // Bare addr-spec only: a contact record is an address, not a mailbox
     // with display name.
     email: z.email().describe("Bare email address (no display name); unique per team"),
     first_name: z.string().optional().describe("First name"),
@@ -1059,7 +1059,7 @@ export const createContactPropertyRequestSchema = z
   })
   .openapi("CreateContactPropertyRequest");
 
-// Only fallback_value is updatable — the SDK never sends key/type on update.
+// Only fallback_value is updatable: the SDK never sends key/type on update.
 export const updateContactPropertyRequestSchema = z
   .object({
     fallback_value: z
@@ -1358,7 +1358,7 @@ export const createTopicRequestSchema = z
 export const topicIdResponseSchema = z.object({ id: z.uuid() }).openapi("TopicIdResponse");
 
 // PATCH /topics/{id}: the SDK posts its whole payload, leaking `id` into the
-// body — non-strict parsing drops it. default_subscription is immutable and
+// body; non-strict parsing drops it. default_subscription is immutable and
 // absent from the SDK's update surface, so it is not accepted here either
 // (an unknown key, silently dropped).
 export const updateTopicRequestSchema = z
@@ -1382,7 +1382,7 @@ export const topicResponseSchema = topicSchema.openapi("TopicResponse");
 
 // The SDK's ListTopicsResponseSuccess types a bare { data: Topic[] };
 // object/has_more ride along additively so every list shares one envelope
-// (topics are never paginated — has_more is always false).
+// (topics are never paginated: has_more is always false).
 export const listTopicsResponseSchema = z
   .object({ object: z.literal("list"), data: z.array(topicSchema), has_more: z.literal(false) })
   .openapi("ListTopicsResponse");
@@ -1392,12 +1392,12 @@ export const removeTopicResponseSchema = z
   .openapi("RemoveTopicResponse");
 
 /**
- * Domains — wire-compatible with the resend SDK's domains surface.
+ * Domains: wire-compatible with the resend SDK's domains surface.
  * `custom_return_path` is the MAIL FROM subdomain (Resend's name for it).
  */
 
 // Lowercase registrable hostname / single DNS label. Mirrors
-// apps/web/src/server/routers/domains.ts — restated because that module is
+// apps/web/src/server/routers/domains.ts: restated because that module is
 // app-private; SES identities are registered exactly as typed, so uppercase
 // is rejected instead of normalized.
 const HOSTNAME_RE = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
@@ -1504,7 +1504,7 @@ const domainRecordSchema = z.object({
   status: z
     .string()
     .describe(
-      "not_started | pending | verified | failed. DKIM and SPF rows combine public DNS with the provider's verification: found in DNS but not yet confirmed reads pending, a different published value reads failed, no record reads not_started. DMARC reads verified when a policy covers the domain — its own or a parent domain's (see inherited_from) — and not_started when none does. Tracking reads verified once its CNAME resolves.",
+      "not_started | pending | verified | failed. DKIM and SPF rows combine public DNS with the provider's verification: found in DNS but not yet confirmed reads pending, a different published value reads failed, no record reads not_started. DMARC reads verified when a policy covers the domain (its own or a parent domain's (see inherited_from)) and not_started when none does. Tracking reads verified once its CNAME resolves.",
     ),
   value: z.string(),
   priority: z.number().optional(),
@@ -1577,14 +1577,14 @@ export const removeDomainResponseSchema = z
   .openapi("RemoveDomainResponse");
 
 /**
- * Webhooks — wire-compatible with the resend SDK's webhooks surface: the
+ * Webhooks: wire-compatible with the resend SDK's webhooks surface: the
  * endpoint URL field is `endpoint` (stored as webhook_endpoints.url), the
  * signing secret is `signing_secret` (returned on create and get, never in
  * list rows), and status only speaks enabled/disabled.
  */
 
 // The SDK's WebhookEvent union is wider (contact.*, domain.*, …); only events
-// this platform actually emits are accepted — anything else is a loud 422
+// this platform actually emits are accepted: anything else is a loud 422
 // instead of a subscription that never fires.
 const webhookEventSchema = z.enum(WEBHOOK_EVENT_TYPES);
 
@@ -1704,7 +1704,7 @@ export const removeWebhookResponseSchema = z
   .object({ object: z.literal("webhook"), id: z.uuid(), deleted: z.literal(true) })
   .openapi("RemoveWebhookResponse");
 
-/** API keys — wire-compatible with the resend SDK's apiKeys surface. */
+/** API keys: wire-compatible with the resend SDK's apiKeys surface. */
 
 export const createApiKeyRequestSchema = z
   .object({
@@ -1785,7 +1785,7 @@ export const listContactTopicsResponseSchema = z
   .openapi("ListContactTopicsResponse");
 
 /**
- * Suppressions — wire-compatible with the resend SDK's suppressions surface
+ * Suppressions: wire-compatible with the resend SDK's suppressions surface
  * (incl. `suppressions.batch`). `origin` is the wire name of the internal
  * reason enum; `unsubscribe` is a documented superset value (the retained RFC
  * 8058 one-click opt-out) that Resend has no equivalent for.
@@ -1811,7 +1811,7 @@ export const listSuppressionsQuerySchema = listQuerySchema.extend({
 /**
  * Origin a caller may record on a new suppression: an import from another
  * provider keeps its bounce/complaint history, and a migrated opt-out list
- * keeps `unsubscribe` — which then behaves like a one-click opt-out (only an
+ * keeps `unsubscribe`, which then behaves like a one-click opt-out (only an
  * explicit re-subscribe clears it).
  */
 const suppressionWriteOriginSchema = suppressionOriginSchema
@@ -1895,7 +1895,7 @@ export const batchRemoveSuppressionsResponseSchema = z
   .openapi("BatchRemoveSuppressionsResponse");
 
 /**
- * Templates — wire-compatible with the resend SDK's templates surface.
+ * Templates: wire-compatible with the resend SDK's templates surface.
  * Posta templates have no draft/publish cycle and no version history
  * (every save is live), so on the wire `status` is always "published",
  * `published_at` is created_at, `current_version_id` is the template id and

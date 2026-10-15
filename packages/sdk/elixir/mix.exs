@@ -12,7 +12,7 @@ defmodule Posta.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       description:
-        "Official Elixir SDK for Posta — a self-hostable, Resend-compatible email API.",
+        "Official Elixir SDK for Posta; a self-hostable, Resend-compatible email API.",
       package: package(),
       name: "Posta",
       source_url: @source_url,

@@ -15,7 +15,7 @@ const TTL_MS = DAY_MS;
 const IN_FLIGHT_LEASE_MS = 10 * 60 * 1000;
 
 /**
- * Claim an Idempotency-Key. Outcomes: "new" (this request owns the key —
+ * Claim an Idempotency-Key. Outcomes: "new" (this request owns the key;
  * expired rows and dead owners' stale claims are reclaimed atomically),
  * "replay" (same key + same canonical body → stored response), "in_flight"
  * (a live owner is still working), "conflict" (same key, different body).
@@ -69,7 +69,7 @@ export async function beginIdempotent(
  * Record the response for a claimed key. Guarded on response_email_ids IS
  * NULL so a stale-lease takeover's recorded response is never overwritten by
  * the original (dead) owner completing late. Returns false when the claim no
- * longer exists or was already completed by another owner — the caller must
+ * longer exists or was already completed by another owner: the caller must
  * treat that as "my result was not recorded", not success.
  */
 export async function completeIdempotent(

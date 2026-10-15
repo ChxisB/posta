@@ -1,4 +1,4 @@
-/* Auth screens (login/signup) only — the shared control grammar stays in
+/* Auth screens (login/signup) only: the shared control grammar stays in
    styles/components.css; these rules just retune it for the auth column:
    38px controls, full-width centered buttons, and the one backdrop glow. */
 
@@ -100,7 +100,7 @@
   }
 }
 
-/* Composed with the global .po-display — this only sizes/centers. */
+/* Composed with the global .po-display: this only sizes/centers. */
 .headline {
   margin: 8px 0 0;
   font-size: var(--po-fs-h2);

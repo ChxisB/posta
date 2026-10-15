@@ -121,7 +121,7 @@ export const teamBootstrapRouter = router({
     }),
 
   /**
-   * Binds the pending OAuth consent to a team — or to ALL_TEAMS_GRANT for an
+   * Binds the pending OAuth consent to a team, or to ALL_TEAMS_GRANT for an
    * all-teams grant. Writes only the session row (what consentReferenceId
    * reads), never the dashboard cookie: authorizing an app must not switch
    * the team the user is working in.

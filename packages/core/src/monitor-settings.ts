@@ -7,7 +7,7 @@ import { schema } from "@posta/db";
  * nullable instance_settings column (the console edits it), then a MONITOR_*
  * env value, then the built-in default: the same db > env > default
  * precedence the send rate and retention days follow. Rates are fractions of
- * accepted messages, counts are integers, scores are 0–100.
+ * accepted messages, counts are integers, scores are 0 to 100.
  */
 export const MONITOR_SETTINGS = {
   firstSends: {
@@ -156,7 +156,7 @@ export type MonitorSettingsRow = {
 
 type Kind = (typeof MONITOR_SETTINGS)[MonitorSettingKey]["kind"];
 
-/** A value is valid for its kind: rates within [0, 1], counts whole and non-negative, scores 0–100. */
+/** A value is valid for its kind: rates within [0, 1], counts whole and non-negative, scores 0 to 100. */
 export function isValidMonitorSetting(key: MonitorSettingKey, value: number | boolean): boolean {
   const kind: Kind = MONITOR_SETTINGS[key].kind;
   if (kind === "bool") return typeof value === "boolean";

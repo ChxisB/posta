@@ -12,9 +12,9 @@ let close: () => Promise<void>;
 let app: ReturnType<typeof createApi>;
 let teamId: string;
 let token: string;
-/** defaultSubscribed: true — contacts and strangers get mail unless opted out. */
+/** defaultSubscribed: true, contacts and strangers get mail unless opted out. */
 let optInTopicId: string;
-/** defaultSubscribed: false — only explicit opt-ins get mail. */
+/** defaultSubscribed: false, only explicit opt-ins get mail. */
 let optOutTopicId: string;
 /** Belongs to another team. */
 let foreignTopicId: string;

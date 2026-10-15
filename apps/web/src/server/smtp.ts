@@ -6,7 +6,7 @@ import { env } from "@posta/config";
  * Self-host always offers it: the reader owns the deployment, so the tab
  * renders and explains what is still missing (no keypair, insecure auth) and
  * they can act on it. On cloud the reader is a customer who can change
- * nothing, so an unexposed relay is absent rather than broken — the tab, the
+ * nothing, so an unexposed relay is absent rather than broken: the tab, the
  * page and the query all disappear together.
  *
  * Cloud needs both halves: without a STARTTLS keypair the relay refuses to

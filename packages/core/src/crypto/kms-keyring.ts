@@ -3,7 +3,7 @@ import type { DekContext, Keyring } from "./keyring.js";
 
 /**
  * Structural subset of the aggregated `KMS` client from @aws-sdk/client-kms,
- * which satisfies it directly — no adapter. Tests inject fakes (mirrors the
+ * which satisfies it directly: no adapter. Tests inject fakes (mirrors the
  * SesIdentityClient pattern in @posta/ses).
  */
 export interface KmsDekClient {
@@ -35,7 +35,7 @@ function contextKey(context: DekContext | undefined): string {
  * hand-incremented integers (1, 2, …), so reserving one distant constant
  * splits the version space: CompositeKeyring routes unwraps by the stored
  * keyVersion alone, with no envelope-format change. A single constant covers
- * all KMS wraps because KMS rotates key material internally — the ciphertext
+ * all KMS wraps because KMS rotates key material internally: the ciphertext
  * blob, not the version, identifies the backing material.
  */
 export const KMS_KEY_VERSION = 1_000_000;
@@ -97,7 +97,7 @@ export class KmsKeyring implements Keyring {
   /**
    * Serves a cached (DEK, wrapped) pair, regenerating after
    * WRAP_CACHE_MAX_USES uses or WRAP_CACHE_MAX_AGE_MS. Returned buffers are
-   * copies — callers (envelope.ts) scrub what they receive.
+   * copies: callers (envelope.ts) scrub what they receive.
    */
   async generateWrappedDek(
     context?: DekContext,
@@ -150,7 +150,7 @@ export class KmsKeyring implements Keyring {
     };
   }
 
-  /** Caller-supplied DEKs cannot be cached — one KMS Encrypt per call. */
+  /** Caller-supplied DEKs cannot be cached: one KMS Encrypt per call. */
   async wrapDek(
     dek: Buffer,
     context?: DekContext,
@@ -213,7 +213,7 @@ export class KmsKeyring implements Keyring {
 /**
  * Migration keyring for self-host → cloud: new wraps go to KMS while
  * ciphertexts sealed under the old env KEK stay readable. Unwraps route by
- * the version-space split above — KMS_KEY_VERSION to KMS, everything else to
+ * the version-space split above: KMS_KEY_VERSION to KMS, everything else to
  * the env keyring.
  */
 export class CompositeKeyring implements Keyring {

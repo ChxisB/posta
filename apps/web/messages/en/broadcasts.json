@@ -75,7 +75,7 @@
     "stepChange": "Change",
     "sendTest": "Send test",
     "testSent": "Test sent to {email}",
-    "testRateLimited": "Too many test emails — try again in an hour.",
+    "testRateLimited": "Too many test emails: try again in an hour.",
     "testFailed": "Couldn't send the test email."
   },
   "guard": {
@@ -86,7 +86,7 @@
     "scheduleLabel": "Schedule",
     "sendNow": "Send now",
     "schedule": "Schedule",
-    "appBaseUrl": "APP_BASE_URL is not set. Unsubscribe links are built from it — set it and restart.",
+    "appBaseUrl": "APP_BASE_URL is not set. Unsubscribe links are built from it: set it and restart.",
     "sendError": "Couldn't send. Try again.",
     "stepNow": "Now",
     "stepFirst": "{count} go out",

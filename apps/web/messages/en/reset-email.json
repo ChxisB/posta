@@ -5,5 +5,5 @@
   "button": "Reset password",
   "linkFallback": "Or copy this link into your browser:",
   "expiry": "This link expires in {minutes} minutes.",
-  "ignore": "If you didn't request this, you can safely ignore this email — your password will not change."
+  "ignore": "If you didn't request this, you can safely ignore this email: your password will not change."
 }

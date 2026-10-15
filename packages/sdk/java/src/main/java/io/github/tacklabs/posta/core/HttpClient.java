@@ -22,7 +22,7 @@ import java.util.Map;
  * The transport layer: builds requests, applies auth and per-request headers, maps
  * camelCase SDK types to the snake_case wire (via Jackson), and turns any
  * non-2xx into a {@link PostaException}. One instance is shared by every
- * service. Uses the JDK's {@link java.net.http.HttpClient} — no extra HTTP
+ * service. Uses the JDK's {@link java.net.http.HttpClient}: no extra HTTP
  * dependency.
  */
 public final class HttpClient {
@@ -169,7 +169,7 @@ public final class HttpClient {
           return new PostaException(name, message, code);
         }
       } catch (IOException ignored) {
-        // Not JSON — fall through to the generic error.
+        // Not JSON: fall through to the generic error.
       }
     }
     return new PostaException(

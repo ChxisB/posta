@@ -42,7 +42,7 @@ describe("click tokens", () => {
     ).toEqual({ emailId, teamId: null, url: split });
   });
 
-  it("REJECTS a token whose signed url was tampered — the open-redirect defense", () => {
+  it("REJECTS a token whose signed url was tampered: the open-redirect defense", () => {
     // Forge a payload swapping the destination to an attacker host, reusing the
     // original mac. Verification must reject it: only a URL we signed is ever
     // returned, so the redirect can never be pointed elsewhere.

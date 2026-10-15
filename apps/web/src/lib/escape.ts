@@ -1,6 +1,6 @@
 /**
  * Renders a value as a JS single-quoted string literal, escaping
- * backslashes first, then quotes — order matters.
+ * backslashes first, then quotes: order matters.
  */
 export function jsSingleQuote(value: string): string {
   return `'${value.replaceAll("\\", "\\\\").replaceAll("'", "\\'")}'`;

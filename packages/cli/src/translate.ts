@@ -48,7 +48,7 @@ export const TARGET_ALL_EVENTS: readonly TargetWebhookEvent[] = TARGET_WEBHOOK_E
   (event) => !event.startsWith("inbox."),
 );
 
-/** Mirror of apps/web/src/lib/merge-fields.ts MERGE_NAME_RE — the token grammar the send worker resolves. */
+/** Mirror of apps/web/src/lib/merge-fields.ts MERGE_NAME_RE: the token grammar the send worker resolves. */
 const MERGE_NAME_RE = /^[A-Za-z0-9_]+$/;
 const TRIPLE_BRACE_RE = /\{\{\{([\s\S]*?)\}\}\}/g;
 
@@ -332,7 +332,7 @@ export function broadcastCreateInput(
   if (b.status === "sent") notes.push("already sent on Resend; imported as a draft");
   else if (b.status === "scheduled" || b.scheduledAt)
     notes.push(
-      `scheduled on Resend${b.scheduledAt ? ` for ${b.scheduledAt}` : ""}; imported as a draft — schedule it again`,
+      `scheduled on Resend${b.scheduledAt ? ` for ${b.scheduledAt}` : ""}; imported as a draft: schedule it again`,
     );
   else if (b.status !== "draft") notes.push(`status ${b.status} on Resend; imported as a draft`);
   if (!b.html && !b.text) return { input: null, notes, reason: "broadcast has no body" };

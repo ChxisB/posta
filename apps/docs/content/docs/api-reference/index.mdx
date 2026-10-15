@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: The Posta HTTP API — Resend wire-compatible, generated from the server code.
+description: The Posta HTTP API. Resend wire-compatible, generated from the server code.
 ---
 
 The endpoint pages under this section are generated from the API's own route
@@ -17,7 +17,7 @@ definitions at build time, so they always reflect the code. The raw spec is at
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
-Your instance's API origin — `http://localhost:3001` on a local compose
+Your instance's API origin: `http://localhost:3001` on a local compose
 setup, or wherever you exposed port 3001 (e.g. `https://api.acme.dev`). See
 [Self-hosting](/self-hosting).
 
@@ -36,7 +36,7 @@ Authorization: Bearer po_...
 
 Keys have a permission level: **full access** keys can use every endpoint,
 **sending only** keys are confined to `/emails*` (anything else returns
-`403 restricted_api_key`) — and even there, `GET /emails`, `GET /emails/{id}`
+`403 restricted_api_key`), and even there, `GET /emails`, `GET /emails/{id}`
 and `DELETE /emails/{id}` need full access, since reads return stored bodies
 and the team's whole archive, and so does every `/emails/receiving` endpoint.
 A key can additionally be scoped to a single domain, restricting which `from`
@@ -60,7 +60,7 @@ against Posta by pointing their base URL at it. CI runs the official
 `resend` npm package against every endpoint as a conformance gate. The few
 remaining deltas are deliberate and loud:
 
-- Attachments take inline base64 `content` only — a remote `path` URL is
+- Attachments take inline base64 `content` only: a remote `path` URL is
   rejected with `422` (never fetched). An attachment with a `content_id` is
   an inline image the HTML references as `cid:<content_id>`, and may leave
   `filename` out or null. Attachments can total up to 10 MiB per email
@@ -70,7 +70,7 @@ remaining deltas are deliberate and loud:
 - Receiving is supported (beta): `GET /emails/receiving`,
   `GET /emails/receiving/{id}` with `html_format`, the attachment endpoints,
   signed one-hour download links, the `email.received` webhook, and
-  `capabilities.receiving` with a `Receiving` record on domains — so
+  `capabilities.receiving` with a `Receiving` record on domains, so
   `resend.emails.receiving.*`, `forward()` included, works unchanged. A
   domain's `capabilities.sending` is always `enabled` (asking to disable it
   is a `422`). Receiving needs a verified domain, so `POST /domains` with
@@ -98,12 +98,12 @@ remaining deltas are deliberate and loud:
   answers `202` with the draft instead of `200` with the email. Extensions
   are extra fields and endpoints only, never new values in Resend's enums.
   See [Inboxes → Resend compatibility](/concepts/inboxes#resend-compatibility).
-- Contacts are team-global — audience endpoints are served as aliases of
+- Contacts are team-global: audience endpoints are served as aliases of
   segments, and contact endpoints work with or without an audience id (see
   [Contacts](/concepts/contacts)).
 - `POST /domains` takes an optional `region`, which must be one of the SES
-  regions the deployment serves — the values its request schema lists, the
-  first being the default — and is rejected with `422` otherwise. A domain
+  regions the deployment serves (the values its request schema lists, the
+  first being the default) and is rejected with `422` otherwise. A domain
   has one region: to move it, delete it and add it again.
 - Broadcasts support `canceled`, a status outside Resend's union, and
   broadcast sends, `POST /emails` and `POST /emails/batch` can return
@@ -122,7 +122,7 @@ remaining deltas are deliberate and loud:
   `422 broadcast_too_large`. See [Broadcasts](/concepts/broadcasts#pacing).
 - `POST /emails` and `POST /emails/batch` return `429 daily_quota_exceeded`
   on a daily plan (Free, Starter) when the day's sending quota is spent and
-  the queued backlog is full — retry after the UTC day rolls over — and
+  the queued backlog is full (retry after the UTC day rolls over) and
   `429 monthly_quota_exceeded` on a monthly plan (Pro, Scale) at its included
   volume with overage off; turn on overage in Billing or wait for the period
   to renew (the message names the date). A batch is accepted or refused
@@ -136,15 +136,15 @@ remaining deltas are deliberate and loud:
   contacts still update; in a batch only the new ones fail.
 - `GET /usage` exists (Resend has no usage endpoint): the effective plan, its
   limits (`emails_per_day` on daily plans, `emails_per_month` on monthly ones,
-  `domains`, `contacts`, `inboxes`), today's accepted count and, on a monthly plan, a `period` object
-  — `emails_sent`, `included`, `overage_enabled`, `overage_usd_per_1k`,
+  `domains`, `contacts`, `inboxes`), today's accepted count and, on a monthly plan, a `period` object:
+  `emails_sent`, `included`, `overage_enabled`, `overage_usd_per_1k`,
   `starts_at`, `ends_at`. Self-hosted instances report `cloud: false` with
   null plan, limits and period.
 - `DELETE /emails/{id}` exists (Resend has no email deletion).
 - Custom `headers` are allowlisted: any `X-*` name (except `X-SES-*` and
   `X-Posta-*`) plus `In-Reply-To`, `References`, `Importance`,
   `Priority`, `Comments`, `Keywords`, `Organization`, and the one-click
-  unsubscribe pair — `List-Unsubscribe` (one or more `<https://…>` or
+  unsubscribe pair. `List-Unsubscribe` (one or more `<https://…>` or
   `<mailto:…>` targets) with `List-Unsubscribe-Post`
   (`List-Unsubscribe=One-Click`); anything else is a `422`. The two must come
   together, and `List-Unsubscribe` needs an `https` target. On a send with a
@@ -158,7 +158,7 @@ remaining deltas are deliberate and loud:
   has someone left are simply omitted. Unsubscribe-origin entries count only
   when the send has a `topic_id`; bounce, complaint and manual entries always.
 - `to`, `cc` and `bcc` together cannot exceed 50 recipients, and each address
-  must be a single mailbox — a display name containing `@` is rejected, and
+  must be a single mailbox: a display name containing `@` is rejected, and
   accepted addresses read back in canonical `Name <user@host>` form.
 - The instance's onboarding sender (`ONBOARDING_EMAIL_FROM`;
   `hello@mail.posta.example` on the cloud) carries only Posta's own
@@ -278,7 +278,7 @@ that was held for approval answers the retry with the same draft, as `202`.
 
 ## Pagination
 
-List endpoints accept `limit` (1–100, default 20) plus `after` / `before`
+List endpoints accept `limit` (1 to 100, default 20) plus `after` / `before`
 cursors carrying an item id from a previous page. Responses include
 `has_more`. Lists run oldest first, except where Resend orders them
 otherwise, and there `after` pages toward the end of that order:

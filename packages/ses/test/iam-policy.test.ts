@@ -8,7 +8,7 @@ const read = (relative: string) =>
 
 const policyActions = new Set<string>(SES_IAM_POLICY.Statement.flatMap((s) => [...s.Action]));
 
-// The runtime AWS modules and their service — every command they construct needs an allow.
+// The runtime AWS modules and their service: every command they construct needs an allow.
 const RUNTIME_MODULES = [
   ["../src/domain-identity.ts", "ses"],
   ["../src/send.ts", "ses"],

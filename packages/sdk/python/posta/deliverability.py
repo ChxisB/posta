@@ -8,5 +8,5 @@ from ._client import request
 class Deliverability:
     @classmethod
     def get(cls) -> Any:
-        """GET /deliverability — scores are null until there is enough data."""
+        """GET /deliverability: scores are null until there is enough data."""
         return request("GET", "/deliverability")

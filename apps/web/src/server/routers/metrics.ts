@@ -108,7 +108,7 @@ export const metricsRouter = router({
           )
           .groupBy(sql`1`)
           .orderBy(sql`1`),
-        // ::bigint — the all-time sum of int columns overflows int4 for large
+        // ::bigint, the all-time sum of int columns overflows int4 for large
         // senders. The driver returns bigint as a string; Number() below is
         // exact up to 2^53 deliveries.
         ctx.db

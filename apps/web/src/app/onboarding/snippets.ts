@@ -129,7 +129,7 @@ Posta.Emails.send(client, %{
     case "curl": {
       const body = JSON.stringify({ from: p.from, to: p.to, subject: p.subject, html: p.html });
       // The comment takes its own line so any selection of the command
-      // itself is valid shell — an inline comment after a trailing "\\"
+      // itself is valid shell: an inline comment after a trailing "\\"
       // breaks the continuation when copied.
       return `${p.comment ? `# ${p.comment}\n` : ""}curl -X POST ${p.apiUrl}/emails \\
   -H ${shellSingleQuote(`Authorization: Bearer ${p.apiKey}`)} \\

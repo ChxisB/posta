@@ -87,7 +87,7 @@
     "transientGeneral": {
       "title": "Temporary bounce",
       "body": "The recipient server kept deferring the message; SES retried for a while and then gave up.",
-      "action": "Nothing retries after this. Send again later if the message still matters — the address is not suppressed and this does not count against your bounce rate."
+      "action": "Nothing retries after this. Send again later if the message still matters: the address is not suppressed and this does not count against your bounce rate."
     },
     "mailboxFull": {
       "title": "Mailbox full",
@@ -124,7 +124,7 @@
     "transient": {
       "title": "Temporary bounce",
       "body": "The recipient server kept deferring the message; SES retried for a while and then gave up.",
-      "action": "Nothing retries after this. Send again later if the message still matters — the address is not suppressed and this does not count against your bounce rate."
+      "action": "Nothing retries after this. Send again later if the message still matters: the address is not suppressed and this does not count against your bounce rate."
     },
     "undetermined": {
       "title": "Bounce reason undetermined",

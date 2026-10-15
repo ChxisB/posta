@@ -6,7 +6,7 @@ use crate::types::{
     CreateTopicOptions, DeleteTopicResponse, Topic, TopicId, TopicList, UpdateTopicOptions,
 };
 
-/// Subscription topics — granular unsubscribe categories for a team.
+/// Subscription topics: granular unsubscribe categories for a team.
 #[derive(Clone)]
 pub struct Topics(pub(crate) Arc<Config>);
 
@@ -21,7 +21,7 @@ impl Topics {
         self.0.get(&["topics", id], &[]).await
     }
 
-    /// `GET /topics` — every topic in one page.
+    /// `GET /topics`: every topic in one page.
     pub async fn list(&self) -> Result<TopicList> {
         self.0.get(&["topics"], &[]).await
     }

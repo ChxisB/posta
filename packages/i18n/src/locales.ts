@@ -37,7 +37,7 @@ export function isLocale(value: string): value is Locale {
 /**
  * Resolution order: explicit user preference → team default → Accept-Language
  * header → source. Recipient-facing surfaces (hosted unsubscribe pages) skip
- * the first two — the recipient is not our customer.
+ * the first two: the recipient is not our customer.
  */
 export function resolveLocale(candidates: ReadonlyArray<string | null | undefined>): Locale {
   for (const candidate of candidates) {

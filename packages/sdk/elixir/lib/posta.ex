@@ -1,6 +1,6 @@
 defmodule Posta do
   @moduledoc """
-  Official Elixir client for [Posta](https://github.com/ChxisB/posta) —
+  Official Elixir client for [Posta](https://github.com/ChxisB/posta):
   a self-hostable, Resend-compatible email API.
 
   The API is wire-compatible with Resend and this SDK mirrors `resend-elixir`, so

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { regionFlag, regionName } from "./regions";
 
 /**
- * "🇧🇷 São Paulo (sa-east-1)" — flag + localized city + region code.
+ * "🇧🇷 São Paulo (sa-east-1)": flag + localized city + region code.
  * `list` renders the code faint in parens; `meta` renders it mono muted.
  */
 export function RegionLabel({

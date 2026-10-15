@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module Posta
-  # Suppression list — addresses the API refuses to send to. Entries are
+  # Suppression list: addresses the API refuses to send to. Entries are
   # addressable by id or by email.
   module Suppressions
     class << self
-      # POST /suppressions — email, origin ("manual" default, "bounce",
+      # POST /suppressions: email, origin ("manual" default, "bounce",
       # "complaint", "unsubscribe"). Adding an already suppressed address
       # returns the existing entry.
       def add(params)
@@ -13,7 +13,7 @@ module Posta
       end
       alias_method :create, :add
 
-      # GET /suppressions — accepts limit:/after:/before: and origin:.
+      # GET /suppressions: accepts limit:/after:/before: and origin:.
       def list(options = {})
         query = Posta::Util.list_query(options).merge(origin: options[:origin])
         Posta::Request.new(method: :get, path: "/suppressions", query: query).perform
@@ -24,7 +24,7 @@ module Posta
         Posta::Request.new(method: :get, path: member_path(id_or_email)).perform
       end
 
-      # DELETE /suppressions/:id_or_email — allows sending to that address again.
+      # DELETE /suppressions/:id_or_email: allows sending to that address again.
       def remove(id_or_email)
         Posta::Request.new(method: :delete, path: member_path(id_or_email)).perform
       end
@@ -39,12 +39,12 @@ module Posta
     # Up to 1000 suppressions per call.
     module Batch
       class << self
-        # POST /suppressions/batch/add — { emails: [...], origin: }.
+        # POST /suppressions/batch/add: { emails: [...], origin: }.
         def add(params)
           Posta::Request.new(method: :post, path: "/suppressions/batch/add", body: params).perform
         end
 
-        # POST /suppressions/batch/remove — { emails: [...] } or { ids: [...] }.
+        # POST /suppressions/batch/remove: { emails: [...] } or { ids: [...] }.
         def remove(params)
           Posta::Request.new(method: :post, path: "/suppressions/batch/remove", body: params).perform
         end

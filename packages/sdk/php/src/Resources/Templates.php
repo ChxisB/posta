@@ -41,7 +41,7 @@ final class Templates
     }
 
     /**
-     * PATCH /templates/:idOrAlias — `alias`, `subject` and `text` accept null to clear.
+     * PATCH /templates/:idOrAlias: `alias`, `subject` and `text` accept null to clear.
      *
      * @param array<string,mixed> $params
      * @return array<mixed>
@@ -58,7 +58,7 @@ final class Templates
     }
 
     /**
-     * POST /templates/:idOrAlias/publish — templates are always published on
+     * POST /templates/:idOrAlias/publish: templates are always published on
      * Posta; kept for resend-php compatibility.
      *
      * @return array<mixed>

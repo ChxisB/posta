@@ -480,7 +480,7 @@ describe("OAuth authorization server", () => {
     expect(status).toBe(200);
     expect(body.scope).toBe("emails:send");
     expect(decodeJwt(body.access_token as string).scope).toBe("emails:send");
-    // offline_access was kept, so the grant still refreshes — to the same subset.
+    // offline_access was kept, so the grant still refreshes, to the same subset.
     const refreshed = await token({
       grant_type: "refresh_token",
       refresh_token: body.refresh_token as string,
@@ -651,7 +651,7 @@ describe("OAuth authorization server", () => {
     const teamId = await createTeam(db);
     const { userId, cookie } = await signUp("ada@example.com");
     await addMember(userId, teamId);
-    // A registration that named only yesterday's scopes — the row must not
+    // A registration that named only yesterday's scopes: the row must not
     // freeze the list, or a server upgrade adding a scope strands the client.
     const clientId = await registerClient("offline_access emails:send");
     const [client] = await db

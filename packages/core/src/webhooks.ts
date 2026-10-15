@@ -28,7 +28,7 @@ export const WEBHOOK_EVENT_TYPES = [
   "email.clicked",
   // Opt-in: a tracking-image fetch classified as automated (see
   // open-classifier). Never delivered to an endpoint subscribed to "all
-  // events" — naming it is the consent; see endpointSubscribes.
+  // events": naming it is the consent; see endpointSubscribes.
   "email.prefetched",
   // Inbound mail stored for the team: Resend's email.received payload, whose
   // email_id is a received email (GET /emails/receiving/{id}).
@@ -102,7 +102,7 @@ export function generateWebhookSecret(): string {
 
 /**
  * Key bytes of a `whsec_` secret, or null unless it is canonical base64 of
- * 24–64 bytes. Canonical = re-encodes to the same string: a secret that only
+ * 24 to 64 bytes. Canonical = re-encodes to the same string: a secret that only
  * decodes leniently (base64url, missing padding) would sign deliveries that a
  * strict receiver-side library cannot verify.
  */
@@ -454,7 +454,7 @@ const INSERT_CHUNK = 2000;
  * delivery row per matching endpoint. Callers invoke this exactly
  * once per event fact (the SNS dedupe / send claim already gate that), so no
  * extra idempotency key is needed here. Endpoints are matched strictly by
- * the email's own teamId — never by anything event-supplied.
+ * the email's own teamId, never by anything event-supplied.
  */
 export async function enqueueWebhookDeliveries(
   db: Db,

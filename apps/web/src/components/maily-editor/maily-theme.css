@@ -1,8 +1,8 @@
 /*
  * Theme bridge for the Maily editor. Maily ships a light-only palette built on
  * --mly-color-* tokens and Tailwind utilities; remapping those tokens to our
- * --po-* tokens makes the whole editor — content, slash/variable popups (which
- * mount on <body>, hence the global :root scope) and pills — follow the app
+ * --po-* tokens makes the whole editor (content, slash/variable popups (which
+ * mount on <body>, hence the global :root scope) and pills) follow the app
  * theme in both light and dark. Our own toolbar/picker/link chrome is styled
  * directly below.
  */
@@ -13,7 +13,7 @@
   --mly-color-gray-100: var(--po-panel-raised);
   --mly-color-gray-200: var(--po-line);
   --mly-color-gray-300: var(--po-line-strong);
-  /* gray-400 renders slash-menu descriptions and footer hints — muted, not
+  /* gray-400 renders slash-menu descriptions and footer hints: muted, not
      faint, so the copy stays readable on both themes. */
   --mly-color-gray-400: var(--po-muted);
   --mly-color-gray-500: var(--po-muted);
@@ -97,14 +97,14 @@
   border-radius: 0 0 var(--po-r-input) var(--po-r-input);
   background: var(--po-panel);
 }
-/* Neutralise Maily's own frame — our surface provides the border/rounding. */
+/* Neutralise Maily's own frame: our surface provides the border/rounding. */
 .po-maily-wrap {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
-/* Maily's body div ships mt-4 + rounded + border + bg-white + p-4 — inside our
+/* Maily's body div ships mt-4 + rounded + border + bg-white + p-4: inside our
    already-bordered surface that reads as a duplicated inner border and a gap
    below the toolbar. Flatten it; the ProseMirror rule below owns the padding. */
 .po-maily-surface .po-maily-body {
@@ -123,7 +123,7 @@
   font: 400 var(--po-fs-ui) / 1.6 var(--po-font-sans);
 }
 /* Maily's prose styles pin their palette via --mly-tw-prose-* custom props
-   defined ON the content element (near-black headings/body) — invisible on the
+   defined ON the content element (near-black headings/body): invisible on the
    dark theme. Re-declare them with our tokens; unlayered, so this wins over
    the layered .mly:prose definitions. The sent email is unaffected (its html
    is rendered server-side with inline styles). */
@@ -159,7 +159,7 @@
 
 /* ---- in-content variable pill ------------------------------------------- */
 /* The node-view wrapper is inline-block, which baseline-aligns the pill and
-   floats it above the text's optical middle — middle-align it instead. */
+   floats it above the text's optical middle: middle-align it instead. */
 .po-varview {
   position: relative;
   display: inline-block;
@@ -482,7 +482,7 @@
 
 /* ---- Maily's tippy popups (slash + variable suggestions) --------------- */
 /* Maily scopes its Tailwind preflight to #mly-editor, but these popups mount
-   on <body> via tippy — so they inherit raw UA styles: bordered button chrome
+   on <body> via tippy, so they inherit raw UA styles: bordered button chrome
    turned each slash item into a giant card, and default <p> margins bloated
    the copy. Recreate the preflight for the portals, in @layer base so Maily's
    own utility classes (its spacing/typography) still win over the reset. */
@@ -519,7 +519,7 @@
   border-radius: 10px;
 }
 /* The keyboard-hints footer under the slash list is hardcoded English inside
-   Maily (untranslatable) and adds noise — the ↑↓/Enter interactions still
+   Maily (untranslatable) and adds noise: the ↑↓/Enter interactions still
    work; product call: hide it. #slash-command is the scroll area, the footer
    is its only sibling. */
 [data-tippy-root] #slash-command + div {

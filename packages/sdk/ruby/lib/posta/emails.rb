@@ -11,7 +11,7 @@ module Posta
       # (Emails.send(from: ..., to: ...)); a trailing hash carries the request
       # options as either `idempotency_key: "k"` or resend-ruby's
       # `options: { idempotency_key: "k" }`. No keyword parameters are declared
-      # on purpose — Ruby 3 keyword separation would otherwise reject the
+      # on purpose. Ruby 3 keyword separation would otherwise reject the
       # bare-keyword call shape.
       def send(params = {}, options = {})
         Posta::Request.new(
@@ -25,12 +25,12 @@ module Posta
         Posta::Request.new(method: :get, path: member_path(id)).perform
       end
 
-      # GET /emails — accepts limit:/after:/before:.
+      # GET /emails: accepts limit:/after:/before:.
       def list(options = {})
         Posta::Request.new(method: :get, path: "/emails", query: Posta::Util.list_query(options)).perform
       end
 
-      # PATCH /emails/:id — reschedule a scheduled, unsent email. Takes
+      # PATCH /emails/:id: reschedule a scheduled, unsent email. Takes
       # (id, { scheduled_at: }) or resend-ruby's single hash with :email_id.
       def update(id, params = nil)
         if id.is_a?(Hash)
@@ -40,7 +40,7 @@ module Posta
         Posta::Request.new(method: :patch, path: member_path(id), body: params).perform
       end
 
-      # GET /emails/:id/insights — the pre-send best-practice report computed
+      # GET /emails/:id/insights: the pre-send best-practice report computed
       # when the email was sent. 404 when the email is unknown or has no
       # insights yet. Check ids and band/severity/status values are an open
       # set that grows across score versions; they arrive as plain strings.
@@ -48,7 +48,7 @@ module Posta
         Posta::Request.new(method: :get, path: "#{member_path(id)}/insights").perform
       end
 
-      # POST /emails/:id/cancel — scheduled, unsent emails only.
+      # POST /emails/:id/cancel: scheduled, unsent emails only.
       def cancel(id)
         Posta::Request.new(method: :post, path: "#{member_path(id)}/cancel").perform
       end

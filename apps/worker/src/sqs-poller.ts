@@ -10,8 +10,8 @@ import { parseSesEvent, snsMessageSchema } from "@posta/ses";
 /**
  * SES event ingestion for deployments SNS cannot push to: SES → SNS topic →
  * SQS queue → this long-poll loop → the same "ses.event" job the https
- * endpoint enqueues. No SNS signature verification here — ReceiveMessage is
- * IAM-authenticated and the queue policy only lets the events topic write —
+ * endpoint enqueues. No SNS signature verification here. ReceiveMessage is
+ * IAM-authenticated and the queue policy only lets the events topic write,
  * but the topic allowlist still applies, so a queue hand-pointed at foreign
  * topics stays rejected (mirrors the https endpoint's rule).
  */
@@ -34,7 +34,7 @@ export interface SqsPollerDeps {
 
 /**
  * One receive/process/delete round; returns how many messages arrived.
- * Unusable messages (non-JSON, foreign topic, unparseable event) are deleted —
+ * Unusable messages (non-JSON, foreign topic, unparseable event) are deleted:
  * redelivery can never fix them; only an enqueue failure keeps a message on
  * the queue for redelivery.
  */

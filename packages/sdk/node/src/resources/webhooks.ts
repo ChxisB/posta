@@ -51,7 +51,7 @@ export class Webhooks {
     return this.http.request({ method: "DELETE", path: `/webhooks/${encodeURIComponent(id)}` });
   }
 
-  /** POST /webhooks/:id/rotate — new signing secret; the previous one keeps signing for `overlapHours`. */
+  /** POST /webhooks/:id/rotate: new signing secret; the previous one keeps signing for `overlapHours`. */
   rotate(
     id: string,
     payload: RotateWebhookSecretOptions = {},

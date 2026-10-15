@@ -37,7 +37,7 @@ function SegmentsHead() {
         <th className="right">{t("count")}</th>
         <th className="right">{t("unsubscribed")}</th>
         <th className="right">{t("created")}</th>
-        {/* Overflow-action column — no header label. */}
+        {/* Overflow-action column: no header label. */}
         <th className="right" />
       </tr>
     </thead>
@@ -273,12 +273,12 @@ export default function SegmentsPage() {
                       }
                     >
                       <span className="po-mono">
-                        {row.contactCount === null ? "—" : nf.format(row.contactCount)}
+                        {row.contactCount === null ? "-" : nf.format(row.contactCount)}
                       </span>
                     </Tooltip>
                   </td>
                   <td className="right po-mono" style={{ color: "var(--po-muted)" }}>
-                    {row.unsubscribedCount === null ? "—" : nf.format(row.unsubscribedCount)}
+                    {row.unsubscribedCount === null ? "-" : nf.format(row.unsubscribedCount)}
                   </td>
                   <td className="right" style={{ color: "var(--po-muted)" }}>
                     <RelativeTime date={row.createdAt} />
@@ -389,7 +389,7 @@ export default function SegmentsPage() {
           }}
         >
           <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("deleteBody", { name: deleteTarget?.name ?? "—" })}
+            {t("deleteBody", { name: deleteTarget?.name ?? "-" })}
           </p>
           {deleteMutation.isError ? (
             <p

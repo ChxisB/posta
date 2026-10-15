@@ -152,7 +152,7 @@ describe("computeDomainVerification", () => {
     expect(result.dmarc).toEqual({ status: "unknown" });
   });
 
-  it("never throws on NXDOMAIN/timeout — a dead resolver reads pending, not an error", async () => {
+  it("never throws on NXDOMAIN/timeout: a dead resolver reads pending, not an error", async () => {
     const throwing: DnsResolver = {
       resolveTxt: async () => {
         throw Object.assign(new Error("nxdomain"), { code: "ENOTFOUND" });

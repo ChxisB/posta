@@ -65,7 +65,7 @@ public final class Emails {
     return http.request("GET", "/emails/" + enc(id), null, null, null, new TypeReference<Email>() {});
   }
 
-  /** GET /emails — newest first; list items carry no body, message id or score. */
+  /** GET /emails: newest first; list items carry no body, message id or score. */
   public ListResponse<Email> list() throws PostaException {
     return list(null);
   }
@@ -77,14 +77,14 @@ public final class Emails {
         new TypeReference<ListResponse<Email>>() {});
   }
 
-  /** PATCH /emails/{id} — reschedule a scheduled, unsent email. */
+  /** PATCH /emails/{id}: reschedule a scheduled, unsent email. */
   public DeletedResponse update(String id, UpdateEmailOptions options) throws PostaException {
     return http.request(
         "PATCH", "/emails/" + enc(id), options, null, null, new TypeReference<DeletedResponse>() {});
   }
 
   /**
-   * GET /emails/{id}/insights — the pre-send best-practice report. The API
+   * GET /emails/{id}/insights: the pre-send best-practice report. The API
    * returns a 404 {@code not_found} when the id is unknown or insights are not
    * available for the email yet.
    */
@@ -94,14 +94,14 @@ public final class Emails {
         new TypeReference<EmailInsights>() {});
   }
 
-  /** POST /emails/{id}/cancel — scheduled, unsent emails only. */
+  /** POST /emails/{id}/cancel: scheduled, unsent emails only. */
   public DeletedResponse cancel(String id) throws PostaException {
     return http.request(
         "POST", "/emails/" + enc(id) + "/cancel", null, null, null,
         new TypeReference<DeletedResponse>() {});
   }
 
-  /** DELETE /emails/{id} — hard-deletes the email and its events (Posta extension). */
+  /** DELETE /emails/{id}: hard-deletes the email and its events (Posta extension). */
   public DeletedResponse remove(String id) throws PostaException {
     return http.request(
         "DELETE", "/emails/" + enc(id), null, null, null, new TypeReference<DeletedResponse>() {});

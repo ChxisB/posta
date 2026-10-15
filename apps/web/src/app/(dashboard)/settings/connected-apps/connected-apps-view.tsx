@@ -77,7 +77,7 @@ export function ConnectedAppsView() {
                     )}
                   </td>
                   <td style={{ whiteSpace: "nowrap" }}>
-                    {grant.userEmail ?? "—"}
+                    {grant.userEmail ?? "-"}
                     {grant.own ? (
                       <span className="po-badge po-badge-neutral" style={{ marginLeft: 8 }}>
                         {t("you")}
@@ -96,7 +96,7 @@ export function ConnectedAppsView() {
                       </Tooltip>
                     </span>
                   </td>
-                  <td>{grant.grantedAt ? <RelativeTime date={grant.grantedAt} /> : "—"}</td>
+                  <td>{grant.grantedAt ? <RelativeTime date={grant.grantedAt} /> : "-"}</td>
                   <td className="right">
                     <PopoverMenu
                       ariaLabel={t("table.menu")}

@@ -93,7 +93,7 @@ export function customHeaderIssues(headers: Readonly<Record<string, string>>): C
   }
   // RFC 8058: one-click needs both headers and an https target. Half a pair
   // would either ship without one-click or, on a topic send, collide with the
-  // generated pair — so the two come together or not at all.
+  // generated pair, so the two come together or not at all.
   const names = Object.keys(headers).map((n) => n.toLowerCase());
   const hasList = names.includes("list-unsubscribe");
   const hasPost = names.includes("list-unsubscribe-post");

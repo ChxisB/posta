@@ -24,7 +24,7 @@ export function PreviewTextField({
       <label htmlFor={id}>
         {t("previewText.label")}{" "}
         <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-          — {t("editor.optional")}
+          , ({t("editor.optional")})
         </span>
       </label>
       <input

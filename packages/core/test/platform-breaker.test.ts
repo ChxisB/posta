@@ -303,7 +303,7 @@ it("the week window reads the daily counters: seven UTC days including today (re
     .returning({ id: schema.domains.id });
   if (!dom) throw new Error("seed failed");
   const day = (n: number) => utcDay(NOW.getTime() - n * DAY_MS);
-  // Six days ago is the oldest day inside the window; seven days ago is out —
+  // Six days ago is the oldest day inside the window; seven days ago is out:
   // with it in, 45 hard bounces over 10000 sends would sit under the line.
   await bumpCounters(teamD, day(7), { sent: 9000 });
   // The tripping day's rows exist too (seedTraffic bumps its counters).

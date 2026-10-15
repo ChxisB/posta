@@ -1,5 +1,5 @@
 defmodule Posta.Broadcasts.Broadcast do
-  @moduledoc "A broadcast — an email sent to the team's contacts, optionally targeted."
+  @moduledoc "A broadcast: an email sent to the team's contacts, optionally targeted."
   @type t :: %__MODULE__{}
   defstruct [
     :object,
@@ -56,7 +56,7 @@ defmodule Posta.Broadcasts do
     Request.run(client, method: :get, path: "/broadcasts/" <> Request.encode(id), as: Broadcast)
   end
 
-  @doc "`GET /broadcasts` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /broadcasts`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -72,7 +72,7 @@ defmodule Posta.Broadcasts do
     )
   end
 
-  @doc "`PATCH /broadcasts/:id` — draft only. `topic_id: nil` clears the topic."
+  @doc "`PATCH /broadcasts/:id`: draft only. `topic_id: nil` clears the topic."
   @spec update(Client.t(), String.t(), map()) :: {:ok, Broadcast.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id, params) when is_binary(id) and is_map(params) do
     Request.run(client,
@@ -83,7 +83,7 @@ defmodule Posta.Broadcasts do
     )
   end
 
-  @doc "`DELETE /broadcasts/:id` — draft only."
+  @doc "`DELETE /broadcasts/:id`: draft only."
   @spec remove(Client.t(), String.t()) :: {:ok, Broadcast.t()} | {:error, Posta.Error.t()}
   def remove(client \\ Posta.client(), id) when is_binary(id) do
     Request.run(client,
@@ -93,7 +93,7 @@ defmodule Posta.Broadcasts do
     )
   end
 
-  @doc "`POST /broadcasts/:id/send` — pass `scheduled_at:` to schedule, omit to send now."
+  @doc "`POST /broadcasts/:id/send`: pass `scheduled_at:` to schedule, omit to send now."
   @spec send(String.t()) :: {:ok, Broadcast.t()} | {:error, Posta.Error.t()}
   def send(id) when is_binary(id), do: send(Posta.client(), id, [])
 
@@ -114,7 +114,7 @@ defmodule Posta.Broadcasts do
     )
   end
 
-  @doc "`POST /broadcasts/:id/cancel` — scheduled only."
+  @doc "`POST /broadcasts/:id/cancel`: scheduled only."
   @spec cancel(Client.t(), String.t()) :: {:ok, Broadcast.t()} | {:error, Posta.Error.t()}
   def cancel(client \\ Posta.client(), id) when is_binary(id) do
     Request.run(client,

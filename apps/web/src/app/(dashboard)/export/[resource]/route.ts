@@ -7,7 +7,7 @@ import { resolveSupportView, SUPPORT_VIEW_COOKIE } from "@/server/support-view";
 
 /**
  * CSV export for the dashboard list surfaces. Authenticated by the Better Auth
- * session (never an API key) and scoped to the session's active team — the
+ * session (never an API key) and scoped to the session's active team: the
  * teamId comes only from membership, never from the request, so no query param
  * can widen the export past the caller's own team. Admin-only: a full dump
  * of the audience or mail archive is not a member-level action.

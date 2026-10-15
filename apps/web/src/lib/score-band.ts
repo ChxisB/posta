@@ -8,7 +8,7 @@ export const BAND_TONE: Record<ScoreBand, string> = {
   at_risk: "danger",
 };
 
-/** scoreTenths (0–100) → localized one-decimal 0–10 string ("8.5"). */
+/** scoreTenths (0 to 100) → localized one-decimal 0 to 10 string ("8.5"). */
 export function formatScoreTenths(scoreTenths: number, locale: string): string {
   return new Intl.NumberFormat(locale, {
     minimumFractionDigits: 1,
@@ -30,7 +30,7 @@ export function checkGlyph(check: EmailCheckResult): { glyph: string; color: str
     case "unknown":
       return { glyph: "?", color: "var(--po-muted)" };
     case "not_applicable":
-      return { glyph: "—", color: "var(--po-faint)" };
+      return { glyph: "-", color: "var(--po-faint)" };
     default:
       return { glyph: "✓", color: "var(--po-success)" };
   }

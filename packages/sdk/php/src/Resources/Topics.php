@@ -7,7 +7,7 @@ namespace Posta\Resources;
 use Posta\HttpClient;
 use Posta\Util;
 
-/** Subscription topics — granular unsubscribe categories for a team. */
+/** Subscription topics: granular unsubscribe categories for a team. */
 final class Topics
 {
     private const WIRE_MAP = ['defaultSubscription' => 'default_subscription'];
@@ -30,7 +30,7 @@ final class Topics
     }
 
     /**
-     * GET /topics — a bare `{ data }` list (topics are unpaginated).
+     * GET /topics: a bare `{ data }` list (topics are unpaginated).
      *
      * @return array<mixed>
      */

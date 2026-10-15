@@ -7,7 +7,7 @@ namespace Posta\Resources;
 use Posta\HttpClient;
 use Posta\Util;
 
-/** The team's suppression list — addresses that are never sent to. Addressable by id or email. */
+/** The team's suppression list: addresses that are never sent to. Addressable by id or email. */
 final class Suppressions
 {
     public readonly SuppressionsBatch $batch;
@@ -46,7 +46,7 @@ final class Suppressions
     }
 
     /**
-     * GET /suppressions — `origin` filters to bounce|complaint|manual|unsubscribe.
+     * GET /suppressions: `origin` filters to bounce|complaint|manual|unsubscribe.
      *
      * @param array{limit?: int, after?: string, before?: string, origin?: string} $options
      * @return array<mixed>

@@ -28,7 +28,7 @@ describe("suppressions", () => {
   });
 
   it("still matches rows hashed before normalization existed", async () => {
-    // Legacy hash: addr-spec lowercased only, no NFKC — differs from today's.
+    // Legacy hash: addr-spec lowercased only, no NFKC; differs from today's.
     const legacy = sha256Hex("ｏｌｄ@example.com");
     expect(legacy).not.toBe(hashRecipient("ｏｌｄ@example.com"));
     await db.insert(schema.suppressions).values({

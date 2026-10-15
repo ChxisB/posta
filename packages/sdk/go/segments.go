@@ -77,7 +77,7 @@ type RemoveSegmentResponse struct {
 	Deleted bool   `json:"deleted"`
 }
 
-// SegmentsService covers /segments — a segment is a saved filter over the
+// SegmentsService covers /segments: a segment is a saved filter over the
 // team's contacts.
 type SegmentsService struct{ client *Client }
 

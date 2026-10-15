@@ -23,7 +23,7 @@ let teamId: string;
 
 beforeAll(async () => {
   client = new PGlite();
-  // Apply everything BEFORE the backfill, seed history, then run the backfill —
+  // Apply everything BEFORE the backfill, seed history, then run the backfill,
   // mirroring a deploy onto a database with pre-existing events.
   for (const entry of journal.entries.filter((e) => e.tag !== BACKFILL_TAG)) {
     await client.exec(readFileSync(join(migrationsFolder, `${entry.tag}.sql`), "utf8"));

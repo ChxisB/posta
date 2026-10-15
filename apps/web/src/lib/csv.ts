@@ -39,7 +39,7 @@ function splitCsvLine(line: string): string[] {
  * Client-side contact CSV parsing for the import modal. Two accepted
  * shapes: a header row containing "email" (with optional first_name /
  * last_name columns), or headerless rows whose first column is the address.
- * Rows without an "@" in the email column are dropped here — the server
+ * Rows without an "@" in the email column are dropped here: the server
  * would count them as skipped anyway.
  *
  * ponytail: lines are split on newlines before quote parsing, so a quoted

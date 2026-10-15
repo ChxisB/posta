@@ -140,7 +140,7 @@ async function horizonGuard(
 
 const emailSchema = z.string().trim().pipe(z.email()).pipe(z.string().max(320));
 // SECURITY: a stored broadcast `from` is emitted verbatim by the worker
-// fan-out, so it is the same trust boundary as the API's — it must parse as
+// fan-out, so it is the same trust boundary as the API's; it must parse as
 // exactly one unambiguous mailbox (parseSingleSender, shared with the API and
 // SMTP accept paths).
 const fromSchema = z
@@ -153,7 +153,7 @@ const fromSchema = z
 const subjectSchema = z.string().trim().min(1).max(998);
 // "" clears it. Never stored in the html: the fan-out injects it (injectPreheader).
 const previewTextSchema = z.string().trim().max(PREVIEW_TEXT_MAX);
-// "" clears the field — stored as null, never as an empty string.
+// "" clears the field: stored as null, never as an empty string.
 const nameSchema = z.string().trim().max(200);
 const bodySchema = z.string().max(500_000);
 // Maily editor source of truth; null clears it back to a legacy raw-HTML row.
@@ -227,7 +227,7 @@ async function countAudience(
   const base = [eq(c.teamId, ctx.teamId), eq(c.unsubscribed, false)];
   // A segment narrows recipients via the shared resolver (filter matches
   // plus manual members), AND'd on top of the global-unsubscribe and
-  // topic rules — the same predicate the worker fan-out targets.
+  // topic rules: the same predicate the worker fan-out targets.
   if (input.segmentId) {
     const segment = await assertSegment(ctx, input.segmentId);
     base.push(savedSegmentPredicate(segment));
@@ -340,7 +340,7 @@ export const broadcastsRouter = router({
       ? await ctx.db.select({ name: sg.name }).from(sg).where(eq(sg.id, row.segmentId)).limit(1)
       : [];
     // "Delivered" counts the delivered rung and everything above it on the
-    // status ladder — an opened or clicked email was necessarily delivered.
+    // status ladder: an opened or clicked email was necessarily delivered.
     // Opened likewise includes clicked; both count people only, since a
     // prefetch never lifts the status (see the tracking recorder).
     const ev = schema.emailEvents;
@@ -585,7 +585,7 @@ export const broadcastsRouter = router({
       if (!updated) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Only drafts can be sent." });
       }
-      // Enqueue failure must not undo the commit — the reconcile sweep
+      // Enqueue failure must not undo the commit: the reconcile sweep
       // re-enqueues scheduled broadcasts whose job was lost.
       try {
         await ctx.enqueueBroadcastSend?.(input.id, { startAfter: scheduledAt });

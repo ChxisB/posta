@@ -16,7 +16,7 @@ import type {
 export class Domains {
   constructor(private readonly http: HttpClient) {}
 
-  /** POST /domains — returns the DNS records to publish. */
+  /** POST /domains: returns the DNS records to publish. */
   create(payload: CreateDomainOptions): Promise<Result<CreateDomainResponse>> {
     return this.http.request({
       method: "POST",
@@ -40,7 +40,7 @@ export class Domains {
     return this.http.request({ method: "GET", path: `/domains/${encodeURIComponent(id)}` });
   }
 
-  /** PATCH /domains/:id — tracking settings; `trackingSubdomain: null` clears it. */
+  /** PATCH /domains/:id: tracking settings; `trackingSubdomain: null` clears it. */
   update(payload: UpdateDomainOptions): Promise<Result<Domain>> {
     return this.http.request({
       method: "PATCH",
@@ -55,7 +55,7 @@ export class Domains {
     });
   }
 
-  /** POST /domains/:id/verify — re-checks DNS and returns the domain. */
+  /** POST /domains/:id/verify: re-checks DNS and returns the domain. */
   verify(id: string): Promise<Result<Domain>> {
     return this.http.request({
       method: "POST",

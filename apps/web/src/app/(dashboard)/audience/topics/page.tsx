@@ -38,7 +38,7 @@ function TopicsHead() {
         <th style={{ width: "14%" }}>{t("default")}</th>
         <th style={{ width: "14%" }}>{t("visibility")}</th>
         <th className="right">{t("created")}</th>
-        {/* Overflow-action column — no header label. */}
+        {/* Overflow-action column; no header label. */}
         <th className="right" />
       </tr>
     </thead>

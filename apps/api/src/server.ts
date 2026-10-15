@@ -43,7 +43,7 @@ const keyring = createKeyringFromEnv(env);
 // The API is the email.send producer, so the queue is unconditional.
 const queue = await Queue.start(env.DATABASE_URL);
 
-// SES event ingestion exists only when a topic allowlist is configured —
+// SES event ingestion exists only when a topic allowlist is configured:
 // signature checks without one would accept any AWS account's topic.
 const snsTopicArns = env.SNS_TOPIC_ARNS;
 

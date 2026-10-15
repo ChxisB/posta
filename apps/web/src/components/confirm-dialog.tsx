@@ -32,7 +32,7 @@ interface ConfirmRequest extends ConfirmDialogOptions {
    native confirm is the safe fallback rather than silently allowing. */
 let listener: ((request: ConfirmRequest) => void) | null = null;
 
-/** Our design-system replacement for window.confirm — resolves true on confirm. */
+/** Our design-system replacement for window.confirm: resolves true on confirm. */
 export function confirmDialog(options: ConfirmDialogOptions): Promise<boolean> {
   return new Promise((resolve) => {
     // A confirm that reaches the server cannot be honoured under a read-only
@@ -60,7 +60,7 @@ export function ConfirmDialogHost() {
 
   useEffect(() => {
     listener = (next) => {
-      // A second request while one is open cancels the first — never stack.
+      // A second request while one is open cancels the first, never stack.
       setRequest((prev) => {
         prev?.resolve(false);
         return next;

@@ -29,7 +29,7 @@ const windows = (s) =>
       <section class="win" data-build="${b.key}" aria-label="${b.label}: ${esc(s.title)}">
         <div class="bar">
           <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="bar-title">posta — ${s[b.key].cols}×50</span>
+          <span class="bar-title">posta: ${s[b.key].cols}×50</span>
           <span class="chip chip-${b.key}">${b.chip}</span>
         </div>
         <div class="screen" style="--cols:${s[b.key].cols}" tabindex="0">${screen(s[b.key].html)}</div>

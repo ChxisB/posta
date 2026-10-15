@@ -247,7 +247,7 @@ describe("webhooks.list success rate", () => {
     }
 
     const listed = await caller.webhooks.list();
-    // 3 success / 4 settled — the pending row counts for neither side.
+    // 3 success / 4 settled: the pending row counts for neither side.
     expect(listed.find((w) => w.id === withStats.id)?.successRate).toBe(75);
     expect(listed.find((w) => w.id === fresh.id)?.successRate).toBeNull();
   });
@@ -292,7 +292,7 @@ describe("webhooks.testDelivery", () => {
     const caller = callerFor(teamId);
     // Even an endpoint subscribed to other events accepts a test fire.
     // SSRF-blocked target: the attempt settles immediately and
-    // deterministically — the pin is that the row is NEVER left pending.
+    // deterministically; the pin is that the row is NEVER left pending.
     const { id } = await caller.webhooks.create({
       url: "https://10.0.0.1/hooks",
       eventTypes: ["email.bounced"],

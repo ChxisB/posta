@@ -69,7 +69,7 @@ type TemplateId struct {
 }
 
 // Template is returned by Get and is a List row (rows carry the metadata
-// fields only). Templates have no draft/publish cycle — every save is live —
+// fields only). Templates have no draft/publish cycle (every save is live),
 // so Status is always "published". From, ReplyTo and Variables read as "",
 // nil and empty until the API supports them.
 type Template struct {

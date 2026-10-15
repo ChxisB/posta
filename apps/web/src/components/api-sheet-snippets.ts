@@ -1,5 +1,5 @@
 /* Per-SDK snippets for the resource API sheets. Each snippet mirrors the real
-   published SDK surface in packages/sdk/<lang> — only the resources every
+   published SDK surface in packages/sdk/<lang>, only the resources every
    SDK implements (contacts, segments, topics, broadcasts, webhooks) get an entry here;
    the rest stay curl-only in api-sheet.tsx. Client setup follows the emails
    sheet's convention: placeholder key in the first section, reused after. */

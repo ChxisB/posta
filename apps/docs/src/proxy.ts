@@ -10,7 +10,7 @@ const i18nMiddleware = createI18nMiddleware(i18n);
 
 /**
  * Content negotiation runs first: a client whose Accept header prefers
- * text/markdown gets the page's markdown from the page URL itself — for both
+ * text/markdown gets the page's markdown from the page URL itself, for both
  * locales, since the locale prefix is part of the pathname forwarded to
  * /llms.mdx. Explicit-extension URLs (.md, .txt, .json, assets) are left to
  * their own routes.
@@ -29,6 +29,6 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  // "api/" (not "api") — /api-reference/* pages need the locale rewrite.
+  // "api/" (not "api"): /api-reference/* pages need the locale rewrite.
   matcher: ["/((?!_next|api/|llms.mdx).*)"],
 };

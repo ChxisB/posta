@@ -347,7 +347,7 @@ describe("broadcastCreateInput", () => {
   it.each([
     [
       { status: "scheduled", scheduledAt: "2026-09-15T10:00:00.000Z" },
-      "scheduled on Resend for 2026-09-15T10:00:00.000Z; imported as a draft — schedule it again",
+      "scheduled on Resend for 2026-09-15T10:00:00.000Z; imported as a draft: schedule it again",
     ],
     [{ status: "sent" }, "already sent on Resend; imported as a draft"],
     [{ status: "queued" }, "status queued on Resend; imported as a draft"],

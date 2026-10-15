@@ -145,7 +145,7 @@ export async function decryptPayload(
  * and watching ciphertext lengths) has no foothold here.
  *
  * Decrypt sniffs the format: gzip output starts with 0x1f 0x8b, while the
- * JSON of a legacy row starts with '{' (0x7b) — no key-version bump needed.
+ * JSON of a legacy row starts with '{' (0x7b); no key-version bump needed.
  */
 const GZIP_MAGIC = Buffer.from([0x1f, 0x8b]);
 

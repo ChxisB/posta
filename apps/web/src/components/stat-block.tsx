@@ -4,7 +4,7 @@ import { Odometer } from "@/components/odometer";
 import { Skeleton } from "@/components/skeleton";
 
 /**
- * Uppercase microlabel over big tabular digits — the stat-strip KPI block
+ * Uppercase microlabel over big tabular digits: the stat-strip KPI block
  * (audience contacts, broadcast detail). Loaded values roll in on the shared
  * Odometer; the ghost keeps the digit line box so the strip never shifts.
  */
@@ -15,7 +15,7 @@ export function StatBlock({
 }: {
   label: string;
   value: string | null;
-  /** Muted line under the digits — a qualifier the number needs to be honest. */
+  /** Muted line under the digits: a qualifier the number needs to be honest. */
   hint?: string | undefined;
 }) {
   return (

@@ -1236,7 +1236,7 @@ describe("deliverability guardrail on transactional sends", () => {
     expect(rows).toHaveLength(0);
   });
 
-  it("applies the same rule on self-host — plans play no part", async () => {
+  it("applies the same rule on self-host: plans play no part", async () => {
     const selfHost = createApi({ db, keyring, isCloud: false, enqueueEmailSend: async () => {} });
     expect((await send(selfHost, "/emails", body)).status).toBe(403);
   });

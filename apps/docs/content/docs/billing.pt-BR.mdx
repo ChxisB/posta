@@ -4,7 +4,7 @@ description: Como planos, Stripe Checkout e o webhook se encaixam em uma implant
 ---
 
 A cobrança só existe quando `IS_CLOUD=true`. Uma instância auto-hospedada
-não tem planos, limites de envio, aba de Cobrança nem rota de webhook — nunca
+não tem planos, limites de envio, aba de Cobrança nem rota de webhook: nunca
 precisa de uma chave do Stripe. Esta página é para operar uma implantação
 hospedada.
 
@@ -22,8 +22,8 @@ Starter, ilimitadas acima (veja [Caixas de entrada](#caixas-de-entrada)).
 
 | Faixa | Plano | Preço | Incluído | Limite | Excedente por 1.000 |
 | --- | --- | --- | --- | --- | --- |
-| `free` | Free | US$ 0 | 100 | por dia | — |
-| `starter` | Starter | US$ 9 | 1.500 | por dia | — |
+| `free` | Free | US$ 0 | 100 | por dia | - |
+| `starter` | Starter | US$ 9 | 1.500 | por dia | - |
 | `pro_100k` | Pro | US$ 20 | 100.000 | por mês | US$ 0,30 |
 | `pro_200k` | Pro | US$ 35 | 200.000 | por mês | US$ 0,30 |
 | `scale_500k` | Scale | US$ 75 | 500.000 | por mês | US$ 0,25 |
@@ -55,8 +55,8 @@ cheio, o e-mail fica em espera até o drain achar espaço.
 
 ### Volumes mensais (Pro, Scale)
 
-O contador é o período de cobrança do Stripe — a tabela `usage_periods`,
-chaveada pelo `current_period_start` da equipe — sem tolerância. O que acontece
+O contador é o período de cobrança do Stripe (a tabela `usage_periods`,
+chaveada pelo `current_period_start` da equipe) sem tolerância. O que acontece
 no volume incluído depende da chave **excedente** em Cobrança, ligada por
 padrão (o cliente a desliga lá):
 
@@ -68,7 +68,7 @@ padrão (o cliente a desliga lá):
   ligado ou quando o plano sobe.
 - **Excedente ligado**: os envios além do volume incluído são reportados a um
   medidor do Stripe e cobrados por 1.000 na taxa da faixa, na próxima fatura
-  (veja [o cron de excedente](#o-cron-de-excedente)) — até um teto rígido de
+  (veja [o cron de excedente](#o-cron-de-excedente)), até um teto rígido de
   5× o volume incluído (`OVERAGE_HARD_CAP`), para uma integração descontrolada
   ou uma chave roubada nunca gerar uma conta sem fim. Nesse teto a API recusa
   com o mesmo `429 monthly_quota_exceeded` ("Monthly sending quota exceeded:
@@ -174,7 +174,7 @@ linha, `teams.overage_enabled`, que é o que toda superfície de envio lê.
    preço dessa faixa.
 2. O Checkout coleta pagamento, endereço e id fiscal (imposto automático
    ligado). O Stripe redireciona de volta para `/settings/billing`. **O
-   redirecionamento não muda nada** — a página só consulta por alguns
+   redirecionamento não muda nada**: a página só consulta por alguns
    segundos.
 3. O Stripe entrega `checkout.session.completed`, `customer.subscription.*`
    e `invoice.*` em `POST /api/billing/webhook`. O handler verifica a
@@ -184,17 +184,17 @@ linha, `teams.overage_enabled`, que é o que toda superfície de envio lê.
    `current_period_end`, `stripe_overage_item_id` e `pending_rung`.
 4. **Trocar de faixa** acontece no painel (`billing.changePlan`), e a
    direção decide quando:
-   - **Subir** vale na hora: os itens da assinatura são atualizados — o item
+   - **Subir** vale na hora: os itens da assinatura são atualizados (o item
      do plano para o preço da nova faixa, o item medido reprecificado para
-     uma faixa mensal ou removido para uma diária depois de reportar o uso —
+     uma faixa mensal ou removido para uma diária depois de reportar o uso),
      com a diferença rateada na próxima fatura, e o webhook que vem em
      seguida reaplica o mesmo estado. Os envios já aceitos dentro do volume
      antigo são marcados como acertados na linha do período, então a nova
      faixa nunca os cobra como excedente.
    - **Descer** vale ao fim do período, sem rateio e sem reembolso: um
      subscription schedule do Stripe é criado a partir da assinatura (ou o
-     pendente é reaproveitado) com duas fases — os itens atuais até
-     `current_period_end`, depois os itens da nova faixa — e a linha do
+     pendente é reaproveitado) com duas fases (os itens atuais até
+     `current_period_end`, depois os itens da nova faixa) e a linha do
      plano não muda até o webhook aplicar a troca de fase. Até lá, a página
      de cobrança mostra "Muda para X em `<data>`" com um botão **Manter
      `<atual>`**: escolher a faixa atual libera o schedule, e uma subida
@@ -225,7 +225,7 @@ configuração padrão da conta pode oferecer, então defina
 `STRIPE_PORTAL_CONFIG`.
 
 As colunas de plano são escritas a partir de uma assinatura buscada no
-Stripe — pelo handler do webhook e pelos dois procedimentos do painel acima —
+Stripe, pelo handler do webhook e pelos dois procedimentos do painel acima,
 nunca por um redirecionamento, uma chamada do cliente ou um payload de evento
 aceito sem verificação.
 
@@ -238,7 +238,7 @@ não medido da assinatura nomeia a faixa, nesta ordem:
 1. o `metadata.posta_rung` do preço;
 2. a lookup key do preço (`posta_<faixa>_monthly`);
 3. o `metadata.posta_plan` do produto, caindo na primeira faixa desse
-   plano — é assim que os dois preços vendidos antes da tabela de planos atual resolvem
+   plano: é assim que os dois preços vendidos antes da tabela de planos atual resolvem
    (`posta_pro_monthly` → `pro_100k`, `posta_scale_monthly` →
    `scale_500k`).
 
@@ -345,7 +345,7 @@ O que ele faz, e por que rodar de novo é seguro:
   produto, até cada uma ser movida; só os novos checkouts deixam de vê-los.
 - **Endpoint de webhook** é localizado pela URL; listas de eventos que
   divergiram são ressincronizadas. O segredo de assinatura é impresso **uma
-  única vez, na criação** — o Stripe nunca o devolve de novo. Para rotacionar,
+  única vez, na criação**: o Stripe nunca o devolve de novo. Para rotacionar,
   gere um novo no painel do Stripe (Developers → Webhooks → o endpoint → Roll secret)
   e copie o novo valor em `STRIPE_WEBHOOK_SECRET`.
 - **Configuração do portal** é localizada por metadata e tem as
@@ -400,7 +400,7 @@ encaminhe os eventos do Stripe para ele com a Stripe CLI:
 stripe listen --forward-to localhost:3009/api/billing/webhook
 ```
 
-O `stripe listen` imprime um segredo `whsec_…` próprio — coloque-o em
+O `stripe listen` imprime um segredo `whsec_…` próprio: coloque-o em
 `STRIPE_WEBHOOK_SECRET` do processo local (não precisa de `--webhook-url` ao
 provisionar). Use o cartão `4242 4242 4242 4242` no Checkout e `stripe
 trigger customer.subscription.deleted` para exercitar um downgrade. A rota de

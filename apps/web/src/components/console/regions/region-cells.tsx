@@ -9,7 +9,7 @@ import { useRegionFormats } from "./formatters";
 /** An unknown value in a region table cell. */
 export const mutedDash = (
   <span className="po-mono" style={{ color: "var(--po-muted)" }}>
-    —
+    -
   </span>
 );
 

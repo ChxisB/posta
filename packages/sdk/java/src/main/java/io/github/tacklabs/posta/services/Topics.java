@@ -31,12 +31,12 @@ public final class Topics {
     return http.request("GET", "/topics/" + enc(id), null, null, null, new TypeReference<Topic>() {});
   }
 
-  /** GET /topics — a bare {@code { data }} list (topics are unpaginated). */
+  /** GET /topics: a bare {@code { data }} list (topics are unpaginated). */
   public DataResponse<Topic> list() throws PostaException {
     return http.request("GET", "/topics", null, null, null, new TypeReference<DataResponse<Topic>>() {});
   }
 
-  /** PATCH /topics/{id} — name, description, visibility. */
+  /** PATCH /topics/{id}: name, description, visibility. */
   public Id update(String id, UpdateTopicOptions options) throws PostaException {
     return http.request(
         "PATCH", "/topics/" + enc(id), options, null, null, new TypeReference<Id>() {});

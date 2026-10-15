@@ -7,7 +7,7 @@ use crate::types::{
     ListContactsOptions, ListOptions, Segment, UpdateSegmentOptions,
 };
 
-/// Dynamic segments — a saved filter over the team's contacts (Posta
+/// Dynamic segments: a saved filter over the team's contacts (Posta
 /// extension, no Resend equivalent). `get` returns a live `contact_count`.
 #[derive(Clone)]
 pub struct Segments(pub(crate) Arc<Config>);
@@ -18,7 +18,7 @@ impl Segments {
         self.0.post(&["segments"], segment).await
     }
 
-    /// `GET /segments/:id` — includes `contact_count`.
+    /// `GET /segments/:id`: includes `contact_count`.
     pub async fn get(&self, id: &str) -> Result<Segment> {
         self.0.get(&["segments", id], &[]).await
     }
@@ -28,7 +28,7 @@ impl Segments {
         self.0.get(&["segments"], &list_query(options)).await
     }
 
-    /// `GET /segments/:id/contacts` — the segment's current members; `include`
+    /// `GET /segments/:id/contacts`: the segment's current members; `include`
     /// attaches `properties` and/or `topics` to every item.
     pub async fn list_contacts(
         &self,

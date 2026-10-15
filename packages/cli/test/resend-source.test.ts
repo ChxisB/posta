@@ -276,7 +276,7 @@ describe("createResendSource", () => {
     const snapshot = await src.readShallow({ include: new Set(["topics"]) });
     expect(snapshot.topics).toHaveLength(2);
     expect(fake.requests.filter((r) => r.path === "/topics")).toHaveLength(2);
-    expect(lines.some((l) => l.startsWith("warning: retry 2/8 in 0s — Resend 429"))).toBe(true);
+    expect(lines.some((l) => l.startsWith("warning: retry 2/8 in 0s. Resend 429"))).toBe(true);
   });
 
   it("enrichContacts merges properties and topics, skips alreadyDone, emits per contact", async () => {

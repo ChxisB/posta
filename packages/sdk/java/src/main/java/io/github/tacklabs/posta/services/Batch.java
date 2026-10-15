@@ -30,7 +30,7 @@ public final class Batch {
   }
 
   /**
-   * POST /emails/batch with per-request options — an idempotency key and/or the
+   * POST /emails/batch with per-request options: an idempotency key and/or the
    * {@code x-batch-validation} mode ({@code RequestOptions.builder().batchValidation(...)}).
    */
   public CreateBatchEmailsResponse send(

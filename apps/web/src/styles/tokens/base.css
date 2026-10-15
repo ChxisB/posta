@@ -9,7 +9,7 @@ html {
 }
 .po-root,
 body.po {
-  /* margin reset lives here because the canvas sets it at page level —
+  /* margin reset lives here because the canvas sets it at page level:
      without it the browser's default 8px floats the whole shell off the
      viewport edges. */
   margin: 0;
@@ -47,7 +47,7 @@ body.po {
   text-transform: uppercase;
   color: var(--po-muted);
 }
-/* Links — accent text with a dotted underline. Table rows, nav, crumbs and
+/* Links: accent text with a dotted underline. Table rows, nav, crumbs and
    buttons set their own colour (components.css). */
 a {
   color: var(--po-accent-text);

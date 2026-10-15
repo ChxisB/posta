@@ -1,6 +1,6 @@
 # posta
 
-Official Rust SDK for [Posta](https://github.com/ChxisB/posta) — a
+Official Rust SDK for [Posta](https://github.com/ChxisB/posta): a
 self-hostable, Resend-compatible email API on AWS SES.
 
 The HTTP API is wire-compatible with Resend, and this crate mirrors the shape of
@@ -83,13 +83,13 @@ non-TLS instance elsewhere (e.g. inside a private network).
 
 Fallible calls return `Result<T, posta::Error>`:
 
-- `Error::Api(ApiError { status_code, name, message })` — a non-2xx response.
+- `Error::Api(ApiError { status_code, name, message })`: a non-2xx response.
   `name` is a stable snake_case code you can match on (`validation_error`,
   `not_found`, `restricted_api_key`, `sending_paused`,
   `all_recipients_suppressed`, …).
-- `Error::Http(_)` — a transport failure that never reached the API;
+- `Error::Http(_)`: a transport failure that never reached the API;
   `err.status_code()` is `None`.
-- `Error::Parse(_)` — a 2xx body that failed to deserialize.
+- `Error::Parse(_)`: a 2xx body that failed to deserialize.
 
 ```rust
 match ms.emails.get(&id).await {
@@ -141,7 +141,7 @@ Every field is put on the wire, including `template`, which the API currently
 rejects with a 422 (send `html`/`text` instead). `send` and `batch.send` answer
 422 `all_recipients_suppressed` when every `to` recipient is on the suppression
 list or opted out of the send's `topic_id`. `get` includes a nullable
-best-practice `score` (0–10); `get_insights` returns the full per-check report
+best-practice `score` (0 to 10); `get_insights` returns the full per-check report
 behind it (404 `not_found` until insights exist).
 
 #### Batch
@@ -149,12 +149,12 @@ behind it (404 `not_found` until insights exist).
 ```rust
 use posta::{BatchValidation, IdempotentTrait};
 
-let emails = vec![email_a, email_b];                       // 1–100
+let emails = vec![email_a, email_b];                       // 1 to 100
 ms.batch.send(&emails).await?;                             // POST /emails/batch
 ms.batch.send(emails.with_idempotency_key("batch-1")).await?;
 ms.batch.send_with_idempotency_key(&emails, "batch-1").await?;
 
-// x-batch-validation: permissive — invalid items land in `errors` instead of
+// x-batch-validation: permissive, invalid items land in `errors` instead of
 // failing the whole call (strict is the server default).
 let res = ms.batch.send_with_batch_validation(&emails, BatchValidation::Permissive).await?;
 for err in &res.errors {
@@ -164,7 +164,7 @@ for err in &res.errors {
 
 ### Contacts
 
-Contacts are team-global — one record per email address (case-insensitive);
+Contacts are team-global: one record per email address (case-insensitive);
 creating a duplicate is a 409 `validation_error`.
 
 ```rust
@@ -198,7 +198,7 @@ ms.contacts.update("contact-id", &UpdateContactOptions {
 }).await?;
 
 ms.contacts.delete(ContactAddress::email("ada@acme.dev"), None).await?; // the contact's emails stay in the send log
-ms.contacts.delete("contact-id", Some(&DeleteContactOptions { erase: true })).await?; // ?erase=true — also scrubs the address from email history, event payloads and API logs (GDPR/LGPD)
+ms.contacts.delete("contact-id", Some(&DeleteContactOptions { erase: true })).await?; // ?erase=true: also scrubs the address from email history, event payloads and API logs (GDPR/LGPD)
 ms.contacts.list(Some(&ListContactsOptions { limit: Some(20), ..Default::default() })).await?;
 // Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact.
@@ -251,7 +251,7 @@ let res = ms.contacts.batch_get(
     Some(&BatchGetContactsOptions { include: Some(vec![ContactInclude::Topics]) }),
 ).await?;                                                  // POST /contacts/batch/get
 res.data;    // the contacts found, in request order, each with `topics` attached
-res.missing; // [{ index, id?, email? }] — request entries that matched nobody
+res.missing; // [{ index, id?, email? }]: request entries that matched nobody
 ```
 
 Up to 1000 addresses per call, ids and emails mixed (emails match
@@ -277,12 +277,12 @@ println!("{}", link.url);                                       // POST /contact
 ```
 
 `topics.list` returns every topic of the team (one page) with the contact's
-effective `subscription` — the explicit choice, else the topic default —
+effective `subscription` (the explicit choice, else the topic default),
 `explicit: false` when it is the default, and the topic's `visibility` (the
 hosted preference page lists public topics only).
 
 `preferences_link` (Posta extension) mints the contact's hosted
-preference page — the page their emails' unsubscribe links open. The URL never
+preference page: the page their emails' unsubscribe links open. The URL never
 expires and lets its holder change that contact's preferences, so show it only
 to the contact. 422 when the instance cannot build hosted links.
 
@@ -338,7 +338,7 @@ let broadcast = ms.broadcasts.create(&CreateBroadcastOptions {
     preview_text: Some("It's here".into()),
     topic_id: Some(topic.id.clone()),
     send: Some(true),                                      // send now instead of saving a draft
-    scheduled_at: Some("in 1 hour".into()),                // with send: true — schedule instead
+    scheduled_at: Some("in 1 hour".into()),                // with send: true, schedule instead
     ..Default::default()
 }).await?;
 
@@ -383,7 +383,7 @@ let vips = ms.segments.create(&CreateSegmentOptions {
 
 ms.segments.get(&id).await?;                 // includes a live contact_count
 ms.segments.list(None).await?;
-ms.segments.list_contacts(&id, None).await?; // GET /segments/:id/contacts — takes ListContactsOptions (include works here too)
+ms.segments.list_contacts(&id, None).await?; // GET /segments/:id/contacts: takes ListContactsOptions (include works here too)
 ms.segments.update(&id, &UpdateSegmentOptions {
     filter: Some(None),                      // null drops the filter, keeping the members added by hand
     ..Default::default()
@@ -467,7 +467,7 @@ let rotated = ms.webhooks.rotate(&hook.id, None).await?;   // POST /webhooks/:id
 println!("switch to {} before {:?}", rotated.signing_secret, rotated.previous_secret_expires_at);
 ms.webhooks.rotate(&hook.id, Some(&RotateWebhookOptions {
     signing_secret: Some("whsec_…".into()),                // bring your own
-    overlap_hours: Some(0),                                // 0–72, default 24; 0 drops the old secret at once
+    overlap_hours: Some(0),                                // 0 to 72, default 24; 0 drops the old secret at once
 })).await?;
 ms.webhooks.delete(&hook.id).await?;
 ```
@@ -556,8 +556,8 @@ Resource and method names match: `emails`, `batch`, `contacts`, `topics`,
 `broadcasts`, `segments`, `suppressions`, `domains`, `webhooks`, `api_keys`,
 `templates`. Notes:
 
-- **Contacts nest** their sub-resources — `contacts.topics.list`/`update`,
-  `contacts.segments.add`/`remove`, `contacts.properties.*` — where `resend-rs`
+- **Contacts nest** their sub-resources (`contacts.topics.list`/`update`,
+  `contacts.segments.add`/`remove`, `contacts.properties.*`) where `resend-rs`
   keeps them flat (`get_contact_topics`, `update_contact_topics`,
   `add_contact_segment`, `create_property`, …).
 

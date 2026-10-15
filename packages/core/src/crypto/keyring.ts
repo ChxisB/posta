@@ -12,7 +12,7 @@ export interface Keyring {
   unwrapDek(wrapped: Buffer, keyVersion: number, context?: DekContext): Promise<Buffer>;
   /**
    * Present when the keyring supplies the DEK itself so it can serve a
-   * cached (DEK, wrapped) pair — wrapping through KMS costs a network
+   * cached (DEK, wrapped) pair: wrapping through KMS costs a network
    * round-trip per call. envelope.ts prefers this over wrapDek when present;
    * the returned dek is the caller's copy to scrub.
    */
@@ -63,7 +63,7 @@ export class EnvKeyring implements Keyring {
     return new EnvKeyring(new Map([[1, kek]]), 1);
   }
 
-  // async so every failure path rejects — callers' .catch must never be
+  // async so every failure path rejects: callers' .catch must never be
   // bypassed by a synchronous throw.
   async wrapDek(dek: Buffer): Promise<{ wrapped: Buffer; keyVersion: number }> {
     const kek = this.#keys.get(this.#currentVersion);

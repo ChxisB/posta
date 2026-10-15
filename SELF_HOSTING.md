@@ -4,12 +4,12 @@ Posta sends through your own AWS SES account. Two containers: Postgres and one
 app container running the api (port 3001), worker, and web dashboard (port 3000).
 All three ports are `.env`-tunable: `WEB_PORT` republishes the dashboard on another
 host port, `PORT` moves the api, and `SMTP_PORT` moves the optional relay. If you
-change where the dashboard is reachable, update `APP_BASE_URL` to match — it is
+change where the dashboard is reachable, update `APP_BASE_URL` to match: it is
 baked into unsubscribe and tracking links, and it is the only origin sign-in
 accepts: a mismatched port fails login/signup with an "invalid origin" error.
 
 Prerequisites: Docker with Compose; an AWS account with SES access in your chosen
-region (sandbox accounts can only send to verified recipients — request production
+region (sandbox accounts can only send to verified recipients: request production
 access to send to anyone); a sending domain you control. Domain verification (DKIM
 records) is done from the dashboard after boot.
 
@@ -23,7 +23,7 @@ mkdir posta && cd posta
 npx @tack-labs/posta-setup
 ```
 
-The wizard detects what is already there and offers each step — create `.env`
+The wizard detects what is already there and offers each step: create `.env`
 from a built-in template with generated secrets, provision the AWS resources
 and the S3 buckets for uploads and backups (both below), download the
 standalone compose file, and `docker compose up -d`. Every step is skippable
@@ -40,29 +40,29 @@ curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
 
 In `.env` (everything else defaults to a working local setup):
 
-- `MASTER_ENCRYPTION_KEY` and `BETTER_AUTH_SECRET` — `openssl rand -base64 32` each.
+- `MASTER_ENCRYPTION_KEY` and `BETTER_AUTH_SECRET`: `openssl rand -base64 32` each.
   The file now holds every secret the instance has: `chmod 600 .env`, and keep
   it out of version control and backups.
-- `APP_BASE_URL` — the URL you open the dashboard at. The default
+- `APP_BASE_URL`: the URL you open the dashboard at. The default
   `http://localhost:3000` works locally; set your real `https://` URL when exposing
   it, or sign-in is rejected as an untrusted origin.
-- `UNSUBSCRIBE_BASE_URL` — optional own host for the hosted unsubscribe pages
+- `UNSUBSCRIBE_BASE_URL`: optional own host for the hosted unsubscribe pages
   (`https://unsubscribe.example.com`, pointed at the same web process). Links in
   mail and the page's redirects use it, and that host serves the unsubscribe
   flow only, keeping link scanners off the dashboard's origin. Unset:
   `APP_BASE_URL`.
-- `PUBLIC_API_URL` — only behind a reverse proxy that serves the API on its own
+- `PUBLIC_API_URL`: only behind a reverse proxy that serves the API on its own
   hostname (the nginx section below); otherwise the API is assumed at port 3001
   of the dashboard host.
-- `COMPOSE_PROFILES` — optional services, comma-separated: `docs` (the
+- `COMPOSE_PROFILES`: optional services, comma-separated: `docs` (the
   documentation site), `smtp` (the relay; mount a keypair first), `mx`
   (inbound mail; see "Receiving mail" below), `clamav` (virus scanning of
   received mail, same section), `backup` (scheduled dumps).
-- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — from the AWS setup below, or rely
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, from the AWS setup below, or rely
   on the default AWS credential chain. The worker paces each region at the lower
   of its own SES send rate and `SES_MAX_SEND_RATE` (or the Settings → Instance
   value), so a sandbox region needs no change.
-- `AWS_REGIONS` — optional, comma-separated: serve several SES regions from one
+- `AWS_REGIONS`: optional, comma-separated: serve several SES regions from one
   deployment, the first being the default; unset means the one region in
   `AWS_REGION`. See "Adding a region" below.
 
@@ -90,7 +90,7 @@ passed the test suite first). To hold a version, set `POSTA_IMAGE`
 in `.env` to a version tag or an immutable digest
 (`ghcr.io/chxisb/posta@sha256:…`; `docker image ls --digests` shows
 what is running) and `docker compose up -d`. The previous pin put back is the
-rollback — with the caveat that schema migrations run forward only, so take a
+rollback, with the caveat that schema migrations run forward only, so take a
 dump before a big jump (Backups below); a rolled-back image may not start on a
 newer schema. Upgrading from a release before v0.6.30: the metadata window
 default drops from 365 to 30 days, and the first hourly purge after boot
@@ -154,7 +154,7 @@ Without Docker (Node 24+, pnpm 11, local Postgres): `pnpm install`, point
 <summary><b>AWS setup</b></summary>
 
 The AWS step of `npx @tack-labs/posta-setup` creates everything Posta needs in
-AWS — IAM policy + user + access key, the SNS event topic, the SQS events queue
+AWS: IAM policy + user + access key, the SNS event topic, the SQS events queue
 the worker long-polls, and the SES configuration set. The policy also carries the
 `ses:*Tenant*` actions and `ses:UpdateReputationEntityCustomerManagedStatus`
 behind `SES_TENANTS` (one SES tenant per team, disabled while the team is
@@ -168,18 +168,18 @@ judges the estimate on the same 0.4% line. An https
 `APP_BASE_URL` additionally gets events pushed to your host; the queue works
 without any public URL.
 
-Run it anywhere Node 18+ and your AWS admin credentials live — laptop or server; the
+Run it anywhere Node 18+ and your AWS admin credentials live: laptop or server; the
 Posta server never needs admin credentials. It verifies your AWS identity,
 shows the plan, creates everything, and writes the `AWS_*` lines into the `.env` in
 the current directory (no `.env` there → it prints them to paste where Posta
 runs). `--dry-run` prints the full plan and exits.
 `teardown` deletes everything the setup created, including all access keys of the
 `posta` user, so a running server stops sending. Re-running is safe, but each
-run mints a new access key — delete stale ones in the IAM console.
+run mints a new access key: delete stale ones in the IAM console.
 (`@tack-labs/posta-setup` is the self-host setup tool; `@tack-labs/posta-cli` is the end-user
-CLI that talks to the Posta API — migrations from other providers.)
+CLI that talks to the Posta API: migrations from other providers.)
 
-No Node on the server? The same CLI ships inside the image — run it from the
+No Node on the server? The same CLI ships inside the image: run it from the
 deploy directory, which it reads and writes as `/work` (the wizard writes
 nothing outside it, so run it as yourself and the `.env` it creates is yours,
 mode 600):
@@ -199,7 +199,7 @@ again); identities, the 24-hour quota, the send rate and the sandbox status
 are all per region; every region's events land in the one SQS queue, because
 SNS delivers across regions.
 
-Run the wizard's `add-region` command where the `.env` lives — the deploy
+Run the wizard's `add-region` command where the `.env` lives: the deploy
 directory, or on the server through the image with short-lived admin
 credentials in the environment (nothing is stored):
 
@@ -234,7 +234,7 @@ SNS_TOPIC_ARNS=<first topic ARN>,<new topic ARN>
 
 `AWS_REGION` and `SQS_QUEUE_URL` are left as they are. Restart the stack
 (`docker compose up -d`): the region then appears in the add-domain form and on
-Settings → SES, marked **Sandbox** until AWS grants production access there —
+Settings → SES, marked **Sandbox** until AWS grants production access there;
 request it per region, as for the first one. While one region has production
 access, a sandbox region is listed but not selectable in the form; a sandbox
 region paces its own sends at its 1/s and holds only its own domains when its
@@ -265,7 +265,7 @@ every deployment gets; a public https `APP_BASE_URL` additionally gets an SNS
 subscription pushing to your host, and the app dedupes the two. `SNS_TOPIC_ARNS`
 gates ingestion either way: events are only accepted from topics on that
 allowlist. Keep `SQS_QUEUE_URL` set even after switching to an https
-`APP_BASE_URL` — clearing it leaves events piling up in the queue.
+`APP_BASE_URL`: clearing it leaves events piling up in the queue.
 
 Manual equivalent: an SNS standard topic (same region as SES) subscribed to
 `https://<your-host>/ses/events` (or to an SQS queue whose policy lets the topic
@@ -279,7 +279,7 @@ a configuration set and emit no events.
 
 The wizard also sets SES's account-level suppression list (per region, shared by every
 team) to bounces only: a dead mailbox is dead for everyone, but a spam report is one
-sender's problem and Posta suppresses it per team — on the SES list it would block
+sender's problem and Posta suppresses it per team; on the SES list it would block
 an unrelated team's mail to that person too. Provisioned by hand? Set it yourself:
 `aws sesv2 put-account-suppression-attributes --suppressed-reasons BOUNCE`.
 
@@ -298,7 +298,7 @@ stays pending with every bounce and delivery lost.
 <details>
 <summary><b>SMTP relay</b></summary>
 
-A drop-in SMTP relay for software that speaks SMTP instead of HTTP — legacy apps,
+A drop-in SMTP relay for software that speaks SMTP instead of HTTP: legacy apps,
 CMS plugins, anything with an "SMTP settings" form. Messages go through the same
 accept pipeline as `POST /emails`: same domain verification, suppression checks,
 request logging, and delivery events.
@@ -315,11 +315,11 @@ Connection details:
   one, the relay refuses to start unless `SMTP_ALLOW_INSECURE_AUTH=true` is explicitly set
   for a trusted private network.
 
-Before exposing the relay to the internet, give it a certificate — otherwise SMTP
+Before exposing the relay to the internet, give it a certificate, otherwise SMTP
 AUTH sends the API key in plaintext. Any PEM keypair works; if you followed the
 nginx section you already have one. Mount certbot's `live/<domain>` directory (the
 symlink directory, not a copy, so a renewal lands at the same path) via
-`docker-compose.override.yml`, and restart the relay after each renewal — it
+`docker-compose.override.yml`, and restart the relay after each renewal: it
 reads the keypair when it starts (certbot:
 `--deploy-hook 'docker compose -f /opt/posta/docker-compose.yml restart smtp'`):
 
@@ -509,7 +509,7 @@ notice before turning the judge on.
 <details>
 <summary><b>Signup policy</b></summary>
 
-The first user to register becomes the initial account — no configuration needed.
+The first user to register becomes the initial account: no configuration needed.
 After that, registration is closed: anyone with an account can create API keys that
 send through your SES account, so signup stays off unless you opt in with
 `ALLOW_SIGNUP=true`. Keep port 3000 off the public internet unless you have opened
@@ -595,7 +595,7 @@ The recommended production shape: nginx on the host terminates TLS and proxies
 one hostname per service, and the compose ports bind to loopback so nginx is
 the only way in. The API needs its own hostname (or an exposed port): its
 routes (`/emails`, `/domains`, …) share paths with dashboard pages, so the two
-cannot split one hostname by path. Set `PUBLIC_API_URL` to that hostname — it
+cannot split one hostname by path. Set `PUBLIC_API_URL` to that hostname: it
 is what the dashboard prints as the API base and what MCP tokens are bound to;
 unset, the API is assumed at port 3001 of the dashboard host.
 
@@ -676,7 +676,7 @@ server {
 }
 ```
 
-TLS and the http→https redirect in one line — certbot rewrites the blocks
+TLS and the http→https redirect in one line: certbot rewrites the blocks
 above to listen on 443 with Let's Encrypt certificates, adds the redirect,
 and installs automatic renewal:
 
@@ -686,7 +686,7 @@ sudo certbot --nginx --redirect -d mail.example.com -d api.example.com -d docs.e
 
 Then set `APP_BASE_URL=https://mail.example.com` and
 `PUBLIC_API_URL=https://api.example.com` in `.env` and restart. `APP_BASE_URL`
-must be the exact public https origin of the dashboard — any other value makes
+must be the exact public https origin of the dashboard: any other value makes
 login and signup fail with an "invalid origin" error. Forward `Host` and
 `X-Forwarded-Host` to the dashboard and docs upstreams as above, so any
 absolute URL either app derives from the request names the public hostname
@@ -719,14 +719,14 @@ services:
   #     - "127.0.0.1:2587:2587"
 ```
 
-The SMTP relay (`:2587`) is TCP, not HTTP — an `http` server block cannot
+The SMTP relay (`:2587`) is TCP, not HTTP: an `http` server block cannot
 proxy it. To publish a service directly, set its `*_BIND_ADDRESS=0.0.0.0` and
 open only that firewall port. Prefer keeping SMTP on loopback and passing the TCP stream through nginx's
-stream module — bytes pass through untouched, so STARTTLS still terminates in
+stream module: bytes pass through untouched, so STARTTLS still terminates in
 the relay via `SMTP_TLS_CERT_PATH`/`SMTP_TLS_KEY_PATH`:
 
 ```nginx
-# /etc/nginx/nginx.conf — top level, outside the http {} block
+# /etc/nginx/nginx.conf, top level, outside the http {} block
 stream {
     server {
         listen 2587;
@@ -754,14 +754,14 @@ sudo ufw enable
 Optional. With an S3-compatible bucket configured, team admins can upload a
 team logo in the dashboard; it also brands hosted unsubscribe pages when
 Posta branding is hidden. ONE `S3_*` credential set is shared with the
-backup job below — each feature is then enabled by its own bucket variable.
+backup job below: each feature is then enabled by its own bucket variable.
 
 The storage step of `npx @tack-labs/posta-setup` prompts for the endpoint and
-keys, creates (or adopts) both buckets — `posta-storage` and
-`posta-backups` by default — and writes the `S3_*` lines to `.env`.
+keys, creates (or adopts) both buckets, `posta-storage` and
+`posta-backups` by default, and writes the `S3_*` lines to `.env`.
 The one thing it cannot do over the S3 API is make the uploads bucket serve
 objects publicly: on R2, enable public access on the bucket (or attach a
-custom domain), then set that URL — uploads are addressed as
+custom domain), then set that URL; uploads are addressed as
 `${S3_STORAGE_PUBLIC_URL}/<key>`:
 
 ```sh
@@ -781,13 +781,13 @@ dump in the public uploads bucket would be world-readable.
 <summary><b>Backups</b></summary>
 
 The `backup` compose service takes a scheduled `pg_dump` of Postgres and
-uploads it to any S3-compatible bucket via rclone — Cloudflare R2 works out of
+uploads it to any S3-compatible bucket via rclone. Cloudflare R2 works out of
 the box. It is off by default: without `S3_BACKUP_BUCKET` the container prints
-`backups disabled — set S3_BACKUP_BUCKET to enable` and exits 0, harmless.
+`backups disabled; set S3_BACKUP_BUCKET to enable` and exits 0, harmless.
 
 Enable it by setting the shared S3 credentials and a backup bucket in `.env`
 (the setup wizard's storage step creates the bucket and writes these lines).
-The bucket must exist before the first dump and must stay private — dumps
+The bucket must exist before the first dump and must stay private: dumps
 contain the whole database, and R2 public access is bucket-wide, so never
 reuse the public uploads bucket. For R2 the defaults `S3_PROVIDER=Cloudflare`
 and `S3_REGION=auto` are already right:
@@ -805,7 +805,7 @@ the service dumps once immediately, and after that daily on `BACKUP_CRON`
 holds one from the last 26 hours, so restarts and upgrades don't take another:
 a dump holds a lock on every table until it ends, and the app's migrations
 would wait behind it. Only the daily form `<minute> <hour> * * *` is
-honoured — the sidecar runs unprivileged as `postgres` with every capability
+honoured: the sidecar runs unprivileged as `postgres` with every capability
 dropped, so the schedule is a sleep loop rather than crond, and any other
 shape makes the service exit 1. Each dump is `pg_dump -Fc`
 (compressed custom format, named `posta-YYYYMMDD-HHMMSS.dump`), its
@@ -819,7 +819,7 @@ never holds a readable copy of the database. Keep the matching private key
 with `MASTER_ENCRYPTION_KEY`, and restore with `age --decrypt -i <key file>`
 before `pg_restore`.
 
-The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY` — back
+The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY`: back
 that key up separately, or restored bodies are unrecoverable.
 
 The standalone `deploy/docker-compose.yml` runs the published
@@ -864,7 +864,7 @@ ceiling, pause broadcasts, suspend and reinstate), a Trust & safety page
 built on the guardrail, the account score, the 7-day rates and the stored
 content insights (never email bodies), and an instance-wide audit log.
 
-- **Who can open it:** only the instance operator — the first registered
+- **Who can open it:** only the instance operator: the first registered
   user. Anyone else, signed in or not, gets the same 404 as a route that
   does not exist. Nothing in the team sidebar or the command palette links
   to it.
@@ -950,7 +950,7 @@ content insights (never email bodies), and an instance-wide audit log.
 <details>
 <summary><b>Content monitoring (optional)</b></summary>
 
-Off by default. With a judge configured, TypeSafe Jev scores mail 0–100
+Off by default. With a judge configured, TypeSafe Jev scores mail 0 to 100
 and every verdict is folded into a per-team risk the operator sees on Trust
 & safety.
 
@@ -1333,8 +1333,8 @@ whether the text around it is a bank lure or a newsletter.
 
 **What an operator can see.** The subject, and the rendered visible text of
 the HTML with hidden elements stripped (or the plain-text part when there is
-no HTML), cut at 20,000 characters and redacted on the way out: every link —
-written with a scheme or as a bare `www.` host — is reduced to its scheme, its registrable domain and at most 24 characters
+no HTML), cut at 20,000 characters and redacted on the way out: every link,
+written with a scheme or as a bare `www.` host, is reduced to its scheme, its registrable domain and at most 24 characters
 of path, with the query and the fragment dropped entirely, so a one-time
 link cannot be followed; anything shaped like a
 credential (a JWT, 32 or more hex characters, 40 or more of base64, one of
@@ -1370,14 +1370,14 @@ operator, the reason, the justification they wrote, the scope, the message
 ids, the view count and the times. Nothing prunes those rows: they are the
 inventory of who read what. An instance audit row (`content.revealed`) is
 written before anything decrypts, with the grant id, the reason and the
-number of messages — never the justification's text and never any content.
+number of messages, never the justification's text and never any content.
 A grant's first look at a media panel writes a second `content.revealed`
 row, whose fields name what screening read from the images and attachments,
 and stamps the grant (`media_viewed_at`).
 
 **What the team sees, and when.** Seven days later a daily job adds a
-`content.accessed` row to the team's own audit log — dated at the access,
-not at the disclosure — with the reason, how many messages and which fields
+`content.accessed` row to the team's own audit log (dated at the access,
+not at the disclosure) with the reason, how many messages and which fields
 were read: `subject, rendered text`, followed by
 `what screening read from its images and attachments` only when the grant
 opened a media panel. Nobody is emailed about an access, then or later. A
@@ -1554,8 +1554,8 @@ without it.
   (owner/admin). Defaults are 14/s and 30 days until changed there; the worker picks
   up a rate change within a minute, retention on the next purge run. (`SES_MAX_SEND_RATE`
   and `EMAIL_RETENTION_DAYS` remain honored as boot overrides if set in the
-  environment, but are no longer part of the documented setup.) Whole email rows —
-  recipients, subject, status, events — outlive their bodies and are deleted after
+  environment, but are no longer part of the documented setup.) Whole email rows
+  (recipients, subject, status, events) outlive their bodies and are deleted after
   `EMAIL_METADATA_RETENTION_DAYS` (default 30, the industry norm; daily counters and broadcast results are kept regardless); webhook delivery rows (payload,
   response, attempts) stay readable for `WEBHOOK_DELIVERY_RETENTION_DAYS` (default
   30) and are then purged. A tracking-pixel fetch within `OPEN_PREFETCH_WINDOW_SECONDS`
@@ -1564,7 +1564,7 @@ without it.
   Deleting a contact tombstones its address across email history, event payloads and
   API logs; only the suppression hash is kept.
 - Worker sizing: `SEND_CONCURRENCY` (default 16) is the number of parallel send
-  lanes — about 1.2 per message/second of SES rate; `SQS_POLL_CONCURRENCY` (default
+  lanes; about 1.2 per message/second of SES rate; `SQS_POLL_CONCURRENCY` (default
   4) is the number of parallel SQS long-poll loops. The SES rate limiter is a
   per-process token bucket, so N workers would send at N × the configured rate:
   when running more than one worker, set `WORKER_REPLICAS` (default 1) to that

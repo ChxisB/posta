@@ -76,7 +76,7 @@ export const topicsRouter = router({
    * The topic detail page's contact list: every team contact with its
    * EFFECTIVE subscription to this one topic (explicit row, else the topic's
    * default) resolved in the page query itself via the shared membership
-   * rule — no per-row lookups. `subscribed` filters on that effective state.
+   * rule; no per-row lookups. `subscribed` filters on that effective state.
    */
   contacts: teamProcedure
     .input(
@@ -134,7 +134,7 @@ export const topicsRouter = router({
     .input(
       z.object({
         name: z.string().trim().min(1).max(200),
-        // "" clears the field — stored as null, never as an empty string.
+        // "" clears the field: stored as null, never as an empty string.
         description: z.string().trim().max(1000).optional(),
         // Immutable after creation: opt-in (true) subscribes contacts unless
         // they opt out; opt-out (false) is the inverse. No update path.
@@ -164,7 +164,7 @@ export const topicsRouter = router({
       z.object({
         id: z.uuid(),
         name: z.string().trim().min(1).max(200),
-        // "" clears the field — stored as null, never as an empty string.
+        // "" clears the field: stored as null, never as an empty string.
         description: z.string().trim().max(1000).optional(),
         visibility: z.enum(["private", "public"]),
       }),

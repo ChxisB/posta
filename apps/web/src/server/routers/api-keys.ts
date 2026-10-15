@@ -91,7 +91,7 @@ export const apiKeysRouter = router({
       }
       if (input.domainId) {
         // The scope is enforced server-side, but a key can only be scoped to a
-        // domain the team actually owns and has verified — reject anything else.
+        // domain the team actually owns and has verified: reject anything else.
         const [domain] = await ctx.db
           .select({ id: schema.domains.id })
           .from(schema.domains)
@@ -142,7 +142,7 @@ export const apiKeysRouter = router({
           inboxId: input.inboxId ?? null,
         },
       });
-      // The full secret exists only in this response — the row stores
+      // The full secret exists only in this response: the row stores
       // tokenPrefix + hash + last4, and no other code path returns or logs it.
       return { id: row.id, token: generated.token };
     }),

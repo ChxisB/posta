@@ -12,7 +12,7 @@ import { find } from "linkifyjs";
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "../../db/drizzle");
 
 /**
- * Fresh in-memory Postgres with the real generated migrations applied —
+ * Fresh in-memory Postgres with the real generated migrations applied;
  * tests exercise the same DDL production runs, append-only trigger included.
  */
 export async function createTestDb(): Promise<{ db: Db; close: () => Promise<void> }> {

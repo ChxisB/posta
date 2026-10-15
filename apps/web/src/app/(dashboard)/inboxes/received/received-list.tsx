@@ -19,7 +19,7 @@ import { useTRPC } from "@/lib/trpc";
 import { oneOf, useUrlState } from "@/lib/url-state";
 import { ListFooter, SearchBox, StateCard } from "../../emails/list-parts";
 
-const GLYPH = { success: "✓", danger: "✗", warn: "!", neutral: "–", info: "–" } as const;
+const GLYPH = { success: "✓", danger: "✗", warn: "!", neutral: "-", info: "-" } as const;
 
 /** One verdict as a badge: the check, then its result as a word, or as a glyph in a list row. */
 export function AuthBadge({

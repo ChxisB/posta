@@ -51,7 +51,7 @@ const LAST_USED_STAMP_INTERVAL_MS = 60_000;
  * Verify a presented po_ token against stored key hashes and resolve its
  * team + plan. The one verification path for every authenticated surface
  * (HTTP Authorization header, SMTP AUTH password). Stamps last_used_at at
- * most once per interval, fire-and-forget — a stamp failure must never fail
+ * most once per interval, fire-and-forget: a stamp failure must never fail
  * the request.
  */
 export async function authenticateApiKey(db: Db, token: string): Promise<ApiKeyAuth | null> {

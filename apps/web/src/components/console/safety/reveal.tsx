@@ -73,7 +73,7 @@ type Stage =
  * Trust & safety list and the review list open the same dialogs. `onChanged`
  * re-fetches the caller's data after a grant or a release from the media
  * panel; `onClearFlag` is the review page's own clearFlag, and `onSuspend`
- * its suspend dialog — a screen that has neither leaves them out and the
+ * its suspend dialog: a screen that has neither leaves them out and the
  * revealed view shows only Close.
  */
 export function useContentReveal(opts: {
@@ -375,14 +375,14 @@ function verdictLine(
   }
   const reasons = Array.isArray(verdict.reasons) ? (verdict.reasons as string[]) : [];
   return reasons.length > 0
-    ? `${verdict.score ?? "—"} · ${reasons.join(", ")}`
-    : `${verdict.score ?? "—"}`;
+    ? `${verdict.score ?? "-"} · ${reasons.join(", ")}`
+    : `${verdict.score ?? "-"}`;
 }
 
 /**
  * The revealed view: subject and redacted rendered text, a live countdown to
  * the grant's own expiry, and the two decisions that end a review. The query
- * is asked once — every view is counted on the grant, so a refetch on focus
+ * is asked once: every view is counted on the grant, so a refetch on focus
  * would inflate the record of how often the content was read.
  */
 function RevealedView({
@@ -406,7 +406,7 @@ function RevealedView({
   const query = useQuery({
     ...trpc.console.safety.revealed.queryOptions({ grantId, emailId }),
     // Every view is counted on the grant, so a focus refetch must not inflate
-    // the record — and nothing of the body outlives the closed dialog, which
+    // the record, and nothing of the body outlives the closed dialog, which
     // also makes reopening it the second view it is.
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnWindowFocus: false,

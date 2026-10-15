@@ -53,7 +53,7 @@ export function TrackingOnboarding({ id }: { id: string }) {
           active={detailsDone ? 2 : 1}
         />
 
-        {/* Step 01 — Details */}
+        {/* Step 01: Details */}
         <div className="po-step" style={{ display: "flex", gap: 44 }}>
           <MarkerRail
             marker="01"
@@ -90,7 +90,7 @@ export function TrackingOnboarding({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Step 02 — DNS record for the saved subdomain */}
+        {/* Step 02: DNS record for the saved subdomain */}
         <div className="po-step" style={{ display: "flex", gap: 44 }}>
           <MarkerRail marker="02" color="var(--po-bone)" fadeBottom />
           <div style={{ flex: 1, minWidth: 0 }}>

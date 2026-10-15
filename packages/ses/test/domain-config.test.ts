@@ -61,7 +61,7 @@ describe("applyDomainConfiguration", () => {
     );
   });
 
-  it("subscribes to delivery events only — never OPEN or CLICK (app-layer owns engagement)", async () => {
+  it("subscribes to delivery events only, never OPEN or CLICK (app-layer owns engagement)", async () => {
     const { client, calls } = fakeClient();
     await applyDomainConfiguration(client, BASE);
     const types = commandOf(calls, UpdateConfigurationSetEventDestinationCommand).input

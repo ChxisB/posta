@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for templates: the official `resend` npm SDK against a live
- * Posta API — create/get/list/update/publish/duplicate/remove, the
+ * Posta API; create/get/list/update/publish/duplicate/remove, the
  * chainable create().publish(), alias lookups, and the loud 422 for the
  * fields we do not model (from, replyTo, variables).
  */

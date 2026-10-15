@@ -28,7 +28,7 @@ import type { WebhookEnqueue } from "./webhooks.js";
 
 /**
  * Domain part of an RFC 5322 sender, lowercased. SECURITY: strict
- * single-mailbox parsing — multi-mailbox or ambiguous input returns null, so
+ * single-mailbox parsing; multi-mailbox or ambiguous input returns null, so
  * a From that authorizes against one domain can never be emitted as another
  * (see parseSingleSender).
  */
@@ -42,7 +42,7 @@ export type SenderDomainVerdict =
   | { ok: false; reason: "unverified_domain"; fromDomain: string };
 
 /**
- * Sender domain must be one of the team's verified domains — otherwise any
+ * Sender domain must be one of the team's verified domains, otherwise any
  * key could queue mail claiming any sender. Every accept surface (HTTP API,
  * SMTP relay) runs this same rule; transport-level identities (e.g. SMTP
  * MAIL FROM) are never trusted instead. The From must parse as exactly one
@@ -119,7 +119,7 @@ export interface AcceptEmailPayload {
   headers?: Record<string, string> | undefined;
   attachments?: EmailAttachment[] | undefined;
   scheduledAt?: Date | undefined;
-  /** From verifySenderDomain — callers verify the sender before accepting;
+  /** From verifySenderDomain: callers verify the sender before accepting;
    * null only for the dashboard's onboarding email from ONBOARDING_EMAIL_FROM. */
   domainId: string | null;
   /** Topic-scoped send; callers validate team ownership before accepting. */
@@ -490,7 +490,7 @@ export async function acceptEmail(
     auth.billing === "uncapped" ? { kind: "none" } : teamQuota(auth.billing, deps.isCloud);
   // Quota reservation, email insert, and the caller's in-transaction hook
   // commit atomically (the quota contract). Over a DAILY cap mail is parked
-  // as queued_quota — still accepted, drained after the midnight rollover;
+  // as queued_quota, still accepted, drained after the midnight rollover;
   // a scheduled send is charged to its delivery day, so a team cannot stack
   // many days of the cap onto one future instant. A past scheduled_at sends
   // now and counts now (quotaChargeAt). A monthly plan counts every accept
@@ -641,11 +641,11 @@ export async function acceptEmail(
     };
   }
   // After commit: hand the send to the queue (quota-parked emails wait for
-  // the midnight drain instead). An enqueue failure must NOT undo the accept
-  // — the email is committed, so rethrowing would let a retry create a
+  // the midnight drain instead). An enqueue failure must NOT undo the accept:
+  // the email is committed, so rethrowing would let a retry create a
   // second email. The reconcile sweep re-enqueues any accepted email whose
   // job was lost. When the caller owns the transaction (opts.tx), it enqueues
-  // after its own commit — the insert here is not yet durable.
+  // after its own commit: the insert here is not yet durable.
   if (!opts.tx && !accepted.parked) {
     try {
       await deps.enqueueEmailSend(

@@ -1,16 +1,16 @@
 # Migre este projeto do Resend para o Posta
 
-Você está migrando uma aplicação do Resend para o Posta. A API REST do Posta é compatível com a do Resend — mesmos endpoints, mesmos formatos de requisição e resposta — então isto é uma mudança de configuração mais uma migração dos dados da conta, não uma reescrita. Siga os passos na ordem. Pare e pergunte antes de qualquer ação irreversível. Nunca imprima, registre em log ou commite uma chave de API.
+Você está migrando uma aplicação do Resend para o Posta. A API REST do Posta é compatível com a do Resend (mesmos endpoints, mesmos formatos de requisição e resposta) então isto é uma mudança de configuração mais uma migração dos dados da conta, não uma reescrita. Siga os passos na ordem. Pare e pergunte antes de qualquer ação irreversível. Nunca imprima, registre em log ou commite uma chave de API.
 
 ## Fatos em que você pode confiar
 
 - URL base da API do Posta Cloud: `https://api.posta.example`. Auto-hospedado: a origem da API da própria instância (pergunte se não estiver no repositório).
 - Chaves de API começam com `po_` e são criadas no painel em **Chaves de API**. Use uma chave de acesso total para a migração e chaves de acesso de envio para os remetentes de produção.
-- Documentação: https://docs.posta.example — acrescente `.md` à URL de qualquer página para obter markdown, `/llms-full.txt` é tudo em um arquivo, `/openapi.json` é a especificação OpenAPI 3.1. O guia de migração está em https://docs.posta.example/pt-BR/migrate-from-resend.md e a referência da CLI em https://docs.posta.example/pt-BR/cli.md.
+- Documentação: https://docs.posta.example, acrescente `.md` à URL de qualquer página para obter markdown, `/llms-full.txt` é tudo em um arquivo, `/openapi.json` é a especificação OpenAPI 3.1. O guia de migração está em https://docs.posta.example/pt-BR/migrate-from-resend.md e a referência da CLI em https://docs.posta.example/pt-BR/cli.md.
 - A CLI de migração (`@tack-labs/posta-cli`) só lê do Resend (requisições `GET`), mantém as chaves em memória, não as grava em arquivo algum e não envia telemetria.
 - Os ids diferem entre os provedores: contatos são casados por e-mail, o restante por nome, chave, alias ou endpoint. O relatório da CLI traz um mapa de ids para tópicos e segmentos.
 
-## Passo 1 — Inventário desta base de código
+## Passo 1: Inventário desta base de código
 
 Encontre todo ponto de contato com o Resend antes de mudar qualquer coisa e mostre a lista ao usuário:
 
@@ -22,7 +22,7 @@ Encontre todo ponto de contato com o Resend antes de mudar qualquer coisa e most
 - Recebimento: chamadas a `resend.emails.receiving.*`, handlers de `email.received` e quais endereços de cada domínio de recebimento o código usa.
 - Caixas de entrada (pré-lançamento do Resend): o pacote `resend@*-preview-inboxes.*`, chamadas a `resend.inboxes.*`, os endereços de caixa que elas usam e handlers de eventos de webhook `inbox.*`.
 
-## Passo 2 — Mova a conta
+## Passo 2: Mova a conta
 
 Peça ao usuário uma chave do Resend com acesso total, uma chave do Posta com acesso total e se o destino é o Posta Cloud ou uma URL auto-hospedada. Passe as chaves por variáveis de ambiente, nunca como argumentos de linha de comando.
 
@@ -46,7 +46,7 @@ Flags que valem conhecer: `--rps <n>` reduz a taxa de leitura contra o Resend (p
 
 Depois leia `.posta/migrate-report.md`: contagens por recurso, o checklist de itens manuais, os registros DNS por domínio e o mapa de ids. A ferramenta acrescenta `.posta/` ao `.gitignore` quando existe um; confirme que fez isso.
 
-## Passo 3 — Aponte o código para o Posta
+## Passo 3: Aponte o código para o Posta
 
 Escolha uma das duas opções, com o usuário:
 
@@ -68,13 +68,13 @@ Então resolva o que o relatório lista:
 - Recebimento: aqui um domínio de recebimento só recebe nos endereços das caixas de entrada dele, a não ser que o **Pega-tudo** esteja ligado (página do domínio, ou `PATCH /domains/{id}` com `{"receiving_catch_all": true}`; um plano pago na nuvem). Se o código recebe em endereços quaisquer, como no Resend, o usuário liga o pega-tudo antes de trocar o MX; senão, cada endereço precisa de uma caixa. Pergunte qual. Documentação: https://docs.posta.example/pt-BR/concepts/receiving.md.
 - Caixas de entrada: a migração da conta não cria caixas. Crie de novo cada caixa que o código usa, com o mesmo endereço (`POST /inboxes`), depois que o domínio dela recebe aqui. As caixas criadas por um SDK do Resend têm `kind: "agent"` por padrão (quarentena, análise, envio só em respostas); as caixas lidas por pessoas precisam de `kind: "human"`, definido por HTTP direto ou no painel. Uma resposta, um encaminhamento ou um envio de rascunho pode responder `202` com um rascunho (`object: "inbox_draft"`) quando as regras da caixa o retêm: faça o código tratar isso. Documentação: https://docs.posta.example/pt-BR/concepts/inboxes.md.
 
-## Passo 4 — DNS, feito pelo usuário
+## Passo 4: DNS, feito pelo usuário
 
 O Posta usa seu próprio par de chaves DKIM, então todo domínio precisa de novos registros DNS mesmo que já envie pelo Resend. Os registros estão no relatório e em **Domínios** no painel. Os dois provedores podem ficar verificados lado a lado. Não mude o tráfego até cada domínio aparecer como **Verificado**.
 
 Um domínio que recebe e-mails muda junto com o registro MX: depois que o recebimento estiver ligado aqui e o pega-tudo ou as caixas estiverem prontos (passo 3), o usuário aponta o MX para `mx.posta-dns.example` (na auto-hospedagem: o `RECEIVING_MX_HOST` da instância). Essa troca é a virada do recebimento; o que o Resend já recebeu fica lá.
 
-## Passo 5 — Faça a virada e verifique
+## Passo 5: Faça a virada e verifique
 
 1. Rode `migrate plan` e `migrate apply` de novo logo antes de virar o tráfego: cada execução é um diff, então os contatos que chegaram nesse meio-tempo vêm junto e nada é duplicado.
 2. Faça o deploy das mudanças de ambiente do passo 3.

@@ -258,7 +258,7 @@ export const webhooksRouter = router({
         target: { type: "webhook", id: row.id },
         metadata: { url: input.url },
       });
-      // The full secret exists only in this response — the row stores only
+      // The full secret exists only in this response: the row stores only
       // ciphertext, and no other code path returns or logs the plaintext.
       return { id: row.id, secret };
     }),
@@ -266,7 +266,7 @@ export const webhooksRouter = router({
   get: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
     const t = schema.webhookEndpoints;
     // Explicit columns: the secret ciphertext never leaves the server, and
-    // of the secret only last4 reaches the client — enough for the mask.
+    // of the secret only last4 reaches the client; enough for the mask.
     const [row] = await ctx.db
       .select({
         id: t.id,

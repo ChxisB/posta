@@ -13,7 +13,7 @@ import {
 export interface LineChartSeries {
   key: string;
   label: string;
-  /** CSS color — --po-* token vars expected. */
+  /** CSS color: --po-* token vars expected. */
   color: string;
   values: number[];
   /** Subtle area fill under this series (the chart's one filled band). */
@@ -143,7 +143,7 @@ export function LineChart({
   const baseline = PAD.top + plotH;
 
   const peak = Math.max(1, ...series.flatMap((s) => s.values));
-  // Floor of 1: these are counts — a quiet window must not grow 0.5 ticks.
+  // Floor of 1: these are counts; a quiet window must not grow 0.5 ticks.
   const step = Math.max(1, niceStep(peak / 4));
   const top = step * Math.ceil(peak / step);
   const ticks = Array.from({ length: Math.round(top / step) }, (_, i) => (i + 1) * step);

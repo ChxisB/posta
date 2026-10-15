@@ -202,7 +202,7 @@ it("a per-domain SES error does not abort the batch", async () => {
   expect(result.failed).toBe(1);
   // The healthy sibling still got processed and promoted.
   expect((await domainRow(good)).status).toBe("verified");
-  // The failed one is untouched — old status, lastCheckedAt not advanced.
+  // The failed one is untouched: old status, lastCheckedAt not advanced.
   const badRow = await domainRow(bad);
   expect(badRow.status).toBe("pending");
   expect(badRow.lastCheckedAt?.getTime()).toBe(stale.getTime());

@@ -120,7 +120,7 @@ end
 defmodule Posta.Contacts do
   @moduledoc """
   Contacts are team-global (one per email per team, case-insensitive) and
-  addressable by id **or** email — email wins when both are given.
+  addressable by id **or** email: email wins when both are given.
 
   Input maps are sent as given: `create/2` accepts `email`, `first_name`,
   `last_name`, `unsubscribed`, `properties`, `segments` (`[%{id: ...}]`) and
@@ -162,7 +162,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `POST /contacts/batch` — 1..1000 `create/2` payloads in one call. Options:
+  `POST /contacts/batch`: 1..1000 `create/2` payloads in one call. Options:
   `on_conflict:` (`:error`, the default, `:skip` or `:upsert`; sent as the query
   parameter) and `batch_validation:` (`:strict`, the default, or `:permissive`;
   sent as the `x-batch-validation` header). Returns a
@@ -193,7 +193,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `POST /contacts/batch/get` — up to 1000 contacts by id (a bare string or
+  `POST /contacts/batch/get`: up to 1000 contacts by id (a bare string or
   `%{id: ...}`) or `%{email: ...}` in one request, which counts once against the
   rate limit. Returns a `Posta.Contacts.BatchGetResponse`: `data` holds
   the contacts found in request order; entries that match no contact land in
@@ -232,7 +232,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `POST /contacts/batch/remove` — delete by `%{emails: [...]}` or `%{ids: [...]}`
+  `POST /contacts/batch/remove`: delete by `%{emails: [...]}` or `%{ids: [...]}`
   (up to 1000). Returns only the contacts actually deleted, each with `contact`
   (its id) and `deleted: true`; unknown ids or addresses are skipped. Their
   emails stay in the send log; `erase: true` in the map also scrubs each address
@@ -248,7 +248,7 @@ defmodule Posta.Contacts do
     )
   end
 
-  @doc "`GET /contacts/:id_or_email` — by id/email map or a bare id string."
+  @doc "`GET /contacts/:id_or_email`: by id/email map or a bare id string."
   @spec get(Client.t(), address()) :: {:ok, Contact.t()} | {:error, Posta.Error.t()}
   def get(client \\ Posta.client(), address) do
     Request.run(client, method: :get, path: member_path(address), as: Contact)
@@ -266,7 +266,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `DELETE /contacts/:id_or_email` — by id/email map or a bare id string. The
+  `DELETE /contacts/:id_or_email`: by id/email map or a bare id string. The
   contact's emails stay in the send log; option `erase: true` also scrubs the
   address from email history, event payloads and API logs (a GDPR/LGPD erasure).
   """
@@ -289,7 +289,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `GET /contacts` — accepts `limit:`, `after:`, `before:` and `include:`
+  `GET /contacts`: accepts `limit:`, `after:`, `before:` and `include:`
   (`[:properties, :topics]`), which attaches the property map and/or the topic
   subscriptions to every item.
   """
@@ -314,7 +314,7 @@ defmodule Posta.Contacts do
     do: [include: if(include = opts[:include], do: Enum.join(include, ","))]
 
   @doc """
-  `GET /contacts/:id_or_email/topics` — every topic with the contact's effective
+  `GET /contacts/:id_or_email/topics`: every topic with the contact's effective
   `subscription` (`"opt_in" | "opt_out"`) and whether it is `explicit` or the
   topic's default. Returns a `Posta.List` of `TopicSubscription`s.
   """
@@ -328,7 +328,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `PATCH /contacts/:id_or_email/topics` — set per-topic subscriptions. `params`
+  `PATCH /contacts/:id_or_email/topics`: set per-topic subscriptions. `params`
   carries the address plus `topics:` as a list of
   `%{id: ..., subscription: :opt_in | :opt_out}`.
   """
@@ -345,7 +345,7 @@ defmodule Posta.Contacts do
   end
 
   @doc """
-  `POST /contacts/:id_or_email/preferences-link` — the contact's hosted
+  `POST /contacts/:id_or_email/preferences-link`: the contact's hosted
   preferences URL (the page their unsubscribe links open), for deep-linking from
   a settings screen. A 422 `validation_error` when the instance cannot mint
   hosted links; `not_found` for an unknown contact.
@@ -360,7 +360,7 @@ defmodule Posta.Contacts do
     )
   end
 
-  @doc "`POST /contacts/:id_or_email/segments/:segment_id` — add the contact to a segment."
+  @doc "`POST /contacts/:id_or_email/segments/:segment_id`: add the contact to a segment."
   @spec add_to_segment(Client.t(), address(), String.t()) ::
           {:ok, Contact.t()} | {:error, Posta.Error.t()}
   def add_to_segment(client \\ Posta.client(), address, segment_id)
@@ -368,7 +368,7 @@ defmodule Posta.Contacts do
     Request.run(client, method: :post, path: segment_path(address, segment_id), as: Contact)
   end
 
-  @doc "`DELETE /contacts/:id_or_email/segments/:segment_id` — remove the contact from a segment."
+  @doc "`DELETE /contacts/:id_or_email/segments/:segment_id`: remove the contact from a segment."
   @spec remove_from_segment(Client.t(), address(), String.t()) ::
           {:ok, Contact.t()} | {:error, Posta.Error.t()}
   def remove_from_segment(client \\ Posta.client(), address, segment_id)

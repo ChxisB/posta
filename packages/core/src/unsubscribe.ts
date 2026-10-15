@@ -83,7 +83,7 @@ export const UNSUBSCRIBE_URL_TOKENS = [
 
 /**
  * Replaces every unsubscribe token with `url`. Pass "" when no URL can be
- * built — a literal placeholder token must never reach an inbox.
+ * built: a literal placeholder token must never reach an inbox.
  */
 export function substituteUnsubscribeUrl(content: string, url: string): string {
   let out = content;

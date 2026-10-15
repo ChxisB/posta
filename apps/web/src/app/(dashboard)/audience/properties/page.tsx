@@ -37,7 +37,7 @@ function PropertiesHead() {
           {t("coverage")}
         </th>
         <th className="right">{t("created")}</th>
-        {/* Overflow-action column — no header label. */}
+        {/* Overflow-action column: no header label. */}
         <th className="right" />
       </tr>
     </thead>
@@ -134,7 +134,7 @@ export default function PropertiesPage() {
   const closeAdd = useCallback(() => setAddOpen(false), []);
   const closeDelete = useCallback(() => setDeleteTarget(null), []);
 
-  // A number property's fallback must parse — mirrors the server's rule.
+  // A number property's fallback must parse: mirrors the server's rule.
   const fallbackInvalid =
     type === "number" && fallback.trim() !== "" && !Number.isFinite(Number(fallback));
 
@@ -181,7 +181,7 @@ export default function PropertiesPage() {
     () => new Set((defined.data ?? []).map((p) => p.key.toLowerCase())),
     [defined.data],
   );
-  // Derived keys carrying real values but with no definition — a subtle row
+  // Derived keys carrying real values but with no definition: a subtle row
   // with a quick-define affordance. Hidden under a type filter (untyped).
   const undefinedInUse = useMemo(
     () => (derived.data ?? []).filter((p) => !definedKeys.has(p.key.toLowerCase())),
@@ -189,7 +189,7 @@ export default function PropertiesPage() {
   );
 
   const renderCoverage = (cov: Coverage | undefined) => {
-    if (!cov) return <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>;
+    if (!cov) return <span style={{ color: "var(--po-faint)", fontSize: 13 }}>-</span>;
     return (
       <>
         <span className="po-mono" style={{ fontSize: 13 }}>
@@ -317,7 +317,7 @@ export default function PropertiesPage() {
                         {row.fallbackValue}
                       </span>
                     ) : (
-                      <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
+                      <span style={{ color: "var(--po-faint)", fontSize: 13 }}>-</span>
                     )}
                   </td>
                   <td className="right" style={{ color: "var(--po-muted)" }}>
@@ -351,16 +351,16 @@ export default function PropertiesPage() {
                     </span>
                   </td>
                   <td>
-                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>-</span>
                   </td>
                   <td>
-                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>-</span>
                   </td>
                   <td className="right" style={{ color: "var(--po-muted)" }}>
                     {renderCoverage(coverageByKey.get(row.key.toLowerCase()))}
                   </td>
                   <td className="right">
-                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>—</span>
+                    <span style={{ color: "var(--po-faint)", fontSize: 13 }}>-</span>
                   </td>
                   <td className="right" style={{ width: 40 }}>
                     <button
@@ -501,7 +501,7 @@ export default function PropertiesPage() {
           }}
         >
           <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("deleteBody", { key: deleteTarget?.key ?? "—" })}
+            {t("deleteBody", { key: deleteTarget?.key ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>

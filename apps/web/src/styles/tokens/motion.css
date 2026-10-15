@@ -1,9 +1,9 @@
-/* Posta motion — everything is a 120–180ms fade; the odometer digit-roll is the only flourish. */
+/* Posta motion: everything is a 120 to 180ms fade; the odometer digit-roll is the only flourish. */
 :root {
   --po-dur-fast: 120ms; /* hovers, dropdowns in */
   --po-dur-base: 160ms; /* fades, transforms */
   --po-dur-drawer: 240ms; /* drawers, modals */
-  --po-dur-digit: 400ms; /* odometer roll per digit-cascade step (300–500ms) */
+  --po-dur-digit: 400ms; /* odometer roll per digit-cascade step (300 to 500ms) */
   --po-ease: cubic-bezier(0.25, 0, 0.15, 1);
   --po-focus-border: var(--po-line-strong);
   /* --po-focus-ring is a colour, so it lives with each theme in colors.css. */

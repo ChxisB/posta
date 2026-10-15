@@ -75,7 +75,7 @@ export function useNavItems() {
   return useMemo(() => navItemsFor(receiving), [receiving]);
 }
 
-/* Language row — the same segmented pill with the two language codes. */
+/* Language row: the same segmented pill with the two language codes. */
 export function LanguageRow() {
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -104,7 +104,7 @@ export function LanguageRow() {
   );
 }
 
-/* Appearance row — label + segmented sun/moon toggle, per the account-menu
+/* Appearance row: label + segmented sun/moon toggle, per the account-menu
    grammar. Mounts only inside the open menu, so document is available and the
    initial state can read the live attribute. */
 export function AppearanceRow() {

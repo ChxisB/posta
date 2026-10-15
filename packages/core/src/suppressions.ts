@@ -22,7 +22,7 @@ export function extractAddrSpec(recipient: string): string {
 /**
  * Canonical identity form of an addr-spec: NFKC (fullwidth/compatibility
  * lookalikes collapse), lowercase, trailing root dot dropped. Plus-tags are
- * kept — `bob+1@x.com` is a distinct mailbox to the receiving MTA.
+ * kept: `bob+1@x.com` is a distinct mailbox to the receiving MTA.
  */
 export function normalizeAddress(address: string): string {
   return address.normalize("NFKC").toLowerCase().replace(/\.$/, "");
@@ -47,8 +47,8 @@ export function mailboxIdentity(email: string): string {
 }
 
 /**
- * Normalization before hashing: addr-spec + normalizeAddress. The hash — not
- * the address — is the stable identity, because erasure nulls the address
+ * Normalization before hashing: addr-spec + normalizeAddress. The hash, not
+ * the address, is the stable identity, because erasure nulls the address
  * column while the suppression must keep working.
  */
 export function hashRecipient(email: string): string {

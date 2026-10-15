@@ -115,7 +115,7 @@ export interface SenderDomainOwner {
 }
 
 /**
- * The team whose verified `domains` row names the sender's exact host — the
+ * The team whose verified `domains` row names the sender's exact host: the
  * inverse of verifySenderDomain, and the whole of how an instance designates
  * where its own account mail is logged: verifying the sender's domain in a
  * team is the designation. Exact host, as everywhere: owning `example.com`
@@ -153,7 +153,7 @@ export class SystemMailRefused extends Error {
 export interface SystemSendDeps extends AcceptEmailDeps {
   /**
    * SESv2 Simple send outside the pipeline: for senders no team owns (owner
-   * null — the deployment's default region), and as the fallback when the
+   * null; the deployment's default region), and as the fallback when the
    * pipeline fails for a sender a team does own (that domain's region).
    */
   raw(message: SystemMailMessage, owner: SenderDomainOwner | null): Promise<void>;
@@ -174,15 +174,15 @@ const warnedSenders = new Set<string>();
  * One account email (password reset, invitation, owner notification…).
  *
  * When a team owns the sender's verified domain the message rides the same
- * accept pipeline as customer mail into that team — emails row, quota
- * counters, SES events by tag, webhooks — uncapped: `accepted` still
+ * accept pipeline as customer mail into that team (emails row, quota
+ * counters, SES events by tag, webhooks) uncapped: `accepted` still
  * counts, but a parked password reset would expire before any quota freed. Topic-less, so a recipient's one-click
  * unsubscribe never blocks account mail (the hosted page promises exactly
  * that) while hard bounces, complaints and manual suppressions still apply.
  *
  * No owner: the raw SES path, byte for byte what every instance did before
  * a team verified the domain. A refusal (all suppressed, or a recipient over
- * its cap) throws and never falls back — the suppression list and the cap
+ * its cap) throws and never falls back: the suppression list and the cap
  * are the point. A failure inside accept (keyring, database, queue) falls
  * back to raw so account mail outlives an outage of the pipeline it
  * normally rides.

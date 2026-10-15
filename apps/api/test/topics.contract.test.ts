@@ -11,7 +11,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for topics: the official `resend` npm SDK against a live
- * Posta API — topics create/list/get/remove and contacts.topics.update.
+ * Posta API; topics create/list/get/remove and contacts.topics.update.
  */
 
 let db: Db;
@@ -76,7 +76,7 @@ describe("official resend SDK: topics", () => {
       name: "Product updates",
       description: "New features and changes",
       default_subscription: "opt_in",
-      // Superset field the SDK's Topic type doesn't declare — it must ride
+      // Superset field the SDK's Topic type doesn't declare: it must ride
       // along without breaking the SDK's parsing, defaulting to private.
       visibility: "private",
       created_at: expect.any(String),

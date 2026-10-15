@@ -88,7 +88,7 @@ export interface Email extends EmailListItem {
   html: string | null;
   text: string | null;
   message_id: string;
-  /** Best-practice score (0–10, one decimal); null when the email has no insights. */
+  /** Best-practice score (0 to 10, one decimal); null when the email has no insights. */
   score: number | null;
 }
 
@@ -122,7 +122,7 @@ export interface BatchResponse {
 
 // ---- insights & deliverability -------------------------------------------
 // Open sets: the API grows these across score versions, so each union keeps a
-// `(string & {})` escape hatch — known values autocomplete, future ones still
+// `(string & {})` escape hatch; known values autocomplete, future ones still
 // assign without a type error.
 export type ScoreBand = "excellent" | "good" | "needs_attention" | "at_risk" | (string & {});
 export type CheckSeverity = "critical" | "major" | "minor" | "info" | (string & {});
@@ -136,7 +136,7 @@ export type CheckStatus =
 export type GuardrailStatus = "ok" | "warning" | "paused" | (string & {});
 
 export interface InsightsCheck {
-  /** Check id from the Posta check catalog — an open set. */
+  /** Check id from the Posta check catalog: an open set. */
   id: string;
   severity: CheckSeverity;
   status: CheckStatus;
@@ -148,7 +148,7 @@ export interface InsightsCheck {
 export interface EmailInsights {
   object: "email_insights";
   email_id: string;
-  /** Best-practice score, 0–10, one decimal. */
+  /** Best-practice score, 0 to 10, one decimal. */
   score: number;
   score_version: number;
   band: ScoreBand;
@@ -236,7 +236,7 @@ export interface ContactId {
   id: string;
 }
 
-/** A custom property as returned by GET /contacts/:id — typed by the property definition. */
+/** A custom property as returned by GET /contacts/:id: typed by the property definition. */
 export type ContactPropertyValue =
   | { type: "string"; value: string }
   | { type: "number"; value: number };
@@ -533,7 +533,7 @@ export interface Segment {
   name: string;
   filter: SegmentFilter;
   created_at: string;
-  /** Present on `get` only — the live count of matching contacts. */
+  /** Present on `get` only: the live count of matching contacts. */
   contact_count?: number;
 }
 
@@ -721,7 +721,7 @@ export interface Webhook extends WebhookListItem {
 export interface RotateWebhookSecretOptions {
   /** New `whsec_…` secret to sign with; omit to mint one. */
   signingSecret?: string;
-  /** Hours the previous secret keeps signing alongside the new one (0–72; the API defaults to 24). */
+  /** Hours the previous secret keeps signing alongside the new one (0 to 72; the API defaults to 24). */
   overlapHours?: number;
 }
 

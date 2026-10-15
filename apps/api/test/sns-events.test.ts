@@ -15,7 +15,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * The ingestion endpoint's contract: nothing unsigned, off-topic, or
- * pointing at a non-AWS host gets in — and a valid message becomes exactly
+ * pointing at a non-AWS host gets in, and a valid message becomes exactly
  * one queued job keyed on the SNS MessageId.
  */
 
@@ -105,7 +105,7 @@ it("tampered message: 403, nothing enqueued", async () => {
   expect(enqueued).toHaveLength(0);
 });
 
-it("unlisted topic: 403 — a valid Amazon signature is not enough", async () => {
+it("unlisted topic: 403, a valid Amazon signature is not enough", async () => {
   const msg = signSnsMessage({
     ...baseNotification(deliveryPayload),
     TopicArn: "arn:aws:sns:us-east-1:999999999999:not-ours",
@@ -126,7 +126,7 @@ it("attacker cert host: 403 and the cert is NEVER fetched", async () => {
   expect(enqueued).toHaveLength(0);
 });
 
-it('an explicit "Subject": null still verifies — SNS delivery paths disagree on absent vs null', async () => {
+it('an explicit "Subject": null still verifies; SNS delivery paths disagree on absent vs null', async () => {
   const signed = signSnsMessage(baseNotification(deliveryPayload));
   const res = await post({ ...signed, Subject: null });
   expect(res.status).toBe(200);

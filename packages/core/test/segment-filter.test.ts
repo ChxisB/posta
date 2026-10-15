@@ -119,7 +119,7 @@ describe("segmentWhere: operators", () => {
     expect(await matched(all({ field: "last_name", op: "is_set", value: null }))).toEqual([
       "alice@example.com",
     ]);
-    // carol has "" last_name, bob has null last_name — both unset.
+    // carol has "" last_name, bob has null last_name: both unset.
     expect(await matched(all({ field: "last_name", op: "is_not_set", value: null }))).toEqual([
       "bob@other.test",
       "carol@example.com",
@@ -241,7 +241,7 @@ describe("segmentWhere: OR-precedence / cross-team scoping", () => {
       "bob@other.test",
       "carol@example.com",
     ]);
-    // The leaked row would be from team B — assert it is truly seeded and
+    // The leaked row would be from team B: assert it is truly seeded and
     // would otherwise match, so this test can't pass by B being empty.
     const bRows = await db
       .select({ email: schema.contacts.email })

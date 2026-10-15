@@ -41,7 +41,7 @@ final class ContactProperties
     }
 
     /**
-     * PATCH /contact-properties/:id — only `fallbackValue` is mutable (null clears it).
+     * PATCH /contact-properties/:id: only `fallbackValue` is mutable (null clears it).
      *
      * @param array{fallbackValue?: string|float|int|null} $params
      * @return array<mixed>

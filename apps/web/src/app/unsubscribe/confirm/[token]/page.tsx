@@ -21,7 +21,7 @@ export default async function UnsubscribeConfirmPage({
 }) {
   const [{ token }, query, headerList] = await Promise.all([params, searchParams, headers()]);
   // Public page: the locale comes from Accept-Language, never from the
-  // dashboard's locale cookie — recipients are not dashboard users.
+  // dashboard's locale cookie; recipients are not dashboard users.
   const locale = pickUnsubscribeLocale(headerList.get("accept-language"));
   const m = UNSUBSCRIBE_LOCALES[locale].messages;
   const db = getDb();

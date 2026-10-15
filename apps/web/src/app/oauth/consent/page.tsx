@@ -61,7 +61,7 @@ export default async function ConsentPage({
               clientId: client.clientId,
               name: client.name,
               uri: client.uri,
-              // Where the code (and the user) end up after Allow — the one
+              // Where the code (and the user) end up after Allow: the one
               // fact about the app the registrant could not make up. A
               // native app's private-use scheme has no origin, so it shows whole.
               redirectOrigins: [

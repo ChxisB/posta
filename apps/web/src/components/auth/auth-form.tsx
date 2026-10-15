@@ -67,7 +67,7 @@ export function AuthForm({
   const tLegal = useTranslations("auth.legal");
   const tCommon = useTranslations("common");
   const params = useSearchParams();
-  // An invited user carries ?next=/invite/... — signup sends them to accept
+  // An invited user carries ?next=/invite/...: signup sends them to accept
   // the invite rather than /onboarding (which would create a new team).
   const nextParam = params.get("next");
   const next = safeNextPath(nextParam, mode === "login" ? "/emails" : "/onboarding");

@@ -49,7 +49,7 @@ const DELIVERY_EVENT_TYPES: readonly EventType[] = [
  * Deterministic per-domain config-set name. SES allows only alphanumerics,
  * hyphens and underscores (max 64), so every other character (dots included)
  * collapses to a hyphen. Config sets are regional, so the name needs no region
- * qualifier — a domain has one region.
+ * qualifier: a domain has one region.
  */
 export function domainConfigurationSetName(domainName: string): string {
   return `posta-${domainName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`.slice(0, 64);
@@ -62,7 +62,7 @@ function errorName(error: unknown): string {
 /**
  * Idempotently provisions a dedicated configuration set for the domain, then
  * converges its settings. The configuration set itself carries no settings on
- * create — adopting an already-existing one would ignore them — so every
+ * create (adopting an already-existing one would ignore them) so every
  * setting is applied through applyDomainConfiguration's Put/Update path.
  * Returns the configuration-set name to persist on the domain row.
  */

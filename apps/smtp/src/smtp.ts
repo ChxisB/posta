@@ -149,7 +149,7 @@ async function handleMessage(
   }
   const headers = threadingHeaders(parsed);
 
-  // The authenticated key's team decides which senders are allowed — the
+  // The authenticated key's team decides which senders are allowed: the
   // MAIL FROM envelope identity is never trusted.
   const reserved = reservedSenderRefusal(from, deps.onboardingEmailFrom);
   if (reserved) throw smtpError(550, reserved.message);
@@ -163,7 +163,7 @@ async function handleMessage(
       `The ${domain.fromDomain ?? "sender"} domain is not verified for this team`,
     );
   }
-  // SECURITY: a domain-scoped key may only send from its one domain — the same
+  // SECURITY: a domain-scoped key may only send from its one domain; the same
   // scope the HTTP send surface enforces, applied here so SMTP is no bypass.
   if (auth.domainId !== null && auth.domainId !== domain.domainId) {
     throw smtpError(550, "This API key can only send from its assigned domain");

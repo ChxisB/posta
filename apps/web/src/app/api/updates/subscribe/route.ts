@@ -10,7 +10,7 @@ import { requestUpdatesConfirmation } from "@/server/updates";
 /**
  * Public opt-in for product updates: the /updates form on this instance and
  * the setup wizard of a self-hosted one (the operator's own, one-time
- * request — nothing on a self-hosted instance ever calls home by itself).
+ * request; nothing on a self-hosted instance ever calls home by itself).
  * Sends a confirmation link and stores nothing until it is opened, so the
  * worst a stranger can do here is have one email sent to an address.
  * Any origin may post: the response carries no data and sets no cookie.

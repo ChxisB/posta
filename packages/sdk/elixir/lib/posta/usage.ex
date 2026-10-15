@@ -1,6 +1,6 @@
 defmodule Posta.Usage do
   @moduledoc """
-  Plan limits and today's send count — a Posta extension with no Resend
+  Plan limits and today's send count: a Posta extension with no Resend
   equivalent.
 
   `cloud` is `true` on Posta Cloud, where `plan` and `limits` apply;

@@ -1,4 +1,4 @@
-"""Suppressions — addresses the API refuses to send to. Addressable by id OR email."""
+"""Suppressions: addresses the API refuses to send to. Addressable by id OR email."""
 
 from typing import Any, Dict, Optional
 
@@ -8,12 +8,12 @@ from ._client import list_query, path_id, request
 class SuppressionsBatch:
     @classmethod
     def add(cls, params: Dict[str, Any]) -> Any:
-        """POST /suppressions/batch/add — ``{"emails": [...], "origin"?: ...}``, 1..1000 emails."""
+        """POST /suppressions/batch/add: ``{"emails": [...], "origin"?: ...}``, 1..1000 emails."""
         return request("POST", "/suppressions/batch/add", body=params)
 
     @classmethod
     def remove(cls, params: Dict[str, Any]) -> Any:
-        """POST /suppressions/batch/remove — ``{"emails": [...]}`` or ``{"ids": [...]}``."""
+        """POST /suppressions/batch/remove: ``{"emails": [...]}`` or ``{"ids": [...]}``."""
         return request("POST", "/suppressions/batch/remove", body=params)
 
 
@@ -22,7 +22,7 @@ class Suppressions:
 
     @classmethod
     def add(cls, params: Dict[str, Any]) -> Any:
-        """POST /suppressions — ``{"email": ..., "origin"?: bounce|complaint|manual|unsubscribe}``."""
+        """POST /suppressions: ``{"email": ..., "origin"?: bounce|complaint|manual|unsubscribe}``."""
         return request("POST", "/suppressions", body=params)
 
     create = add

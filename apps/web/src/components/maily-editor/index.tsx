@@ -33,9 +33,9 @@ import { makeVariableSuggestionsPopover } from "./variable-suggestions";
  * built-in menu bar is disabled) so it themes with the app and carries the
  * Insert-variable control; merge fields serialize to our worker token grammar
  * server-side (see lib/email-render.ts), so the html here is only the last-known
- * value — send html is re-rendered on save. A stored document that is not Maily
+ * value: send html is re-rendered on save. A stored document that is not Maily
  * JSON (a pre-Maily template) imports through `contentHtml`, so it still edits
- * in place with no raw-html tab — but the lossy conversion is only emitted
+ * in place with no raw-html tab, but the lossy conversion is only emitted
  * after the first real edit, so opening and saving untouched preserves the
  * stored html byte-for-byte.
  *
@@ -80,7 +80,7 @@ export interface MailyEditorProps {
   /**
    * Explicit html→blocks conversion: when the seed is raw html, emit Tiptap's
    * parse of it on create instead of waiting for the first edit. Only set
-   * after the user chose to convert — see the seed emit rule below.
+   * after the user chose to convert: see the seed emit rule below.
    */
   convertHtml?: boolean;
 }
@@ -141,7 +141,7 @@ export function MailyEditor({
   const themeRef = useRef(themeOf(value.document));
   themeRef.current = themeOf(value.document);
 
-  // Refs so the emit path is a stable callback — Maily re-inits if onUpdate's
+  // Refs so the emit path is a stable callback. Maily re-inits if onUpdate's
   // identity changes.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -177,7 +177,7 @@ export function MailyEditor({
 
   // Our in-content pill: themed, vertically centered, labelled with the human
   // name and carrying the raw token in the tooltip. Maily's default pill is
-  // skipped for content variables only — the bubble/button variants keep it.
+  // skipped for content variables only: the bubble/button variants keep it.
   const renderVariable = useCallback<typeof DEFAULT_RENDER_VARIABLE_FUNCTION>((opts) => {
     if (opts.from !== "content-variable") return DEFAULT_RENDER_VARIABLE_FUNCTION(opts);
     const { variable, fallback } = opts;
@@ -197,7 +197,7 @@ export function MailyEditor({
       // Extended with our own node view: the in-content pill and its edit
       // popover become ours (translated Variable/Default labels, aligned rows)
       // instead of Maily's hardcoded-English VariableView. The '@' popover is
-      // likewise ours via variableSuggestionsPopover — same ref contract
+      // likewise ours via variableSuggestionsPopover: same ref contract
       // ({moveUp, moveDown, select}) that Maily's VariableList drives.
       VariableExtension.extend({
         addNodeView() {
@@ -218,7 +218,7 @@ export function MailyEditor({
           empty: t("suggest.empty"),
         }),
       }),
-      // Same-name extensions replace Maily's defaults — that is how the slash
+      // Same-name extensions replace Maily's defaults, that is how the slash
       // menu and placeholder become localizable at all.
       SlashCommandExtension.configure({
         suggestion: getSlashCommandSuggestions([
@@ -264,7 +264,7 @@ export function MailyEditor({
 
   // A contentHtml seed means a pre-Maily raw-HTML document, and Tiptap's parse
   // of it is lossy. Emitting it from onCreate would hand the parent a converted
-  // document with zero user action — an untouched open-then-save would then
+  // document with zero user action: an untouched open-then-save would then
   // silently rewrite the stored html. So the conversion is only emitted from
   // onUpdate, i.e. after a deliberate edit; until then the stored html stands.
   // `convertHtml` is that deliberate action taken up front, so it emits.
@@ -311,7 +311,7 @@ export function MailyEditor({
             ours, matched from shortcuts.ts; Tiptap has no binding for them. */}
       <div className="po-maily-surface" onKeyDownCapture={onSurfaceKeyDown}>
         {/* Spread the seed so only the one set key (contentJson OR contentHtml)
-            is passed — exactOptionalPropertyTypes rejects an explicit undefined. */}
+            is passed: exactOptionalPropertyTypes rejects an explicit undefined. */}
         <Editor
           {...seed.current}
           extensions={extensions}

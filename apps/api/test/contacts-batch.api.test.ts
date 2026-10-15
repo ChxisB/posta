@@ -417,7 +417,7 @@ describe("intra-batch duplicates (case-insensitive)", () => {
     expect((await contactByEmail("first@example.com"))?.firstName).toBe("One");
   });
 
-  it("upsert: collapses into one row — later scalars win, associations union", async () => {
+  it("upsert: collapses into one row; later scalars win, associations union", async () => {
     const segA = await createSegment(tokenA, "col-a");
     const segB = await createSegment(tokenA, "col-b");
     const topic = await createTopic(tokenA, "col-topic");

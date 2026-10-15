@@ -145,7 +145,7 @@ export interface DomainVerificationResult {
  * schedule is what demotes a verified domain back to `pending` when a required
  * record is removed after verification, without waiting for a page open.
  *
- * Covers exactly `dnsRecordsForDomain` (DKIM, MAIL FROM MX + SPF, DMARC) — the
+ * Covers exactly `dnsRecordsForDomain` (DKIM, MAIL FROM MX + SPF, DMARC): the
  * complete set that determines status. The app-layer tracking CNAME is not
  * emitted here: its target is app-instance-specific and it never gates status,
  * so a display-only caller appends it separately.
@@ -166,7 +166,7 @@ export async function computeDomainVerification(
   // DMARC skips the exact-name check and rides RFC 7489 §6.6.3 discovery
   // (send domain, then the organizational domain): a subdomain sender covered
   // by the apex record reads found, since that is the policy receivers apply
-  // to it. One extra TXT query per verification, never per send — send-time
+  // to it. One extra TXT query per verification, never per send: send-time
   // insights read the persisted snapshot instead.
   const checked = dnsChecklist({ domain, verification }).filter((row) => row.group !== "dmarc");
   const [checks, dmarc] = await Promise.all([
@@ -209,7 +209,7 @@ export async function computeDomainVerification(
  * The domain-row columns every verification pass persists alongside
  * status/lastCheckedAt. An `unknown` DMARC lookup writes neither policy nor
  * checkedAt: an inconclusive check must not erase a known record. Likewise a
- * resolver outage (EVERY record `unknown`) skips the dnsRecords write —
+ * resolver outage (EVERY record `unknown`) skips the dnsRecords write:
  * clobbering the last good snapshot with all-unknown rows would destroy the
  * only conclusive picture consumers have; partial results still write.
  */

@@ -65,7 +65,7 @@ export { resolveBaseUrl };
  * redirect URI: a name plus a link to an arbitrary site on the trusted host
  * is the consent-phishing recipe, while a link to the callback's own origin
  * says nothing the redirect does not. Native (loopback) clients therefore
- * never get a link, which is fine — they have no web origin to vouch for.
+ * never get a link, which is fine: they have no web origin to vouch for.
  */
 const CLIENT_LINK_FIELDS = ["client_uri", "logo_uri", "tos_uri", "policy_uri"] as const;
 
@@ -182,7 +182,7 @@ export async function assertSignupAllowed(db: Db, allowSignup: boolean): Promise
 
 /**
  * Which social sign-in buttons the auth screens should render. A provider
- * counts as enabled only when both its client id and secret are set — the
+ * counts as enabled only when both its client id and secret are set: the
  * same condition that mounts it in `createAuth`, so the UI can never offer a
  * provider the server would reject.
  */
@@ -220,7 +220,7 @@ export async function grantTeamId(
 /**
  * Claims stamped into every access token. Runs on each issuance and refresh,
  * so a member removed from the team stops getting tokens at the next refresh
- * rather than at consent expiry. Strict membership check — no fallback to
+ * rather than at consent expiry. Strict membership check: no fallback to
  * another team, or a revoked member's token would silently rebind.
  */
 export async function grantClaims(
@@ -229,7 +229,7 @@ export async function grantClaims(
   referenceId: string | undefined,
 ): Promise<{ team_id: string; team_role?: string }> {
   const memberships = user ? await listMemberships(db, user.id) : [];
-  // All-teams grant: no single role to stamp — the API resolves the team
+  // All-teams grant: no single role to stamp; the API resolves the team
   // (and re-checks membership) per tool call instead.
   if (referenceId === ALL_TEAMS_GRANT) {
     if (!memberships.length) {
@@ -391,7 +391,7 @@ export function createAuth(
           await assertNotSoleOwner(db, user.id);
         },
         // The row is already gone; the contact copy and the address in the
-        // account-mail team's history go with it — for a proven address
+        // account-mail team's history go with it, for a proven address
         // only, or deleting an account registered with someone else's
         // address would scrub that person's own account mail from the log.
         // Best-effort: nothing here may fail a deletion that has happened.
@@ -435,7 +435,7 @@ export function createAuth(
         resources: [{ identifier: mcpResourceUrl(), allowedScopes: [...MCP_SCOPES] }],
         // The seeded oauthResource row must track this config: token issuance
         // intersects requested scopes with the row's allowedScopes, so the
-        // default insertOnly mode would freeze the scope list at first-boot —
+        // default insertOnly mode would freeze the scope list at first-boot:
         // every scope shipped later would be silently dropped from tokens.
         resourceSeedMode: "merge",
         clientRegistrationDefaultResources: [mcpResourceUrl()],
@@ -468,7 +468,7 @@ export function createAuth(
     ],
     emailAndPassword: {
       enabled: true,
-      // NIST floor: 8 with no composition rules — the signup form's strength
+      // NIST floor: 8 with no composition rules; the signup form's strength
       // meter nudges toward longer, the server never blocks a valid 8+.
       minPasswordLength: 8,
       maxPasswordLength: 128,
@@ -495,7 +495,7 @@ export function createAuth(
       // that cannot deliver the link cannot demand it.
       requireEmailVerification: emailVerificationEnabled(),
       // Left unset when the instance cannot deliver the email, which keeps
-      // Better Auth's own RESET_PASSWORD_DISABLED 400 on the endpoint — the
+      // Better Auth's own RESET_PASSWORD_DISABLED 400 on the endpoint: the
       // sign-in screen hides the link for the same reason.
       ...(passwordRecoveryEnabled()
         ? {
@@ -525,7 +525,7 @@ export function createAuth(
             sendOnSignIn: true,
             // No session from the link: whoever registered the address set
             // the password, and the address's real owner opening the link
-            // must not land inside that account. They sign in — or reset the
+            // must not land inside that account. They sign in, or reset the
             // password, which revokes the registrant's sessions.
             expiresIn: VERIFY_TOKEN_TTL_MINUTES * 60,
             afterEmailVerification: async (user, request) => {
@@ -536,7 +536,7 @@ export function createAuth(
       : {}),
     /**
      * Windows are seconds; storage is Better Auth's in-memory default
-     * (per-process — fine for the single web replica this deploy runs).
+     * (per-process: fine for the single web replica this deploy runs).
      * The IP key comes from `advanced.ipAddress` below: without a trusted
      * proxy list Better Auth drops any multi-hop X-Forwarded-For chain into
      * one shared bucket, so a client that appends its own hop could lock
@@ -625,7 +625,7 @@ export function createAuth(
     },
     hooks: {
       // MCP clients register with http://localhost:<port> redirect URIs and
-      // usually omit application_type, which RFC 7591 defaults to "web" — a
+      // usually omit application_type, which RFC 7591 defaults to "web": a
       // type the provider (rightly) refuses http redirects for. A loopback
       // redirect is the RFC 8252 signature of a native app, so classify it as one.
       before: createAuthMiddleware(async (ctx) => {
@@ -687,7 +687,7 @@ export function createAuth(
         return { context: { body: { ...body, application_type: "native" } } };
       }),
       // Registration persists a scope list (the client's own, or the server's
-      // list as of that day) and authorization validates against it — which
+      // list as of that day) and authorization validates against it, which
       // would strand every registered MCP client with invalid_scope each time
       // a new scope ships. NULL defers to the live `scopes` config; per-user
       // consent remains the gate. drizzle/0007 does the same for clients

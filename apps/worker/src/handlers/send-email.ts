@@ -60,7 +60,7 @@ import { isSesQuotaRefusal, isSesThrottle, type SendQuotaControls } from "./ses-
 
 /**
  * Sends one queued email through SES. The SES client is injected (tests use
- * a fake); the job payload carries only the emailId — every fact about the
+ * a fake); the job payload carries only the emailId: every fact about the
  * send is re-read from the database, never trusted from the payload.
  */
 
@@ -70,7 +70,7 @@ export interface SesSender {
     /** Server-owned fallback join key copied into an SES message tag. */
     emailId: string;
     /**
-     * Envelope recipients from the stored, validated fields — the sender
+     * Envelope recipients from the stored, validated fields: the sender
      * derives the SES Destination from these, never from the MIME headers.
      */
     to: string[];
@@ -95,7 +95,7 @@ export interface SendDeps {
   sharedInboxDomain?: string | null | undefined;
   /**
    * Awaited right before the send claim, after every check that can still
-   * skip or fail the email — a token spent on a row that never reaches SES
+   * skip or fail the email: a token spent on a row that never reaches SES
    * is send capacity stolen from every other tenant. Takes the domain's
    * region: the send rate is per SES region.
    */
@@ -110,7 +110,7 @@ export interface SendDeps {
   enqueueWebhookDelivery?: WebhookEnqueue | undefined;
   /**
    * RFC 8058 one-click unsubscribe config for broadcast emails. Broadcast
-   * rows (contactId set) REFUSE to send without it — a marketing email must
+   * rows (contactId set) REFUSE to send without it: a marketing email must
    * never go out missing List-Unsubscribe headers.
    */
   unsubscribe?: { secretKey: Buffer; baseUrl: string } | undefined;
@@ -119,7 +119,7 @@ export interface SendDeps {
    * (HKDF-derived from the master key); defaultBaseUrl is the tracking host
    * for domains without a custom tracking subdomain (env.APP_BASE_URL). The
    * whole dep is optional so tests that don't exercise tracking need not wire
-   * it — the worker always provides it, since the master key is always present.
+   * it: the worker always provides it, since the master key is always present.
    */
   /**
    * The content monitor: the screening before SES and the draw on an
@@ -286,7 +286,7 @@ async function stripRecipients(
 /**
  * Terminal failure for a still-queued email: releases any send claim, moves
  * the row to "failed" and records why. Returns false when the row already
- * left "queued" (sent, canceled, suppressed) — nothing to fail then.
+ * left "queued" (sent, canceled, suppressed): nothing to fail then.
  */
 export async function failQueuedEmail(db: Db, emailId: string, reason: string): Promise<boolean> {
   const [updated] = await db
@@ -389,7 +389,7 @@ const TERMINAL_SES_ERRORS = new Set([
 /**
  * Whether an error came from infrastructure that may recover (a KMS/network
  * hiccup) rather than from the data itself. Envelope decrypt raises plain
- * Errors for a corrupt blob or unknown key version — those never heal and
+ * Errors for a corrupt blob or unknown key version: those never heal and
  * retrying only burns KMS calls.
  */
 function isTransientError(err: unknown): boolean {
@@ -702,10 +702,10 @@ async function sendQueued(
 
   // App-layer engagement tracking: when the domain has click or open tracking
   // on, WE rewrite links through our redirect endpoint and inject our pixel
-  // before the MIME is built — SES never touches the body. Both off ships the
+  // before the MIME is built; SES never touches the body. Both off ships the
   // raw links and no pixel (clean-links requirement).
-  // Account mail (core sendSystemMail) carries live credentials — reset and
-  // verification links — so its anchors are never rewritten through the
+  // Account mail (core sendSystemMail) carries live credentials, reset and
+  // verification links, so its anchors are never rewritten through the
   // redirect and no pixel rides along, whatever the domain's toggles say.
   const click = (domain?.clickTracking ?? false) && !systemMail;
   const open = (domain?.openTracking ?? false) && !systemMail;
@@ -777,8 +777,8 @@ async function sendQueued(
     trackingPending =
       shippedUntracked && !!domain?.trackingSubdomain && !!domain.trackingSubdomainSetAt;
     // A custom subdomain is self-sufficient; without one the redirect host is
-    // APP_BASE_URL. Missing it would ship links pointing nowhere, so fail loud
-    // — except under requireBrandedHost, where untracked is the intended
+    // APP_BASE_URL. Missing it would ship links pointing nowhere, so fail loud,
+    // except under requireBrandedHost, where untracked is the intended
     // outcome, not an error.
     if (!trackingBaseUrl && !deps.tracking.requireBrandedHost) {
       throw new Error(
@@ -787,7 +787,7 @@ async function sendQueued(
     }
     if (trackingBaseUrl) {
       // A broadcast's (or topic send's) in-body unsubscribe link is already
-      // expanded to its real URL by now, so click tracking must skip it —
+      // expanded to its real URL by now, so click tracking must skip it:
       // wrapping the visible Unsubscribe link through /t/c would log a bogus
       // click.
       const skipHrefPrefix =
@@ -807,7 +807,7 @@ async function sendQueued(
   }
 
   // Caller-supplied headers first: every transport-owned header assigned
-  // below wins on collision (reserved names are also rejected at accept —
+  // below wins on collision (reserved names are also rejected at accept;
   // defense in depth).
   const headers: Record<string, string> = {
     ...email.headers,
@@ -843,7 +843,7 @@ async function sendQueued(
   }
   // Bulk-mail class signals (RFC 2919 List-Id, RFC 3834 Auto-Submitted, and
   // Precedence) so mailbox providers file broadcasts as list mail. Only for
-  // broadcast rows — transactional sends must not carry them.
+  // broadcast rows: transactional sends must not carry them.
   if (email.broadcastId && email.contactId) {
     if (domain?.name) headers["List-Id"] = `<${email.broadcastId}.${domain.name}>`;
     headers.Precedence = "bulk";
@@ -881,7 +881,7 @@ async function sendQueued(
   }
 
   // Atomic claim (sentAt doubles as the claim marker): closes the
-  // double-send windows — a concurrent worker on the same job, and a retry
+  // double-send windows; a concurrent worker on the same job, and a retry
   // after SES accepted but the post-send bookkeeping failed. Claimed rows
   // are simply skipped on the next attempt.
   const claimed = await db
@@ -913,7 +913,7 @@ async function sendQueued(
     // sendRaw threw ⇒ the SDK exhausted its own retries without an accept.
     // A permanent refusal ends the email here; anything else releases the
     // claim so the job retry can send. (After a SUCCESSFUL sendRaw the claim
-    // is never released — a bookkeeping failure then leaves the row claimed
+    // is never released: a bookkeeping failure then leaves the row claimed
     // rather than risking a duplicate delivery.)
     const name = (err as { name?: string }).name ?? "";
     if (TERMINAL_SES_ERRORS.has(name)) {
@@ -1023,8 +1023,8 @@ async function sendQueued(
       });
       const bodySize = insights.checks.find((c) => c.id === "body_size")?.detail?.htmlSizeBytes;
       // Broadcast fan-out shares ONE row (content identical modulo the
-      // unsubscribe token): the first completed send writes it, the rest —
-      // and the reconcile re-send path on the emailId key — conflict-skip.
+      // unsubscribe token): the first completed send writes it, the rest
+      // (and the reconcile re-send path on the emailId key) conflict-skip.
       await db
         .insert(schema.emailInsights)
         .values({
@@ -1169,7 +1169,7 @@ export interface TokenBucket {
 }
 
 /**
- * Token bucket pinned to the account's SES send rate — the real
+ * Token bucket pinned to the account's SES send rate: the real
  * messages-per-second control (worker concurrency is NOT a rate limit;
  * that was useSend's bug). In-memory, so the single-process assumption
  * holds: N worker replicas would send at N × the configured rate.

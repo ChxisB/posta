@@ -76,7 +76,7 @@ function isPrefetchReason(value: unknown): value is PrefetchReason {
 
 type EventData = Record<string, unknown> | null;
 
-/* SES payload extractors — shapes per packages/ses parseSesEvent's data field. */
+/* SES payload extractors: shapes per packages/ses parseSesEvent's data field. */
 type BounceData = {
   bounceType?: string;
   bounceSubType?: string;
@@ -542,7 +542,7 @@ export default function EmailDetailPage() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [drawer, setDrawer] = useState<"bounced" | "suppressed" | "unsubscribed" | null>(null);
-  // Identifies an occurrence group by its first event's id — type alone is
+  // Identifies an occurrence group by its first event's id: type alone is
   // ambiguous now that each local day gets its own node per type.
   const [groupDrawer, setGroupDrawer] = useState<string | null>(null);
 
@@ -552,7 +552,7 @@ export default function EmailDetailPage() {
   const recipient = email?.to[0] ?? null;
 
   // The suppression row backing the "Suppressed details" drawer (and its
-  // destructive remove) — fetched only when that drawer opens.
+  // destructive remove): fetched only when that drawer opens.
   const suppressionQuery = useQuery(
     trpc.emails.suppressions.list.queryOptions(
       { search: recipient ?? "", limit: 50 },
@@ -588,7 +588,7 @@ export default function EmailDetailPage() {
 
   // One node per (event type, viewer-local day), ordered by first occurrence:
   // multi-recipient emails get one SES Delivery per recipient, and app-layer
-  // tracking repeats opened/clicked — same-day repeats collapse into the node
+  // tracking repeats opened/clicked; same-day repeats collapse into the node
   // (×N chip, latest timestamp, occurrences drawer), while a repeat on a
   // later day starts a fresh node so long-lived engagement stays visible.
   type EmailEvent = (typeof email.events)[number];
@@ -601,10 +601,10 @@ export default function EmailDetailPage() {
     if (group) group.occurrences.push(event);
     else groups.push({ type: event.type as EventType, first: event, occurrences: [event] });
   }
-  // First occurrence per group — the masthead/stall derivations read these.
+  // First occurrence per group: the masthead/stall derivations read these.
   const events = groups.map((group) => group.first);
   // Ingestion off (no SNS topics) means nothing after the locally-recorded
-  // "sent" can ever arrive — the timeline says so instead of silently stalling.
+  // "sent" can ever arrive: the timeline says so instead of silently stalling.
   // A prefetch is a machine's fetch, not something SES pushed, so it does
   // not count as an event that arrived after "sent".
   // An opt-out is recorded by this app too, so it says nothing about SES.
@@ -620,7 +620,7 @@ export default function EmailDetailPage() {
     isPrefetchReason(reason) ? t(`detail.prefetchReason.${reason}`) : null;
 
   const sentEvent = events.find((event) => event.type === "sent");
-  // Anchor for the occurrences drawer's "+42 min" offsets — the actual send
+  // Anchor for the occurrences drawer's "+42 min" offsets: the actual send
   // moment when known, else creation (an email is never engaged before either).
   const sendAt = sentEvent?.occurredAt ?? email.sentAt ?? email.createdAt;
   const openGroup = groupDrawer
@@ -664,7 +664,7 @@ export default function EmailDetailPage() {
       ? (data.topicName ?? t("unsubscribedDrawer.topic"))
       : data
         ? t("unsubscribedDrawer.global")
-        : "—";
+        : "-";
   const bounceGuidance = resolveBounceGuidance({
     bounceType: bounce?.bounceType ?? null,
     bounceSubType: bounce?.bounceSubType ?? null,
@@ -692,7 +692,7 @@ export default function EmailDetailPage() {
     if (bounceCode) sublineParts.push(bounceCode);
   }
 
-  /** Second mono line inside an event card — real payload data only. */
+  /** Second mono line inside an event card: real payload data only. */
   function eventDetail(type: EventType, data: EventData): string | null {
     if (type === "bounced") {
       const b = bounceOf(data);
@@ -869,8 +869,8 @@ export default function EmailDetailPage() {
               const count = group.occurrences.length;
               const latest = index === groups.length - 1;
               const previous = index > 0 ? groups[index - 1] : undefined;
-              // Connector deltas run between first occurrences — the group's
-              // anchor — so the strip stays chronological even when a later
+              // Connector deltas run between first occurrences, the group's
+              // anchor, so the strip stays chronological even when a later
               // repeat outlives the next type's start.
               const delta = previous
                 ? new Date(first.occurredAt).getTime() -
@@ -898,7 +898,7 @@ export default function EmailDetailPage() {
                       : count > 1
                         ? ("group" as const)
                         : null;
-              // Icon-tile node: glyph tile, status pill, timestamp, detail —
+              // Icon-tile node: glyph tile, status pill, timestamp, detail;
               // the connector line meets the tiles at their vertical center.
               const card = (
                 <>
@@ -1056,16 +1056,16 @@ export default function EmailDetailPage() {
         <div className="po-wrap-row" style={{ display: "flex", gap: 36, marginTop: 18 }}>
           <div>
             <Microlabel>{t("bouncedDrawer.type")}</Microlabel>
-            <div style={{ fontSize: 14, marginTop: 4 }}>{bounce?.bounceType ?? "—"}</div>
+            <div style={{ fontSize: 14, marginTop: 4 }}>{bounce?.bounceType ?? "-"}</div>
           </div>
           <div>
             <Microlabel>{t("bouncedDrawer.subtype")}</Microlabel>
-            <div style={{ fontSize: 14, marginTop: 4 }}>{bounce?.bounceSubType ?? "—"}</div>
+            <div style={{ fontSize: 14, marginTop: 4 }}>{bounce?.bounceSubType ?? "-"}</div>
           </div>
           <div>
             <Microlabel>{t("bouncedDrawer.code")}</Microlabel>
             <div className="po-mono" style={{ fontSize: 13, marginTop: 5 }}>
-              {bounceCode ?? "—"}
+              {bounceCode ?? "-"}
             </div>
           </div>
         </div>
@@ -1114,7 +1114,7 @@ export default function EmailDetailPage() {
                 ? [...new Set(unsubscribes.map((u) => unsubscribeScope(u.data)))].map((scope) => (
                     <div key={scope}>{scope}</div>
                   ))
-                : "—"}
+                : "-"}
             </div>
           </div>
           <div>
@@ -1123,13 +1123,13 @@ export default function EmailDetailPage() {
               {lastUnsubscribe?.data?.source === "one_click" ||
               lastUnsubscribe?.data?.source === "hosted_page"
                 ? t(`unsubscribedDrawer.source.${lastUnsubscribe.data.source}`)
-                : "—"}
+                : "-"}
             </div>
           </div>
           <div>
             <Microlabel>{t("unsubscribedDrawer.when")}</Microlabel>
             <div style={{ fontSize: 14, marginTop: 4 }}>
-              {lastUnsubscribe ? formatRelative(lastUnsubscribe.at, locale) : "—"}
+              {lastUnsubscribe ? formatRelative(lastUnsubscribe.at, locale) : "-"}
             </div>
           </div>
         </div>
@@ -1161,14 +1161,14 @@ export default function EmailDetailPage() {
                     ...(suppressionRow.reason === "hard_bounce" && bounce?.bounceType
                       ? [bounce.bounceType.toLowerCase()]
                       : []),
-                  ].join(" — ")
-                : "—"}
+                  ].join(", ")
+                : "-"}
             </div>
           </div>
           <div>
             <Microlabel>{t("suppressedDrawer.added")}</Microlabel>
             <div style={{ fontSize: 14, marginTop: 4 }}>
-              {suppressionRow ? formatRelative(suppressionRow.createdAt, locale) : "—"}
+              {suppressionRow ? formatRelative(suppressionRow.createdAt, locale) : "-"}
             </div>
           </div>
         </div>

@@ -6,12 +6,12 @@ import { parseMailbox } from "./sender-address.js";
 export { visibleText };
 
 /**
- * Pure email-insights check/score engine. No I/O, no DB, no clock — staleness
+ * Pure email-insights check/score engine. No I/O, no DB, no clock: staleness
  * math uses the caller-supplied `now`. Check ids, severities and weights are
  * frozen wire names shared with the API and UI.
  *
  * PRIVACY INVARIANT: check `detail` payloads may carry bare hostnames, counts,
- * sizes, booleans and policy strings ONLY — never full URLs, paths, query
+ * sizes, booleans and policy strings ONLY, never full URLs, paths, query
  * strings, or content excerpts. Insights rows outlive the encrypted body
  * purge; anything richer would become a retention bypass.
  */
@@ -89,10 +89,10 @@ export const SHORTENER_HOSTS = new Set([
 ]);
 
 export interface EmailInsightsInput {
-  /** FINAL html (post unsubscribe-substitution AND post tracking-rewrite) — used ONLY for body_size. */
+  /** FINAL html (post unsubscribe-substitution AND post tracking-rewrite): used ONLY for body_size. */
   html: string | null;
   /**
-   * Post-substitution, PRE tracking-rewrite — used for all link/image/text
+   * Post-substitution, PRE tracking-rewrite: used for all link/image/text
    * analysis (the final hrefs the recipient resolves, before our wrapper).
    */
   preTrackingHtml: string | null;
@@ -124,7 +124,7 @@ export interface EmailInsightsInput {
     dmarcPolicy: "none" | "quarantine" | "reject" | null;
     dmarcCheckedAt: Date | null;
   } | null;
-  /** Reference instant for staleness math (never Date.now — determinism). */
+  /** Reference instant for staleness math (never Date.now: determinism). */
   now: Date;
 }
 
@@ -229,7 +229,7 @@ export function evaluateEmailInsights(input: EmailInsightsInput): {
 
   // Classification rests only on send shape and body content. A caller
   // List-Unsubscribe header deliberately does NOT promote: header-based
-  // promotion punished partial compliance — a mailto-only header pushed a
+  // promotion punished partial compliance; a mailto-only header pushed a
   // transactional send into the very list_unsubscribe check it then failed,
   // scoring worse than omitting the header. Absence never demotes either:
   // the classifier must not eat its own check.
@@ -265,7 +265,7 @@ export function evaluateEmailInsights(input: EmailInsightsInput): {
         };
       case "list_unsubscribe": {
         if (!(hasListUnsub && hasListUnsubPost)) return { status: "fail" };
-        // Broadcast/topic sends carry these headers via our own injection —
+        // Broadcast/topic sends carry these headers via our own injection,
         // guaranteed by the transport, not caller diligence.
         return { status: input.isBroadcast || input.hasTopic ? "passed_by_design" : "pass" };
       }

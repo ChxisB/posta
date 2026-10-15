@@ -91,7 +91,7 @@ person. The last five fields are Posta's.
 | Field | Rules |
 | --- | --- |
 | `email_address` | An address on a verified domain of your team that receives here (see [Addresses](#addresses)). It is trimmed and lowercased; the part before `@` takes up to 64 letters, digits and `. _ % + -`, with no dot at either end and no `..`. It can't change later. Leave it out for a random address on the [shared domain](#shared-domain). |
-| `name` | 1–64 characters; the address when left out. |
+| `name` | 1 to 64 characters; the address when left out. |
 | `from_name` | The display name of the mail the inbox sends, up to 78 characters: a plain name, without `@`, `:`, `<`, `>`, line breaks, links or phone numbers. |
 | `kind` | `agent` (the default) or `human`. |
 | `expires_in` | When the inbox [expires](#expiry), such as `1h`, `24h` or `7d`. |
@@ -238,7 +238,7 @@ out first.
 and the inbox's `unread` counts the threads with an unread message. Mail the
 inbox sent is always read.
 
-**Labels.** Up to 100 per inbox. Names take 1–64 characters and are unique
+**Labels.** Up to 100 per inbox. Names take 1 to 64 characters and are unique
 regardless of letter case; colors are `#RRGGBB`, in uppercase, and random
 when left out. A `PATCH` with `label_id` puts one label on a thread at a
 time. Labels come off a thread in the dashboard, and deleting a label takes
@@ -392,7 +392,7 @@ curl -X PATCH "https://api.posta.example/inboxes/{id}/safety" \
 | `send_policy` | `reply_only`; `allowlist`, which adds new conversations with owners and the allowlist; or `open`, anyone, on your own domain and once the team is past its first sends. |
 | `require_approval` | Every send from the inbox waits for a person. |
 | `private_codes` | A code or sign-in link the inbox received can't be sent to anyone but owners and the allowlist. |
-| `send_cap` | Recipients the inbox may send to per UTC day without a person: 1–100,000, or `null` for no cap; 1–50 on the shared domain. |
+| `send_cap` | Recipients the inbox may send to per UTC day without a person: 1 to 100,000, or `null` for no cap; 1 to 50 on the shared domain. |
 | `forward_to` | Up to 5 addresses that get a copy of every delivered message: team members' sign-in addresses or owner addresses. |
 
 A setting that breaks a rule answers `422` with the reason: `open` on the

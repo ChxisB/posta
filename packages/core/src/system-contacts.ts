@@ -49,7 +49,7 @@ export async function enrollSystemContact(
 /**
  * A confirmed opt-in (the recipient opened the emailed link): enroll, and if
  * the address already has a contact that had unsubscribed, subscribe it
- * again — the explicit consent is exactly what the dashboard's re-subscribe
+ * again; the explicit consent is exactly what the dashboard's re-subscribe
  * requires, and it clears the retained one-click suppression the same way.
  */
 export async function confirmSystemContact(

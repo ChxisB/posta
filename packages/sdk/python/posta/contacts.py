@@ -1,4 +1,4 @@
-"""Contacts — team-global, addressable by id OR email (email wins).
+"""Contacts: team-global, addressable by id OR email (email wins).
 
 Params are already snake_case (the wire casing). ``None`` in an update clears a
 field; omit the key to leave it unchanged.
@@ -28,7 +28,7 @@ class ContactTopics:
         params: Optional[Dict[str, Any]] = None,
         id: Optional[str] = None,
     ) -> Any:
-        """GET /contacts/{idOrEmail}/topics — every team topic with the contact's effective
+        """GET /contacts/{idOrEmail}/topics: every team topic with the contact's effective
         ``subscription``; ``explicit`` is False when it is the topic default.
 
         ``params`` is resend-python's pagination dict, forwarded as the query.
@@ -37,7 +37,7 @@ class ContactTopics:
 
     @classmethod
     def update(cls, params: Dict[str, Any]) -> Any:
-        """PATCH /contacts/{idOrEmail}/topics — body is the bare topics array."""
+        """PATCH /contacts/{idOrEmail}/topics: body is the bare topics array."""
         return request("PATCH", f"/contacts/{_params_key(params)}/topics", body=params["topics"])
 
 
@@ -66,7 +66,7 @@ class ContactBatch:
         on_conflict: Optional[str] = None,
         batch_validation: Optional[str] = None,
     ) -> Any:
-        """POST /contacts/batch — 1..1000 contacts (Posta extension).
+        """POST /contacts/batch: 1..1000 contacts (Posta extension).
 
         ``on_conflict`` is ``"error"`` (default), ``"skip"`` or ``"upsert"`` for an
         email that already belongs to a contact. ``batch_validation`` is
@@ -83,7 +83,7 @@ class ContactBatch:
 
     @classmethod
     def get(cls, params: List[Union[str, Dict[str, Any]]], include: Optional[List[str]] = None) -> Any:
-        """POST /contacts/batch/get — 1..1000 contacts by ``{"id": ...}`` or ``{"email": ...}``
+        """POST /contacts/batch/get: 1..1000 contacts by ``{"id": ...}`` or ``{"email": ...}``
         (a bare string is an id), returned in request order.
 
         Entries that match no contact land in ``missing`` (``[{index, id?, email?}]``) instead of
@@ -96,7 +96,7 @@ class ContactBatch:
 
     @classmethod
     def remove(cls, params: Dict[str, Any], erase: bool = False) -> Any:
-        """POST /contacts/batch/remove — ``{"ids": [...]}`` or ``{"emails": [...]}``, 1..1000.
+        """POST /contacts/batch/remove: ``{"ids": [...]}`` or ``{"emails": [...]}``, 1..1000.
 
         ``data`` lists only the contacts actually deleted; unknown ids/addresses are skipped.
         The contacts' emails stay in the send log; ``erase`` also scrubs each address from
@@ -120,7 +120,7 @@ class Contacts:
     def get(
         cls, contact_id: Optional[str] = None, email: Optional[str] = None, id: Optional[str] = None
     ) -> Any:
-        """GET /contacts/{idOrEmail} — ``id`` is resend-python's name for ``contact_id``."""
+        """GET /contacts/{idOrEmail}: ``id`` is resend-python's name for ``contact_id``."""
         return request("GET", f"/contacts/{_key(contact_id or id, email)}")
 
     @classmethod
@@ -138,7 +138,7 @@ class Contacts:
         id: Optional[str] = None,
         erase: bool = False,
     ) -> Any:
-        """DELETE /contacts/{idOrEmail} — the contact's emails stay in the send log.
+        """DELETE /contacts/{idOrEmail}: the contact's emails stay in the send log.
 
         ``erase`` also scrubs the address from email history, event payloads and API logs
         (a GDPR/LGPD erasure; Posta extension).
@@ -150,7 +150,7 @@ class Contacts:
     def preferences_link(
         cls, contact_id: Optional[str] = None, email: Optional[str] = None, id: Optional[str] = None
     ) -> Any:
-        """POST /contacts/{idOrEmail}/preferences-link — the contact's hosted preference page URL.
+        """POST /contacts/{idOrEmail}/preferences-link: the contact's hosted preference page URL.
 
         The link never expires and lets its holder change that contact's preferences, so hand
         it only to the contact. 422 when the instance cannot build hosted links.

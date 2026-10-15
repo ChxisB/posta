@@ -19,7 +19,7 @@ export function DotParts({
 }) {
   const parts = dotParts(tail ? `${text} · ` : text);
   return parts.map((part, i) => (
-    // biome-ignore lint/suspicious/noArrayIndexKey: parts are positional and may repeat ("—")
+    // biome-ignore lint/suspicious/noArrayIndexKey: parts are positional and may repeat ("-")
     <Fragment key={i}>
       {i > 0 ? " " : null}
       <span className="po-part">

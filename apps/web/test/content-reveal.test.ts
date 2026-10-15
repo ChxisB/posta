@@ -70,7 +70,7 @@ function callerFor(
 const operator = () => callerFor(OPERATOR);
 const member = () => callerFor(MEMBER, teamId, "owner");
 
-/** What the team's own audit shows of one grant — nothing, until day 7. */
+/** What the team's own audit shows of one grant: nothing, until day 7. */
 async function teamContentRows(grantId?: string) {
   const { items } = await member().audit.list({ limit: 50 });
   return items.filter(

@@ -46,7 +46,7 @@ export interface PopoverMenuItem {
 const GAP = 8;
 
 /**
- * "…" overflow menu — an EllipsisGlyph trigger opening a .po-menu panel, per the
+ * "…" overflow menu: an EllipsisGlyph trigger opening a .po-menu panel, per the
  * canvas dropdown grammar. Items are actions only; use <Select> for value
  * pickers. Pass `null` items to render a separator.
  *

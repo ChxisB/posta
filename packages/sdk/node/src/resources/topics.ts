@@ -9,7 +9,7 @@ import type {
   UpdateTopicOptions,
 } from "../types.js";
 
-/** Subscription topics — granular unsubscribe categories for a team. */
+/** Subscription topics: granular unsubscribe categories for a team. */
 export class Topics {
   constructor(private readonly http: HttpClient) {}
 
@@ -30,7 +30,7 @@ export class Topics {
     return this.http.request({ method: "GET", path: `/topics/${encodeURIComponent(id)}` });
   }
 
-  /** GET /topics — the list envelope with `has_more` always false (topics are unpaginated). */
+  /** GET /topics: the list envelope with `has_more` always false (topics are unpaginated). */
   list(): Promise<Result<List<Topic>>> {
     return this.http.request({ method: "GET", path: "/topics" });
   }

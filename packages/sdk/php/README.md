@@ -1,6 +1,6 @@
 # posta-php
 
-Official PHP SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
+Official PHP SDK for [Posta](https://github.com/ChxisB/posta): a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of [`resend-php`](https://github.com/resend/resend-php), so migrating is
@@ -63,7 +63,7 @@ inside a private network).
 
 ## Payloads
 
-Payloads are plain arrays and go on the wire as-is — every key you pass is sent, in
+Payloads are plain arrays and go on the wire as-is: every key you pass is sent, in
 snake_case exactly as `resend-php` documents it (`reply_to`, `scheduled_at`,
 `first_name`, …). The camelCase spellings this SDK has always accepted keep working
 and are renamed on the way out (`replyTo` → `reply_to`, `scheduledAt` → `scheduled_at`,
@@ -135,7 +135,7 @@ $ms->emails->send([
 ### Batch
 
 ```php
-// POST /emails/batch — up to 100 emails, one call
+// POST /emails/batch: up to 100 emails, one call
 $ms->batch->send([$payloadA, $payloadB], [
     'idempotency_key' => $key,
     'batch_validation' => 'permissive', // or 'strict' (server default)
@@ -166,7 +166,7 @@ $ms->contacts->get('ada@acme.dev');                         // by id or email
 $ms->contacts->update('ada@acme.dev', ['first_name' => null, 'unsubscribed' => true]); // null clears
 $ms->contacts->update(['id' => $id, 'last_name' => 'L']);   // single-array shape also works
 $ms->contacts->remove($id);                                 // the contact's emails stay in the send log
-$ms->contacts->remove($id, ['erase' => true]);              // ?erase=true — also scrubs the address from email history, events and API logs (GDPR/LGPD)
+$ms->contacts->remove($id, ['erase' => true]);              // ?erase=true: also scrubs the address from email history, events and API logs (GDPR/LGPD)
 $ms->contacts->list(['limit' => 50]);
 $ms->contacts->list(['segment_id' => $segmentId]);          // GET /segments/:id/contacts
 // Bulk read (Posta extension): attach properties and topic subscriptions to every item,
@@ -185,7 +185,7 @@ $ms->contacts->topics->update([                                    // single-arr
     'topics' => [['id' => $topicId, 'subscription' => 'opt_out']],
 ]);
 
-// Hosted preference page (Posta extension) — the page the emails' unsubscribe links open
+// Hosted preference page (Posta extension): the page the emails' unsubscribe links open
 $link = $ms->contacts->preferencesLink($idOrEmail);          // POST /contacts/:id/preferences-link
 $link['url'];   // no expiry: whoever holds it can change that contact's preferences, so show it only to the contact
 //              // 422 when the instance cannot build hosted links (self-hosted without APP_BASE_URL)
@@ -194,7 +194,7 @@ $link['url'];   // no expiry: whoever holds it can change that contact's prefere
 $ms->contacts->segments->add($idOrEmail, $segmentId);       // POST /contacts/:id/segments/:segmentId
 $ms->contacts->segments->remove($idOrEmail, $segmentId);    // DELETE …
 
-// Bulk create (Posta extension) — up to 1000 per call
+// Bulk create (Posta extension): up to 1000 per call
 $result = $ms->contacts->batch->create($contacts, [
     'on_conflict' => 'upsert',          // error (default) | skip | upsert
     'batch_validation' => 'permissive', // strict (default) | permissive
@@ -203,13 +203,13 @@ $result = $ms->contacts->batch->create($contacts, [
 // $result['counts'] = ['created' => n, 'updated' => n, 'skipped' => n, 'failed' => n]
 // $result['errors'][] = ['index' => 3, 'message' => '…']   (permissive mode)
 
-// Bulk lookup (Posta extension) — up to 1000 contacts by id or email in one request,
-// in request order; unknown entries are listed, not errors — one request against the rate limit
+// Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
+// in request order; unknown entries are listed, not errors: one request against the rate limit
 $result = $ms->contacts->batch->get([$contactId, ['email' => 'ada@acme.dev']], ['include' => ['topics']]);
 // $result['data'][]    = ['object' => 'contact', 'id' => …, 'email' => …, …, 'topics' => [...]]  the contacts found
 // $result['missing'][] = ['index' => 1, 'email' => '…']   request entries that matched nobody
 
-// Bulk delete (Posta extension) — exactly one of ids or emails, up to 1000; their emails stay in the send log
+// Bulk delete (Posta extension): exactly one of ids or emails, up to 1000; their emails stay in the send log
 $ms->contacts->batch->remove(['ids' => [...]]);      // or ['emails' => [...]] (case-insensitive)
 $ms->contacts->batch->remove(['emails' => [...], 'erase' => true]);   // also scrubs the addresses from email history, events and API logs (GDPR/LGPD)
 // => ['data' => [['object' => 'contact', 'contact' => '…', 'deleted' => true], …]]  only the rows actually deleted
@@ -230,14 +230,14 @@ $ms->contactProperties->remove($id);
 ```php
 $ms->topics->create(['name' => 'Product updates', 'description' => 'Releases', 'default_subscription' => 'opt_in', 'visibility' => 'public']);
 $ms->topics->get($id);
-$ms->topics->list();     // bare { data } — topics are unpaginated
+$ms->topics->list();     // bare { data }: topics are unpaginated
 $ms->topics->update($id, ['name' => 'Product news', 'visibility' => 'private']);
 $ms->topics->remove($id);
 ```
 
 ### Broadcasts
 
-Targeting is an optional `segment_id` and/or `topic_id` — omit both to send to
+Targeting is an optional `segment_id` and/or `topic_id`: omit both to send to
 every contact on the team.
 
 ```php
@@ -266,7 +266,7 @@ $ms->broadcasts->remove($id);                                                 //
 
 Same methods as `resend-php`'s `->segments`, but membership is dynamic: a segment
 is a saved `filter` over the team's contacts (the `filter` field is the Posta
-extension). Omit it — or set it to `null` on update — for a manual segment whose
+extension). Omit it (or set it to `null` on update) for a manual segment whose
 members come from `contacts->segments->add()`.
 
 ```php
@@ -320,7 +320,7 @@ $ms->domains->remove($id);
 $hook = $ms->webhooks->create([
     'endpoint' => 'https://acme.dev/hooks/posta',
     'events' => ['email.sent', 'email.delivered', 'email.bounced'],
-    'signing_secret' => $secret,       // optional — one is generated when omitted
+    'signing_secret' => $secret,       // optional: one is generated when omitted
 ]);
 $hook['signing_secret'];
 $ms->webhooks->list();
@@ -409,7 +409,7 @@ Method names, nesting, options (`idempotency_key`, `batch_validation`) and paylo
 match `resend-php`; snake_case payloads pass through to the wire untouched. Notes:
 
 - **No audiences.** Contacts are team-global, so there is no `->audiences`
-  resource and no `audience_id` params — drop the audience id and the calls map
+  resource and no `audience_id` params: drop the audience id and the calls map
   straight over. (The API keeps `/audiences/...` routes as a compatibility shim;
   they are not part of this SDK.) `->segments` keeps Resend's method names;
   membership is a dynamic `filter` rather than a static list.
@@ -440,4 +440,4 @@ $ms->http->request('POST', '/emails', $payload, [], $idempotencyKey);           
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT: see [LICENSE](LICENSE).

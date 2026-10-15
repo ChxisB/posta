@@ -20,7 +20,7 @@ export interface RecoveredDraft<T> {
  * whose editor normalises the persisted state on mount `rebase`s onto that.
  *
  * On mount, an existing differing draft surfaces as `recovered` for the page
- * to offer Restore/Discard — never applied silently. While that offer is
+ * to offer Restore/Discard, never applied silently. While that offer is
  * pending, the writer stays hands-off so a reload doesn't destroy the draft
  * before the user chose.
  */
@@ -33,7 +33,7 @@ export function useLocalDraft<T>({
   storageKey: string;
   /** The current serializable form state; a new identity schedules a write. */
   state: T;
-  /** The persisted state the page mounted with — the "nothing unsaved" shape. */
+  /** The persisted state the page mounted with: the "nothing unsaved" shape. */
   initialState: T;
   /** What of a state counts when comparing with the baseline (all of it by default). */
   compareAs?: (state: T) => unknown;
@@ -64,7 +64,7 @@ export function useLocalDraft<T>({
         localStorage.removeItem(storageKey);
       }
     } catch {
-      // Unreadable storage or corrupt draft — behave as if none existed.
+      // Unreadable storage or corrupt draft: behave as if none existed.
     }
   }, [storageKey, fingerprint]);
 
@@ -83,7 +83,7 @@ export function useLocalDraft<T>({
         );
       }
     } catch {
-      // Storage full/unavailable — drafts are best-effort.
+      // Storage full/unavailable: drafts are best-effort.
     }
   }, [storageKey, fingerprint]);
 
@@ -137,7 +137,7 @@ export function useLocalDraft<T>({
     [storageKey, fingerprint],
   );
 
-  /** The user declined the recovered draft — forget it. */
+  /** The user declined the recovered draft: forget it. */
   const discardRecovered = useCallback(() => {
     recoveredPendingRef.current = false;
     setRecovered(null);
@@ -148,7 +148,7 @@ export function useLocalDraft<T>({
     }
   }, [storageKey]);
 
-  /** The user restored the draft — the page applied it; resume mirroring. */
+  /** The user restored the draft: the page applied it; resume mirroring. */
   const acceptRecovered = useCallback(() => {
     recoveredPendingRef.current = false;
     setRecovered(null);

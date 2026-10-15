@@ -3,7 +3,7 @@ package io.github.tacklabs.posta.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * A facet a contact read can attach to every item — a Posta extension for
+ * A facet a contact read can attach to every item: a Posta extension for
  * {@code contacts().list(...)}, {@code segments().contacts(...)} and
  * {@code contacts().batch().get(...)}.
  */

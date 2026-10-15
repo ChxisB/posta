@@ -1,5 +1,5 @@
 defmodule Posta.Topics.Topic do
-  @moduledoc "A subscription topic — a granular unsubscribe category."
+  @moduledoc "A subscription topic: a granular unsubscribe category."
   @type t :: %__MODULE__{}
   defstruct [
     :object,
@@ -37,13 +37,13 @@ defmodule Posta.Topics do
     Request.run(client, method: :get, path: "/topics/" <> Request.encode(id), as: Topic)
   end
 
-  @doc "`GET /topics` — a bare, unpaginated `{ data: [...] }`; returns a plain list of `Topic`s."
+  @doc "`GET /topics`: a bare, unpaginated `{ data: [...] }`; returns a plain list of `Topic`s."
   @spec list(Client.t()) :: {:ok, [Topic.t()]} | {:error, Posta.Error.t()}
   def list(client \\ Posta.client()) do
     Request.run(client, method: :get, path: "/topics", as: {:data, Topic})
   end
 
-  @doc "`PATCH /topics/:id` — `name`, `description`, `visibility`."
+  @doc "`PATCH /topics/:id`: `name`, `description`, `visibility`."
   @spec update(Client.t(), String.t(), map()) :: {:ok, Topic.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id, params) when is_binary(id) and is_map(params) do
     Request.run(client,

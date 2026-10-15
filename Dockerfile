@@ -24,8 +24,8 @@ RUN pnpm --filter @posta/docs build
 # The webpack cache is build-only (hundreds of MB), and the runtime never
 # needs dev tooling (drizzle-kit, vitest, biome, typescript): a fresh
 # prod-only install from the same store leaves none of it behind. (`pnpm
-# prune --prod` is not workspace-aware — it empties the packages' own
-# node_modules — and a re-link over the existing tree keeps the orphans.)
+# prune --prod` is not workspace-aware (it empties the packages' own
+# node_modules) and a re-link over the existing tree keeps the orphans.)
 RUN rm -rf apps/*/.next/cache node_modules apps/*/node_modules packages/*/node_modules \
   && CI=true pnpm install --prod --frozen-lockfile --offline
 

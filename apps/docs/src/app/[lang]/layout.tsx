@@ -27,8 +27,8 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
     },
     description:
       lang === "pt-BR"
-        ? "Documentação do Posta — a plataforma de email open source, compatível com Resend, disponível como serviço hospedado ou auto-hospedada."
-        : "Documentation for Posta — the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
+        ? "Documentação do Posta: a plataforma de email open source, compatível com Resend, disponível como serviço hospedado ou auto-hospedada."
+        : "Documentation for Posta: the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
   };
 }
 

@@ -67,7 +67,7 @@ describe("templates.create / get / update / delete", () => {
     expect(await caller.templates.get({ id })).toMatchObject({ id, teamId, ...TEMPLATE_INPUT });
 
     await caller.templates.update({ id, name: "Welcome v2", subject: "" });
-    // "" clears nullable fields — stored as null, never as an empty string.
+    // "" clears nullable fields: stored as null, never as an empty string.
     expect(await templateRow(id)).toMatchObject({ name: "Welcome v2", subject: null });
   });
 

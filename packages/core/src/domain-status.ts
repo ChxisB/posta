@@ -8,7 +8,7 @@ export type DomainStatus = (typeof domainStatusEnum.enumValues)[number];
  * `found` = the expected record resolves; `mismatch` = the name answers but no
  * answer carries the expected value (a wrong/stale record); `missing` = the
  * name conclusively doesn't answer (removed record, NXDOMAIN, NODATA);
- * `unknown` = the lookup didn't conclude (timeout, SERVFAIL, network error) —
+ * `unknown` = the lookup didn't conclude (timeout, SERVFAIL, network error),
  * kept a distinct value so the dnsRecords snapshot and DMARC persistence can
  * tell a blip from a removed record, even though the send-gate fold below
  * treats it like `missing`.
@@ -25,7 +25,7 @@ export type SesGate = "verified" | "pending";
 
 /**
  * The per-row SES status a tracked record carries: `null` = SES never checks
- * this record. Maps to the second gate — a FAILED SES row is not a pass, so it
+ * this record. Maps to the second gate: a FAILED SES row is not a pass, so it
  * gates like `pending` (found per our DNS, still not verified by AWS).
  */
 export function sesGateFromRecordStatus(
@@ -55,13 +55,13 @@ export function combineRecordStatus({
   }
   // The two consumers deliberately fold `unknown` in opposite directions:
   // sending gate conservative-closed (an inconclusive lookup demotes like
-  // `missing` — falling back to SES's cached SUCCESS would leave a dropped
+  // `missing`; falling back to SES's cached SUCCESS would leave a dropped
   // zone sending forever; a transient blip demotes to pending for one
   // reverify cycle and recovers), scoring conservative-open (DMARC
   // persistence skips `unknown`, so a blip never stamps a score penalty).
   if (live === "missing" || live === "unknown") return "missing";
   if (live === "mismatch") return "mismatch";
-  // live === "found": our DNS passed — verified unless AWS is still pending.
+  // live === "found": our DNS passed; verified unless AWS is still pending.
   return sesGate === "pending" ? "pending" : "verified";
 }
 
@@ -75,7 +75,7 @@ export function recordCheck(sesStatus: string): "verified" | "pending" | "failed
 /**
  * SECURITY: the send gate keys off the stored domains.status, so this is the
  * one place strictness is decided. A domain is `verified` ONLY when every
- * REQUIRED record (those SES checks — DKIM, MX, SPF; non-null SES status)
+ * REQUIRED record (those SES checks: DKIM, MX, SPF; non-null SES status)
  * passes BOTH gates: our live DNS lookup found it AND SES verified it. Optional
  * records (DMARC, tracking CNAME; null SES status) never gate. A live-MISSING
  * SPF thus keeps the domain `pending` even when SES's mail-from reads success.

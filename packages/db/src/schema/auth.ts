@@ -14,7 +14,7 @@ import { teams } from "./teams.js";
 
 /**
  * Better Auth tables. Table/column shapes follow Better Auth's drizzle
- * adapter contract (it maps by the exported property names) — do not rename
+ * adapter contract (it maps by the exported property names): do not rename
  * fields without updating the auth config's schema mapping.
  */
 

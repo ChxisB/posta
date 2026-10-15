@@ -15,7 +15,7 @@ import io.github.tacklabs.posta.model.Segment;
 import io.github.tacklabs.posta.model.UpdateSegmentOptions;
 
 /**
- * The {@code segments} resource — Posta dynamic segments (a saved filter
+ * The {@code segments} resource. Posta dynamic segments (a saved filter
  * over the team's contacts). No Resend equivalent.
  */
 public final class Segments {
@@ -31,7 +31,7 @@ public final class Segments {
     return http.request("POST", "/segments", options, null, null, new TypeReference<Segment>() {});
   }
 
-  /** GET /segments/{id} — includes a live {@code contactCount}. */
+  /** GET /segments/{id}: includes a live {@code contactCount}. */
   public Segment get(String id) throws PostaException {
     return http.request(
         "GET", "/segments/" + enc(id), null, null, null, new TypeReference<Segment>() {});
@@ -55,7 +55,7 @@ public final class Segments {
         "PATCH", "/segments/" + enc(id), options, null, null, new TypeReference<Segment>() {});
   }
 
-  /** GET /segments/{id}/contacts — the contacts currently matching the segment. */
+  /** GET /segments/{id}/contacts: the contacts currently matching the segment. */
   public ListResponse<Contact> contacts(String id) throws PostaException {
     return contacts(id, (ListOptions) null);
   }
@@ -70,7 +70,7 @@ public final class Segments {
   }
 
   /**
-   * GET /segments/{id}/contacts?include=properties,topics — attaches the
+   * GET /segments/{id}/contacts?include=properties,topics: attaches the
    * property map and/or the topic subscriptions to every item (a Posta
    * extension).
    */

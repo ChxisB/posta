@@ -448,7 +448,7 @@ export function FilterConditions({
 /**
  * Live "{n} contacts match" box. Debounces the filter snapshot internally so
  * each keystroke in a value input doesn't fire a count query. Hidden while
- * the filter has no complete conditions — there is nothing to preview.
+ * the filter has no complete conditions: there is nothing to preview.
  */
 export function FilterCountPreview({
   filter,

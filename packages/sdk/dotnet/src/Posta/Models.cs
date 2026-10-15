@@ -98,7 +98,7 @@ public sealed class Tag
 /// mutually exclusive cursors.</summary>
 public class ListOptions
 {
-    /// <summary>1–100; the API defaults to 20.</summary>
+    /// <summary>1 to 100; the API defaults to 20.</summary>
     public int? Limit { get; init; }
     public Guid? After { get; init; }
     public Guid? Before { get; init; }
@@ -225,7 +225,7 @@ public sealed class Email
     public string? ScheduledAt { get; init; }
     public string? MessageId { get; init; }
     public string? LastEvent { get; init; }
-    /// <summary>Best-practice score (0–10, one decimal); null when the email has no insights.</summary>
+    /// <summary>Best-practice score (0 to 10, one decimal); null when the email has no insights.</summary>
     public double? Score { get; init; }
 }
 
@@ -250,7 +250,7 @@ public sealed class EmailInsights
 {
     public string? Object { get; init; }
     public Guid EmailId { get; init; }
-    /// <summary>Best-practice score, 0–10, one decimal.</summary>
+    /// <summary>Best-practice score, 0 to 10, one decimal.</summary>
     public double Score { get; init; }
     public int ScoreVersion { get; init; }
     public string? Band { get; init; }
@@ -260,7 +260,7 @@ public sealed class EmailInsights
     public List<InsightCheck> Checks { get; init; } = new();
 }
 
-/// <summary>Account deliverability over the trailing window. Scores are 0–10
+/// <summary>Account deliverability over the trailing window. Scores are 0 to 10
 /// with one decimal; null means not enough data to compute.</summary>
 public sealed class Deliverability
 {
@@ -768,9 +768,9 @@ public sealed class WebhookCreateResponse
 /// <summary>Both fields optional: an empty body mints a secret with the server's default overlap.</summary>
 public sealed class WebhookRotateOptions
 {
-    /// <summary>Bring your own secret: <c>whsec_</c> followed by base64 of 24–64 bytes; minted when omitted.</summary>
+    /// <summary>Bring your own secret: <c>whsec_</c> followed by base64 of 24 to 64 bytes; minted when omitted.</summary>
     public string? SigningSecret { get; init; }
-    /// <summary>0–72 hours the previous secret keeps signing alongside the new one; 0 drops it at once.</summary>
+    /// <summary>0 to 72 hours the previous secret keeps signing alongside the new one; 0 drops it at once.</summary>
     public int? OverlapHours { get; init; }
 }
 

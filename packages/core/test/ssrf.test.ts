@@ -96,7 +96,7 @@ describe("postJson guard", () => {
   });
 
   it("rejects hostnames that resolve to a private address (pinned lookup)", async () => {
-    // localhost resolves inside the same lookup the socket would use — the
+    // localhost resolves inside the same lookup the socket would use: the
     // rejection proves the resolved (not just literal) address is validated.
     await expect(postJson("https://localhost/hook", { body: "{}", headers: {} })).rejects.toThrow(
       /blocked address/,
@@ -129,7 +129,7 @@ describe("postJson delivery (allowLocalhost)", () => {
   it("delivers to a hostname (pinned lookup feeds the socket's all-addresses form)", async () => {
     // A hostname (not an IP literal) routes through the custom lookup, which
     // the socket calls with `all: true` under autoSelectFamily (Node ≥20
-    // default) — a single-address answer there breaks with "Invalid IP
+    // default); a single-address answer there breaks with "Invalid IP
     // address: undefined" and no hostname delivery ever succeeds.
     const base = await listen((_req, res) => {
       res.writeHead(200);

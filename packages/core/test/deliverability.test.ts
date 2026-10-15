@@ -182,7 +182,7 @@ describe("fetchDeliverabilityHealth", () => {
     const outEdge = utcDay(nowMs - 7 * DAY_MS); // just outside it
 
     await db.insert(schema.usageCounters).values([
-      // Today: 300 hard bounces over 5000 sends (6%) — the pause window.
+      // Today: 300 hard bounces over 5000 sends (6%); the pause window.
       { teamId, day: utcDay(nowMs), accepted: 6_000, sent: 5_000, bounced: 300, hardBounced: 300 },
       // Six days ago: clean volume that halves the 7-day rate.
       { teamId, day: inEdge, accepted: 6_000, sent: 5_000, bounced: 0, hardBounced: 0 },

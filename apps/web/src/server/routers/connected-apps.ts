@@ -65,7 +65,7 @@ export const connectedAppsRouter = router({
     }));
   }),
 
-  // Members revoke their own grants; owners/admins can cut off anyone's —
+  // Members revoke their own grants; owners/admins can cut off anyone's,
   // except an all-teams grant, which only someone who administers every team
   // the holder belongs to may revoke, since revoking it cuts the client off
   // in teams outside this admin's reach.
@@ -102,7 +102,7 @@ export const connectedAppsRouter = router({
         }
       }
       await ctx.db.transaction(async (tx) => {
-        // Tokens carry the grant's own referenceId — ctx.teamId for a
+        // Tokens carry the grant's own referenceId: ctx.teamId for a
         // team-bound grant, ALL_TEAMS_GRANT for an all-teams one (revoking
         // that cuts the client off everywhere, which is the safe direction).
         const tokenScope = (

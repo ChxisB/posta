@@ -15,7 +15,7 @@ final class Webhooks
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * POST /webhooks — omit `signingSecret` to have one generated.
+     * POST /webhooks: omit `signingSecret` to have one generated.
      *
      * @param array{endpoint: string, events: list<string>, signingSecret?: string} $params
      * @return array<mixed>
@@ -32,7 +32,7 @@ final class Webhooks
     }
 
     /**
-     * POST /webhooks/:id/rotate — mints a new secret (or takes `signingSecret`).
+     * POST /webhooks/:id/rotate: mints a new secret (or takes `signingSecret`).
      * For `overlapHours` (0..72) deliveries carry both the new and the previous
      * signature, so the receiver can switch without a gap.
      *

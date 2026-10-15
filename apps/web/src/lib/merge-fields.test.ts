@@ -19,7 +19,7 @@ describe("buildMergeOptions", () => {
 
   it("merges derived and defined keys, keeping a defined-only key and deduping overlap", () => {
     // Callers pass [...derivedKeys, ...definedKeys]; `plan` is in both, `tier`
-    // is defined but not yet in use — it must still appear, exactly once.
+    // is defined but not yet in use: it must still appear, exactly once.
     const opts = buildMergeOptions(["plan", "plan", "tier"]);
     const custom = opts.slice(MERGE_BUILTINS.length).map((o) => o.name);
     expect(custom).toEqual(["plan", "tier"]);
@@ -67,7 +67,7 @@ describe("hasWellFormedMergeTokens", () => {
 
   it("rejects a triple-brace group that is not a well-formed token", () => {
     // A space or a brace in the name is what a tampered/hand-edited doc would
-    // leak — the worker would ship it as literal text, so the save is blocked.
+    // leak: the worker would ship it as literal text, so the save is blocked.
     expect(hasWellFormedMergeTokens("<p>{{{FIRST NAME}}}</p>")).toBe(false);
     expect(hasWellFormedMergeTokens("<p>{{{bad-name}}}</p>")).toBe(false);
   });

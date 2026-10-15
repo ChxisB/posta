@@ -222,7 +222,7 @@
     "emptyHint": "Ative o recebimento de um domínio em <link>Domínios</link> e aponte o registro MX dele para cá.",
     "noMatch": "Nenhum e-mail recebido com esses filtros.",
     "clearFilters": "Limpar filtros",
-    "pageOf": "Página 1 – {pages} de {total} e-mails recebidos",
+    "pageOf": "Página 1 a {pages} de {total} e-mails recebidos",
     "col": {
       "from": "De",
       "subject": "Assunto",

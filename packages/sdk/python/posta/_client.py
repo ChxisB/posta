@@ -2,7 +2,7 @@
 
 Config (``api_key``, ``base_url``, ``timeout``) lives on the top-level
 ``posta`` package and is read here at call time, so setting
-``posta.api_key = "..."`` — or the env vars — takes effect for every
+``posta.api_key = "..."`` (or the env vars) takes effect for every
 resource call without re-instantiating anything.
 """
 
@@ -110,7 +110,7 @@ def list_query(
 ) -> Optional[Dict[str, Any]]:
     """Flatten keyset list options into a query map (None values dropped).
 
-    ``limit`` may instead be the whole options dict — resend-python's
+    ``limit`` may instead be the whole options dict: resend-python's
     ``list({"limit": 10, "after": ...})`` shape.
     """
     if isinstance(limit, dict):

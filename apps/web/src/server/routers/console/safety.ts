@@ -780,7 +780,7 @@ export const consoleSafetyRouter = router({
 
   /**
    * Break-glass: a time-boxed grant to read the subject and rendered text of
-   * flagged messages, for a named security reason. Nothing decrypts here —
+   * flagged messages, for a named security reason. Nothing decrypts here:
    * the grant row and its audit exist before any content can be asked for.
    */
   requestAccess: operatorProcedure

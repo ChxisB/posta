@@ -1,5 +1,5 @@
 /**
- * RFC 4180 CSV serialization for dashboard table exports — the write-side
+ * RFC 4180 CSV serialization for dashboard table exports: the write-side
  * mirror of parseCsvContacts in ./csv (which is read-only). Kept pure so the
  * row escaping is unit-tested without an HTTP stream.
  */

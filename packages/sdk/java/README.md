@@ -1,6 +1,6 @@
 # posta-java
 
-Official Java SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
+Official Java SDK for [Posta](https://github.com/ChxisB/posta): a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK deliberately mirrors the
 shape of [`resend-java`](https://github.com/resend/resend-java), so migrating is
@@ -70,9 +70,9 @@ new Posta(apiKey, baseUrl, true);  // also accept a non-loopback http:// base UR
 Every call throws a single checked `PostaException` on a non-2xx response.
 It carries the API's error shape:
 
-- `getName()` — a stable snake_case code you can switch on (`validation_error`, `not_found`, `restricted_api_key`, `sending_paused`, `all_recipients_suppressed`, …)
-- `getMessage()` — a human-readable description
-- `getStatusCode()` — the HTTP status, or `null` when the request never reached the API (a client-side or transport failure)
+- `getName()`: a stable snake_case code you can switch on (`validation_error`, `not_found`, `restricted_api_key`, `sending_paused`, `all_recipients_suppressed`, …)
+- `getMessage()`: a human-readable description
+- `getStatusCode()`: the HTTP status, or `null` when the request never reached the API (a client-side or transport failure)
 
 ```java
 try {
@@ -90,7 +90,7 @@ suppression list or opted out of the send's `topicId`.
 
 ## Resources
 
-Every request field you set reaches the wire — nothing is dropped client-side.
+Every request field you set reaches the wire: nothing is dropped client-side.
 Fields the server does not support yet (`template` on send, `from`/`replyTo`/`variables`
 on templates) are forwarded as-is and answered with a 422.
 
@@ -117,7 +117,7 @@ ms.emails().send(options, "order-123");            // the plain idempotency-key 
 ```java
 ms.emails().send(options);                  // POST /emails
 ms.emails().send(options, requestOptions);  // with an Idempotency-Key / extra headers
-ms.emails().get(id);                        // GET /emails/{id} — includes a nullable score (0-10)
+ms.emails().get(id);                        // GET /emails/{id}: includes a nullable score (0-10)
 ms.emails().list(ListOptions.builder().limit(50).build()); // GET /emails
 ms.emails().update(id, UpdateEmailOptions.builder().scheduledAt("2026-09-01T09:00:00Z").build());
 ms.emails().getInsights(id);                // GET /emails/{id}/insights (404 not_found until computed)
@@ -130,7 +130,7 @@ Send options are camelCase and mapped to the wire: `replyTo` → `reply_to`,
 accept one or more addresses. Also available: `.tag(new Tag(name, value))`,
 `.attachment(Attachment.builder().fileName("a.pdf").content(base64).build())`
 (or `.path(url)`, plus `contentType`/`contentId`), `.header(name, value)` and
-`.template(...)` (forwarded; the server answers 422 — send `html`/`text`).
+`.template(...)` (forwarded; the server answers 422: send `html`/`text`).
 `resend-java`'s `addTag`/`addAttachment`/`addHeader` spellings work too.
 
 ### Batch
@@ -146,7 +146,7 @@ Strict mode (the default) rejects the whole batch on the first invalid item.
 
 ### Contacts
 
-Contacts are team-global — one list per team, no audiences.
+Contacts are team-global: one list per team, no audiences.
 
 ```java
 ms.contacts().create(CreateContactOptions.builder()
@@ -161,7 +161,7 @@ ms.contacts().update(UpdateContactOptions.builder()
     .id(id).unsubscribed(true).firstName(null).build()); // null clears a field
 ms.contacts().remove(ContactAddress.email("ada@acme.dev"));   // the contact's emails stay in the log
 ms.contacts().remove(RemoveContactOptions.builder()
-    .email("ada@acme.dev").erase(true).build());           // ?erase=true — also scrubs the address from history
+    .email("ada@acme.dev").erase(true).build());           // ?erase=true: also scrubs the address from history
 ms.contacts().list(ListOptions.builder().limit(50).build());
 // Bulk read (Posta extension): attach properties and topic subscriptions to every item,
 // so an audience reads in one request per 100 contacts instead of one per contact
@@ -174,10 +174,10 @@ ms.contacts().topics().update(UpdateContactTopicsOptions.builder()
 ListResponse<ContactTopic> topics = ms.contacts().topics().list("ada@acme.dev"); // GET /contacts/{idOrEmail}/topics
 topics.getData().get(0).getSubscription(); // effective choice: the contact's own, else the topic default
 topics.getData().get(0).isExplicit();      // false when it is the topic default
-topics.getData().get(0).getVisibility();   // "public" | "private" — the hosted page lists public topics only
+topics.getData().get(0).getVisibility();   // "public" | "private": the hosted page lists public topics only
 
 // Preference-center link (Posta extension): the contact's hosted preference page,
-// the same one their emails' unsubscribe links open. No expiry — show it only to the contact.
+// the same one their emails' unsubscribe links open. No expiry, show it only to the contact.
 PreferencesLink link = ms.contacts().preferencesLink(ContactAddress.email("ada@acme.dev")); // POST /contacts/{idOrEmail}/preferences-link
 link.getUrl();                                                    // 422 when the instance cannot build hosted links
 
@@ -194,11 +194,11 @@ res.getCounts();   // created / updated / skipped / failed
 res.getErrors();   // permissive mode: rejected items
 
 // Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
-// in request order; unknown entries are listed, not errors — one request against the rate limit
+// in request order; unknown entries are listed, not errors: one request against the rate limit
 BatchGetContactsResponse found = ms.contacts().batch().get(
     List.of(ContactAddress.id(contactId), ContactAddress.email(email)), ContactInclude.TOPICS);
-found.getData();    // [{ object: "contact", id, email, ..., topics }] — the contacts found
-found.getMissing(); // [{ index, email }] — request entries that matched nobody
+found.getData();    // [{ object: "contact", id, email, ..., topics }]: the contacts found
+found.getMissing(); // [{ index, email }]: request entries that matched nobody
 
 // Bulk removal (Posta extension): up to 1000 per call, by ids or by emails;
 // their emails stay in the log unless erase also scrubs the addresses from history
@@ -207,7 +207,7 @@ ms.contacts().batch().remove(RemoveContactsOptions.builder().ids(List.of(a)).era
 // → getData(): [{ contact, deleted: true }] for the rows actually deleted
 ```
 
-`Contact.getProperties()` returns `Map<String, ContactPropertyValue>` — each
+`Contact.getProperties()` returns `Map<String, ContactPropertyValue>`: each
 value carries its declared `type` (`string`/`number`) and the `value`.
 `Contact.getTopics()` returns the same rows as `contacts().topics().list(...)`;
 on list and batch reads both are `null` unless `include` asked for them.
@@ -229,7 +229,7 @@ ms.contactProperties().remove(id);
 ms.topics().create(CreateTopicOptions.builder()
     .name("Product updates").defaultSubscription(Subscription.OPT_IN).visibility("public").build());
 ms.topics().get(id);
-ms.topics().list();     // bare { data } — topics are unpaginated
+ms.topics().list();     // bare { data }: topics are unpaginated
 ms.topics().update(id, UpdateTopicOptions.builder().name("Product news").build());
 ms.topics().remove(id);
 ```
@@ -239,7 +239,7 @@ ms.topics().remove(id);
 ```java
 Id b = ms.broadcasts().create(CreateBroadcastOptions.builder()
     .from("Acme <news@acme.dev>").subject("Launch")
-    .segmentId(segmentId)          // optional; also .topicId(...) — neither sends to all contacts
+    .segmentId(segmentId)          // optional; also .topicId(...), neither sends to all contacts
     .previewText("It's here")
     .html("<p>Hi {{{FIRST_NAME|there}}}</p>")
     .send(true).scheduledAt("in 1 hour")   // send/schedule on create instead of saving a draft
@@ -255,7 +255,7 @@ ms.broadcasts().remove(id);    // draft only
 
 ### Segments (Posta extension)
 
-Dynamic segments are a saved filter over your contacts — a Posta
+Dynamic segments are a saved filter over your contacts: a Posta
 superset with no Resend equivalent.
 
 ```java
@@ -358,7 +358,7 @@ The account deliverability score over the trailing 30 days.
 
 ```java
 DeliverabilityReport report = ms.deliverability().get();
-report.getScore();            // Double, 0-10 — null until there is enough data
+report.getScore();            // Double, 0-10: null until there is enough data
 report.getBand();             // "excellent" | "good" | "needs_attention" | "at_risk" | null
 report.getGuardrailStatus();  // "ok" | "warning" | "paused"
 ```

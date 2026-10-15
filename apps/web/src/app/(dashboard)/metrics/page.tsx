@@ -30,7 +30,7 @@ type Range = (typeof RANGES)[number];
 
 /**
  * Rate-card geometry from the canvas: 120px bar area, dashed RISK line at a
- * fixed top offset — bars scale so the threshold rate lands exactly on the
+ * fixed top offset; bars scale so the threshold rate lands exactly on the
  * line (bounce line at top 6px → 114px = 4%; complaint at 14px → 106px = 0.05%).
  */
 const BAR_AREA = 120;
@@ -92,7 +92,7 @@ function rateBars(
 
 /**
  * Engagement has no risk threshold (higher is better), so bars scale to the
- * window's own peak rate instead of a fixed line. Rate is against delivered —
+ * window's own peak rate instead of a fixed line. Rate is against delivered:
  * a message must land before it can be opened or clicked.
  */
 function engagementBars(
@@ -139,7 +139,7 @@ function RateCard(props: {
   rowPct: string;
   // Bounce/complaint: dashed danger line the bars are scaled against.
   risk?: { label: string; lineTop: number };
-  // Engagement: neutral denominator note (no threshold — higher is better).
+  // Engagement: neutral denominator note (no threshold; higher is better).
   note?: string;
   // Tooltip suffix for a bar whose day is still being counted.
   partialNote: string;
@@ -153,7 +153,7 @@ function RateCard(props: {
   const hoveredBar = hover ? props.bars[hover.index] : undefined;
 
   // Same mechanics as the line chart: track the pointer over the whole bar
-  // area (a thin bar is no hit target) and snap to the nearest bar's pitch —
+  // area (a thin bar is no hit target) and snap to the nearest bar's pitch;
   // bars flex to fill the card, so the pitch comes from the measured width.
   function track(event: React.PointerEvent<HTMLDivElement>) {
     if (props.bars.length === 0) return;
@@ -354,7 +354,7 @@ function RateCard(props: {
 
 /**
  * Mirrors the loaded page: KPI card (3 figures + bar chart), then the two
- * rate cards — same containers and type wrappers, 1lh bars for text lines
+ * rate cards; same containers and type wrappers, 1lh bars for text lines
  * (the KPI figure line is 40px × 1.1 = 44px; a guessed bar height would
  * shift the cards when the numbers land).
  */
@@ -473,18 +473,18 @@ export default function MetricsPage() {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const dayLabel = (day: string) => formatDayUtc(day, locale);
   // The headline of the two risk cards is the guardrail's own seven-day
-  // rate — the number that warns and pauses — never the chart window's.
+  // rate (the number that warns and pauses) never the chart window's.
   const health = useQuery(trpc.metrics.health.queryOptions());
   const guardrailRate = (rate: number | undefined, format: Intl.NumberFormat) =>
     health.data === undefined
       ? "…"
       : health.data.sent > 0 && rate !== undefined
         ? format.format(rate)
-        : "—";
+        : "-";
   const ofSent = (count: number, sent: number) =>
     t("chart.ofSent", { count: fmt.format(count), sent: fmt.format(sent) });
   const [rangeParam, setRangeParam] = useUrlState("range", "15");
-  // URL input — anything but a known range key falls back to the default.
+  // URL input: anything but a known range key falls back to the default.
   const days: Range = RANGES.find((r) => String(r) === rangeParam) ?? 15;
   const query = useQuery(trpc.metrics.window.queryOptions({ days, tz }));
   const scoreQuery = useQuery(trpc.metrics.accountScore.queryOptions());
@@ -552,7 +552,7 @@ export default function MetricsPage() {
                 {data.totals.sent > 0 ? (
                   <Odometer formatted={pct1.format(data.totals.delivered / data.totals.sent)} />
                 ) : (
-                  "—"
+                  "-"
                 )}
               </KpiValue>
               <KpiValue label={t("kpi.allTimeDelivered")}>
@@ -610,7 +610,7 @@ export default function MetricsPage() {
                   {scoreQuery.data.scoreTenths != null ? (
                     <Odometer formatted={formatScoreTenths(scoreQuery.data.scoreTenths, locale)} />
                   ) : (
-                    "—"
+                    "-"
                   )}
                 </div>
                 <span
@@ -652,7 +652,7 @@ export default function MetricsPage() {
                   <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {scoreQuery.data.contentScoreTenths != null
                       ? formatScoreTenths(scoreQuery.data.contentScoreTenths, locale)
-                      : "—"}
+                      : "-"}
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--po-faint)", marginTop: 3 }}>
                     {t("score.contentLine")}
@@ -669,7 +669,7 @@ export default function MetricsPage() {
                   <div className="po-digits" style={{ fontSize: 20, marginTop: 4 }}>
                     {scoreQuery.data.outcomeScoreTenths != null
                       ? formatScoreTenths(scoreQuery.data.outcomeScoreTenths, locale)
-                      : "—"}
+                      : "-"}
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--po-faint)", marginTop: 3 }}>
                     {scoreQuery.data.insufficientOutcomeData
@@ -744,7 +744,7 @@ export default function MetricsPage() {
               rowLabel={t("bounce.bounced")}
               rowCount={fmt.format(data.totals.hardBounced)}
               rowPct={
-                data.totals.sent > 0 ? pct2.format(data.totals.hardBounced / data.totals.sent) : "—"
+                data.totals.sent > 0 ? pct2.format(data.totals.hardBounced / data.totals.sent) : "-"
               }
             />
             <RateCard
@@ -771,7 +771,7 @@ export default function MetricsPage() {
               rowLabel={t("complaint.complained")}
               rowCount={fmt.format(data.totals.complained)}
               rowPct={
-                data.totals.sent > 0 ? pct2.format(data.totals.complained / data.totals.sent) : "—"
+                data.totals.sent > 0 ? pct2.format(data.totals.complained / data.totals.sent) : "-"
               }
             />
           </div>
@@ -783,7 +783,7 @@ export default function MetricsPage() {
               headline={
                 data.totals.delivered > 0
                   ? pct1.format(data.totals.opened / data.totals.delivered)
-                  : "—"
+                  : "-"
               }
               color="var(--po-info)"
               partialNote={t("chart.soFar")}
@@ -799,7 +799,7 @@ export default function MetricsPage() {
                       pct:
                         data.totals.delivered > 0
                           ? pct1.format(data.totals.prefetched / data.totals.delivered)
-                          : "—",
+                          : "-",
                     }
                   : undefined
               }
@@ -807,7 +807,7 @@ export default function MetricsPage() {
               rowPct={
                 data.totals.delivered > 0
                   ? pct1.format(data.totals.opened / data.totals.delivered)
-                  : "—"
+                  : "-"
               }
             />
             <RateCard
@@ -816,7 +816,7 @@ export default function MetricsPage() {
               headline={
                 data.totals.delivered > 0
                   ? pct1.format(data.totals.clicked / data.totals.delivered)
-                  : "—"
+                  : "-"
               }
               color="var(--po-info)"
               partialNote={t("chart.soFar")}
@@ -826,7 +826,7 @@ export default function MetricsPage() {
               rowPct={
                 data.totals.delivered > 0
                   ? pct1.format(data.totals.clicked / data.totals.delivered)
-                  : "—"
+                  : "-"
               }
             />
           </div>

@@ -1,6 +1,6 @@
 package io.github.tacklabs.posta.model;
 
-/** Response from {@code emails().send(...)} — the new email's id. */
+/** Response from {@code emails().send(...)}: the new email's id. */
 public final class CreateEmailResponse {
 
   private String id;

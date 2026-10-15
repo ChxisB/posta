@@ -12,7 +12,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for domain management: the official `resend` npm SDK
- * against a live Posta API with a stubbed SES identity client —
+ * against a live Posta API with a stubbed SES identity client:
  * domains.create/list/get/update/verify/remove.
  */
 
@@ -65,7 +65,7 @@ beforeAll(async () => {
       clientForRegion: () => fakeSes,
       dns: {
         // Answers exactly the records SES's checklist requires, keyed off the
-        // captured per-domain DKIM key — so verify passes when `state` says so.
+        // captured per-domain DKIM key, so verify passes when `state` says so.
         resolveTxt: async (name: string) => {
           for (const [domain, pub] of dkimKeys) {
             if (name === `posta._domainkey.${domain}`) {

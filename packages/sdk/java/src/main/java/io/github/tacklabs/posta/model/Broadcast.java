@@ -3,7 +3,7 @@ package io.github.tacklabs.posta.model;
 import java.util.List;
 
 /**
- * A broadcast. Also used for broadcast list items — the content fields
+ * A broadcast. Also used for broadcast list items: the content fields
  * ({@code from}, {@code subject}, {@code html}, …) are only populated when a
  * single broadcast is fetched.
  */

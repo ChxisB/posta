@@ -17,7 +17,7 @@ const ADD_DOMAIN = "__add-domain__";
  * the team's sending domains (with each domain's verification status and an
  * add-domain shortcut) instead of a free-typed "Ada <ada@yourdomain.com>".
  * The composed RFC mailbox string is emitted upward, so the draft/API contract
- * is unchanged — and the API still verifies the domain at send time.
+ * is unchanged, and the API still verifies the domain at send time.
  *
  * Uncontrolled after mount: the parts seed from `value` once and edits flow
  * up, so a partially-filled row (which composes to "") never wipes the boxes.
@@ -47,7 +47,7 @@ export function FromField({
 
   // Default to the first verified domain (else the first) once the list loads,
   // so the selector never sits empty when the team has domains. Emits through
-  // onChange like a user edit — otherwise the parent's `from` could disagree
+  // onChange like a user edit, otherwise the parent's `from` could disagree
   // with what the field displays once the local part is typed.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -73,7 +73,7 @@ export function FromField({
         badge: { label: common(`status.${status}`), tone: TONE[status] ?? "neutral" },
       };
     });
-    // A draft may reference a domain the team no longer has — keep it pickable
+    // A draft may reference a domain the team no longer has: keep it pickable
     // so opening the draft doesn't silently rewrite the sender.
     if (parts.domain && !rows.some((d) => d.name === parts.domain)) {
       opts.unshift({ value: parts.domain, label: parts.domain });
@@ -136,7 +136,7 @@ export function FromField({
                 value={parts.domain}
                 onChange={(next) => {
                   if (next === ADD_DOMAIN) {
-                    // Programmatic push — the anchor/back guards never see it.
+                    // Programmatic push: the anchor/back guards never see it.
                     if (confirmUnsavedNavigation()) router.push("/domains/new");
                   } else {
                     update({ domain: next });

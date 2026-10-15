@@ -20,7 +20,7 @@ defmodule Posta.ContactProperties do
   alias Posta.{Client, Request}
   alias Posta.ContactProperties.ContactProperty
 
-  @doc "`POST /contact-properties` — a duplicate `key` is a 409."
+  @doc "`POST /contact-properties`: a duplicate `key` is a 409."
   @spec create(Client.t(), map()) :: {:ok, ContactProperty.t()} | {:error, Posta.Error.t()}
   def create(client \\ Posta.client(), params) when is_map(params) do
     Request.run(client,
@@ -37,7 +37,7 @@ defmodule Posta.ContactProperties do
     Request.run(client, method: :get, path: member_path(id), as: ContactProperty)
   end
 
-  @doc "`GET /contact-properties` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /contact-properties`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -53,7 +53,7 @@ defmodule Posta.ContactProperties do
     )
   end
 
-  @doc "`PATCH /contact-properties/:id` — `fallback_value` (`nil` clears it)."
+  @doc "`PATCH /contact-properties/:id`: `fallback_value` (`nil` clears it)."
   @spec update(Client.t(), String.t(), map()) ::
           {:ok, ContactProperty.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id, params) when is_binary(id) and is_map(params) do

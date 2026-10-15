@@ -19,7 +19,7 @@ export interface SelectOption {
   hint?: string;
   /** Leading adornment in the option row AND on the trigger while selected, e.g. a <StatusDot>. */
   adornment?: React.ReactNode;
-  /** Status badge after the label — shown in the option row AND on the trigger
+  /** Status badge after the label: shown in the option row AND on the trigger
    * while the option is selected (e.g. a domain's Verified/Pending). */
   badge?: { label: string; tone: "success" | "info" | "warn" | "danger" | "neutral" };
   /** Section heading drawn above the first row of each run of options sharing it. */
@@ -44,7 +44,7 @@ const UNPLACED_LIST_HEIGHT = 264;
 /**
  * Replacement for native <select>: compact .po-input trigger + .po-menu
  * listbox popover, per the canvas dropdown grammar. Controlled only.
- * ARIA combobox pattern — focus stays on the trigger (or the search input
+ * ARIA combobox pattern: focus stays on the trigger (or the search input
  * when present); aria-activedescendant tracks the highlighted option.
  */
 export function Select({
@@ -301,7 +301,7 @@ export function Select({
                 width: "max-content",
                 maxWidth: `min(${MENU_MAX_WIDTH}px, ${PANEL_MAX_WIDTH})`,
                 zIndex: "var(--po-z-menu)",
-                // Rows must scroll to the panel edge and clip on the radius —
+                // Rows must scroll to the panel edge and clip on the radius:
                 // panel padding would crop them mid-item at the scroll boundary.
                 padding: 0,
                 overflow: "hidden",

@@ -129,7 +129,7 @@ Menus and popovers are 10px (`.po-menu`).
 
 ## Motion
 
-Everything is a 120–180ms fade on `--po-ease`; drawers and modals take 240ms.
+Everything is a 120 to 180ms fade on `--po-ease`; drawers and modals take 240ms.
 The odometer digit-roll is the only flourish. Every animation is off under
 `prefers-reduced-motion`.
 
@@ -205,7 +205,7 @@ other icon fonts or icon libraries.
 
 ## Fonts
 
-- **Geist** (OFL): `@fontsource-variable/geist` (one variable file, 100–900),
+- **Geist** (OFL): `@fontsource-variable/geist` (one variable file, 100 to 900),
   imported in the root layout of the dashboard and the docs.
 - **JetBrains Mono** (OFL): `@fontsource/jetbrains-mono` (400/500/700).
 
@@ -256,7 +256,7 @@ pointer. Without room above, a mouse's tip drops below the plot; a touch's
 never does (the hand would hide it) but rises from above the fingertip,
 beside the touched column.
 
-**Narrow desktop (900–1199px).** Beside the sidebar the content column is
+**Narrow desktop (900 to 1199px).** Beside the sidebar the content column is
 under 880px: the console's 4-up grids go 2-up and its 2/1 splits stack, a
 detail page's meta grid lays out as many columns as keep each value 11rem
 wide, and no meta value widens its column (a long chip ellipsizes). In a
@@ -277,7 +277,7 @@ to 3-up then 2-up (<640px); stepper rails hide or shrink under 640px. Modals
 go `calc(100vw - 24px)` under 480px and their footer buttons share the width.
 Toasts drop from under the topbar (<640px) so they never cover a dialog's
 footer. Tables scroll horizontally **inside their own wrapper** (the shared
-`<Table>`) — the page itself never scrolls horizontally — and a list's row
+`<Table>`) (the page itself never scrolls horizontally) and a list's row
 menu ("…") column sticks to the wrapper's right edge at any width. An email's
 events strip reads top to bottom. On touch screens
 keycaps are hidden, small glyph controls (✕, ⓘ, a chip's copy button) get a

@@ -909,7 +909,7 @@ describe('all-teams tokens (team_id claim "*")', () => {
       arguments: { team_id: secondTeamId },
     });
     expect(JSON.stringify(resultJson(inSecond))).toContain(id);
-    // No team_id: the oldest membership (the fixture team) — which never saw this segment.
+    // No team_id: the oldest membership (the fixture team), which never saw this segment.
     const inDefault = await client.callTool({ name: "list_segments", arguments: {} });
     expect(JSON.stringify(resultJson(inDefault))).not.toContain(id);
     await client.close();

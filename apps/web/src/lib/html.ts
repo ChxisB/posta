@@ -22,7 +22,7 @@ const RAW_TEXT_ELEMENTS = new Set(["script", "style", "pre", "textarea"]);
 const HTML_TOKEN = /<!--[\s\S]*?-->|<![^>]*>|<\/?[A-Za-z](?:"[^"]*"|'[^']*'|[^'">])*>|[^<]+|</g;
 
 /**
- * Indent HTML for reading — one tag or text run per line, nested by depth.
+ * Indent HTML for reading: one tag or text run per line, nested by depth.
  * Display only: it re-flows whitespace between inline elements and trusts
  * that tags close, so a rendering must always come from the original source.
  */

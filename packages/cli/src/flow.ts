@@ -55,7 +55,7 @@ const yes = (answer: string, initial: boolean): boolean => {
  * (`│`), the active question is a filled diamond and its answer is redrawn
  * under a hollow one, so the transcript reads as a form that was filled in.
  * On a pipe the same calls print plain lines and plain questions
- * (`label — hint [default]: `, `label [y/N] `), one answer per line.
+ * (`label, hint [default]: `, `label [y/N] `), one answer per line.
  */
 export function createFlow(
   rl: Asker,
@@ -91,7 +91,7 @@ export function createFlow(
 
   const answered = (label: string, answer: string, hint?: string): void => {
     marked(dim(RAIL.done), hint ? `${label} (${hint})` : label);
-    for (const line of wrapLines(answer || "—")) write(`${bar()}  ${dim(line)}`);
+    for (const line of wrapLines(answer || "-")) write(`${bar()}  ${dim(line)}`);
     write(bar());
   };
 
@@ -164,7 +164,7 @@ export function createFlow(
     },
     async ask({ label, hint, initial, secret = false }) {
       if (!rail) {
-        const question = `${label}${hint ? ` — ${hint}` : ""}${initial ? ` [${initial}]` : ""}: `;
+        const question = `${label}${hint ? `, ${hint}` : ""}${initial ? ` [${initial}]` : ""}: `;
         const raw = secret ? await secretPrompt(rl, { label }) : await rl.question(question);
         return raw.trim() || initial || "";
       }
@@ -173,13 +173,13 @@ export function createFlow(
       if (secret) {
         const value = await secretPrompt(rl, { label, rail: true });
         out.write(`\x1b[${headRows + 2}A\x1b[J`);
-        answered(label, value ? "••••" : initial || "—", hint);
+        answered(label, value ? "••••" : initial || "-", hint);
         return value || initial || "";
       }
       const raw = await rl.question(`${bar()}  `);
       const answer = raw.trim() || initial || "";
       out.write(`\x1b[${headRows + (rl.rows?.() ?? 0)}A\x1b[J`);
-      answered(label, answer || "—", hint);
+      answered(label, answer || "-", hint);
       return answer;
     },
     select({ label, options, initial }) {

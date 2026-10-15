@@ -6,7 +6,7 @@ import { type AppLocale, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES } from "../i18n/
 
 /**
  * The dashboard locale of the current request, from the NEXT_LOCALE cookie.
- * Outside a request (tests, background jobs) `cookies()` throws — fall back
+ * Outside a request (tests, background jobs) `cookies()` throws: fall back
  * to the default locale.
  */
 export async function activeLocale(): Promise<AppLocale> {
@@ -24,7 +24,7 @@ export async function activeLocale(): Promise<AppLocale> {
  * The locale of bare request headers, for mail sent from an auth endpoint
  * where next-intl's request scope does not exist: the NEXT_LOCALE cookie the
  * app sets, then Accept-Language. Anything that isn't Portuguese reads
- * English — the email locales mirror the dashboard's launch locales.
+ * English: the email locales mirror the dashboard's launch locales.
  */
 export function localeFromHeaders(headers: Headers | null | undefined): AppLocale {
   const cookie = headers?.get("cookie")?.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/)?.[1];

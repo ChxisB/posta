@@ -7,7 +7,7 @@ function fakeEnv(overrides: Record<string, boolean>): Env {
 }
 
 // The operator owns the reverse proxy and its certificates, so pointing a
-// hostname at the app is theirs to arrange — the flag is cloud-only.
+// hostname at the app is theirs to arrange: the flag is cloud-only.
 it("always supports branded subdomains on self-host, flag or no flag", () => {
   expect(trackingSubdomainsSupported(fakeEnv({}))).toBe(true);
   expect(trackingSubdomainsSupported(fakeEnv({ ALLOW_TRACKING_SUBDOMAINS: true }))).toBe(true);

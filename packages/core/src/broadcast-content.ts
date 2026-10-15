@@ -21,7 +21,7 @@ export interface MergeContact {
  * Substitutes contact merge tokens. Builtins (EMAIL/FIRST_NAME/LAST_NAME) win
  * over a same-named custom property; any other name resolves against
  * `properties` by exact key. A null/empty value falls back to the token's
- * `|fallback` text, or to "" without one — the raw token must never reach an
+ * `|fallback` text, or to "" without one: the raw token must never reach an
  * inbox. Contact values are user data landing in markup, so the html body gets
  * them escaped; fallbacks are the author's own content and stay literal.
  */

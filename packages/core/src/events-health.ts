@@ -16,7 +16,7 @@ export interface SesEventsHealth {
 /**
  * Whether SES events are reaching the instance. Rows carrying an SNS message
  * id are exactly the SES-originated ones, so "sends old enough for a delivery
- * or bounce to have come back, and none did" means the pipeline is broken —
+ * or bounce to have come back, and none did" means the pipeline is broken:
  * no SNS subscription, one pending confirmation, or an SQS queue nobody reads.
  * Env vars being set says nothing about that; the dashboard would otherwise
  * sit at "Sent" forever.

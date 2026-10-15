@@ -11,7 +11,7 @@ type Kind = "click" | "open";
 /**
  * Enabling engagement tracking is the same gesture wherever it lives (the
  * Configuration tab's per-kind switches, the Records tab's group switch): it
- * confirms first — the change touches every future send — then routes into the
+ * confirms first (the change touches every future send) then routes into the
  * onboarding flow instead of persisting in place. It routes there whenever the
  * subdomain still needs setting up (cloud, no CNAME yet) OR a configured domain
  * is turning tracking back on from fully off, so re-enabling always walks the

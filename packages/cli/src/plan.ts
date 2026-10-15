@@ -138,7 +138,7 @@ export function buildPlan({
         manual(
           "properties",
           p.key,
-          `type differs: ${p.type} on Resend, ${existing.type} here — a property's type cannot change`,
+          `type differs: ${p.type} on Resend, ${existing.type} here; a property's type cannot change`,
         );
       } else {
         add("properties", "unchanged", p.key, { targetId: existing.id });
@@ -163,7 +163,7 @@ export function buildPlan({
         manual(
           "topics",
           t.name,
-          `default_subscription differs: ${t.defaultSubscription} on Resend, ${existing.defaultSubscription} here — it is fixed at creation`,
+          `default_subscription differs: ${t.defaultSubscription} on Resend, ${existing.defaultSubscription} here; it is fixed at creation`,
         );
       }
       const changed = changedFields([
@@ -399,7 +399,7 @@ export function buildPlan({
         manual(
           "broadcasts",
           b.name,
-          `from domain ${domain ?? b.from} is not verified here — re-run apply after DNS verification`,
+          `from domain ${domain ?? b.from} is not verified here: re-run apply after DNS verification`,
         );
         continue;
       }
@@ -545,7 +545,7 @@ const COLLAPSE_AT = 3;
  * Items grouped by resource in apply order; a run of ≥3 items sharing action
  * and detail folds into one row (a tail of sent broadcasts reads as one line).
  * Creates and updates never fold: their names are what the user reviews
- * before confirming. Presentation only — the plan's items are untouched.
+ * before confirming. Presentation only, the plan's items are untouched.
  */
 export function groupPlanItems(items: readonly PlanItem[]): PlanGroup[] {
   const runKey = (i: PlanItem): string => `${i.action}\0${i.detail ?? ""}`;
@@ -605,7 +605,7 @@ function renderRow(row: PlanRow): string[] {
   return lines;
 }
 
-/** `name1, name2 … and N more` — the continuation under a collapsed row. */
+/** `name1, name2 … and N more`: the continuation under a collapsed row. */
 export const foldedKeysLine = (keys: readonly string[]): string =>
   `${keys.slice(0, 2).map(stripControl).join(", ")} … and ${formatNumber(keys.length - 2)} more`;
 
@@ -633,7 +633,7 @@ export function renderPlan(plan: Plan): string {
   return `${lines.join("\n")}\n`;
 }
 
-/** sha256 of the canonical items JSON — the state file binds itself to this. */
+/** sha256 of the canonical items JSON: the state file binds itself to this. */
 export function planHash(plan: Plan): string {
   return createHash("sha256").update(canonicalJson(plan.items)).digest("hex");
 }

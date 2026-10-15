@@ -141,7 +141,7 @@ describe("the Overview's regions table", () => {
       "75%",
       "flowing",
       "healthy",
-      "—",
+      "-",
       "0.10%",
       "0.02%",
       "$31.50",
@@ -267,16 +267,16 @@ describe("the Overview's regions table", () => {
     expect(sandbox.map(text).slice(1, 9)).toEqual([
       "Sandbox",
       "12 / 200",
-      "—",
+      "-",
       "saudável",
-      "—",
-      "—",
-      "—",
+      "-",
+      "-",
+      "-",
       "$0",
     ]);
     expect(tipOf(sandbox[2] ?? "")).toBe("12 / 200 · taxa máxima 1/s");
     expect(tipOf(sandbox[8] ?? "")).toBe("12 enviados × $0,10/mil");
-    expect(down.map(text).slice(1, 9)).toEqual(["Inacessível", "—", "—", "—", "—", "—", "—", "$0"]);
+    expect(down.map(text).slice(1, 9)).toEqual(["Inacessível", "-", "-", "-", "-", "-", "-", "$0"]);
     expect(tipOf(down[1] ?? "")).toBe("GetAccount falhou: ThrottlingException");
     expect(shutdown[4]).toContain("background:var(--po-danger)");
     expect(text(shutdown[4] ?? "")).toBe("suspensa");
@@ -291,7 +291,7 @@ describe("the Overview's regions table", () => {
       ]),
     );
     if (!unreadable || !none) throw new Error("rows missing");
-    expect(text(unreadable[7] ?? "")).toBe("—");
+    expect(text(unreadable[7] ?? "")).toBe("-");
     const estimate =
       "A pausa regional segue nossa estimativa dessa taxa: 0,030% em 7 dias, limite de 0,4%\nNossa estimativa da taxa do SES deixa de fora os e-mails para provedores que nunca repassam reclamações, como o Gmail";
     expect(tipOf(unreadable[7] ?? "")).toBe(`Não foi possível ler a taxa do SES\n${estimate}`);

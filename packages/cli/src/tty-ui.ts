@@ -2,7 +2,7 @@ import { createInterface, emitKeypressEvents } from "node:readline";
 import { bold, bone, dim, info, wrapIndent } from "./theme.js";
 import { stripControl, truncate } from "./utils.js";
 
-/** Structural subset of lineReader — the non-TTY fallback asker every prompt degrades to. */
+/** Structural subset of lineReader: the non-TTY fallback asker every prompt degrades to. */
 export interface Asker {
   question(prompt: string): Promise<string>;
   /** A line typed or pasted ahead of its question on a terminal, taken without printing it. */
@@ -146,7 +146,7 @@ export function lineReader(
       // on a TTY, readline repaints the line on every edit (backspace, arrows)
       // using only the prompt it was given, so a prompt it never saw gets
       // erased down to nothing on the first backspace. On non-TTY output
-      // rl.prompt() writes the prompt text verbatim — piped bytes unchanged.
+      // rl.prompt() writes the prompt text verbatim: piped bytes unchanged.
       // After EOF readline has closed itself and prompt() would throw; the
       // direct write keeps the prompt-then-"" contract byte-identical.
       if (ended) {
@@ -198,9 +198,9 @@ export const secretPromptMode = (
   toStderr: stdinTty && !stdoutTty,
 });
 
-/** `Domain limit: first 3` — or `Where is it running? — Cloud` when the label is a question. */
+/** `Domain limit: first 3`, or `Where is it running? Cloud` when the label is a question. */
 export const answerLine = (label: string, answer: string): string =>
-  `${label}${label.endsWith("?") ? " — " : ": "}${answer}`;
+  `${label}${label.endsWith("?") ? " " : ": "}${answer}`;
 
 /** Characters the terminal shows: SGR sequences removed, code points counted. */
 export const visibleLength = (s: string): number => [...stripControl(s)].length;
@@ -212,7 +212,7 @@ export const rowsFor = (lines: readonly string[], columns: number): number =>
 export { bone, dim } from "./theme.js";
 
 /**
- * Final hand-tuned banner art, stored verbatim — ▓ marks the M's stem accent,
+ * Final hand-tuned banner art, stored verbatim: ▓ marks the M's stem accent,
  * ░ the shadow. Every row of an art is the same visual width; the tests pin
  * 6×74 (full) and 3×44 (compact).
  */
@@ -235,7 +235,7 @@ export type BannerTier = "full" | "compact" | "plain";
 
 /**
  * Which banner fits: the full art needs 80 columns, the compact one 48;
- * anything narrower — or a pipe — gets the plain one-line header, keeping
+ * anything narrower (or a pipe) gets the plain one-line header, keeping
  * piped output byte-identical to the pre-banner CLI.
  */
 export function pickBannerTier(columns: number, isTTY: boolean): BannerTier {
@@ -250,7 +250,7 @@ export function bannerLines(tier: "full" | "compact" = "full"): string[] {
 
 /**
  * Banner art, uncolored: the ▓ stem and ░ shadow carry the tones through
- * character density alone — terminal color themes made ANSI tinting read
+ * character density alone; terminal color themes made ANSI tinting read
  * wrong more often than right.
  */
 export function banner(tier: "full" | "compact" = "full"): string[] {
@@ -281,7 +281,7 @@ export interface SelectOption {
  * Arrow-key list prompt on a TTY; on pipes it degrades to a plain
  * `label [initial]: ` question via `rl` so piped input behaves exactly like
  * the free-form prompt it replaces (typed value, or the initial on empty/EOF).
- * `initial` may be a value outside `options` — pipes accept it verbatim, the
+ * `initial` may be a value outside `options`: pipes accept it verbatim, the
  * TTY cursor just starts at the first option. `rail` draws the guided-flow
  * style (a diamond before the label, rows on the rail, the answer redrawn
  * under a hollow diamond) instead of the bare list.
@@ -309,7 +309,7 @@ interface Key {
   sequence?: string;
 }
 
-/** \r is "return", \n is "enter" — pasted input and some terminals send the latter. */
+/** \r is "return", \n is "enter": pasted input and some terminals send the latter. */
 const isEnter = (key: Key): boolean => key.name === "return" || key.name === "enter";
 
 /**
@@ -534,7 +534,7 @@ async function multiSelectTty(label: string, options: MultiSelectOption[]): Prom
   return values;
 }
 
-/** `re_****…ab12` — enough to recognise a key, never enough to use it. */
+/** `re_****…ab12`: enough to recognise a key, never enough to use it. */
 export function maskSecret(secret: string): string {
   return secret.length >= 12 ? `${secret.slice(0, 3)}****…${secret.slice(-4)}` : "****";
 }
@@ -594,7 +594,7 @@ export async function confirmPrompt(
 
 /**
  * Free-form line; empty takes `initial`. `validate` returns an error message
- * to re-ask on a terminal — on a pipe there is nobody to re-ask, so the
+ * to re-ask on a terminal: on a pipe there is nobody to re-ask, so the
  * message is thrown for the caller to turn into exit 1.
  */
 export async function textPrompt(

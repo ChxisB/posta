@@ -52,13 +52,13 @@ async function recordEmailUnsubscribe(
 }
 
 /**
- * Public unsubscribe endpoint — the signed token is the only credential, and
+ * Public unsubscribe endpoint: the signed token is the only credential, and
  * it carries the scope: a topic-scoped token unsubscribes from that topic
  * only, a bare token unsubscribes globally.
  *
  * This path is what buildUnsubscribeHeaders puts in List-Unsubscribe, so it
  * takes both verbs: a browser GET lands on the hosted confirm page (which
- * lives one segment over — page.tsx and route.ts can't share a segment),
+ * lives one segment over; page.tsx and route.ts can't share a segment),
  * and POST serves the confirm form plus RFC 8058 one-click posts
  * (form-encoded `List-Unsubscribe=One-Click`, which must get a bare 2xx,
  * not a redirect).
@@ -93,7 +93,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ token: str
 
   // Preferences save from the confirm page: every listed topic gets an
   // explicit override (checked = subscribed). The listed set is recomputed
-  // server-side — posted ids outside it are ignored, so a recipient can only
+  // server-side: posted ids outside it are ignored, so a recipient can only
   // toggle what the page showed. Never touches the global unsubscribed flag.
   if (form.get("prefs") === "1") {
     const topics = await preferenceTopics(db, target);
@@ -113,7 +113,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ token: str
           target: [s.contactId, s.topicId],
           set: { subscribed: sql`excluded.subscribed`, updatedAt: new Date() },
         });
-      // Timeline: only the topics whose effective state actually flipped —
+      // Timeline: only the topics whose effective state actually flipped:
       // re-saving unchanged preferences records nothing.
       const flipped = topics.filter((topic) => topic.subscribed !== checked.has(topic.id));
       await recordContactActivity(

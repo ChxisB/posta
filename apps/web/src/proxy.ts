@@ -16,7 +16,7 @@ const UNSUBSCRIBE_HOST_PATHS = [
  * so recipients and link scanners never touch the dashboard's origin. That
  * host then answers the unsubscribe flow and its assets only: the dashboard,
  * the auth pages and everything else 404 there. The dashboard's own host
- * keeps serving the flow too — links in mail already sent point at it.
+ * keeps serving the flow too: links in mail already sent point at it.
  */
 export function proxy(request: NextRequest): NextResponse {
   const own = env.UNSUBSCRIBE_BASE_URL;

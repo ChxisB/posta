@@ -93,7 +93,7 @@ function InsightsSection({
   const notApplicable = checks.filter((c) => c.status === "not_applicable");
   const openCheck = openCheckId ? checks.find((c) => c.id === openCheckId) : undefined;
 
-  /** Mono data line under a check — hostnames, sizes, policies; never URLs. */
+  /** Mono data line under a check: hostnames, sizes, policies; never URLs. */
   function detailLine(check: EmailCheckResult): string | null {
     const d = check.detail;
     if (!d) return null;

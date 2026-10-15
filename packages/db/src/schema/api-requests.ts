@@ -7,7 +7,7 @@ import { teams } from "./teams.js";
  * Per-request API log. Both bodies are stored REDACTED at the API boundary
  * (content fields such as html/text/attachment content replaced by size
  * markers, secrets such as tokens and signing secrets by "[redacted]", 64KB
- * cap, never headers) — the emails table encrypts content at rest and this
+ * cap, never headers): the emails table encrypts content at rest and this
  * table must not become its plaintext copy. Bodies are admin-only in the
  * dashboard, deleted by the recipient erase job when they mention the erased
  * address, and rows age out with the email-body retention purge.

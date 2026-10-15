@@ -59,7 +59,7 @@ export const WEBHOOK_EVENT_GROUPS = [
 export type WebhookEventGroup = (typeof WEBHOOK_EVENT_GROUPS)[number];
 
 /**
- * Presentation annotation over WEBHOOK_EVENT_TYPES — never a second source
+ * Presentation annotation over WEBHOOK_EVENT_TYPES, never a second source
  * list. Each event's human label resolves via webhooks.eventLabel.<type>;
  * `dot` reuses the shared per-event hue tokens (tokens/colors.css --po-dot-*).
  * Parity with WEBHOOK_EVENT_TYPES is guarded in webhooks-router.test.ts.
@@ -109,7 +109,7 @@ export const WEBHOOK_EVENT_META: Record<
   "inbox.draft.deleted": { group: "inboxes", dot: "var(--po-dot-failed)", optIn: true },
 };
 
-/** "whsec_••••••••abcd" — scheme plus last 4, nothing recoverable. */
+/** "whsec_••••••••abcd", scheme plus last 4, nothing recoverable. */
 export function maskWebhookSecret(last4: string): string {
   return `whsec_••••••••${last4}`;
 }

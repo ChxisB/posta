@@ -55,7 +55,7 @@ import { and, asc, eq, gt, inArray, isNotNull, isNull, type SQL, sql } from "dri
 import { mailOwners, type SystemMailer } from "../system-mail.js";
 
 /**
- * Fans a broadcast out into individual email rows and email.send jobs — the
+ * Fans a broadcast out into individual email rows and email.send jobs: the
  * same accepted-email pipeline API sends flow through. Idempotent by the
  * partial unique index on (broadcastId, contactId): a re-run (job retry,
  * reconcile overlap) inserts nothing for contacts already fanned out, so a
@@ -165,7 +165,7 @@ export async function sendBroadcast(
     .where(eq(schema.broadcasts.id, payload.broadcastId));
   // Only scheduled/sending proceed: draft, canceled, and sent are no-ops no
   // matter how the job arrived. (The sending-claim CAS below re-checks this
-  // atomically — that, not this read, is what makes a racing cancel safe.)
+  // atomically, that, not this read, is what makes a racing cancel safe.)
   if (!broadcast || (broadcast.status !== "scheduled" && broadcast.status !== "sending")) {
     return "skipped";
   }
@@ -189,7 +189,7 @@ export async function sendBroadcast(
   // was un-verified since.
   // SECURITY: broadcast.from is emitted verbatim into every fanned-out email,
   // so the domain checked here must come from the same strict single-mailbox
-  // parser the accept paths use — a lenient extractor could verify one address
+  // parser the accept paths use; a lenient extractor could verify one address
   // of an ambiguous legacy value while another gets emitted.
   const sender = parseSingleSender(broadcast.from);
   if (!sender) {
@@ -297,7 +297,7 @@ export async function sendBroadcast(
   // Graduated throttle: a team over the deliverability risk line (warning or
   // paused) drips its fan-out so reputation can recover, instead of bursting.
   // A broadcast that reaches fan-out already "paused" (scheduled while healthy,
-  // degraded since) is throttled here, not hard-halted — the initiation guards
+  // degraded since) is throttled here, not hard-halted: the initiation guards
   // (tRPC + API) are what block NEW paused sends; the fan-out's only job is to
   // avoid the burst. Health is read at every page edge, so a team that crosses
   // the line mid-walk drips the rest from that page on. The drip never loosens
@@ -310,7 +310,7 @@ export async function sendBroadcast(
 
   // Optional segment: AND the shared resolver (filter matches plus manual
   // members) into the contact scan. The segment must belong to this
-  // broadcast's team — a mismatch is a tampered/foreign reference, so refuse
+  // broadcast's team: a mismatch is a tampered/foreign reference, so refuse
   // rather than mail the wrong people.
   let segmentPredicate: SQL | undefined;
   if (broadcast.segmentId) {
@@ -561,7 +561,7 @@ export async function sendBroadcast(
           deps.keyring,
           { teamId: broadcast.teamId, rowId: emailId },
         );
-        // Only rows this run actually enqueues advance the drip — re-run
+        // Only rows this run actually enqueues advance the drip: re-run
         // conflicts (accepted === null) don't, so a resumed fan-out keeps
         // spacing tight instead of leaving gaps for already-queued contacts.
         const startAfter = spacingMs > 0 ? new Date(nextSendMs) : undefined;
@@ -572,7 +572,7 @@ export async function sendBroadcast(
         const paced = emitted >= admitted && screenParked === null;
         const held = !paced && screenParked === null && warmupFull;
         // Quota reservation and email insert commit atomically (the quota
-        // contract), same as the API accept path — a broadcast must not
+        // contract), same as the API accept path: a broadcast must not
         // bypass the plan's cap.
         const firstCopy = screenFirstCopy;
         const judgeNow: string[] = [];
@@ -648,7 +648,7 @@ export async function sendBroadcast(
             warmupFull = true;
             return { id: row.id, parked: true };
           }
-          // Over the plan cap: park as queued_quota — accepted but not
+          // Over the plan cap: park as queued_quota; accepted but not
           // enqueued; the quota drain moves it to queued once the cap has
           // room again (the UTC rollover, the period renewal, overage on).
           await tx

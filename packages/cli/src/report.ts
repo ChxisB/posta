@@ -354,7 +354,7 @@ export async function printSummary(out: OutStream, raw: Report): Promise<void> {
     }
   }
   const { done, left } = report.checklist;
-  out.write(`\n${bold(String(done.length))} of ${done.length + left.length} steps done — left:\n`);
+  out.write(`\n${bold(String(done.length))} of ${done.length + left.length} steps done. Left:\n`);
   for (const item of left)
     line(`${dim("[")} ${dim("]")} ${item}`, { indent: "  ", hanging: "      " });
   for (const { domain, records } of report.dns) {
@@ -368,13 +368,13 @@ export async function printSummary(out: OutStream, raw: Report): Promise<void> {
   if (report.manual.length > 0) {
     out.write("\nManual notes:\n");
     for (const { title, detail, names } of manualRows(report.manual)) {
-      line(`${note(SYM.manual)} ${title} — ${detail}`);
+      line(`${note(SYM.manual)} ${title}: ${detail}`);
       if (names !== undefined) line(dim(foldedKeysLine(names)), { indent: "    " });
     }
   }
   if (report.failures.length > 0) {
     out.write("\nFailed:\n");
-    for (const f of report.failures) line(`${err(SYM.err)} ${f.resource}/${f.key} — ${f.message}`);
+    for (const f of report.failures) line(`${err(SYM.err)} ${f.resource}/${f.key}: ${f.message}`);
   }
   out.write(`\n${dim(wrapIndent(SYNC_HINT(report.source)))}\n`);
   if (report.offer !== null)
@@ -384,7 +384,7 @@ export async function printSummary(out: OutStream, raw: Report): Promise<void> {
 export function renderReportMd(raw: Report): string {
   const report = stripControlDeep(raw);
   const lines = [
-    `# Migration report — ${report.sourceLabel} → Posta`,
+    `# Migration report: ${report.sourceLabel} → Posta`,
     "",
     `Finished ${report.finishedAt} · target ${report.target.baseUrl}${report.target.plan === null ? "" : ` · plan ${capitalize(report.target.plan)}`}`,
     "",
@@ -434,7 +434,7 @@ export function renderReportMd(raw: Report): string {
       "",
       "## Manual notes",
       "",
-      ...report.manual.map(({ title, detail }) => `- ${title} — ${detail}`),
+      ...report.manual.map(({ title, detail }) => `- ${title}: ${detail}`),
     );
   }
   if (report.failures.length > 0) {
@@ -442,7 +442,7 @@ export function renderReportMd(raw: Report): string {
       "",
       "## Failed",
       "",
-      ...report.failures.map((f) => `- ${f.resource}/${f.key} — ${f.message}`),
+      ...report.failures.map((f) => `- ${f.resource}/${f.key}: ${f.message}`),
     );
   }
   lines.push("", SYNC_HINT(report.source));

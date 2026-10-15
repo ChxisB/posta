@@ -14,7 +14,7 @@ export interface RevealNoticeDeps {
  * screening read from the media once the grant opened the media panel.
  * Nobody is emailed, then or ever.
  *
- * Withheld for good from a team suspended for phishing — telling the account
+ * Withheld for good from a team suspended for phishing: telling the account
  * under investigation what was read, and when, is the one case where
  * disclosure works against the reason the content was read at all; the grant
  * is stamped so it is not retried every night. A team held for review waits

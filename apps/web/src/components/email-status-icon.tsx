@@ -5,7 +5,7 @@
  */
 import { StatusTile } from "./status-tile";
 
-/** Tone per email/event status — mirrors the ledger colors used elsewhere. */
+/** Tone per email/event status: mirrors the ledger colors used elsewhere. */
 export function emailStatusColor(status: string): string {
   switch (status) {
     case "delivered":
@@ -24,7 +24,7 @@ export function emailStatusColor(status: string): string {
     case "delivery_delayed":
       return "var(--po-neutral)";
     default:
-      // queued / queued_quota / sent / canceled / prefetched — the baseline,
+      // queued / queued_quota / sent / canceled / prefetched: the baseline,
       // not an outcome.
       return "var(--po-muted)";
   }

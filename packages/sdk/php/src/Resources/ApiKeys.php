@@ -15,7 +15,7 @@ final class ApiKeys
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * POST /api-keys — `permission` is full_access (default) or sending_access;
+     * POST /api-keys: `permission` is full_access (default) or sending_access;
      * `domainId` restricts a sending key to one domain.
      *
      * @param array{name: string, permission?: string, domainId?: string|null} $params

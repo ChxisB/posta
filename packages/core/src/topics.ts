@@ -20,7 +20,7 @@ export function isSubscribedToTopic(
  * topic. A recipient matching a contact by (team, lower(addr-spec)) uses
  * their explicit subscription row, else the topic's default; a recipient with
  * no contact follows the default alone. Throws when the topic does not belong
- * to the team — callers validate ownership before accepting.
+ * to the team: callers validate ownership before accepting.
  */
 export async function findTopicOptOuts(
   db: Db,

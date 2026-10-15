@@ -1,6 +1,6 @@
 /**
  * Loading placeholders (.po-skeleton). Rule: no spinners or blank panels
- * before tables/cards — each surface renders a skeleton mirroring its real
+ * before tables/cards; each surface renders a skeleton mirroring its real
  * layout, composed from these blocks. Skeletons must be dimensionally
  * identical to the loaded layout: reuse the real container/typography
  * wrappers and size the bars to the text they replace (height "1lh" inside a
@@ -26,7 +26,7 @@ export function Skeleton({
 
 /**
  * Ghost .po-chip (CopyChip cells): the real chip class plus an nbsp strut, so
- * the browser computes the exact box and baseline of a loaded chip — no
+ * the browser computes the exact box and baseline of a loaded chip; no
  * guessed pixel height to drift from the chip's font/padding/border math.
  * .po-skeleton's inline-block wins over .po-chip's inline-flex; with text-only
  * content both boxes measure the same. vertical-align is forced back to
@@ -45,7 +45,7 @@ export function SkeletonChip({ width }: { width: number | string }) {
 }
 
 /**
- * Ghost .po-badge (status cells) — same construction as SkeletonChip.
+ * Ghost .po-badge (status cells): same construction as SkeletonChip.
  * borderColor: .po-badge leaves border color to the variant classes, which a
  * ghost has none of; transparent keeps the 1px of geometry without a stroke.
  */

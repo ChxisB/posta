@@ -29,7 +29,7 @@ import { MERGE_TOKEN_RE } from "@/lib/merge-fields";
 import { usePreviewScheme } from "@/lib/use-preview-scheme";
 
 // Stand-in values so every merge pill reads as real content in the preview
-// rather than a raw {{{TOKEN}}}. UNSUBSCRIBE_URL becomes a dead "#" — the
+// rather than a raw {{{TOKEN}}}. UNSUBSCRIBE_URL becomes a dead "#": the
 // worker resolves the real link at send time. Unknown names fall back to the
 // author's own |fallback, then to the bare name.
 const PREVIEW_SAMPLES: Record<string, string> = {
@@ -44,7 +44,7 @@ const sampleValue = (samples: Record<string, string>, name: string, fallback?: s
 
 /** Fill every merge token with a preview sample; `samples` supplies real
  * per-contact-property values where the caller has them. Values are
- * HTML-escaped — contact-controlled property strings must read as text in the
+ * HTML-escaped: contact-controlled property strings must read as text in the
  * preview, never as markup. */
 export function fillMergeSamples(html: string, samples: Record<string, string>): string {
   return html.replace(MERGE_TOKEN_RE, (_m, name: string, fallback: string | undefined) =>
@@ -72,7 +72,7 @@ export const PILL_VARIANT: Record<BroadcastStatus, keyof typeof TONE_COLOR> = {
 };
 
 /**
- * Broadcast status pill; "sending" carries a pulsing dot — it is the only
+ * Broadcast status pill; "sending" carries a pulsing dot: it is the only
  * live state. A `hold` replaces the pill with the still reason ("Waiting for
  * the plan · resumes …", "Delayed"), drawn as a warning.
  */

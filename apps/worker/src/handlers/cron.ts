@@ -246,7 +246,7 @@ interface DrainRun {
  *
  * Reserve + transition commit atomically per email (no crash window that
  * burns quota or half-moves a row). One email's failure never blocks the
- * rest — errors are collected and rethrown at the end so the cron retries.
+ * rest: errors are collected and rethrown at the end so the cron retries.
  */
 export async function drainQuotaParked(db: Db, deps: DrainDeps): Promise<DrainResult> {
   await deps.sesQuota?.recount?.();
@@ -645,7 +645,7 @@ const RECONCILE_MAX_PER_RUN = 20_000;
 /**
  * Safety net for the enqueue-after-commit gap: an accepted email whose
  * email.send job was lost (API crashed before enqueueing, drain crashed
- * between commit and enqueue) is re-enqueued. Idempotent by construction —
+ * between commit and enqueue) is re-enqueued. Idempotent by construction:
  * the queue collapses duplicates per emailId while a job is queued, and the
  * send handler's claim makes a stray extra job harmless. Attempts are capped
  * by the queue's dead-letter path, which fails the row after its retries.
@@ -722,7 +722,7 @@ export async function reconcileStalledSends(
  * Nulls body columns past the retention window and stamps bodyPurgedAt;
  * metadata, events, and aggregates keep their own lifecycles. Emails whose
  * scheduled send is still in the future keep their body (the send needs it);
- * everything else past the cutoff is purged unconditionally — retention is
+ * everything else past the cutoff is purged unconditionally: retention is
  * a compliance promise, so even a zombie still-queued email loses its body
  * (the send handler then marks it failed on the missing body).
  */
@@ -913,7 +913,7 @@ export interface ReverifyResult {
  * the domain page. Running computeDomainVerification on a schedule closes that
  * window: a verified domain that lost a required record now computes `pending`
  * and is demoted, blocking further sends; a pending domain gone fully live is
- * promoted. Terminally-failed domains are skipped (SES DKIM hard-failed —
+ * promoted. Terminally-failed domains are skipped (SES DKIM hard-failed:
  * re-adding is the only path forward); temporary_failure and pending are not.
  *
  * verifiedAt is stamped on first promotion only; a demotion keeps the historical
@@ -980,7 +980,7 @@ export async function reverifyDomains(db: Db, deps: ReverifyDomainsDeps): Promis
     } catch (err) {
       if ((err as { name?: string }).name === "NotFoundException") {
         // The SES identity is gone (deleted outside the app): the stored
-        // status is a lie the send gate would keep trusting. Terminal —
+        // status is a lie the send gate would keep trusting. Terminal:
         // re-adding the domain is the only way back.
         await db
           .update(schema.domains)
@@ -999,7 +999,7 @@ export async function reverifyDomains(db: Db, deps: ReverifyDomainsDeps): Promis
 /**
  * Never-verified domains older than this are reaped. SES stops searching DNS
  * for the DKIM records 72 hours after identity creation and hard-fails the
- * identity, so past this window the row can never verify again — deleting it
+ * identity, so past this window the row can never verify again: deleting it
  * costs its team nothing and frees the (name, region) slot.
  */
 const REAP_UNVERIFIED_AFTER_MS = 72 * 60 * 60 * 1000;
@@ -1016,14 +1016,14 @@ export interface ReapUnverifiedDomainsDeps {
  * Cloud-only sweep completing the exclusive domain claim: the create path
  * 409s while any team holds (name, region), so an added-but-never-verified
  * domain would squat the slot forever against the real DNS owner. Only rows
- * that never verified are touched — verifiedAt survives demotion, so a domain
+ * that never verified are touched: verifiedAt survives demotion, so a domain
  * that verified even once belongs to a team that proved DNS control and is
  * never auto-deleted (its sends are already gated by status).
  *
  * Same guards as a user-initiated delete: the shared SES identity goes only
  * with the last row referencing it, queued emails fail terminally, and
  * domain-scoped api keys are revoked. Before the irreversible identity delete
- * SES itself is asked — DKIM SUCCESS skips the reap — and the row delete is
+ * SES itself is asked (DKIM SUCCESS skips the reap) and the row delete is
  * conditioned on verifiedAt still being null, so a promotion racing the sweep
  * keeps both its identity and its row. One domain's failure never blocks the
  * rest; an SES error leaves the row for the next run to retry.
@@ -1059,7 +1059,7 @@ export async function reapUnverifiedDomains(
           // The stored verifiedAt lags SES by up to a reverify cycle: a DKIM
           // check that succeeded right at SES's 72h deadline may not be
           // stamped yet. SUCCESS is proof the DNS owner published this row's
-          // token — never a squatter — so leave it for reverify to promote.
+          // token (never a squatter) so leave it for reverify to promote.
           const live = await getDomainVerification(deps.clientForRegion(domain.region), {
             domain: domain.name,
           });
@@ -1127,7 +1127,7 @@ export interface ReapTrackingSubdomainsDeps {
 /**
  * Companion to the domain reaper for branded tracking subdomains, which unlike
  * the main DNS records never gate domain status and so are never reverified.
- * A subdomain whose CNAME resolves clears its 72h clock for good — a later DNS
+ * A subdomain whose CNAME resolves clears its 72h clock for good: a later DNS
  * flap never re-arms it, mirroring how verifiedAt survives demotion. One still
  * unconfigured 72h after being set is unset, so the domain falls back to the
  * default host cleanly instead of shipping untracked links behind a dead
@@ -1184,7 +1184,7 @@ export async function reapStaleTrackingSubdomains(
 const PURGE_BATCH = 1000;
 
 /**
- * Metadata retention: whole email rows (recipients, subject, headers, tags —
+ * Metadata retention: whole email rows (recipients, subject, headers, tags;
  * events cascade with them) past the metadata window are deleted in batches.
  * Webhook deliveries are a log with their own, shorter window
  * (`deliveryRetentionDays`), purged here on the same schedule.
@@ -1278,7 +1278,7 @@ export async function purgeExpiredEmailMetadata(
 /**
  * Content-window strip for provider and webhook payloads, on the SAME
  * effective window as email bodies. email_events.data is the raw SES subset
- * (recipient addresses, diagnostics, remote MTAs) and is dropped whole — the
+ * (recipient addresses, diagnostics, remote MTAs) and is dropped whole: the
  * typed `type` column keeps the timeline readable. Webhook deliveries keep
  * their envelope (type, created_at, test marker) and lose `data` and the
  * captured response body.

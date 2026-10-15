@@ -1,7 +1,7 @@
 # Preview recordings
 
 Records the CLI's scenarios under a real pseudo-terminal (100×50, one at 60
-columns) for two builds — a published version and this branch's `dist` — and
+columns) for two builds (a published version and this branch's `dist`) and
 renders the final terminal screens as HTML for a before/after review page.
 
 ```sh

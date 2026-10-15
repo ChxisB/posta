@@ -30,7 +30,7 @@ export function ReceivingView() {
               <span className="po-mono">{data.mxHost ?? none}</span>
             </KvRow>
             <KvRow label={t("settingsReceiving.lastMessage")}>
-              {data.lastMessageAt ? <RelativeTime date={data.lastMessageAt} /> : "—"}
+              {data.lastMessageAt ? <RelativeTime date={data.lastMessageAt} /> : "-"}
             </KvRow>
             <KvRow label={t("settingsReceiving.receivedToday")}>
               <span className="po-digits">

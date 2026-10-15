@@ -1,4 +1,4 @@
-/** Strict 6-digit hex — the only color format the unsubscribe page theme accepts. */
+/** Strict 6-digit hex: the only color format the unsubscribe page theme accepts. */
 export const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 export function isHexColor(value: string): boolean {

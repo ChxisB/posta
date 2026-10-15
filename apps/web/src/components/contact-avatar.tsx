@@ -6,7 +6,7 @@ import { initials } from "@/lib/avatar";
  * Contact identity mark: a letter circle (initials from the name, else the
  * email). No photo lookup: a Gravatar request would hand a hash of the
  * contact's address to a third party from every browser that shows the list.
- * Circular on purpose — teams keep the rounded-square TeamLogo tile, so the
+ * Circular on purpose: teams keep the rounded-square TeamLogo tile, so the
  * two never read alike.
  */
 export function ContactAvatar({

@@ -82,7 +82,7 @@ export function readUpdatesLink(token: string): { email: string; source: Updates
 /**
  * Second half: the confirm button behind the link is the consent, so the
  * contact is created (or subscribed again) now. A form post, never the
- * link's GET — mail gateways open links, people press buttons.
+ * link's GET: mail gateways open links, people press buttons.
  */
 export async function confirmUpdatesSubscription(
   db: Db,

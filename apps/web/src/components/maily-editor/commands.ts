@@ -7,7 +7,7 @@ export type TiptapEditor = Parameters<NonNullable<EditorProps["onCreate"]>>[0];
 /**
  * A minimal, honest facade over Tiptap's command chain. Maily bundles the
  * text-align/list extensions, so these commands exist at runtime, but their
- * `declare module` augmentations aren't all in our type graph — typing exactly
+ * `declare module` augmentations aren't all in our type graph: typing exactly
  * what we call keeps the toolbar type-safe without pulling in mismatched
  * @tiptap/extension-* dev deps.
  */

@@ -7,7 +7,7 @@ import { z } from "zod";
  * URL can inject fake delivery/bounce events (the vulnerability useSend
  * shipped with). Verification steps, all mandatory:
  *   1. SigningCertURL must be HTTPS on an sns.<region>.amazonaws.com host
- *      with a .pem path — never fetch an attacker-supplied cert location.
+ *      with a .pem path, never fetch an attacker-supplied cert location.
  *   2. TopicArn must be in the deployment's allowlist.
  *   3. Timestamp must be within 15 minutes of now: a valid signature never
  *      expires on its own, so without this a captured message replays
@@ -64,7 +64,7 @@ const SNS_HOST_PATTERN = /^sns\.[a-z0-9-]+\.amazonaws\.com$/;
 
 /**
  * HTTPS URL on a real sns.<region>.amazonaws.com host. Gate for every URL a
- * message asks us to fetch (SubscribeURL confirmation included) — otherwise a
+ * message asks us to fetch (SubscribeURL confirmation included), otherwise a
  * forged message turns the server into an SSRF proxy.
  */
 export function isAllowedSnsUrl(rawUrl: string): boolean {

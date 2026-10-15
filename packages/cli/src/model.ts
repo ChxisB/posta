@@ -225,7 +225,7 @@ export interface TargetBroadcast {
   status: string;
 }
 
-/** What the target already has — the plan diffs the Snapshot against this. */
+/** What the target already has: the plan diffs the Snapshot against this. */
 export interface TargetState {
   /** At least one contact exists on the target; enrichment can run without a contacts pass. */
   hasContacts?: boolean | undefined;
@@ -266,7 +266,7 @@ export interface Plan {
   manual: { title: string; detail: string }[];
 }
 
-/** .posta/migrate-state.json — never holds a key. */
+/** .posta/migrate-state.json, never holds a key. */
 export interface MigrateState {
   version: 1;
   startedAt: string;

@@ -160,7 +160,7 @@ function choiceOf(answers: Record<string, unknown>, key: "category" | "language"
 }
 
 /**
- * Typed Jev answers → the 0–100 verdict the rest of the monitor already
+ * Typed Jev answers → the 0 to 100 verdict the rest of the monitor already
  * stores. Missing is_abuse is a parse error; everything else degrades.
  */
 export function composeJudgeVerdict(answers: unknown): JudgeVerdict {

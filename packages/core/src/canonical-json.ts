@@ -4,7 +4,7 @@ import { sha256Hex } from "./hash.js";
  * Deterministic serialization for idempotency comparison: object keys sorted
  * recursively so semantically identical request bodies hash identically
  * regardless of key order. Values serializing via toJSON (Date, custom
- * classes) are resolved first — otherwise they'd all collapse to {} and
+ * classes) are resolved first, otherwise they'd all collapse to {} and
  * different bodies would hash alike.
  */
 export function canonicalStringify(value: unknown): string {

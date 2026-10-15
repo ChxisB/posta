@@ -38,7 +38,7 @@ type Webhook struct {
 }
 
 // RotateWebhookSecretRequest is the payload for Webhooks.Rotate. SigningSecret
-// supplies the new whsec_ secret instead of minting one. OverlapHours (0–72,
+// supplies the new whsec_ secret instead of minting one. OverlapHours (0 to 72,
 // default 24) is how long the previous secret keeps signing alongside the new
 // one; every delivery in the window carries both signatures. Ptr(0) drops the
 // old secret at once.

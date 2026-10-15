@@ -35,7 +35,7 @@ export interface SimpleEmail {
 }
 
 /**
- * One account message via SESv2 Simple content — SES builds the MIME, so no
+ * One account message via SESv2 Simple content: SES builds the MIME, so no
  * raw-mode machinery is needed outside the worker. This is the fallback for
  * a sender no team owns (core sendSystemMail routes the rest through the
  * pipeline): without an emails row nothing could join the SES events back,

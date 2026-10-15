@@ -21,7 +21,7 @@ export function cfnQuickCreateUrl(region: string): string {
 }
 
 // The shell script interpolates $TOPIC_ARN/$ACCOUNT_ID at run time, so the
-// JSON payloads are built around shell-quoted variable splices — snsTopicPolicy
+// JSON payloads are built around shell-quoted variable splices: snsTopicPolicy
 // with placeholder values, single quotes closed around each splice.
 const SNS_TOPIC_POLICY_SHELL = JSON.stringify(snsTopicPolicy("__TOPIC__", "__ACCOUNT__"))
   .replace('"__TOPIC__"', '"\'"$TOPIC_ARN"\'"')
@@ -44,7 +44,7 @@ const EVENT_DESTINATION_SHELL = `{"Enabled":true,"MatchingEventTypes":${JSON.str
  * admin credentials. Creates the IAM policy + user + access key and, when
  * includeEvents, the SNS topic, the SQS events queue the worker polls, the
  * https push on top when appBaseUrl is a valid https URL, and the SESv2
- * configuration set — then prints the exact .env lines to paste.
+ * configuration set, then prints the exact .env lines to paste.
  *
  * Only shell-safe inputs are interpolated: region is validated, appBaseUrl is
  * reduced to its URL origin (no query/path/quotes can survive).
@@ -63,7 +63,7 @@ export function buildAwsSetupScript(opts: {
   const lines = [
     "#!/bin/sh",
     "# Posta AWS setup. Run where the aws CLI has admin credentials.",
-    "# Re-runnable: creates that may already exist are tolerated (|| true) —",
+    "# Re-runnable: creates that may already exist are tolerated (|| true);",
     "# but every run mints a NEW access key; delete stale keys in the IAM console.",
     "set -u",
     "",

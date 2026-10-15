@@ -46,32 +46,32 @@ public final class Broadcasts {
         new TypeReference<ListResponse<Broadcast>>() {});
   }
 
-  /** PATCH /broadcasts/{id} — draft only. Only the fields set on {@code options} are sent. */
+  /** PATCH /broadcasts/{id}: draft only. Only the fields set on {@code options} are sent. */
   public Id update(String id, UpdateBroadcastOptions options) throws PostaException {
     return http.request(
         "PATCH", "/broadcasts/" + enc(id), options.getChanges(), null, null,
         new TypeReference<Id>() {});
   }
 
-  /** DELETE /broadcasts/{id} — draft only. */
+  /** DELETE /broadcasts/{id}: draft only. */
   public DeletedResponse remove(String id) throws PostaException {
     return http.request(
         "DELETE", "/broadcasts/" + enc(id), null, null, null,
         new TypeReference<DeletedResponse>() {});
   }
 
-  /** POST /broadcasts/{id}/send — send now. */
+  /** POST /broadcasts/{id}/send: send now. */
   public Id send(String id) throws PostaException {
     return send(id, new SendBroadcastOptions());
   }
 
-  /** POST /broadcasts/{id}/send — omit {@code scheduledAt} on the options to send now. */
+  /** POST /broadcasts/{id}/send: omit {@code scheduledAt} on the options to send now. */
   public Id send(String id, SendBroadcastOptions options) throws PostaException {
     return http.request(
         "POST", "/broadcasts/" + enc(id) + "/send", options, null, null, new TypeReference<Id>() {});
   }
 
-  /** POST /broadcasts/{id}/cancel — scheduled only. */
+  /** POST /broadcasts/{id}/cancel: scheduled only. */
   public DeletedResponse cancel(String id) throws PostaException {
     return http.request(
         "POST", "/broadcasts/" + enc(id) + "/cancel", null, null, null,

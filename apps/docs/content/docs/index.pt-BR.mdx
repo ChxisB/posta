@@ -7,15 +7,15 @@ Posta é a plataforma de e-mail open source. Envie um. Envie um milhão.
 
 Use de duas formas, com o mesmo código nas duas:
 
-- **Posta Cloud** — o serviço hospedado em
+- **Posta Cloud**: o serviço hospedado em
   [posta.example](https://posta.example). Cadastre-se, verifique um
   domínio, envie. API em `api.posta.example`.
-- **Auto-hospedado** — rode na sua própria infraestrutura com Docker Compose,
+- **Auto-hospedado**: rode na sua própria infraestrutura com Docker Compose,
   enviando pela **sua própria conta AWS SES**. Veja
   [Auto-hospedagem](/pt-BR/self-hosting).
 
 As duas formas compartilham o mesmo painel, a mesma API HTTP e os mesmos
-SDKs — esta documentação cobre ambas, e as abas Nuvem / Auto-hospedado que
+SDKs: esta documentação cobre ambas, e as abas Nuvem / Auto-hospedado que
 você verá em algumas páginas lembram sua escolha. Em volta do núcleo de envio
 você tem um painel, uma API HTTP, SDKs, webhooks, contatos, transmissões e um
 relay SMTP.
@@ -25,13 +25,13 @@ relay SMTP.
 A API HTTP é compatível com a do Resend: mesmos formatos de
 requisição e resposta, mesmo formato de erro. Os SDKs oficiais do Resend
 respeitam uma URL base configurável, então migrar uma integração existente
-significa trocar duas variáveis de ambiente — a chave de API e a URL base —
+significa trocar duas variáveis de ambiente (a chave de API e a URL base),
 sem reescrever seu código. O Posta também publica
 [SDKs próprios](/pt-BR/sdks) para nove linguagens, espelhando o formato dos
 SDKs do Resend.
 
 Uma diferença deliberada: **contatos são globais à equipe**. Não existe o
-conceito de "audiences" — cada contato pertence diretamente à sua equipe, e
+conceito de "audiences": cada contato pertence diretamente à sua equipe, e
 você segmenta com [segmentos](/pt-BR/concepts/segments) (filtros salvos) e
 [tópicos](/pt-BR/concepts/topics) (categorias de inscrição). Veja
 [Contatos](/pt-BR/concepts/contacts).
@@ -58,14 +58,14 @@ você segmenta com [segmentos](/pt-BR/concepts/segments) (filtros salvos) e
 
 ## Arquitetura em resumo
 
-O Posta envia pelo AWS SES — na Nuvem isso é gerenciado para você; em
+O Posta envia pelo AWS SES: na Nuvem isso é gerenciado para você; em
 uma implantação auto-hospedada é a sua própria conta SES, então você mantém a
 entregabilidade e o preço do SES. Uma implantação auto-hospedada são dois
 contêineres:
 
-- **Postgres** — o único banco de dados. A fila de jobs (pg-boss) também roda
+- **Postgres**: o único banco de dados. A fila de jobs (pg-boss) também roda
   nele; não há Redis.
-- **Contêiner do app** — roda a API (porta 3001), o worker em segundo plano e
+- **Contêiner do app**: roda a API (porta 3001), o worker em segundo plano e
   o painel web (porta 3000). Um terceiro contêiner opcional roda o relay SMTP
   (porta 2587), e outro o MX do [recebimento](/pt-BR/concepts/receiving)
   (porta 25). Os processos também podem ser separados um por contêiner com
@@ -73,17 +73,17 @@ contêineres:
 
 Os corpos dos e-mails são criptografados em repouso (criptografia de envelope
 AES-256-GCM) e apagados após uma janela de retenção. Eventos de entrega
-(bounces, reclamações, entregas) voltam do SES — na Nuvem automaticamente;
+(bounces, reclamações, entregas) voltam do SES: na Nuvem automaticamente;
 auto-hospedado via SNS para uma fila SQS que o worker consome por long polling,
 mais push para o seu host quando ele tem uma URL HTTPS pública.
 
 ## Próximos passos
 
-- [Início rápido](/pt-BR/quickstart) — do zero ao primeiro e-mail em poucos
+- [Início rápido](/pt-BR/quickstart): do zero ao primeiro e-mail em poucos
   minutos, na Nuvem ou na sua própria instância.
-- [Auto-hospedagem](/pt-BR/self-hosting) — a referência completa de
+- [Auto-hospedagem](/pt-BR/self-hosting): a referência completa de
   implantação.
-- [Referência da API](/pt-BR/api-reference) — gerada a partir do código do
+- [Referência da API](/pt-BR/api-reference): gerada a partir do código do
   servidor, sempre em sincronia.
 
 ## Para agentes de IA

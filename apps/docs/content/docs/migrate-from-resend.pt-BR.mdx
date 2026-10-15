@@ -1,17 +1,17 @@
 ---
 title: Migrar do Resend
-description: Um comando move sua conta do Resend; duas linhas de ambiente movem seu código — o formato da API é idêntico.
+description: Um comando move sua conta do Resend, duas linhas de ambiente movem seu código e o formato da API é idêntico.
 ---
 
 A API REST do Posta é compatível com a do Resend: mesmos
 endpoints, mesmos formatos de requisição e resposta. Migrar é uma mudança de
-configuração, não uma reescrita. Os dados da conta — contatos, segmentos,
-tópicos, templates, webhooks, domínios, supressões — vêm com um comando.
+configuração, não uma reescrita. Os dados da conta (contatos, segmentos,
+tópicos, templates, webhooks, domínios, supressões) vêm com um comando.
 
 ## Passe para um agente
 
-A migração inteira — inventário, movimentação da conta, mudanças de código,
-DNS, virada — está escrita como um único prompt que um agente pode seguir de
+A migração inteira (inventário, movimentação da conta, mudanças de código,
+DNS, virada) está escrita como um único prompt que um agente pode seguir de
 ponta a ponta, incluindo as proteções (Resend somente leitura, chaves nunca
 em arquivos, perguntar antes de aplicar).
 
@@ -54,8 +54,8 @@ O que ele faz:
   faz upsert dos contatos com suas associações a segmentos e o `unsubscribed`.
   Ela termina em minutos, e a CLI então imprime **Cutover ready** com os
   registros DNS e a linha do `RESEND_BASE_URL`: o envio transacional já pode
-  mudar nesse ponto. O enriquecimento — só quando a conta usa tópicos ou
-  propriedades de contato — lê então cada contato uma vez por faceta, primeiro
+  mudar nesse ponto. O enriquecimento (só quando a conta usa tópicos ou
+  propriedades de contato) lê então cada contato uma vez por faceta, primeiro
   as inscrições em tópicos (para os opt-outs chegarem antes das propriedades),
   depois as propriedades, com ritmo e tempo restante ao vivo. Segure envios
   por tópico e transmissões até ele terminar. As duas passagens retomam de onde
@@ -91,8 +91,8 @@ Três coisas encurtam isso:
 
 - **Peça ao Resend um aumento temporário.** A documentação do Resend diz que o
   limite da equipe "pode ser aumentado para remetentes confiáveis sob pedido"
-  (Settings → Usage mostra o atual). Passe o ritmo concedido explicitamente —
-  `--rps 50` — a CLI aceita valores acima de 10 e avisa quando o ritmo passa
+  (Settings → Usage mostra o atual). Passe o ritmo concedido explicitamente:
+  `--rps 50`; a CLI aceita valores acima de 10 e avisa quando o ritmo passa
   do limite que detectou.
 - **Rode fora do horário de pico.** O limite é por equipe, então o
   enriquecimento compete com os envios da sua produção; os `429` caem nos
@@ -104,17 +104,17 @@ Três coisas encurtam isso:
 | --- | --- |
 | Contatos | E-mail, nomes, `unsubscribed`, propriedades, inscrições em tópicos, associações a segmentos. Descadastros são preservados; ninguém é reinscrito. |
 | Segmentos, tópicos, propriedades | Casados por nome / nome / chave: criados quando faltam, atualizados quando diferem. |
-| Templates | Nome, alias, assunto, html, texto. `from`, `reply_to` e `variables` não podem ser armazenados — listados como passos manuais. |
-| Webhooks | Endpoint e eventos. O segredo de assinatura é copiado, então o receptor que você já roda continua verificando (as entregas carregam os headers `svix-*`). `--fresh-webhook-secrets` gera segredos novos. Eventos que o Posta também emite são levados junto — os oito tipos `email.*`, inclusive `email.received`, `contact.created`, `contact.updated` e `contact.deleted`, e os doze tipos `inbox.*` que o Posta envia; os demais (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) são descartados por webhook e listados. |
+| Templates | Nome, alias, assunto, html, texto. `from`, `reply_to` e `variables` não podem ser armazenados: listados como passos manuais. |
+| Webhooks | Endpoint e eventos. O segredo de assinatura é copiado, então o receptor que você já roda continua verificando (as entregas carregam os headers `svix-*`). `--fresh-webhook-secrets` gera segredos novos. Eventos que o Posta também emite são levados junto: os oito tipos `email.*`, inclusive `email.received`, `contact.created`, `contact.updated` e `contact.deleted`, e os doze tipos `inbox.*` que o Posta envia; os demais (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) são descartados por webhook e listados. |
 | Supressões | Bounces, reclamações e entradas manuais, com sua origem. |
-| Domínios | Criados com return path e configurações de rastreamento, na única região do SES atendida pela sua instância do Posta — a região do Resend não é levada junto. No Posta Cloud, as opções de rastreamento só vêm junto com um subdomínio de rastreamento; sem ele, o relatório as lista para você configurar no painel. Os registros DNS precisam ser adicionados de novo — veja o passo 3. |
+| Domínios | Criados com return path e configurações de rastreamento, na única região do SES atendida pela sua instância do Posta: a região do Resend não é levada junto. No Posta Cloud, as opções de rastreamento só vêm junto com um subdomínio de rastreamento; sem ele, o relatório as lista para você configurar no painel. Os registros DNS precisam ser adicionados de novo: veja o passo 3. |
 | Transmissões | Rascunhos e transmissões agendadas entram como rascunhos. As já enviadas são puladas, a menos que `--include-sent`. |
 
-O que não vem: **chaves de API** (o Resend expõe apenas os nomes — o relatório
+O que não vem: **chaves de API** (o Resend expõe apenas os nomes; o relatório
 as lista como pendência), **registros DKIM/DNS** (as chaves são por provedor),
 **caixas de entrada** com as conversas e os rascunhos delas (crie de novo; veja
 o passo 3) e o **histórico de e-mails**, enviados ou recebidos. Audiências,
-descontinuadas no Resend, são puladas — segmentos as cobrem.
+descontinuadas no Resend, são puladas: segmentos as cobrem.
 
 Flags, variáveis de ambiente, arquivos, códigos de saída e uso em CI estão na
 [referência da CLI](/pt-BR/cli).
@@ -122,7 +122,7 @@ Flags, variáveis de ambiente, arquivos, códigos de saída e uso em CI estão n
 ## 2. Aponte seu código existente para o Posta
 
 Os SDKs oficiais do Resend respeitam `RESEND_BASE_URL`, então a migração são
-duas linhas de ambiente — nenhuma mudança de código:
+duas linhas de ambiente: nenhuma mudança de código:
 
 ```sh
 RESEND_API_KEY=po_...
@@ -167,7 +167,7 @@ O resumo termina com um checklist. Três itens sempre estão nele:
   os registros por domínio (também em **Domínios** no painel). Os dois
   provedores podem ficar verificados lado a lado durante a migração.
 - **Defina `RESEND_BASE_URL`** (passo 2) em todo ambiente que envia.
-- **Crie as chaves de API** — uma por nome que o relatório lista (por exemplo
+- **Crie as chaves de API**: uma por nome que o relatório lista (por exemplo
   `prod`, `staging`) em **Chaves de API**.
 
 Mais dois aparecem quando se aplicam: valores de `from` / `reply_to` de
@@ -201,7 +201,7 @@ caixas da instância, então exige um. Veja
 [Caixas de entrada → Compatibilidade com o Resend](/pt-BR/concepts/inboxes#compatibilidade-com-o-resend).
 
 Envie um e-mail pela nova URL base e veja-o chegar a **Entregue** na página de
-E-mails — a migração é isso.
+E-mails: a migração é isso.
 
 ---
 

@@ -125,7 +125,7 @@ public sealed class PostaClient : IPosta
             catch (JsonException ex)
             {
                 // A 200 whose body is not the expected JSON (proxy interstitial,
-                // truncated response) is a client-side failure, not a throw —
+                // truncated response) is a client-side failure, not a throw;
                 // the documented contract is that methods never throw.
                 return PostaResponse<T>.Fail(
                     new PostaException($"Unparseable response body: {ex.Message}", null, "application_error"));

@@ -2,11 +2,11 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { sha256Hex } from "./hash.js";
 
 export interface GeneratedApiKey {
-  /** The full secret — shown once, never stored. */
+  /** The full secret: shown once, never stored. */
   token: string;
   /** Indexed lookup handle: scheme prefix + first 6 secret chars. */
   tokenPrefix: string;
-  /** SHA-256 hex of the full token — the only stored credential. */
+  /** SHA-256 hex of the full token: the only stored credential. */
   keyHash: string;
   last4: string;
 }
@@ -37,7 +37,7 @@ export function extractTokenPrefix(token: string): string | null {
 
 /**
  * Constant-time comparison of hash digests. High-entropy machine secrets use
- * a fast hash by design — bcrypt/argon2 exist for low-entropy passwords.
+ * a fast hash by design: bcrypt/argon2 exist for low-entropy passwords.
  */
 export function verifyApiKey(presentedToken: string, storedKeyHashHex: string): boolean {
   const presented = createHash("sha256").update(presentedToken, "utf8").digest();

@@ -11,7 +11,7 @@
     "confirmPrompt": "Subscribe {email} to Posta product updates?",
     "confirmButton": "Yes, subscribe me",
     "invalidEmail": "That doesn't look like an email address.",
-    "tryLater": "Too many requests — try again later."
+    "tryLater": "Too many requests: try again later."
   },
   "email": {
     "subject": "Confirm your Posta product updates",
@@ -20,6 +20,6 @@
     "button": "Confirm subscription",
     "linkFallback": "Or copy this link into your browser:",
     "expiry": "This link expires in {hours} hours.",
-    "ignore": "If this wasn't you, ignore this email — nothing is stored until the link is opened."
+    "ignore": "If this wasn't you, ignore this email: nothing is stored until the link is opened."
   }
 }

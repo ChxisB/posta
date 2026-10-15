@@ -83,7 +83,7 @@ describe("topics teamId isolation", () => {
     });
     expect(res.status).toBe(200);
     const body = await json(res);
-    // Full object on create — an agent can confirm what it made without a re-read.
+    // Full object on create: an agent can confirm what it made without a re-read.
     expect(body).toMatchObject({
       name: "News",
       default_subscription: "opt_out",

@@ -20,7 +20,7 @@ final class ErrorException extends \Exception
         parent::__construct($errorMessage);
     }
 
-    /** Stable snake_case code — the discriminant, e.g. "validation_error", "not_found". */
+    /** Stable snake_case code: the discriminant, e.g. "validation_error", "not_found". */
     public function getErrorName(): string
     {
         return $this->errorName;

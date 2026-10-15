@@ -40,13 +40,13 @@ function BracesGlyph({ className }: { className?: string }) {
 }
 
 /**
- * Our replacement for Maily's '@' variable-suggestions popover — same
+ * Our replacement for Maily's '@' variable-suggestions popover: same
  * `{ items, onSelectItem }` props and `{ moveUp, moveDown, select }` ref
  * contract its VariableList wrapper drives, but themed with our tokens and
  * with translatable chrome (Maily hardcodes "Variables"/"Navigate").
  *
  * It mounts inside Maily's ReactRenderer, OUTSIDE the app's React tree, so it
- * must not touch next-intl context — the factory closes over the translated
+ * must not touch next-intl context: the factory closes over the translated
  * strings instead.
  */
 export function makeVariableSuggestionsPopover(strings: VariableSuggestionsStrings) {

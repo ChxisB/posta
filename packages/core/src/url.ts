@@ -1,6 +1,6 @@
 /**
  * True when the URL's host can only be reached from its own machine.
- * Mirrored client-side at apps/web/src/lib/url.ts — restated there because
+ * Mirrored client-side at apps/web/src/lib/url.ts: restated there because
  * this package's entry point is server-only.
  */
 export function isLoopbackUrl(url: string | null | undefined): boolean {

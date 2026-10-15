@@ -52,7 +52,7 @@ export function EditorFields({
         <label htmlFor={SUBJECT_FIELD_ID}>
           {t("editor.subjectLabel")}{" "}
           <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-            — {t("editor.optional")}
+            , ({t("editor.optional")})
           </span>
         </label>
         <input

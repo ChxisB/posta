@@ -264,7 +264,7 @@ func (s *EmailsService) RemoveWithContext(ctx context.Context, id string) (*Remo
 // BatchService covers POST /emails/batch.
 type BatchService struct{ client *Client }
 
-// Send posts 1–100 emails in one call. Pass WithIdempotencyKey to make it
+// Send posts 1 to 100 emails in one call. Pass WithIdempotencyKey to make it
 // idempotent and WithBatchValidation(BatchValidationPermissive) to send the
 // valid subset when some items are invalid.
 func (s *BatchService) Send(params []*SendEmailRequest, opts ...RequestOption) (*BatchSendResponse, error) {

@@ -18,7 +18,7 @@
     "copied": "Copied",
     "retry": "Retry",
     "loadError": "Could not load this screen.",
-    "none": "—",
+    "none": "-",
     "yes": "yes",
     "no": "no",
     "reason": "Reason",
@@ -328,7 +328,7 @@
       "title": "Transactional reserve",
       "help": "Share of each region's 24-hour sending quota broadcasts never touch. Transactional mail may use all of it and borrow beyond it.",
       "label": "Reserve · percent",
-      "unit": "of the quota · {min}–{max}",
+      "unit": "of the quota · {min} to {max}",
       "hint": "Transactional peak this week {peak} ({share} of the usable reserve) · suggested {suggested}. The hint is never applied on its own.",
       "hintNoQuota": "Transactional peak this week {peak} · suggested {suggested}. The hint is never applied on its own.",
       "regionRow": "share {share} · usable reserve {usable}",
@@ -852,11 +852,11 @@
         "unjudgedNoError": "unjudged",
         "reasonsTip": "Signals the model answered at 50% or more. They explain a sample; the score comes from the abuse question, raised to at least 80 when impersonation is at 80% or more.",
         "reasonCodes": {
-          "impersonation": "Poses as a well-known brand, bank, government, carrier or platform whose real domains are not among the team’s verified domains.",
-          "off_domain_lure": "Has a sign-in, payment, verify, reset or download link on a domain that is neither the team’s (its verified domains and their registrable domains) nor the real domain of the service the message names.",
+          "impersonation": "Poses as a well-known brand, bank, government, carrier or platform whose real domains are not among the team's verified domains.",
+          "off_domain_lure": "Has a sign-in, payment, verify, reset or download link on a domain that is neither the team's (its verified domains and their registrable domains) nor the real domain of the service the message names.",
           "harvests_secrets": "Asks the recipient to enter or reply with a password, one-time code, card number, PIN, CPF or other ID on a page or channel the team does not own.",
-          "payment_redirect": "Tries to redirect a payment: new bank details for an existing invoice, a Pix code, a boleto from a mismatched sender, a small parcel fee, or “pay somewhere else”.",
-          "no_link_lure": "Carries the lure without a link: a Pix payload, changed bank details, a callback phone, “reply with your ID or password”, or an attached invoice or zip.",
+          "payment_redirect": "Tries to redirect a payment: new bank details for an existing invoice, a Pix code, a boleto from a mismatched sender, a small parcel fee, or \"pay somewhere else\".",
+          "no_link_lure": "Carries the lure without a link: a Pix payload, changed bank details, a callback phone, \"reply with your ID or password\", or an attached invoice or zip.",
           "unsolicited_bulk": "Reads as bulk mail to people who never opted in (spam-style promotion from a stranger) rather than opted-in marketing or cold B2B outreach. The model cannot see consent, so newsletters often land near this line.",
           "prompt_injection": "The text tries to tell a reviewer or model to change its verdict or ignore the policy."
         }

@@ -8,7 +8,7 @@ use Posta\HttpClient;
 use Posta\Util;
 
 /**
- * Segments — same methods as resend-php's, but membership is dynamic: a
+ * Segments: same methods as resend-php's, but membership is dynamic: a
  * segment is a saved `filter` over the team's contacts (the filter itself is
  * the Posta extension). `get` returns a live `contact_count`.
  */

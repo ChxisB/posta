@@ -75,7 +75,7 @@
     "stepChange": "Alterar",
     "sendTest": "Enviar teste",
     "testSent": "Teste enviado para {email}",
-    "testRateLimited": "Muitos e-mails de teste — tente de novo em uma hora.",
+    "testRateLimited": "Muitos e-mails de teste: tente de novo em uma hora.",
     "testFailed": "Não foi possível enviar o e-mail de teste."
   },
   "guard": {
@@ -86,7 +86,7 @@
     "scheduleLabel": "Agendar",
     "sendNow": "Enviar agora",
     "schedule": "Agendar",
-    "appBaseUrl": "APP_BASE_URL não está definido. Os links de descadastro dependem dele — defina e reinicie.",
+    "appBaseUrl": "APP_BASE_URL não está definido. Os links de descadastro dependem dele: defina e reinicie.",
     "sendError": "Não foi possível enviar. Tente novamente.",
     "stepNow": "Agora",
     "stepFirst": "{count} saem",

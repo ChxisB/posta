@@ -134,7 +134,7 @@ describe("request wiring", () => {
     );
     expect(calls[0]?.headers["Idempotency-Key"]).toBe("key-123");
     // The negative half of the guard: no other verb or resource carries the
-    // header — only the two send surfaces are wired to it.
+    // header, only the two send surfaces are wired to it.
     await ms.emails.get("e1");
     await ms.contacts.update({ id: "c1", unsubscribed: true });
     await ms.segments.remove("s1");

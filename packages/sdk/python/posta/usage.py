@@ -8,5 +8,5 @@ from ._client import request
 class Usage:
     @classmethod
     def get(cls) -> Any:
-        """GET /usage — ``plan`` and ``limits`` are null when self-hosted."""
+        """GET /usage: ``plan`` and ``limits`` are null when self-hosted."""
         return request("GET", "/usage")

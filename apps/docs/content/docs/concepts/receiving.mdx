@@ -244,7 +244,7 @@ const { data: files } = await resend.emails.receiving.attachments.list({ emailId
 ### List
 
 `GET /emails/receiving` lists newest first, as Resend does: `after` pages
-toward older mail, `before` back toward newer. It takes `limit` (1–100,
+toward older mail, `before` back toward newer. It takes `limit` (1 to 100,
 default 20; Resend returns every email when `limit` is left out) and an
 `after` or `before` cursor, like every [list](/api-reference#pagination),
 plus these filters:
@@ -327,7 +327,7 @@ restricted to an inbox; an inbox-scoped key, and the MCP server, get
 
 ### Waiting for new mail
 
-`wait` (1–50 seconds) holds the request until matching mail arrives, then
+`wait` (1 to 50 seconds) holds the request until matching mail arrives, then
 answers at once; at the deadline it answers an empty list. It combines with
 the filters above, so an agent can wait for the next message to one inbox,
 from one sender:

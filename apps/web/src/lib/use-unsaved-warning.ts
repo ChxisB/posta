@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /* Programmatic navigations (router.push from a component, e.g. the From
    field's add-domain shortcut) never touch an anchor or the history stack the
-   guards below watch — so guarded pages register here, and any shared
+   guards below watch, so guarded pages register here, and any shared
    component about to router.push calls confirmUnsavedNavigation() first.
    Editor pages render one at a time, so a single slot suffices. */
 let activeGuard: { isDirty: () => boolean; message: () => string } | null = null;
@@ -26,15 +26,15 @@ export function leaveDocument(href: string): void {
 /**
  * Guards against losing unsaved changes on every navigation kind:
  *
- * - tab close / reload / external URLs — the native beforeunload prompt;
- * - in-app <Link>/<a> clicks (sidebar included) — a capture-phase click
+ * - tab close / reload / external URLs; the native beforeunload prompt;
+ * - in-app <Link>/<a> clicks (sidebar included): a capture-phase click
  *   interceptor showing confirm(), since the App Router has no supported
  *   route-block API;
- * - the browser Back button — a sentinel history entry: arming pushes a
+ * - the browser Back button: a sentinel history entry: arming pushes a
  *   duplicate of the current entry, so the first Back pops the sentinel
  *   (same URL, no visible change) and we get to ask; cancel re-pushes the
  *   sentinel, confirm issues the real back();
- * - programmatic pushes — confirmUnsavedNavigation() above, followed by
+ * - programmatic pushes: confirmUnsavedNavigation() above, followed by
  *   leaveDocument() when the move is a document load.
  *
  * All paths deliberately use the browser's native confirm: beforeunload can
@@ -43,7 +43,7 @@ export function leaveDocument(href: string): void {
  *
  * After a save the sentinel stays behind (removing it from cleanup would
  * itself navigate), so one extra Back press can be needed on a page that was
- * dirty — harmless, and the alternative is worse.
+ * dirty: harmless, and the alternative is worse.
  */
 export function useUnsavedChangesWarning(dirty: boolean, message: string) {
   const dirtyRef = useRef(dirty);

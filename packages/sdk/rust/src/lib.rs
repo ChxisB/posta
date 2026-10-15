@@ -1,4 +1,4 @@
-//! Official Rust SDK for [Posta](https://github.com/ChxisB/posta) — a
+//! Official Rust SDK for [Posta](https://github.com/ChxisB/posta): a
 //! self-hostable, Resend-compatible email API.
 //!
 //! Construct a [`Posta`] once and reuse it (it is cheap to [`Clone`]). Each

@@ -1,6 +1,6 @@
 /**
  * Break-glass content access: the vocabulary and the limits. Pure list, safe
- * to import from client components (no db or node imports) — the redaction
+ * to import from client components (no db or node imports): the redaction
  * pass itself lives in content-reveal-render.ts, which is not.
  */
 

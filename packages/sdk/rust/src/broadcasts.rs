@@ -9,7 +9,7 @@ use crate::types::{
     CreateBroadcastOptions, DeleteBroadcastResponse, List, ListOptions, UpdateBroadcastOptions,
 };
 
-/// Broadcasts — a one-off email to a segment, a topic's subscribers, or (with
+/// Broadcasts: a one-off email to a segment, a topic's subscribers, or (with
 /// neither set) every contact. Mirrors Resend's `broadcasts` resource.
 #[derive(Clone)]
 pub struct Broadcasts(pub(crate) Arc<Config>);
@@ -30,7 +30,7 @@ impl Broadcasts {
         self.0.get(&["broadcasts"], &list_query(options)).await
     }
 
-    /// `PATCH /broadcasts/:id` — draft only.
+    /// `PATCH /broadcasts/:id`: draft only.
     pub async fn update(&self, id: &str, changes: &UpdateBroadcastOptions) -> Result<BroadcastId> {
         if changes.clear_topic_id {
             let mut body = serde_json::to_value(changes).map_err(Error::Parse)?;
@@ -40,12 +40,12 @@ impl Broadcasts {
         self.0.patch(&["broadcasts", id], changes).await
     }
 
-    /// `DELETE /broadcasts/:id` — draft only.
+    /// `DELETE /broadcasts/:id`: draft only.
     pub async fn delete(&self, id: &str) -> Result<DeleteBroadcastResponse> {
         self.0.delete(&["broadcasts", id]).await
     }
 
-    /// `POST /broadcasts/:id/send` — pass `None` to send now, or an ISO 8601
+    /// `POST /broadcasts/:id/send`: pass `None` to send now, or an ISO 8601
     /// timestamp to schedule.
     pub async fn send(&self, id: &str, scheduled_at: Option<&str>) -> Result<BroadcastId> {
         self.0
@@ -53,7 +53,7 @@ impl Broadcasts {
             .await
     }
 
-    /// `POST /broadcasts/:id/cancel` — scheduled only.
+    /// `POST /broadcasts/:id/cancel`: scheduled only.
     pub async fn cancel(&self, id: &str) -> Result<CancelBroadcastResponse> {
         self.0.post_empty(&["broadcasts", id, "cancel"]).await
     }

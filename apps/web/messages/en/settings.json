@@ -22,7 +22,7 @@
     "password": "Password",
     "passwordNote": "Use any API key as the password.",
     "passwordLink": "API keys",
-    "passwordTooltip": "The relay authenticates with any of your API keys — paste one in place of YOUR_API_KEY. Keys are never shown here.",
+    "passwordTooltip": "The relay authenticates with any of your API keys: paste one in place of YOUR_API_KEY. Keys are never shown here.",
     "tlsWarnTitle": "The SMTP relay is not running",
     "tlsWarnBody": "This deployment has no TLS certificate for the relay, so the smtp service refuses to start and keeps restarting. Set <code>SMTP_TLS_CERT_PATH</code> and <code>SMTP_TLS_KEY_PATH</code>, or enable <code>SMTP_ALLOW_INSECURE_AUTH</code> only on a private, trusted network.",
     "insecureNote": "TLS is not configured and <code>SMTP_ALLOW_INSECURE_AUTH</code> is on: clients authenticate without encryption. Set <code>SMTP_TLS_CERT_PATH</code> and <code>SMTP_TLS_KEY_PATH</code> to require STARTTLS.",
@@ -76,34 +76,34 @@
       "viewInstructions": "View instructions",
       "recommended": "Recommended",
       "cliTitle": "Run the setup CLI",
-      "cliNote": "Run it anywhere Node 18+ and YOUR AWS admin credentials live — your laptop or the server. It creates everything and prints the <code>.env</code> lines to paste if Posta runs elsewhere.",
+      "cliNote": "Run it anywhere Node 18+ and YOUR AWS admin credentials live: your laptop or the server. It creates everything and prints the <code>.env</code> lines to paste if Posta runs elsewhere.",
       "cfnButton": "Create the stack in CloudFormation",
       "scriptTitle": "Alternative: paste this script",
       "scriptNote": "Paste into a terminal where the AWS CLI has admin credentials. It creates the IAM user, policy, SNS topic, SQS events queue, and configuration set, then prints your <code>.env</code> lines.",
       "eventsSkipped": "<code>APP_BASE_URL</code> is not a public https URL, so the script skips the https push; events still arrive through the SQS queue. Set it and reload to add the push.",
-      "cfnNote": "One click: opens the CloudFormation review page with the hosted template — the same stack as <code>infra/posta-ses.cfn.yaml</code>. From a terminal instead:",
+      "cfnNote": "One click: opens the CloudFormation review page with the hosted template; the same stack as <code>infra/posta-ses.cfn.yaml</code>. From a terminal instead:",
       "manualTitle": "Manual: console steps",
-      "step1": "Create a policy: IAM console → Policies → Create policy → JSON — paste this document.",
+      "step1": "Create a policy: IAM console → Policies → Create policy → JSON; paste this document.",
       "step1Link": "Open the policy editor",
       "step2": "Create a user named <code>posta</code> and attach the policy.",
       "step2Link": "Open user creation",
       "step3": "Create an access key for the user and paste it into <code>.env</code>.",
-      "step4": "Optional events: SNS topic + configuration set — the script above automates this part; see <code>SELF_HOSTING.md</code>."
+      "step4": "Optional events: SNS topic + configuration set; the script above automates this part; see <code>SELF_HOSTING.md</code>."
     },
     "credentials": {
       "title": "Credentials",
       "set": "set",
       "notSet": "not set",
       "keysConfigured": "configured",
-      "keysChain": "not set — the default provider chain will be attempted",
-      "snsNote": "not set — event ingestion is disabled",
-      "configSetNote": "not set — SES publishes no events",
-      "authEmailNote": "not set — password recovery is hidden"
+      "keysChain": "not set, the default provider chain will be attempted",
+      "snsNote": "not set, event ingestion is disabled",
+      "configSetNote": "not set, SES publishes no events",
+      "authEmailNote": "not set, password recovery is hidden"
     },
     "test": {
       "title": "Test connection",
       "button": "Test connection",
-      "note": "runs <code>GetAccount</code> from the instance — read-only, nothing is sent",
+      "note": "runs <code>GetAccount</code> from the instance: read-only, nothing is sent",
       "sendingEnabled": "Sending enabled",
       "sendingDisabled": "Sending disabled",
       "production": "Production access",
@@ -117,10 +117,10 @@
       "sandboxLink": "Request production access",
       "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through Posta, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
       "requestTemplateNote": "Replace <code>[VOLUME]</code>, then paste it into the AWS production access request form.",
-      "rateHint": "SES_MAX_SEND_RATE={envRate} in .env · this region's account max {accountRate}/s — the worker sends at the lower of the two.",
+      "rateHint": "SES_MAX_SEND_RATE={envRate} in .env · this region's account max {accountRate}/s: the worker sends at the lower of the two.",
       "errors": {
-        "credentials": "AWS rejected the credentials — check <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> in <code>.env</code>.",
-        "unreachable": "SES did not respond — check <code>AWS_REGION</code> / <code>AWS_REGIONS</code> and the network path."
+        "credentials": "AWS rejected the credentials: check <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> in <code>.env</code>.",
+        "unreachable": "SES did not respond: check <code>AWS_REGION</code> / <code>AWS_REGIONS</code> and the network path."
       },
       "disabledHint": "Set your AWS credentials first.",
       "committedPerDay": "Committed per day"
@@ -170,7 +170,7 @@
     "name": "Name",
     "email": "Email",
     "role": "Role",
-    "pageOf": "Page 1 – {pages} of {total} members",
+    "pageOf": "Page 1 to {pages} of {total} members",
     "roles": {
       "owner": "Owner",
       "admin": "Admin",
@@ -209,7 +209,7 @@
     "created": {
       "title": "Invitation link",
       "sentTitle": "Invitation sent",
-      "emailedBody": "We emailed {email}. You can also share this link — it works once and expires in 3 days.",
+      "emailedBody": "We emailed {email}. You can also share this link: it works once and expires in 3 days.",
       "bodyTtl": "Share this link with {email}. It works once and expires in 3 days.",
       "noSender": "This instance has no email sender configured, so the link is the only way in.",
       "done": "Done",
@@ -224,7 +224,7 @@
       "revoke": "Revoke",
       "actions": "Actions",
       "resendError": "Could not resend: {reason}",
-      "pageOf": "Page 1 – {pages} of {total} invitations",
+      "pageOf": "Page 1 to {pages} of {total} invitations",
       "revokeTitle": "Revoke invitation",
       "revokeBody": "The link sent to {email} stops working. You can invite them again any time."
     },
@@ -303,7 +303,7 @@
     "manageHint": "Plans change here. Invoices, payment method, tax ID and cancellation live in the billing portal.",
     "readOnly": "Only owners and admins can change billing.",
     "systemNotice": "This is the instance's own team: it sends the account mail and product updates, is never billed and has no sending cap. Its plan is set by the operator.",
-    "pastDue": "Payment failed — update your card to keep your plan.",
+    "pastDue": "Payment failed: update your card to keep your plan.",
     "updateCard": "Update payment method",
     "usageTitle": "Usage",
     "overage": "Overage",
@@ -339,7 +339,7 @@
       "integrations": "Webhooks and API keys",
       "agents": "MCP server, CLI and nine SDKs"
     },
-    "checkoutSuccess": "Thanks! Your plan updates as soon as Stripe confirms the payment — usually within a few seconds.",
+    "checkoutSuccess": "Thanks! Your plan updates as soon as Stripe confirms the payment: usually within a few seconds.",
     "checkoutCancel": "Checkout canceled. Your plan is unchanged.",
     "error": "Something went wrong with Stripe. Try again."
   },
@@ -348,11 +348,11 @@
     "intro": "Let AI agents send email and manage your audience over the Model Context Protocol.",
     "subtitle": "Every tool call goes through the same rules as the REST API: verified domains, suppressions, quotas and team scoping.",
     "serverUrl": "Server URL",
-    "serverUrlNote": "Streamable HTTP endpoint. Clients sign in with your Posta account through OAuth — no API keys and nothing secret to paste.",
+    "serverUrlNote": "Streamable HTTP endpoint. Clients sign in with your Posta account through OAuth: no API keys and nothing secret to paste.",
     "connectTitle": "Connect a client",
     "notes": {
       "claudeCode": "Then run <code>/mcp</code> inside Claude Code and pick posta to sign in.",
-      "claudeDesktop": "Add to <code>claude_desktop_config.json</code> — or skip the file: Settings → Connectors → Add custom connector, and paste the server URL.",
+      "claudeDesktop": "Add to <code>claude_desktop_config.json</code>, or skip the file: Settings → Connectors → Add custom connector, and paste the server URL.",
       "cursor": "Save as <code>.cursor/mcp.json</code> in the project, or <code>~/.cursor/mcp.json</code> for every project.",
       "vscode": "Save as <code>.vscode/mcp.json</code> in the workspace, then start the server from the editor's MCP view."
     },

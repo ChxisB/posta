@@ -80,7 +80,7 @@ describe("contact properties API (/contact-properties)", () => {
     });
     expect(res.status).toBe(200);
     const body = await json(res);
-    // Full object on create — an agent can confirm what it made without a re-read.
+    // Full object on create: an agent can confirm what it made without a re-read.
     expect(body).toMatchObject({
       object: "contact_property",
       key: "seats",

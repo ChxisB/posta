@@ -9,7 +9,7 @@ import { Table } from "@/components/table";
 import { formatDay, formatDayUtc } from "@/lib/format";
 import { useTRPC } from "@/lib/trpc";
 
-/* Ring geometry — 40px face, 4px stroke, faint full-circle track. */
+/* Ring geometry: 40px face, 4px stroke, faint full-circle track. */
 const RING_SIZE = 40;
 const RING_STROKE = 4;
 const RING_R = (RING_SIZE - RING_STROKE) / 2;
@@ -186,7 +186,7 @@ export function UsageView() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20 }}>
       <section className="po-card" style={{ padding: "20px 24px" }}>
-        {/* The deployment's one real quota — the plan's cap, per billing
+        {/* The deployment's one real quota; the plan's cap, per billing
             period on a monthly plan and per UTC day otherwise. Self-host
             has none, reported honestly as unlimited. */}
         {data.period ? (
@@ -242,7 +242,7 @@ export function UsageView() {
             <tbody>
               {data.rows.map((row) => (
                 <tr key={row.day}>
-                  {/* formatDayUtc pins the label to the UTC day key — plain
+                  {/* formatDayUtc pins the label to the UTC day key: plain
                       locale formatting would shift it in negative offsets. */}
                   <td title={row.day}>{formatDayUtc(row.day, locale)}</td>
                   {/* ponytail: Free's sends are its shared counter minus received,

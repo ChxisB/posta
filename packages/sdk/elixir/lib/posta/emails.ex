@@ -55,7 +55,7 @@ end
 defmodule Posta.Emails.Insights do
   @moduledoc """
   The pre-send best-practice report computed when an email was sent. `score`
-  is 0–10 (one decimal); `band` is a plain string
+  is 0 to 10 (one decimal); `band` is a plain string
   (`"excellent" | "good" | "needs_attention" | "at_risk"`, open to future values).
   """
   @type t :: %__MODULE__{}
@@ -76,7 +76,7 @@ defmodule Posta.Emails do
   @moduledoc """
   Send, list, fetch, reschedule and cancel emails.
 
-  Input maps use snake_case keys and are sent to the API as given — every key
+  Input maps use snake_case keys and are sent to the API as given: every key
   reaches the wire: `from`, `to`, `subject`, `html`, `text`, `cc`, `bcc`,
   `reply_to`, `scheduled_at`, `tags`, `topic_id`, `attachments`, `headers` and
   `template`. `:to`, `:cc`, `:bcc` and `:reply_to` take a string or a list of
@@ -124,7 +124,7 @@ defmodule Posta.Emails do
   end
 
   @doc """
-  `POST /emails/batch` — 1..100 emails in one call. Options: `idempotency_key:`
+  `POST /emails/batch`: 1..100 emails in one call. Options: `idempotency_key:`
   and `batch_validation:` (`:strict`, the default, or `:permissive`; sent as the
   `x-batch-validation` header).
 
@@ -164,7 +164,7 @@ defmodule Posta.Emails do
     Request.run(client, method: :get, path: "/emails/" <> Request.encode(id), as: Email)
   end
 
-  @doc "`GET /emails` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /emails`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -181,7 +181,7 @@ defmodule Posta.Emails do
   end
 
   @doc """
-  `PATCH /emails/:id` — reschedule a scheduled, unsent email. `params` carries
+  `PATCH /emails/:id`: reschedule a scheduled, unsent email. `params` carries
   `scheduled_at:` (a map or keyword list).
   """
   @spec update(Client.t(), String.t(), map() | keyword()) ::
@@ -196,7 +196,7 @@ defmodule Posta.Emails do
   end
 
   @doc """
-  `GET /emails/:id/insights` — the email's deliverability insights report.
+  `GET /emails/:id/insights`: the email's deliverability insights report.
   Returns a `"not_found"` error until insights exist for the email.
   """
   @spec get_insights(Client.t(), String.t()) :: {:ok, Insights.t()} | {:error, Posta.Error.t()}
@@ -221,7 +221,7 @@ defmodule Posta.Emails do
     }
   end
 
-  @doc "`POST /emails/:id/cancel` — only scheduled, unsent emails."
+  @doc "`POST /emails/:id/cancel`: only scheduled, unsent emails."
   @spec cancel(Client.t(), String.t()) :: {:ok, Email.t()} | {:error, Posta.Error.t()}
   def cancel(client \\ Posta.client(), id) when is_binary(id) do
     Request.run(client,

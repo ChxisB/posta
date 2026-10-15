@@ -17,7 +17,7 @@ describe("fileSlug", () => {
   });
 
   it("is plain ASCII, lower case, with single dashes", () => {
-    expect(fileSlug("  Your  Café — receipt #42 ", "x")).toBe("your-cafe-receipt-42");
+    expect(fileSlug("  Your  Café: receipt #42 ", "x")).toBe("your-cafe-receipt-42");
     expect(fileSlug("Ünïcödé ñ", "x")).toBe("unicode-n");
   });
 

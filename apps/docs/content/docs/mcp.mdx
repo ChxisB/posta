@@ -6,7 +6,7 @@ description: Connect AI agents to Posta through the Model Context Protocol.
 Every Posta deployment ships an MCP (Model Context Protocol) server, so
 AI agents like Claude Code, Claude Desktop, Cursor and VS Code can send emails
 and manage your audience. Tool calls run through the exact same pipeline as
-the REST API — verified domains, suppressions, topic opt-outs, quotas and
+the REST API: verified domains, suppressions, topic opt-outs, quotas and
 team scoping all apply unchanged.
 
 ## Server URL
@@ -21,7 +21,7 @@ The MCP endpoint (Streamable HTTP) lives at `/mcp` on the API origin:
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
-Your instance's API origin plus `/mcp` — e.g. `https://api.acme.dev/mcp`, or
+Your instance's API origin plus `/mcp`, e.g. `https://api.acme.dev/mcp`, or
 `http://localhost:3001/mcp` on a local compose setup. The dashboard shows the
 exact URL under **Settings → MCP**.
 
@@ -47,7 +47,7 @@ Then run `/mcp` inside Claude Code and pick `posta` to sign in.
 
 In Claude on the web, desktop or mobile, add a custom connector under
 **Settings → Connectors → Add custom connector** and paste the server URL.
-Or, in Claude Desktop, use the config file — Claude Desktop's
+Or, in Claude Desktop, use the config file. Claude Desktop's
 `claude_desktop_config.json` only launches stdio servers, so `mcp-remote`
 bridges it to the HTTP endpoint:
 
@@ -101,15 +101,15 @@ server URL from above.
 
 The MCP server uses OAuth, not API keys. On first connect the client opens
 your browser: sign in to Posta, pick the **team** the client may act
-on — a single team or **All teams** — and untick any **permissions** you
-don't want to grant. Nothing is copied or pasted — no secrets live in the
+on (a single team or **All teams**) and untick any **permissions** you
+don't want to grant. Nothing is copied or pasted: no secrets live in the
 client's config.
 
 - A grant bound to one team only ever acts on that team. An **All teams**
   grant covers every team you belong to, including teams you join later:
   every tool gains an optional `team_id` argument (defaulting to your oldest
   team) and a `list_teams` tool appears to look the ids up.
-- Permissions unticked at consent are simply never granted — the client
+- Permissions unticked at consent are simply never granted: the client
   doesn't see the tools they cover.
 - Grants are listed under **Settings → Connected apps** in the dashboard.
   You can revoke your own grants; owners and admins can revoke anyone's.
@@ -161,7 +161,7 @@ takes `accept_from` and no other safety setting.
 | --- | --- | --- |
 | `list_emails` | `emails:read` | List sent, queued and scheduled emails. |
 | `get_email` | `emails:read` | Get one email with its delivery status. |
-| `get_usage` | `emails:read` | Plan, send limit (daily on Free and Starter, monthly on Pro and Scale), domain limit, today's accepted count and, on monthly plans, the billing period's usage — check before bulk work. |
+| `get_usage` | `emails:read` | Plan, send limit (daily on Free and Starter, monthly on Pro and Scale), domain limit, today's accepted count and, on monthly plans, the billing period's usage: check before bulk work. |
 | `list_received_emails` | `receiving:read` | List the emails received at your [receiving domains](/concepts/receiving), newest first; filter by inbox, sender, recipient or unread. |
 | `get_received_email` | `receiving:read` | Get one received email. `format` picks the content: `extracted` (the default: sender, trust, screening and the cleaned reply text), `text`, `html` or `raw` (a download link only). With `html`, `html_format` defaults to `cid`, keeping inline images out of the result. |
 | `list_received_email_attachments` | `receiving:read` | List a received email's attachments with their download links. |
@@ -178,7 +178,7 @@ takes `accept_from` and no other safety setting.
 | `list_contacts` | `audience:read` | List contacts, optionally one segment's members. |
 | `get_contact` | `audience:read` | Get a contact by id or email address. |
 | `get_contact_topics` | `audience:read` | Every topic with the contact's effective subscription and whether it was explicit. |
-| `list_segments` | `audience:read` | List segments — the targets broadcasts are sent to. |
+| `list_segments` | `audience:read` | List segments: the targets broadcasts are sent to. |
 | `get_segment` | `audience:read` | Get one segment with its filter or manual membership. |
 | `list_topics` | `audience:read` | List subscription topics. |
 | `get_topic` | `audience:read` | Get one subscription topic. |
@@ -207,7 +207,7 @@ takes `accept_from` and no other safety setting.
 | `create_contact_preferences_link` | `audience:write` | Mint a contact's preference-center URL. |
 | `add_contact_to_segment` | `audience:write` | Add a contact to a manual segment. |
 | `remove_contact_from_segment` | `audience:write` | Remove a contact from a manual segment. |
-| `create_segment` | `audience:write` | Create a segment — filtered, or manual without a filter. |
+| `create_segment` | `audience:write` | Create a segment: filtered, or manual without a filter. |
 | `update_segment` | `audience:write` | Rename a segment or change its filter. |
 | `delete_segment` | `audience:write` | Delete a segment; its contacts remain. |
 | `create_topic` | `audience:write` | Create a subscription topic. |
@@ -246,7 +246,7 @@ takes `accept_from` and no other safety setting.
 ## Tool results
 
 Every tool returns one JSON text block, and the same validation errors as
-the REST API apply — an unverified sender domain fails a `send_email` call
+the REST API apply: an unverified sender domain fails a `send_email` call
 exactly as it fails `POST /emails`. The REST response is wrapped in an
 envelope that marks it as untrusted data:
 

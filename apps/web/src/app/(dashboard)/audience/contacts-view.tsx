@@ -36,10 +36,10 @@ import { useTeamRole } from "@/lib/use-team-role";
 import { ListFooter, SearchBox, StateCard } from "../emails/list-parts";
 import { AudienceTabs } from "./audience-tabs";
 
-/** addMany's input ceiling — larger CSVs go up in sequential batches. */
+/** addMany's input ceiling: larger CSVs go up in sequential batches. */
 const IMPORT_BATCH = 1000;
 
-/** The bulk mutations' contactIds ceiling — larger selections go up in sequential batches. */
+/** The bulk mutations' contactIds ceiling: larger selections go up in sequential batches. */
 const BULK_BATCH = 100;
 
 // Fixed layout: column shares hold and long cells truncate instead of pushing
@@ -252,7 +252,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
 
   // Selection tracks the visible list: rows that fall out (filter/search
   // change, deletion) are pruned; rows still visible after a page-size change
-  // or a "load more" stay selected. Pruning waits for data — a key change
+  // or a "load more" stay selected. Pruning waits for data: a key change
   // (filter, page size) empties `items` while pending, and clearing on that
   // would drop rows the incoming page still shows.
   useEffect(() => {
@@ -420,7 +420,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
     function onKey(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
-      // A focused row checkbox is not "typing" — E/⌫/Esc must still work
+      // A focused row checkbox is not "typing". E/⌫/Esc must still work
       // right after a click selects a row.
       const typing =
         (target instanceof HTMLInputElement && target.type !== "checkbox") ||
@@ -730,7 +730,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                     <td>
                       {row.segments.length > 0 ? (
                         // First segment, then a "+N" count that lists the rest on
-                        // hover — the joined list overflowed the column on
+                        // hover: the joined list overflowed the column on
                         // contacts in every segment.
                         <span
                           style={{
@@ -761,7 +761,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
                           ) : null}
                         </span>
                       ) : (
-                        <span style={{ color: "var(--po-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>-</span>
                       )}
                     </td>
                     <td>
@@ -1019,7 +1019,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
           }}
         >
           <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("contacts.deleteBody", { email: deleteTarget?.email ?? "—" })}
+            {t("contacts.deleteBody", { email: deleteTarget?.email ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>

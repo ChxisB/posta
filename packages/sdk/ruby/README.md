@@ -1,6 +1,6 @@
 # posta
 
-Official Ruby SDK for [Posta](https://github.com/ChxisB/posta) — a
+Official Ruby SDK for [Posta](https://github.com/ChxisB/posta): a
 self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this gem deliberately mirrors the shape of
@@ -58,7 +58,7 @@ other `http://` URL raises `Posta::ApplicationError` on the first call, since th
 key is sent as a bearer header. Set `allow_insecure_http = true` to talk to a non-TLS
 instance elsewhere (e.g. inside a private network).
 
-Params are symbol-keyed hashes and go on the wire **exactly as given** — nothing is
+Params are symbol-keyed hashes and go on the wire **exactly as given**: nothing is
 filtered or renamed (Ruby's snake_case is already the wire's snake_case: `reply_to`,
 `scheduled_at`, `segment_id`). A `nil` value is sent as JSON `null`, which is how the API
 clears a nullable field (`topic_id`, `first_name`, a template `alias`, …); omit the key to
@@ -110,7 +110,7 @@ hash: `Emails.update(email_id: id, scheduled_at: ...)`.
 
 ### Contacts
 
-Contacts are team-global — one list per team, no audiences.
+Contacts are team-global: one list per team, no audiences.
 
 ```ruby
 contact = Posta::Contacts.create(
@@ -122,29 +122,29 @@ contact = Posta::Contacts.create(
 Posta::Contacts.get("ada@acme.dev") # by id or email; also resend-ruby's get(id: ...) / get(email: ...)
 Posta::Contacts.update(id: contact[:id], unsubscribed: true, first_name: nil) # nil clears
 Posta::Contacts.remove("ada@acme.dev")              # the contact's emails stay in the send log
-Posta::Contacts.remove("ada@acme.dev", erase: true) # ?erase=true — also scrubs the address from email
+Posta::Contacts.remove("ada@acme.dev", erase: true) # ?erase=true: also scrubs the address from email
                                                     # history, event payloads and API logs (GDPR/LGPD)
 Posta::Contacts.list(limit: 50)
 # Bulk read (Posta extension): carry the property map and the topic subscriptions on every
 # item, so an audience reads in one request per 100 contacts instead of one per contact
 Posta::Contacts.list(limit: 100, include: ["properties", "topics"]) # ?include=properties,topics
 
-# Topic subscriptions (granular unsubscribe) — PATCH /contacts/:id/topics
+# Topic subscriptions (granular unsubscribe): PATCH /contacts/:id/topics
 Posta::Contacts::Topics.update(email: "ada@acme.dev", topics: [{ id: topic_id, subscription: "opt_out" }]) # resend-ruby shape
 Posta::Contacts.topics_update("ada@acme.dev", [{ id: topic_id, subscription: "opt_out" }])                 # positional
-Posta::Contacts::Topics.list(email: "ada@acme.dev") # GET /contacts/:id/topics — every topic with its effective
+Posta::Contacts::Topics.list(email: "ada@acme.dev") # GET /contacts/:id/topics: every topic with its effective
                                                     # subscription (explicit: false when it is the topic's default)
                                                     # and its visibility ("public" | "private")
 
-# Preference-center link (Posta extension) — POST /contacts/:id/preferences-link
+# Preference-center link (Posta extension): POST /contacts/:id/preferences-link
 link = Posta::Contacts.preferences_link("ada@acme.dev") # by id or email; also preferences_link(id: ...) / (email: ...)
 link[:url] # the contact's hosted preference page; no expiry, so show it only to that contact
 
-# Segment membership — POST / DELETE /contacts/:id/segments/:segment_id
+# Segment membership: POST / DELETE /contacts/:id/segments/:segment_id
 Posta::Contacts::Segments.add("ada@acme.dev", segment_id)
 Posta::Contacts::Segments.remove(contact_id: contact[:id], segment_id: segment_id) # resend-ruby shape
 
-# Bulk create (Posta extension) — up to 1000 per call
+# Bulk create (Posta extension): up to 1000 per call
 result = Posta::Contacts::Batch.create(
   [{ email: "a@acme.dev" }, { email: "b@acme.dev", first_name: "B" }],
   on_conflict: "upsert",          # "error" (default) | "skip" | "upsert"
@@ -154,20 +154,20 @@ result[:data]   # [{ index:, id:, status: "created" | "updated" | "skipped" }]
 result[:counts] # { created:, updated:, skipped:, failed: }
 result[:errors] # permissive mode only: [{ index:, message: }]
 
-# Bulk lookup (Posta extension) — up to 1000 contacts by id or email in one request, in
-# request order; unknown entries are listed, not errors — one request against the rate limit
+# Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request, in
+# request order; unknown entries are listed, not errors: one request against the rate limit
 found = Posta::Contacts::Batch.get([contact[:id], "b@acme.dev", { email: "c@acme.dev" }], include: ["topics"])
 found[:data]    # [{ object: "contact", id:, email:, first_name:, last_name:, created_at:, unsubscribed:, topics: }]
-found[:missing] # [{ index:, email: }] / [{ index:, id: }] — request entries that matched nobody
+found[:missing] # [{ index:, email: }] / [{ index:, id: }]: request entries that matched nobody
 
-# Bulk delete (Posta extension) — up to 1000 per call, exactly one of ids: / emails:
+# Bulk delete (Posta extension): up to 1000 per call, exactly one of ids: / emails:
 Posta::Contacts::Batch.remove(emails: ["a@acme.dev", "b@acme.dev"]) # or ids: [...]; emails stay in the log
 Posta::Contacts::Batch.remove(ids: [contact[:id]], erase: true)      # also scrubs each address, as Contacts.remove
-# => { data: [{ object: "contact", contact: "<uuid>", deleted: true }, ...] } — only the rows actually deleted
+# => { data: [{ object: "contact", contact: "<uuid>", deleted: true }, ...] }, only the rows actually deleted
 ```
 
 Contacts are addressable by id or email; when an `update` hash carries both, the email wins.
-Emails are unique per team (case-insensitive) — a duplicate `create` raises
+Emails are unique per team (case-insensitive): a duplicate `create` raises
 `Posta::ValidationError`.
 
 ### Contact properties
@@ -187,7 +187,7 @@ Posta::ContactProperties.remove(prop[:id])
 ```ruby
 Posta::Topics.create(name: "Product updates", default_subscription: "opt_in", visibility: "public")
 Posta::Topics.get(id)
-Posta::Topics.list    # bare { data: [...] } — topics are unpaginated
+Posta::Topics.list    # bare { data: [...] }: topics are unpaginated
 Posta::Topics.update(id, name: "Product news")
 Posta::Topics.remove(id)
 ```
@@ -263,14 +263,14 @@ Posta::Webhooks.list
 Posta::Webhooks.update(hook[:id], events: ["email.opened"], status: "disabled")
 Posta::Webhooks.remove(hook[:id])
 
-# Rotate the signing secret (Posta extension) — POST /webhooks/:id/rotate
+# Rotate the signing secret (Posta extension): POST /webhooks/:id/rotate
 rotated = Posta::Webhooks.rotate(hook[:id])                                         # mints a new secret, 24h overlap
 rotated = Posta::Webhooks.rotate(hook[:id], signing_secret: "whsec_...", overlap_hours: 0) # bring your own, no overlap
 rotated[:signing_secret]              # the secret now signing deliveries
 rotated[:previous_secret_expires_at]  # ISO time until which the old secret also signs, or nil
 ```
 
-During the overlap window (`overlap_hours`, 0–72, default 24) every delivery carries both
+During the overlap window (`overlap_hours`, 0 to 72, default 24) every delivery carries both
 signatures, so a receiver holding either verifies; `Webhooks.get` reports the window's end
 as `previous_secret_expires_at` (`nil` when none is open).
 
@@ -308,7 +308,7 @@ server currently answers 422 for them.
 
 ### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a Posta superset with
+Dynamic segments are a saved filter over the team's contacts: a Posta superset with
 no Resend equivalent.
 
 ```ruby
@@ -329,7 +329,7 @@ Posta::Segments.remove(segment[:id])
 ```ruby
 usage = Posta::Usage.get # GET /usage
 usage[:plan]                   # "free" | "pro" | "scale" | nil (self-hosted)
-usage[:limits]                 # { emails_per_day:, domains: } — nil means unlimited
+usage[:limits]                 # { emails_per_day:, domains: }: nil means unlimited
 usage[:today]                  # { emails_sent:, resets_at: }
 ```
 
@@ -339,16 +339,16 @@ Per-email best-practice insights and the account-level deliverability score.
 
 ```ruby
 insights = Posta::Emails.get_insights(email[:id]) # score, band, checks: [{id:, severity:, status:, penalty:, detail:}]
-account  = Posta::Deliverability.get              # GET /deliverability — trailing-30-day account score
+account  = Posta::Deliverability.get              # GET /deliverability: trailing-30-day account score
 puts account[:score] # 0-10 (one decimal) or nil when there is not enough data
 ```
 
 Check ids and the band/severity/status values are an open set that grows across score
-versions — treat them as strings, not a closed enum.
+versions: treat them as strings, not a closed enum.
 
 ## Error handling
 
-No `{ data, error }` tuple — a non-2xx response raises. The base class is `Posta::Error`,
+No `{ data, error }` tuple: a non-2xx response raises. The base class is `Posta::Error`,
 which carries `#status_code`, `#name` (the stable snake_case discriminant), and `#message`.
 Subclasses are keyed on `name`, so you can rescue a specific failure:
 
@@ -396,7 +396,7 @@ works as in resend-ruby. Notes:
   addressing hashes (`id:` / `email:` / `contact_id:`, `segment_id:`) as well as bare values.
   `Contacts::Topics.list` is unpaginated, so resend-ruby's `limit:`/`after:`/`before:` are not sent.
   `Suppressions::Batch` is nested as in resend-ruby.
-- **No audiences** — contacts are team-global, so there is no `Audiences` resource and no
+- **No audiences**: contacts are team-global, so there is no `Audiences` resource and no
   `audience_id` params. The API's `/audiences/*` routes are a compatibility shim and are not
   part of this SDK. `Posta::Segments` is the dynamic-filter feature (`/segments`), not
   Resend's audiences alias.

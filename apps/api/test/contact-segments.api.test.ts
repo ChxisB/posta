@@ -265,7 +265,7 @@ describe("GET /segments/{id}/contacts (segment resolution)", () => {
       },
     });
     const segmentId = segment.id as string;
-    // vip1 matches the filter AND is added manually — must appear once.
+    // vip1 matches the filter AND is added manually: must appear once.
     await call(tokenA, "POST", `/contacts/vip1@example.com/segments/${segmentId}`);
     const manual = await json(await createContact(tokenA, { email: "manual1@example.com" }));
     await call(tokenA, "POST", `/contacts/${manual.id as string}/segments/${segmentId}`);

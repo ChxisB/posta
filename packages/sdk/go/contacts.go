@@ -366,7 +366,7 @@ func (s *ContactsService) CreatePreferencesLink(addr ContactAddress) (*ContactPr
 // CSV only and reads and deletes them one at a time).
 type ContactsBatchService struct{ client *Client }
 
-// Create writes 1–1000 contacts in one call. WithOnConflict picks what happens
+// Create writes 1 to 1000 contacts in one call. WithOnConflict picks what happens
 // to an email that already exists (default error); WithBatchValidation
 // (BatchValidationPermissive) writes the valid subset and lists failures in
 // Errors instead of rejecting the whole batch.

@@ -194,7 +194,7 @@ export function TopicDeleteModal({
         }}
       >
         <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-          {t("deleteBody", { name: target?.name ?? "—" })}
+          {t("deleteBody", { name: target?.name ?? "-" })}
         </p>
         <ModalFooter>
           <button type="button" className="po-btn po-btn-secondary" onClick={onClose}>

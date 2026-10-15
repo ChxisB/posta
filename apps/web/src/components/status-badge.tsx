@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 
 // Variant per status: sent is accepted for delivery, not an outcome, so it
 // stays neutral like the envelope tile until delivery reports back; complained
-// warns, delayed stays neutral, and suppressed is a danger — future sends are
+// warns, delayed stays neutral, and suppressed is a danger: future sends are
 // blocked.
 const VARIANTS = {
   delivered: "success",
@@ -45,7 +45,7 @@ const DOT_COLORS: Record<BadgeStatus, string> = {
   canceled: "var(--po-dot-queued)",
 };
 
-/** 8px status dot — by email status or any CSS color; with neither it renders
+/** 8px status dot, by email status or any CSS color; with neither it renders
  * the ring that marks an unfiltered "all" option. */
 export function StatusDot({ status, color }: { status?: BadgeStatus; color?: string }) {
   const fill = status ? DOT_COLORS[status] : color;
@@ -56,7 +56,7 @@ export function StatusDot({ status, color }: { status?: BadgeStatus; color?: str
   );
 }
 
-/** Labels come from common.status.* — semantic colors always carry text. */
+/** Labels come from common.status.*: semantic colors always carry text. */
 export function StatusBadge({
   status,
   label,

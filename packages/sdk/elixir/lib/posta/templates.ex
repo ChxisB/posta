@@ -53,7 +53,7 @@ defmodule Posta.Templates do
     Request.run(client, method: :get, path: member_path(id_or_alias), as: Template)
   end
 
-  @doc "`GET /templates` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /templates`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -69,7 +69,7 @@ defmodule Posta.Templates do
     )
   end
 
-  @doc "`PATCH /templates/:id_or_alias` — `nil` clears `subject`, `text` or `alias`."
+  @doc "`PATCH /templates/:id_or_alias`: `nil` clears `subject`, `text` or `alias`."
   @spec update(Client.t(), String.t(), map()) :: {:ok, Template.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id_or_alias, params)
       when is_binary(id_or_alias) and is_map(params) do
@@ -87,13 +87,13 @@ defmodule Posta.Templates do
     Request.run(client, method: :delete, path: member_path(id_or_alias), as: Template)
   end
 
-  @doc "`POST /templates/:id_or_alias/publish` — a no-op kept for compatibility: templates publish on write."
+  @doc "`POST /templates/:id_or_alias/publish`: a no-op kept for compatibility: templates publish on write."
   @spec publish(Client.t(), String.t()) :: {:ok, Template.t()} | {:error, Posta.Error.t()}
   def publish(client \\ Posta.client(), id_or_alias) when is_binary(id_or_alias) do
     Request.run(client, method: :post, path: member_path(id_or_alias) <> "/publish", as: Template)
   end
 
-  @doc "`POST /templates/:id_or_alias/duplicate` — returns the copy's `id`."
+  @doc "`POST /templates/:id_or_alias/duplicate`: returns the copy's `id`."
   @spec duplicate(Client.t(), String.t()) :: {:ok, Template.t()} | {:error, Posta.Error.t()}
   def duplicate(client \\ Posta.client(), id_or_alias) when is_binary(id_or_alias) do
     Request.run(client,

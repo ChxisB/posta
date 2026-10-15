@@ -5,7 +5,7 @@ import { source } from "@/lib/source";
 export const revalidate = false;
 
 export function GET(): Response {
-  // Serves the default locale (English — the source of truth) only. Agents
+  // Serves the default locale (English, the source of truth) only. Agents
   // reach pt-BR pages via their locale-prefixed .md URLs (/pt-BR/<page>.md).
   const lines = source.getPages(i18n.defaultLanguage).map((page) => {
     const md = page.url === "/" ? "/index.md" : `${page.url}.md`;
@@ -16,7 +16,7 @@ export function GET(): Response {
   const body = [
     "# Posta Docs",
     "",
-    "> Posta is an open-source, Resend-compatible email platform — hosted at posta.example (API: api.posta.example) or self-hosted on your own AWS SES.",
+    "> Posta is an open-source, Resend-compatible email platform, hosted at posta.example (API: api.posta.example) or self-hosted on your own AWS SES.",
     "",
     "Every page is available as raw markdown by appending `.md` to its URL.",
     `The full documentation in one file: ${absoluteUrl("/llms-full.txt")}`,

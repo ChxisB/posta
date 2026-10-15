@@ -1,6 +1,6 @@
 # Posta .NET SDK
 
-Official .NET SDK for [Posta](https://github.com/ChxisB/posta) — a
+Official .NET SDK for [Posta](https://github.com/ChxisB/posta): a
 self-hostable, [Resend](https://resend.com)-wire-compatible email API.
 
 The API is wire-compatible with Resend, so migrating is mostly swapping the
@@ -35,7 +35,7 @@ else
     Console.Error.WriteLine($"{res.Exception!.ErrorName}: {res.Exception.Message}");
 ```
 
-`To`, `Cc`, `Bcc`, and `ReplyTo` accept a single address or an array — assign a
+`To`, `Cc`, `Bcc`, and `ReplyTo` accept a single address or an array: assign a
 `string` or a `string[]` directly.
 
 ## Configuration
@@ -67,9 +67,9 @@ handlers, or tests): `new PostaClient(options, httpClient)`.
 No method throws for an API or transport error. Every call returns a
 `PostaResponse<T>`:
 
-- `Success` — `true` when the call succeeded.
-- `Content` — the deserialized response body on success.
-- `Exception` — a `PostaException` on failure, carrying `StatusCode`
+- `Success`: `true` when the call succeeded.
+- `Content`: the deserialized response body on success.
+- `Exception`: a `PostaException` on failure, carrying `StatusCode`
   (`int?`), `ErrorName` (the stable snake_case discriminant, e.g.
   `validation_error`, `not_found`, `sending_paused`, `all_recipients_suppressed`),
   and `Message`.
@@ -142,9 +142,9 @@ foreach (var err in res.Content!.Errors ?? new())
 `EmailSendAsync` and `EmailBatchAsync` are the only endpoints that accept the
 `Idempotency-Key` header.
 
-`EmailRetrieveAsync` includes a `Score` (0–10 best-practice score, `null` when
+`EmailRetrieveAsync` includes a `Score` (0 to 10 best-practice score, `null` when
 the email has no insights). `EmailInsightsRetrieveAsync` returns the full
-pre-send report — score, band, and per-check results — or a `not_found` error
+pre-send report (score, band, and per-check results) or a `not_found` error
 when insights are not available for the email.
 
 ### Contacts
@@ -166,7 +166,7 @@ await client.ContactRetrieveAsync(new ContactAddress { Id = contactId });   // b
 await client.ContactUpdateAsync(new ContactUpdateOptions { Id = contactId, Unsubscribed = true });
 await client.ContactDeleteAsync(new ContactAddress { Email = "ada@acme.dev" });   // their emails stay in the log
 // Erase (Posta extension): also scrub the address from email history, event
-// payloads and API logs — a GDPR/LGPD erasure                                   // ?erase=true
+// payloads and API logs; a GDPR/LGPD erasure                                    // ?erase=true
 await client.ContactDeleteAsync(new ContactAddress { Email = "ada@acme.dev" }, new ContactDeleteOptions { Erase = true });
 await client.ContactListAsync(new ListOptions { Limit = 50 });
 // Bulk read (Posta extension): attach Properties and Topics to every row, so an
@@ -198,12 +198,12 @@ var batch = await client.ContactBatchAsync(contacts, new ContactBatchOptions
 Console.WriteLine($"{batch.Content!.Counts.Created} created, {batch.Content.Counts.Failed} failed");
 
 // Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request,
-// in request order; unknown entries are listed, not errors — one request against the rate limit
+// in request order; unknown entries are listed, not errors: one request against the rate limit
 var found = await client.ContactBatchGetAsync(                                 // POST /contacts/batch/get
     new[] { new ContactAddress { Id = contactId }, new ContactAddress { Email = "b@acme.dev" } },
     new ContactBatchGetOptions { Include = new() { ContactInclude.Topics } });
 found.Content!.Data;      // the contacts found: Id, Email, …, plus Properties/Topics per Include
-found.Content.Missing;    // [{ Index, Id?, Email? }] — request entries that matched nobody
+found.Content.Missing;    // [{ Index, Id?, Email? }]: request entries that matched nobody
 
 // Bulk delete (Posta extension): up to 1000 per call, by emails or by ids;
 // the response lists only the rows actually deleted. Their emails stay in the log;
@@ -212,7 +212,7 @@ await client.ContactBatchRemoveAsync(new[] { "a@acme.dev", "b@acme.dev" });
 await client.ContactBatchRemoveAsync(new[] { id1, id2 }, new ContactDeleteOptions { Erase = true });
 
 // Preference-center link (Posta extension): the contact's hosted preferences
-// page, the same one their unsubscribe links open. No expiry — hand it only to the
+// page, the same one their unsubscribe links open. No expiry, hand it only to the
 // contact. 422 when the instance cannot build hosted links.   // POST /contacts/{id}/preferences-link
 var link = await client.ContactPreferencesLinkAsync(new ContactAddress { Email = "ada@acme.dev" });
 Console.WriteLine(link.Content!.Url);
@@ -252,7 +252,7 @@ await client.TopicDeleteAsync(id);
 
 ### Broadcasts
 
-Targeting is an optional `SegmentId` and/or `TopicId` — set neither to send to
+Targeting is an optional `SegmentId` and/or `TopicId`: set neither to send to
 every contact of the team.
 
 ```csharp
@@ -276,7 +276,7 @@ await client.BroadcastDeleteAsync(id); // draft only
 
 ### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a Posta
+Dynamic segments are a saved filter over the team's contacts: a Posta
 superset with no Resend equivalent.
 
 ```csharp
@@ -344,7 +344,7 @@ await client.WebhookRetrieveAsync(id);
 await client.WebhookUpdateAsync(id, new WebhookUpdateOptions { Status = WebhookStatus.Disabled });
 await client.WebhookDeleteAsync(id);
 
-// Rotate the signing secret (Posta extension). For OverlapHours (0–72) every
+// Rotate the signing secret (Posta extension). For OverlapHours (0 to 72) every
 // delivery is signed with both secrets, so the receiver switches without a gap.
 var rotated = await client.WebhookRotateAsync(id, new WebhookRotateOptions { OverlapHours = 24 }); // POST /webhooks/{id}/rotate
 Console.WriteLine($"{rotated.Content!.SigningSecret} (old one signs until {rotated.Content.PreviousSecretExpiresAt})");
@@ -393,7 +393,7 @@ Console.WriteLine($"{usage.Content!.Today.EmailsSent}/{usage.Content.Limits.Emai
 ### Deliverability (Posta extension)
 
 The account-level deliverability score over the trailing window. Scores are
-0–10; `Score`/`Band` are `null` when there is not enough data yet.
+0 to 10; `Score`/`Band` are `null` when there is not enough data yet.
 
 ```csharp
 var res = await client.DeliverabilityRetrieveAsync(); // GET /deliverability
@@ -408,7 +408,7 @@ throws `ResendException`. Posta flattens the surface to
 `client.EmailSendAsync(...)` and returns a `PostaResponse<T>` (no throw).
 Method names and payload shapes otherwise line up. Notes:
 
-- **Idempotency**: both argument orders work — `EmailSendAsync(message, idempotencyKey: k)`
+- **Idempotency**: both argument orders work. `EmailSendAsync(message, idempotencyKey: k)`
   and resend-dotnet's `EmailSendAsync(k, message)`; same for `EmailBatchAsync`.
 - **Batch validation**: `BatchValidationMode` is resend-dotnet's
   `EmailBatchValidationMode`; it also drives `ContactBatchAsync`.

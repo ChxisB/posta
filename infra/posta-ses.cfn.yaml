@@ -1,4 +1,4 @@
-# Posta AWS setup as CloudFormation — same resources as the setup script
+# Posta AWS setup as CloudFormation: same resources as the setup script
 # on /settings/ses: IAM policy + user + access key, SNS event topic, the SQS
 # events queue the worker polls, and the SESv2 configuration set with an SNS
 # event destination.
@@ -35,7 +35,7 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: posta-ses
-      # Every action the instance issues — mirrors SES_IAM_POLICY in
+      # Every action the instance issues: mirrors SES_IAM_POLICY in
       # packages/ses/src/setup-constants.ts (a test pins the two equal).
       PolicyDocument:
         Version: "2012-10-17"
@@ -151,7 +151,7 @@ Resources:
       Endpoint: {"Fn::GetAtt": [EventsQueue, Arn]}
 
   # Optional lower-latency push on top of the queue (the app dedupes the two
-  # on the SNS MessageId). Pending until the app confirms it — automatic once
+  # on the SNS MessageId). Pending until the app confirms it: automatic once
   # it runs with SNS_TOPIC_ARNS set to this topic's ARN.
   EventsSubscription:
     Type: AWS::SNS::Subscription

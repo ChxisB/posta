@@ -1,7 +1,7 @@
 # End-to-end smoke test against a real Posta instance. Opt-in: only
 # compiled and run when POSTA_API_KEY is set (and POSTA_BASE_URL
 # when the target is not Posta Cloud). It exercises the contact
-# lifecycle, which needs no verified domain. Sending is not asserted here —
+# lifecycle, which needs no verified domain. Sending is not asserted here:
 # that requires a verified sender domain.
 #
 #   POSTA_API_KEY=po_... POSTA_BASE_URL=http://localhost:3001 mix test

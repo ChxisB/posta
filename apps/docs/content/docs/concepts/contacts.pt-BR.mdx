@@ -5,26 +5,26 @@ description: Contatos globais à equipe, com estado de inscrição e propriedade
 
 Contatos são **globais à equipe**: uma lista por equipe, uma linha por endereço
 de e-mail (único, sem diferenciar maiúsculas). Não existe o conceito de
-"audiences" — um contato pertence diretamente à sua equipe, e você segmenta
+"audiences": um contato pertence diretamente à sua equipe, e você segmenta
 com [segmentos](/pt-BR/concepts/segments) e [tópicos](/pt-BR/concepts/topics).
 No Posta Cloud o plano Free guarda até 1.000 contatos (criar um além
 disso retorna `403 plan_limit_reached`; contatos existentes continuam sendo
 atualizados); planos pagos não têm limite de contatos.
 
 Se você está migrando do Resend: os métodos de contato do SDK do Resend
-funcionam contra o Posta sempre que `audienceId` for omitido — os
+funcionam contra o Posta sempre que `audienceId` for omitido; os
 caminhos de contato são os mesmos, sem o aninhamento de audience.
 
 ![A página Audiência, listando os contatos da equipe com o estado de inscrição de cada um.](/screenshots/pt-BR/audience.png)
 
 ## O que um contato armazena
 
-- `email` — a identidade. Criar um segundo contato com o mesmo e-mail
+- `email`: a identidade. Criar um segundo contato com o mesmo e-mail
   (qualquer capitalização) retorna `409`.
 - `first_name`, `last_name`
-- `unsubscribed` — o estado global de inscrição. Contatos descadastrados são
+- `unsubscribed`: o estado global de inscrição. Contatos descadastrados são
   excluídos de toda transmissão.
-- `properties` — um mapa plano de valores string personalizados
+- `properties`: um mapa plano de valores string personalizados
   (`plan: "pro"`, `city: "Berlin"`). Objetos aninhados e arrays são
   rejeitados com `422`. As propriedades alimentam os campos de mesclagem de
   templates e os filtros de segmentos. `PATCH /contacts/{id}` mescla
@@ -34,7 +34,7 @@ caminhos de contato são os mesmos, sem o aninhamento de audience.
 ## API
 
 Contatos são gerenciados via `POST/GET/PATCH/DELETE /contacts` e
-`GET /contacts/{id}` — veja a [referência da API](/pt-BR/api-reference). O
+`GET /contacts/{id}`: veja a [referência da API](/pt-BR/api-reference). O
 segmento de caminho `{id}` aceita tanto o UUID do contato quanto seu endereço
 de e-mail; a comparação de e-mail não diferencia maiúsculas.
 
@@ -55,8 +55,8 @@ explicitamente e sua `visibility` (a página hospedada mostra só tópicos
 públicos).
 
 `POST /contacts/{id}/preferences-link` gera a URL da central de preferências
-do contato — `{ "object": "preferences_link", "contact": "<uuid>", "url": "..." }`
-— a mesma página que os links de descadastro dos e-mails abrem, para que uma
+do contato: `{ "object": "preferences_link", "contact": "<uuid>", "url": "..." }`
+a mesma página que os links de descadastro dos e-mails abrem, para que uma
 tela de configurações do seu produto leve direto até ela. O link não expira e
 permite a quem o tiver alterar as preferências daquele contato, inclusive o
 descadastro global, então entregue-o apenas ao contato. Também disponível como
@@ -72,7 +72,7 @@ Toda mudança em um contato publica um
 
 `POST /contacts/batch/remove` exclui até 1.000 contatos em uma requisição, por
 `ids` ou por `emails` (exatamente um dos dois; a comparação de e-mail não
-diferencia maiúsculas), e retorna as linhas de fato excluídas — entradas
+diferencia maiúsculas), e retorna as linhas de fato excluídas: entradas
 desconhecidas são ignoradas. Excluir mantém os e-mails do contato no log, onde
 expiram com a janela de retenção da equipe; `erase: true` também apaga cada
 endereço do histórico de e-mails, dos payloads de eventos e dos logs da API,
@@ -91,25 +91,25 @@ curl -X POST "https://api.posta.example/contacts/batch/remove" \
 
 `POST /contacts/batch` recebe um array JSON de 1 a 1000 itens, cada um no
 formato de um corpo de `POST /contacts`, e grava todos em uma única transação
-(uma extensão do Posta — o Resend só importa contatos via CSV). O
+(uma extensão do Posta: o Resend só importa contatos via CSV). O
 parâmetro de query `on_conflict` decide o que acontece com um item cujo e-mail
 já pertence a um contato, ou que se repete dentro do lote:
 
-- `error` (padrão) — o item falha: `409 Contact already exists` para um
+- `error` (padrão): o item falha: `409 Contact already exists` para um
   contato existente, `422 Duplicate email in batch` para uma repetição.
-- `skip` — o contato existente (ou a primeira ocorrência) fica intocado e é
+- `skip`: o contato existente (ou a primeira ocorrência) fica intocado e é
   reportado com `status: "skipped"` e seu id.
-- `upsert` — o item é mesclado no contato existente: `first_name` e
+- `upsert`: o item é mesclado no contato existente: `first_name` e
   `last_name` só quando informados, `properties` chave a chave (as chaves
   informadas sobrescrevem), `segments` adicionados, `topics` atualizados.
   Repetições são unificadas em uma única gravação.
 
 Um lote nunca reinscreve ninguém: `unsubscribed: true` descadastra o contato,
-mas `unsubscribed: false` em um contato já descadastrado é ignorado — isso
+mas `unsubscribed: false` em um contato já descadastrado é ignorado; isso
 continua sendo um `PATCH /contacts/{id}` explícito. A lista de supressão
 também nunca é tocada.
 
-O header `x-batch-validation` escolhe entre `strict` (padrão — o primeiro
+O header `x-batch-validation` escolhe entre `strict` (padrão: o primeiro
 item inválido rejeita o lote inteiro com o status dele e o prefixo
 `contacts.{index}:` na mensagem, nada é gravado) e `permissive` (o
 subconjunto válido é gravado e as falhas são listadas em `errors`).
@@ -140,7 +140,7 @@ da requisição; `errors` só aparece no modo permissivo.
 ## Importação e exportação CSV
 
 O painel importa contatos de CSV (interpretado no cliente e criado em lote) e
-exporta a lista atual — inclusive visões filtradas por segmento ou tópico —
+exporta a lista atual, inclusive visões filtradas por segmento ou tópico,
 de volta para CSV.
 
 ## Descadastros
@@ -150,4 +150,4 @@ e uma página de descadastro hospedada. Um destinatário pode se descadastrar
 globalmente ou sair de [tópicos](/pt-BR/concepts/topics) individuais.
 Descadastros globais definem `unsubscribed: true` no contato e param envios
 com tópico e transmissões; envios transacionais sem `topic_id` continuam
-chegando — veja [Supressões](/pt-BR/concepts/suppressions#o-que-a-supressão-faz).
+chegando: veja [Supressões](/pt-BR/concepts/suppressions#o-que-a-supressão-faz).

@@ -68,7 +68,7 @@ defmodule Posta.Domains do
     Request.run(client, method: :get, path: member_path(id), as: &Domain.cast/1)
   end
 
-  @doc "`GET /domains` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /domains`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -84,13 +84,13 @@ defmodule Posta.Domains do
     )
   end
 
-  @doc "`POST /domains/:id/verify` — re-check the DNS records."
+  @doc "`POST /domains/:id/verify`: re-check the DNS records."
   @spec verify(Client.t(), String.t()) :: {:ok, Domain.t()} | {:error, Posta.Error.t()}
   def verify(client \\ Posta.client(), id) when is_binary(id) do
     Request.run(client, method: :post, path: member_path(id) <> "/verify", as: &Domain.cast/1)
   end
 
-  @doc "`PATCH /domains/:id` — tracking settings; `tracking_subdomain: nil` clears it."
+  @doc "`PATCH /domains/:id`: tracking settings; `tracking_subdomain: nil` clears it."
   @spec update(Client.t(), String.t(), map()) :: {:ok, Domain.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id, params) when is_binary(id) and is_map(params) do
     Request.run(client, method: :patch, path: member_path(id), body: params, as: &Domain.cast/1)

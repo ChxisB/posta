@@ -5,7 +5,7 @@
  * become its plaintext copy, so content fields become size markers, secrets
  * become "[redacted]", oversized payloads become a truncation marker, and
  * headers are never stored. Everything else (addresses, names, ids,
- * properties) stays — that is the log's purpose.
+ * properties) stays, that is the log's purpose.
  */
 
 export const LOGGED_JSON_MAX_BYTES = 64 * 1024;

@@ -18,7 +18,7 @@ export function AudienceTabs() {
   const router = useRouter();
   const pathname = usePathname();
   // Longest matching prefix wins, so /audience/[id]* highlights Contacts while
-  // /audience/segments (also under /audience) highlights Segments — a plain
+  // /audience/segments (also under /audience) highlights Segments: a plain
   // prefix match on the Contacts href alone would light up on every sibling.
   const activeHref = pickActive(
     pathname,

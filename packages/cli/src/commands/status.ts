@@ -15,7 +15,7 @@ export async function status(ctx: Context): Promise<number> {
   }
   const { out } = ctx;
   if (state === null) {
-    out.write(`No migration state in ${STATE_DIR}/ — nothing has been applied from here.\n`);
+    out.write(`No migration state in ${STATE_DIR}/: nothing has been applied from here.\n`);
     return 0;
   }
   const block = (rows: readonly (readonly [string, string])[]): void => {
@@ -50,7 +50,7 @@ export async function status(ctx: Context): Promise<number> {
   if (state.failures.length > 0) {
     out.write(`\n${pluralize(state.failures.length, "failure")} in the last run\n`);
     for (const f of state.failures)
-      out.write(`  ${err(SYM.err)} ${stripControl(`${f.resource}/${f.key} — ${f.message}`)}\n`);
+      out.write(`  ${err(SYM.err)} ${stripControl(`${f.resource}/${f.key}: ${f.message}`)}\n`);
   }
   return 0;
 }

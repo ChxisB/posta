@@ -10,7 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Billing concept only — deployment mode lives exclusively in env.IS_CLOUD;
+// Billing concept only: deployment mode lives exclusively in env.IS_CLOUD;
 // self-host ignores plan entirely (quota code guards on IS_CLOUD first).
 // "system" marks the instance's own team (the one holding the account-mail
 // sender domain): never billed, never capped, set by an operator, never by
@@ -57,7 +57,7 @@ export const teams = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
     plan: planEnum("plan").notNull().default("free"),
-    // Emails included per billing period on a monthly plan — the rung the
+    // Emails included per billing period on a monthly plan: the rung the
     // team bought; null on daily plans. Written by the Stripe webhook only.
     planQuota: integer("plan_quota"),
     // Cloud-only Stripe linkage; all null/"none" on self-host.

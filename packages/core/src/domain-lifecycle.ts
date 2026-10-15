@@ -45,7 +45,7 @@ export const DOMAIN_CREATE_LIMIT_PER_HOUR = 10;
  * Whether `name` (or a subdomain of it) may not be registered as a sender
  * identity: public mailbox providers and the shared inbox domain everywhere,
  * plus in cloud the platform domain and the operator's AUTH_EMAIL_FROM /
- * ONBOARDING_EMAIL_FROM / NOTIFICATIONS_EMAIL_FROM domains —
+ * ONBOARDING_EMAIL_FROM / NOTIFICATIONS_EMAIL_FROM domains:
  * SES identities are account-wide, so a tenant registering them would take
  * over system mail.
  */
@@ -61,7 +61,7 @@ export function isReservedSenderDomain(
     sharedInboxDomain?: string | null | undefined;
   },
 ): boolean {
-  // Consumer mailbox providers are refused to everyone — nobody owns them.
+  // Consumer mailbox providers are refused to everyone: nobody owns them.
   const reserved: string[] = [...PUBLIC_MAILBOX_DOMAINS];
   // The shared inbox domain's subdomains are handed to teams' inboxes; a
   // domain row there, even the operator's, would compete for their mail.
@@ -107,7 +107,7 @@ export async function isOperatorTeam(db: Db, teamId: string): Promise<boolean> {
 
 /**
  * Whether another domains row (any team) still references the same SES
- * identity — identities are per (name, region) in the AWS account, so the
+ * identity: identities are per (name, region) in the AWS account, so the
  * identity may only be deleted once the last row referencing it goes.
  */
 export async function isIdentitySharedByOtherDomains(

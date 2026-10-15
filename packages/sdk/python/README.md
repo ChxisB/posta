@@ -1,6 +1,6 @@
 # posta-sdk
 
-Official Python SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, [Resend](https://resend.com)-compatible email API on AWS SES.
+Official Python SDK for [Posta](https://github.com/ChxisB/posta): a self-hostable, [Resend](https://resend.com)-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend and this SDK deliberately mirrors the shape of the `resend` PyPI package, so migrating is mostly a find-and-replace: swap the import and the key. Posta Cloud works with just the key; a self-hosted instance also sets `base_url`.
 
@@ -47,7 +47,7 @@ posta.allow_insecure_http = False          # accept a non-loopback http:// base_
 - `base_url` falls back to `POSTA_BASE_URL`, then `https://api.posta.example` (Posta Cloud). Self-hosting? Set it to your instance's origin.
 - Plain `http://` is only accepted for loopback hosts (`localhost`, `127.0.0.1`, `::1`); any other `http://` URL raises `PostaError` on the first call, since the API key is sent as a bearer header. Set `posta.allow_insecure_http = True` to talk to a non-TLS instance elsewhere (e.g. inside a private network).
 
-Request/response casing: request params are plain dicts in the API's `snake_case` (`reply_to`, `scheduled_at`, `first_name`) and are sent to the wire as given — nothing is filtered or renamed. Responses are `dict` subclasses that also allow attribute access (`resp.id`, `resp.data[0].id`).
+Request/response casing: request params are plain dicts in the API's `snake_case` (`reply_to`, `scheduled_at`, `first_name`) and are sent to the wire as given; nothing is filtered or renamed. Responses are `dict` subclasses that also allow attribute access (`resp.id`, `resp.data[0].id`).
 
 List methods take keyword arguments (`list(limit=50, after=cursor)`) or resend-python's params dict (`list({"limit": 50, "after": cursor})`).
 
@@ -127,7 +127,7 @@ posta.Batch.send([payload_a, payload_b], batch_validation="permissive")  # up to
 
 ### Contacts
 
-Contacts are team-global — one record per email address, no audiences to manage.
+Contacts are team-global: one record per email address, no audiences to manage.
 
 ```python
 posta.Contacts.create({
@@ -144,7 +144,7 @@ posta.Contacts.get("contact-id")          # bare id works too, as does resend's 
 posta.Contacts.update({"id": "contact-id", "unsubscribed": True, "first_name": None})  # None clears
 posta.Contacts.update({"email": "ada@acme.dev", "properties": {"plan": None}})       # None removes the key
 posta.Contacts.remove(email="ada@acme.dev")              # the contact's emails stay in the send log
-posta.Contacts.remove(email="ada@acme.dev", erase=True)  # ?erase=true — also scrubs the address from email history, event payloads and API logs (GDPR/LGPD erasure)
+posta.Contacts.remove(email="ada@acme.dev", erase=True)  # ?erase=true: also scrubs the address from email history, event payloads and API logs (GDPR/LGPD erasure)
 posta.Contacts.preferences_link(email="ada@acme.dev").url  # hosted preference page (Posta extension); no expiry, hand it only to the contact
 posta.Contacts.list(limit=50)
 posta.Contacts.list(segment_id=segment.id)  # GET /segments/{id}/contacts
@@ -152,7 +152,7 @@ posta.Contacts.list(segment_id=segment.id)  # GET /segments/{id}/contacts
 # so an audience reads in one request per 100 contacts instead of one per contact
 posta.Contacts.list(limit=100, include=["properties", "topics"])  # ?include=properties,topics
 
-# Bulk create (Posta extension) — up to 1000 per call
+# Bulk create (Posta extension): up to 1000 per call
 result = posta.Contacts.Batch.create(
     [{"email": "a@acme.dev"}, {"email": "b@acme.dev", "first_name": "B"}],
     on_conflict="upsert",            # error (default) | skip | upsert
@@ -162,22 +162,22 @@ result.data[0].status  # created | updated | skipped
 result.counts.failed
 result.errors          # permissive mode: [{index, message}]
 
-# Bulk lookup (Posta extension) — up to 1000 contacts by id or email in one request, in request order;
-# unknown entries are listed under `missing`, not errors — one request against the rate limit
+# Bulk lookup (Posta extension): up to 1000 contacts by id or email in one request, in request order;
+# unknown entries are listed under `missing`, not errors: one request against the rate limit
 result = posta.Contacts.Batch.get(["contact-id", {"email": "ada@acme.dev"}], include=["topics"])
-result.data     # [{object: "contact", id, email, ..., topics}] — the contacts found
-result.missing  # [{index, email}] — request entries that matched nobody
+result.data     # [{object: "contact", id, email, ..., topics}]: the contacts found
+result.missing  # [{index, email}]: request entries that matched nobody
 
-# Bulk delete (Posta extension) — {"ids": [...]} or {"emails": [...]}, up to 1000; data lists only the rows deleted.
+# Bulk delete (Posta extension): {"ids": [...]} or {"emails": [...]}, up to 1000; data lists only the rows deleted.
 # Emails stay in the send log; erase=True also scrubs each address from email history, event payloads and API logs
 posta.Contacts.Batch.remove({"emails": ["a@acme.dev", "b@acme.dev"]})
 posta.Contacts.Batch.remove({"emails": ["a@acme.dev"]}, erase=True)  # body {"emails": [...], "erase": true}
 
-# Segment membership — mirrors resend's contacts.segments
+# Segment membership: mirrors resend's contacts.segments
 posta.Contacts.Segments.add({"contact_id": "contact-id", "segment_id": segment.id})
 posta.Contacts.Segments.remove({"email": "ada@acme.dev", "segment_id": segment.id})
 
-# Topic subscriptions (granular unsubscribe) — mirrors resend's contacts.topics
+# Topic subscriptions (granular unsubscribe): mirrors resend's contacts.topics
 posta.Contacts.Topics.update({
     "email": "ada@acme.dev",
     "topics": [{"id": "topic-id", "subscription": "opt_out"}],
@@ -206,7 +206,7 @@ posta.ContactProperties.remove(prop.id)
 ```python
 posta.Topics.create({"name": "Product updates", "default_subscription": "opt_in"})
 posta.Topics.get(topic_id)
-posta.Topics.list()      # bare {"data": [...]} — topics are unpaginated
+posta.Topics.list()      # bare {"data": [...]}: topics are unpaginated
 posta.Topics.update(topic_id, {"name": "Product news", "visibility": "public"})
 posta.Topics.remove(topic_id)
 ```
@@ -241,7 +241,7 @@ posta.Broadcasts.remove(broadcast.id)  # draft only
 
 ### Segments (Posta extension)
 
-Dynamic segments are a saved filter over the team's contacts — a Posta feature with **no Resend equivalent**.
+Dynamic segments are a saved filter over the team's contacts: a Posta feature with **no Resend equivalent**.
 
 ```python
 segment = posta.Segments.create({
@@ -357,7 +357,7 @@ usage.today.emails_sent
 
 ### Deliverability (Posta extension)
 
-Per-email best-practice insights and an account-level deliverability score — no Resend equivalent.
+Per-email best-practice insights and an account-level deliverability score: no Resend equivalent.
 
 ```python
 insights = posta.Emails.get_insights(email.id)  # raises NotFoundError until computed

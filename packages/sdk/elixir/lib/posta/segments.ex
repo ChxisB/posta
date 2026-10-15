@@ -1,12 +1,12 @@
 defmodule Posta.Segments.Segment do
-  @moduledoc "A dynamic segment — a saved filter over the team's contacts."
+  @moduledoc "A dynamic segment: a saved filter over the team's contacts."
   @type t :: %__MODULE__{}
   defstruct [:object, :id, :name, :filter, :created_at, :contact_count, :deleted]
 end
 
 defmodule Posta.Segments do
   @moduledoc """
-  Segments — a saved `filter` over the team's contacts (dynamic, a Posta
+  Segments: a saved `filter` over the team's contacts (dynamic, a Posta
   extension over Resend's static segments); a segment without a filter is a
   plain list contacts are added to explicitly. `get/2` returns a live
   `contact_count`.
@@ -21,7 +21,7 @@ defmodule Posta.Segments do
   alias Posta.Contacts.Contact
   alias Posta.Segments.Segment
 
-  @doc "`POST /segments` — `name:` plus an optional `filter:`."
+  @doc "`POST /segments`: `name:` plus an optional `filter:`."
   @spec create(Client.t(), map()) :: {:ok, Segment.t()} | {:error, Posta.Error.t()}
   def create(client \\ Posta.client(), params) when is_map(params) do
     Request.run(client, method: :post, path: "/segments", body: params, as: Segment)
@@ -33,7 +33,7 @@ defmodule Posta.Segments do
     Request.run(client, method: :get, path: "/segments/" <> Request.encode(id), as: Segment)
   end
 
-  @doc "`GET /segments` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /segments`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -50,7 +50,7 @@ defmodule Posta.Segments do
   end
 
   @doc """
-  `GET /segments/:id/contacts` — the segment's members; accepts `limit:`,
+  `GET /segments/:id/contacts`: the segment's members; accepts `limit:`,
   `after:`, `before:` and `include:` (`[:properties, :topics]`, as
   `Posta.Contacts.list/2`).
   """

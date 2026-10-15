@@ -67,7 +67,7 @@ import {
 } from "./setup-flow.js";
 
 const DESCRIPTION_TEXT =
-  "Sets up a self-hosted Posta end to end: a .env with generated secrets, the AWS resources (IAM user + key, SNS event topic, SES configuration set), and the Docker launch. Run it in the directory Posta should live in — an empty one works. Every step is offered, skippable, and safe to re-run. Sub-commands: add-region <region> (a further SES region on an existing install), teardown.";
+  "Sets up a self-hosted Posta end to end: a .env with generated secrets, the AWS resources (IAM user + key, SNS event topic, SES configuration set), and the Docker launch. Run it in the directory Posta should live in: an empty one works. Every step is offered, skippable, and safe to re-run. Sub-commands: add-region <region> (a further SES region on an existing install), teardown.";
 
 const REGION_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -308,9 +308,9 @@ const ENV_EXAMPLE_URL = "https://raw.githubusercontent.com/ChxisB/posta/main/.en
 async function envStep(wizard: Wizard): Promise<void> {
   const { flow } = wizard;
   if (wizard.env !== null) {
-    flow.note(".env found — existing values are kept, setup only fills gaps.");
+    flow.note(".env found: existing values are kept, setup only fills gaps.");
   } else if (
-    await flow.confirm("No .env here — create one from the built-in template?", wizard.interactive)
+    await flow.confirm("No .env here: create one from the built-in template?", wizard.interactive)
   ) {
     wizard.env = "";
     wizard.writeEnv(freshDatabaseEntries());
@@ -348,7 +348,7 @@ async function baseUrlsStep(wizard: Wizard): Promise<void> {
     initial: currentApiUrl,
   });
   if (publicApiUrl !== "" && validUrl(publicApiUrl) === null) {
-    flow.error(`Not a URL: ${publicApiUrl} — PUBLIC_API_URL left as it was.`);
+    flow.error(`Not a URL: ${publicApiUrl}, PUBLIC_API_URL left as it was.`);
   } else if (
     wizard.env !== null &&
     publicApiUrl !== (envValue(wizard.env, "PUBLIC_API_URL") ?? "")
@@ -385,7 +385,7 @@ async function secretsStep(wizard: Wizard): Promise<void> {
 
 /**
  * Hosted-cloud additions: the values boot refuses to start without under
- * IS_CLOUD=true — the KMS key that wraps email bodies and the Stripe secrets —
+ * IS_CLOUD=true (the KMS key that wraps email bodies and the Stripe secrets),
  * plus the optional customer-portal id and the docs profile. Nothing here
  * touches AWS or Stripe; the values are pasted from their consoles, and an
  * empty answer keeps what .env already has.
@@ -393,7 +393,7 @@ async function secretsStep(wizard: Wizard): Promise<void> {
 async function cloudStep(wizard: Wizard): Promise<void> {
   const { flow } = wizard;
   if (wizard.cloud && !isCloudEnv(wizard.env)) wizard.writeEnv({ IS_CLOUD: "true" });
-  flow.note("Hosted cloud (IS_CLOUD=true) — boot needs every value below except the portal id.");
+  flow.note("Hosted cloud (IS_CLOUD=true): boot needs every value below except the portal id.");
   const prompts = [
     {
       key: "KMS_KEY_ID",
@@ -433,12 +433,12 @@ async function cloudStep(wizard: Wizard): Promise<void> {
     if (wizard.writeEnv(entries)) {
       flow.note(`${Object.keys(entries).join(", ")} written to .env.`);
     } else {
-      flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
+      flow.log(`No .env here: paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
     }
   }
   const missing = CLOUD_REQUIRED_KEYS.filter((key) => !(entries[key] ?? envValue(wizard.env, key)));
   if (missing.length > 0) {
-    flow.warn(`${missing.join(", ")} still empty — IS_CLOUD=true refuses to boot without them.`);
+    flow.warn(`${missing.join(", ")} still empty: IS_CLOUD=true refuses to boot without them.`);
   }
   if (
     await flow.confirm(
@@ -456,14 +456,14 @@ const SOCIAL_PROVIDERS = [
     idKey: "GOOGLE_CLIENT_ID",
     secretKey: "GOOGLE_CLIENT_SECRET",
     consoleHint:
-      "https://console.cloud.google.com/apis/credentials — OAuth client ID, type Web application",
+      "https://console.cloud.google.com/apis/credentials: OAuth client ID, type Web application",
     callbackPath: "/api/auth/callback/google",
   },
   {
     name: "GitHub",
     idKey: "GITHUB_CLIENT_ID",
     secretKey: "GITHUB_CLIENT_SECRET",
-    consoleHint: "https://github.com/settings/developers — New OAuth App",
+    consoleHint: "https://github.com/settings/developers: New OAuth App",
     callbackPath: "/api/auth/callback/github",
   },
 ] as const;
@@ -481,7 +481,7 @@ async function socialLoginStep(wizard: Wizard): Promise<void> {
     'Google/GitHub OAuth credentials add "Continue with …" buttons to the sign-in',
   );
   if (!wanted) {
-    flow.note("Skipped — set GOOGLE_/GITHUB_CLIENT_ID and _SECRET in .env any time.");
+    flow.note("Skipped: set GOOGLE_/GITHUB_CLIENT_ID and _SECRET in .env any time.");
     return;
   }
   for (const provider of SOCIAL_PROVIDERS) {
@@ -493,14 +493,14 @@ async function socialLoginStep(wizard: Wizard): Promise<void> {
     if (id === "") continue;
     const secret = await flow.ask({ label: provider.secretKey, secret: true });
     if (secret === "") {
-      flow.note("No secret — skipped.");
+      flow.note("No secret: skipped.");
       continue;
     }
     const entries = { [provider.idKey]: id, [provider.secretKey]: secret };
     if (wizard.writeEnv(entries)) {
       flow.note(`${provider.name} credentials written to .env.`);
     } else {
-      flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
+      flow.log(`No .env here: paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
     }
   }
 }
@@ -526,7 +526,7 @@ async function updatesStep(wizard: Wizard): Promise<void> {
   });
   if (value === "") return;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    flow.note(`Doesn't look like an address — skipped. Subscribe any time at ${UPDATES_PAGE_URL}.`);
+    flow.note(`Doesn't look like an address: skipped. Subscribe any time at ${UPDATES_PAGE_URL}.`);
     return;
   }
   try {
@@ -539,14 +539,14 @@ async function updatesStep(wizard: Wizard): Promise<void> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     flow.note("Check your inbox for the confirmation link.");
   } catch {
-    flow.note(`Couldn't reach posta.example — subscribe any time at ${UPDATES_PAGE_URL}.`);
+    flow.note(`Couldn't reach posta.example: subscribe any time at ${UPDATES_PAGE_URL}.`);
   }
 }
 
 /**
  * Optional account-email step: the sender for password-reset mail. Env-only;
  * recovery stays hidden until this AND SES credentials are set, so skipping
- * is safe. The domain must be a verified identity — usually added later in
+ * is safe. The domain must be a verified identity: usually added later in
  * the dashboard, which is why this only sanity-checks the address shape.
  */
 async function accountEmailStep(wizard: Wizard): Promise<void> {
@@ -558,7 +558,7 @@ async function accountEmailStep(wizard: Wizard): Promise<void> {
   );
   if (!wanted) {
     flow.note(
-      "Skipped — set AUTH_EMAIL_FROM (and ONBOARDING_EMAIL_FROM for the onboarding Send email button) in .env any time; their domains must be verified in the dashboard.",
+      "Skipped: set AUTH_EMAIL_FROM (and ONBOARDING_EMAIL_FROM for the onboarding Send email button) in .env any time; their domains must be verified in the dashboard.",
     );
     return;
   }
@@ -568,7 +568,7 @@ async function accountEmailStep(wizard: Wizard): Promise<void> {
   });
   if (value === "") return;
   if (!EMAIL_FROM_RE.test(value)) {
-    flow.note("Doesn't look like an address — skipped. Set AUTH_EMAIL_FROM in .env later.");
+    flow.note("Doesn't look like an address: skipped. Set AUTH_EMAIL_FROM in .env later.");
     return;
   }
   if (wizard.writeEnv({ AUTH_EMAIL_FROM: value })) {
@@ -576,11 +576,11 @@ async function accountEmailStep(wizard: Wizard): Promise<void> {
       "AUTH_EMAIL_FROM written to .env. Its domain must be a verified sending domain in this instance.",
     );
   } else {
-    flow.log(`No .env here — paste into .env where Posta runs:\n\nAUTH_EMAIL_FROM=${value}`);
+    flow.log(`No .env here: paste into .env where Posta runs:\n\nAUTH_EMAIL_FROM=${value}`);
   }
 }
 
-/** null when the value does not parse as a URL — .env values zod rejects at boot. */
+/** null when the value does not parse as a URL: .env values zod rejects at boot. */
 function validUrl(value: string): string | null {
   try {
     new URL(value);
@@ -607,7 +607,7 @@ async function storageStep(wizard: Wizard): Promise<void> {
     "one S3-compatible credential set (Cloudflare R2 works out of the box) enables logo uploads and scheduled database backups",
   );
   if (!wanted) {
-    flow.note("Skipped — set the S3_* block in .env any time.");
+    flow.note("Skipped: set the S3_* block in .env any time.");
     return;
   }
   const endpoint = await flow.ask({
@@ -616,14 +616,14 @@ async function storageStep(wizard: Wizard): Promise<void> {
   });
   if (endpoint === "") return;
   if (validUrl(endpoint) === null) {
-    flow.error(`Not a URL: ${endpoint} — storage step skipped.`);
+    flow.error(`Not a URL: ${endpoint}, storage step skipped.`);
     return;
   }
   const accessKeyId = await flow.ask({ label: "S3_ACCESS_KEY_ID", hint: "empty skips" });
   if (accessKeyId === "") return;
   const secretAccessKey = await flow.ask({ label: "S3_SECRET_ACCESS_KEY", secret: true });
   if (secretAccessKey === "") {
-    flow.note("No secret — skipped.");
+    flow.note("No secret: skipped.");
     return;
   }
   const storageBucket = await flow.ask({
@@ -645,20 +645,20 @@ async function storageStep(wizard: Wizard): Promise<void> {
     // Connection failures surface as AggregateErrors with an empty message.
     const reason = (error as Error).message || (error as Error).name || String(error);
     flow.error(
-      `Bucket setup failed: ${reason}\nCheck the endpoint and credentials, or create the buckets yourself and set the S3_* lines in .env by hand — storage step skipped.`,
+      `Bucket setup failed: ${reason}\nCheck the endpoint and credentials, or create the buckets yourself and set the S3_* lines in .env by hand; storage step skipped.`,
     );
     return;
   }
 
   flow.note(
-    `Uploads serve straight from the bucket, so ${storageBucket} must serve objects publicly — the S3 API cannot enable that. R2: bucket → Settings → enable public access (or attach a custom domain), then use that URL below. Keep ${backupBucket} PRIVATE — dumps contain the whole database.`,
+    `Uploads serve straight from the bucket, so ${storageBucket} must serve objects publicly: the S3 API cannot enable that. R2: bucket → Settings → enable public access (or attach a custom domain), then use that URL below. Keep ${backupBucket} PRIVATE: dumps contain the whole database.`,
   );
   let publicUrl = await flow.ask({
     label: "S3_STORAGE_PUBLIC_URL",
     hint: "the bucket's public base URL; empty to add later",
   });
   if (publicUrl !== "" && validUrl(publicUrl) === null) {
-    flow.error(`Not a URL: ${publicUrl} — add S3_STORAGE_PUBLIC_URL to .env later instead.`);
+    flow.error(`Not a URL: ${publicUrl}, add S3_STORAGE_PUBLIC_URL to .env later instead.`);
     publicUrl = "";
   }
 
@@ -668,10 +668,10 @@ async function storageStep(wizard: Wizard): Promise<void> {
     // The standalone compose keeps the backup service behind a profile, so
     // configuring backups also has to switch its container on.
     if (wizard.enableProfile("backup")) {
-      flow.note("backup added to COMPOSE_PROFILES — the scheduled dumps start with the stack.");
+      flow.note("backup added to COMPOSE_PROFILES: the scheduled dumps start with the stack.");
     }
   } else {
-    flow.log(`No .env here — paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
+    flow.log(`No .env here: paste into .env where Posta runs:\n\n${pasteBlock(entries)}`);
   }
   if (publicUrl === "") {
     flow.note(
@@ -687,7 +687,7 @@ async function storageStep(wizard: Wizard): Promise<void> {
  */
 async function resolveIdentity(flow: Flow): Promise<string | null> {
   const interactive = isInteractive();
-  // Two login attempts, then the manual hint — a third rarely goes better.
+  // Two login attempts, then the manual hint: a third rarely goes better.
   for (let attempt = 0; ; attempt++) {
     // Fresh client per attempt: a login may have just minted credentials,
     // and the SDK caches its credential provider per client.
@@ -707,7 +707,7 @@ async function resolveIdentity(flow: Flow): Promise<string | null> {
       });
       if (action !== "offer-login" || attempt >= 2) {
         flow.error(
-          "Run this where the AWS CLI/SDK finds admin credentials — `aws configure`, AWS_PROFILE, or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY in the environment.",
+          "Run this where the AWS CLI/SDK finds admin credentials: `aws configure`, AWS_PROFILE, or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY in the environment.",
         );
         return null;
       }
@@ -754,7 +754,7 @@ async function chooseRegion(flow: Flow): Promise<string | null> {
 /**
  * The AWS decision on an install that already has some of it: add a region
  * when events and the queue exist (a full re-run only on a single-region
- * install — it rewrites the topic list and the queue policy for one region),
+ * install; it rewrites the topic list and the queue policy for one region),
  * add event ingestion when only the key exists (a full re-run would mint an
  * unwanted key and can hit the 2-key IAM limit), else the first setup.
  */
@@ -828,7 +828,7 @@ async function awsMenuStep(wizard: Wizard): Promise<void> {
 /**
  * The AWS provisioning step: identity, region, plan, create, keys into .env.
  * eventsOnly skips the IAM part (no new access key) and provisions just the
- * events pipeline. Failures print their hint and return — the wizard
+ * events pipeline. Failures print their hint and return: the wizard
  * continues to the launch step, since a stack can boot (not send) without
  * AWS keys.
  */
@@ -858,7 +858,7 @@ async function awsStep(wizard: Wizard, eventsOnly: boolean): Promise<void> {
     }
   } catch (error) {
     flow.error(
-      `AWS setup failed: ${(error as Error).message}\nFix that and re-run — resources it already created are adopted, not duplicated.`,
+      `AWS setup failed: ${(error as Error).message}\nFix that and re-run; resources it already created are adopted, not duplicated.`,
     );
     return;
   }
@@ -893,13 +893,13 @@ async function addRegionStep(
   const { flow } = wizard;
   const served = servedRegionsInEnv(wizard.env);
   if (preset !== null && served.includes(preset)) {
-    flow.note(`${preset} is already served (${served.join(", ")}) — nothing to add.`);
+    flow.note(`${preset} is already served (${served.join(", ")}): nothing to add.`);
     return "ok";
   }
   const queue = parseSqsQueueUrl(queueUrl);
   if (!queue) {
     flow.error(
-      `SQS_QUEUE_URL is not a standard queue URL (${queueUrl}); add the region by hand — SELF_HOSTING.md, "Adding a region".`,
+      `SQS_QUEUE_URL is not a standard queue URL (${queueUrl}); add the region by hand: SELF_HOSTING.md, "Adding a region".`,
     );
     return "failed";
   }
@@ -908,7 +908,7 @@ async function addRegionStep(
   const region = preset ?? (await chooseRegion(flow));
   if (region === null) return "failed";
   if (served.includes(region)) {
-    flow.note(`${region} is already served (${served.join(", ")}) — nothing to add.`);
+    flow.note(`${region} is already served (${served.join(", ")}): nothing to add.`);
     return "ok";
   }
   const appBaseUrl = wizard.appBaseUrl();
@@ -929,9 +929,7 @@ async function addRegionStep(
       // An install that brought its own IAM (the events-only path) has no
       // wizard-named policy; the region's resources need none.
       if ((error as { name?: string }).name !== "NoSuchEntityException") throw error;
-      onStep(
-        `IAM policy ${SETUP_NAMES.policy}: not found, this install brought its own IAM — kept`,
-      );
+      onStep(`IAM policy ${SETUP_NAMES.policy}: not found, this install brought its own IAM; kept`);
     }
     const existingTopics = (envValue(wizard.env, "SNS_TOPIC_ARNS") ?? "")
       .split(",")
@@ -946,7 +944,7 @@ async function addRegionStep(
     }));
   } catch (error) {
     flow.error(
-      `Adding the region failed: ${(error as Error).message}\nFix that and re-run — resources it already created are adopted, not duplicated.`,
+      `Adding the region failed: ${(error as Error).message}\nFix that and re-run; resources it already created are adopted, not duplicated.`,
     );
     return "failed";
   }
@@ -970,8 +968,8 @@ async function addRegionStep(
 
 /**
  * `setup add-region [region]`: the add-region step on its own, without the
- * rest of the wizard. Where the install's .env is — the deploy directory, or
- * the container's `setup` mode on the server — it edits that file; anywhere
+ * rest of the wizard. Where the install's .env is (the deploy directory, or
+ * the container's `setup` mode on the server) it edits that file; anywhere
  * else it asks for the install's queue, topics and regions and prints the
  * two lines to apply. --dry-run prints the plan and touches nothing. With
  * stdin piped the region must be named and Proceed takes an explicit yes.
@@ -987,7 +985,7 @@ export async function addRegionMain(flow: Flow, args: string[], dryRun: boolean)
   const state = detectDirState(readCwdFile, null);
   let queueUrl = envValue(state.envContent, "SQS_QUEUE_URL") || process.env.SQS_QUEUE_URL || "";
   if (state.envContent !== null && queueUrl === "") {
-    flow.error("This .env has no SQS_QUEUE_URL — run the full setup first, then add regions.");
+    flow.error("This .env has no SQS_QUEUE_URL: run the full setup first, then add regions.");
     return 1;
   }
   if (dryRun) {
@@ -1011,7 +1009,7 @@ export async function addRegionMain(flow: Flow, args: string[], dryRun: boolean)
   }
   if (state.envContent === null) {
     flow.note(
-      "No .env here — the install's current values are asked for and the result is printed, not written.",
+      "No .env here: the install's current values are asked for and the result is printed, not written.",
     );
     queueUrl =
       queueUrl || (await flow.ask({ label: "SQS_QUEUE_URL", hint: "the install's events queue" }));
@@ -1049,7 +1047,7 @@ export async function addRegionMain(flow: Flow, args: string[], dryRun: boolean)
     const wizard = createWizard(flow, state, false, env, null);
     return (await addRegionStep(wizard, queueUrl, preset)) === "ok" ? 0 : 1;
   }
-  flow.note(`Found ${envPath} — the region is written into it.`);
+  flow.note(`Found ${envPath}: the region is written into it.`);
   const wizard = createWizard(flow, state, isCloudEnv(state.envContent), state.envContent, envPath);
   return (await addRegionStep(wizard, queueUrl, preset)) === "ok" ? 0 : 1;
 }
@@ -1103,7 +1101,7 @@ async function launchStep(wizard: Wizard): Promise<number> {
   const { flow, state } = wizard;
   if (state.docker === null) {
     flow.outro(
-      "docker not found — install it (https://docs.docker.com/get-docker/), then run: docker compose up -d",
+      "docker not found: install it (https://docs.docker.com/get-docker/), then run: docker compose up -d",
     );
     return 0;
   }
@@ -1120,7 +1118,7 @@ async function launchStep(wizard: Wizard): Promise<number> {
   if (choice === "start" && composeContent === null) {
     if (
       await flow.confirm(
-        "No compose file here — download the standalone deploy/docker-compose.yml?",
+        "No compose file here: download the standalone deploy/docker-compose.yml?",
         wizard.interactive,
       )
     ) {
@@ -1146,11 +1144,11 @@ async function launchStep(wizard: Wizard): Promise<number> {
 
   const secretsMissing = wizard.env === null ? [] : missingSecrets(wizard.env);
   if (secretsMissing.length > 0) {
-    flow.warn(`${secretsMissing.join(", ")} still empty in .env — the app needs them.`);
+    flow.warn(`${secretsMissing.join(", ")} still empty in .env: the app needs them.`);
   }
   flow.step(`$ ${command}`);
   if (!runInherit("docker", composeUpArgs(composeContent))) {
-    flow.error("docker compose failed — fix the error above and re-run the setup.");
+    flow.error("docker compose failed: fix the error above and re-run the setup.");
     return 1;
   }
   const appBaseUrl = wizard.appBaseUrl();
@@ -1158,7 +1156,7 @@ async function launchStep(wizard: Wizard): Promise<number> {
   flow.outro(
     [
       "Running. Next steps:",
-      `  · ${appBaseUrl} — sign up (the first user becomes the owner)`,
+      `  · ${appBaseUrl}: sign up (the first user becomes the owner)`,
       "  · SES sandbox account? Recipients must be verified until AWS grants production access",
       "  · Verify a sending domain in the dashboard, then send",
       ...(origin

@@ -9,7 +9,7 @@ export type SessionRole = TeamRole | "viewer";
 export type TeamPlan = (typeof schema.planEnum.enumValues)[number];
 
 /**
- * Selection cookie only — it picks among the session's own memberships and
+ * Selection cookie only: it picks among the session's own memberships and
  * is re-validated against teamMembers on every request. It is never an
  * authorization input.
  */
@@ -46,7 +46,7 @@ export async function listMemberships(db: Db, userId: string): Promise<ActiveMem
  * This is the ONLY place the session→team resolution rule lives; both the
  * tRPC context and the dashboard layout guard call it. `preferredTeamId`
  * (from ACTIVE_TEAM_COOKIE) only selects among the user's own teamMembers
- * rows — an id the user is not a member of falls back to the oldest
+ * rows: an id the user is not a member of falls back to the oldest
  * membership, so the cookie can never grant access. teamId must never come
  * from client input.
  */

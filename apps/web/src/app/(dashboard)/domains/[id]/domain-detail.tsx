@@ -40,7 +40,7 @@ import { useTrackingToggle } from "../use-tracking-toggle";
 
 /**
  * Status-tinted gradient banner (canvas: near-black ground, glow rising from
- * the left edge). The rgba glows are the canvas values verbatim — the token
+ * the left edge). The rgba glows are the canvas values verbatim: the token
  * palette only carries their hex bases.
  */
 function GradientBanner({
@@ -73,7 +73,7 @@ function GradientBanner({
   );
 }
 
-/** Party-popper (Lucide, MIT) — the celebratory mark on the verified banner. */
+/** Party-popper (Lucide, MIT): the celebratory mark on the verified banner. */
 function TadaIcon() {
   return (
     <svg
@@ -126,7 +126,7 @@ function ConfigSection({
 /**
  * The branded-tracking CNAME surfaced inline in the Configuration tab: what to
  * add and whether it has resolved, so setup is add-then-verify without hunting
- * through the Records tab. "Verified" tracks the live DNS verdict only — SES
+ * through the Records tab. "Verified" tracks the live DNS verdict only: SES
  * never checks this record, so it has no SES status to fold in.
  */
 function TrackingCnameCard({
@@ -246,7 +246,7 @@ function ConfigurationPanel({
   trackingHostLocal: boolean;
   /** This deployment can serve a customer hostname CNAME'd at the app. */
   subdomainsSupported: boolean;
-  /** Cloud: without a tracking subdomain, links ship untracked — never via the shared host. */
+  /** Cloud: without a tracking subdomain, links ship untracked, never via the shared host. */
   trackingRequiresSubdomain: boolean;
   /** Re-reads live DNS (shared with the header's Check DNS). */
   onRecheck: () => void;
@@ -286,7 +286,7 @@ function ConfigurationPanel({
     <div className="po-config-panel" style={{ maxWidth: 1000 }}>
       {/* Branded subdomain: set up in its own onboarding flow; here we only
           surface the configured host and the way back into it. Hidden while
-          tracking is fully off — nothing is being served, so there is nothing
+          tracking is fully off: nothing is being served, so there is nothing
           to show until it's re-enabled through onboarding. */}
       {!trackingOff && trackingSubdomain ? (
         <ConfigSection
@@ -525,7 +525,7 @@ export function DomainDetail({ id }: { id: string }) {
   // the click registers as an action that ran.
   const [minSpin, setMinSpin] = useState(false);
   // Bumped on every manual check so the 30s auto-check timer restarts from the
-  // click — otherwise an interval tick landing a second later reads as a phantom
+  // click, otherwise an interval tick landing a second later reads as a phantom
   // second spinner the user never triggered.
   const [checkTick, setCheckTick] = useState(0);
   const [copiedKey, setCopiedKey] = useState<"instructions" | "prompt" | null>(null);
@@ -547,10 +547,10 @@ export function DomainDetail({ id }: { id: string }) {
     verifyMutate({ id });
   }, [id, verifyMutate]);
 
-  // Canvas: "checks run every 30 s" — the page re-checks SES itself while
+  // Canvas: "checks run every 30 s"; the page re-checks SES itself while
   // pending. checkTick restarts this window on a manual check so the two never
   // fire back to back.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: checkTick is an intentional dep — bumping it re-arms the interval from the manual check.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: checkTick is an intentional dep; bumping it re-arms the interval from the manual check.
   useEffect(() => {
     if (!checking) return;
     const timer = setInterval(() => verifyMutate({ id }), 30_000);
@@ -614,7 +614,7 @@ export function DomainDetail({ id }: { id: string }) {
             maxWidth: 1000,
           }}
         >
-          {/* Labels are static — only the values wait on data. The badge ghost
+          {/* Labels are static, only the values wait on data. The badge ghost
               keeps the strip at the loaded height (the status badge is its
               tallest cell). */}
           <MetaItem label={t("detail.created")}>
@@ -1003,7 +1003,7 @@ export function DomainDetail({ id }: { id: string }) {
               {records.isSuccess ? (
                 <DnsRecordsTable
                   // Tracking off: the group header + switch stay, but its CNAME
-                  // row drops — nothing is served, so there's no record to add.
+                  // row drops; nothing is served, so there's no record to add.
                   records={recordsTrackingOff ? rows.filter((r) => r.group !== "tracking") : rows}
                   domain={data.name}
                   showStatus
@@ -1073,7 +1073,7 @@ export function DomainDetail({ id }: { id: string }) {
                   }}
                   emptyNotes={{
                     // Cloud has no shared host, so an unconfigured group needs no
-                    // note — the switch is the affordance. Self-host keeps the
+                    // note: the switch is the affordance. Self-host keeps the
                     // default-host explainer.
                     ...(trackingRequiresSubdomain
                       ? {}

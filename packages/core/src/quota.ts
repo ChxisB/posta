@@ -33,11 +33,11 @@ export function quotaChargeAt(scheduledAt: Date | null | undefined, now: Date = 
 /**
  * Atomically reserve `count` sends against a team's daily limit (UTC day).
  * Single upsert with the limit re-checked inside the UPDATE's WHERE, so
- * concurrent requests can never overshoot the cap — no cached aggregates.
+ * concurrent requests can never overshoot the cap: no cached aggregates.
  * `limit === null` means unlimited (Scale plan / self-host): counts are still
  * recorded for metrics but never rejected.
  *
- * CONTRACT: call inside the same transaction that inserts the email rows —
+ * CONTRACT: call inside the same transaction that inserts the email rows;
  * a crash between reserve and insert otherwise burns quota with nothing
  * sent. Callers that cannot share a transaction must compensate failures
  * with releaseDailyQuota.

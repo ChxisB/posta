@@ -26,7 +26,7 @@ export class SuppressionsBatch {
     });
   }
 
-  /** POST /suppressions/batch/remove — by `emails` or by `ids`. */
+  /** POST /suppressions/batch/remove: by `emails` or by `ids`. */
   remove(
     options: BatchRemoveSuppressionsOptions,
   ): Promise<Result<{ data: RemoveSuppressionResponse[] }>> {
@@ -60,7 +60,7 @@ export class Suppressions {
     return this.add(options);
   }
 
-  /** GET /suppressions — optionally filtered by `origin`. */
+  /** GET /suppressions: optionally filtered by `origin`. */
   list(options?: ListSuppressionsOptions): Promise<Result<List<SuppressionListItem>>> {
     return this.http.request({
       method: "GET",

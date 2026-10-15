@@ -1,7 +1,7 @@
 {
   "name": "@tack-labs/posta",
   "version": "0.8.0",
-  "description": "Official Posta SDK for Node.js — a Resend-compatible email API you can self-host.",
+  "description": "Official Posta SDK for Node.js: a Resend-compatible email API you can self-host.",
   "type": "module",
   "license": "MIT",
   "author": "Tack Labs",

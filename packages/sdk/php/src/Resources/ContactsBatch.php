@@ -13,7 +13,7 @@ final class ContactsBatch
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * POST /contacts/batch — 1..1000 contacts as a bare JSON array. Options:
+     * POST /contacts/batch: 1..1000 contacts as a bare JSON array. Options:
      * `onConflict`/`on_conflict` (`error`, the default, `skip` or `upsert`) and
      * `batchValidation`/`batch_validation` (`strict`, the default, or
      * `permissive`, which reports per-item failures in `errors[]`).
@@ -41,7 +41,7 @@ final class ContactsBatch
     }
 
     /**
-     * POST /contacts/batch/get — 1..1000 contacts by id (a bare string) or by
+     * POST /contacts/batch/get: 1..1000 contacts by id (a bare string) or by
      * `['id' => …]` / `['email' => …]` (exactly one per entry; emails match
      * case-insensitively). `data` lists the contacts found in request order;
      * entries that match nobody land in `missing` (with their request `index`)
@@ -63,7 +63,7 @@ final class ContactsBatch
     }
 
     /**
-     * POST /contacts/batch/remove — by `ids` or by `emails` (exactly one, 1..1000).
+     * POST /contacts/batch/remove: by `ids` or by `emails` (exactly one, 1..1000).
      * Lists only the rows actually deleted; unknown ids/addresses are skipped.
      * The contacts' emails stay in the send log; `erase => true` also scrubs the
      * addresses from email history, event payloads and API logs (a GDPR/LGPD erasure).

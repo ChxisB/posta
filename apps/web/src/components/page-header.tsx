@@ -9,7 +9,7 @@ import { DotParts } from "./dot-parts";
 
 /**
  * Page chrome: breadcrumb, display H1 with its status badges, mono meta line,
- * actions — and the tab title ("Contacts · Posta"). The actions sit
+ * actions, and the tab title ("Contacts · Posta"). The actions sit
  * beside the title block while it keeps its natural width, and otherwise
  * take their own row under the meta line (components.css, .po-page-row).
  */
@@ -25,7 +25,7 @@ export function PageHeader({
 }: {
   title: string;
   /**
-   * Mono proof strip under the H1 — the resource's own numbers. A string is
+   * Mono proof strip under the H1: the resource's own numbers. A string is
    * " · "-joined parts and breaks only between them.
    */
   subtitle?: React.ReactNode;

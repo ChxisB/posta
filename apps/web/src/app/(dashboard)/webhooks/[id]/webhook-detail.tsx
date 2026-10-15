@@ -562,7 +562,7 @@ export function WebhookDetail({ id }: { id: string }) {
                           <DeliveryStatusBadge status={delivery.status} />
                         </td>
                         <td>
-                          <span className="po-mono">{delivery.lastResponseCode ?? "—"}</span>
+                          <span className="po-mono">{delivery.lastResponseCode ?? "-"}</span>
                         </td>
                         <td>
                           <span className="po-mono">{delivery.attempts}</span>

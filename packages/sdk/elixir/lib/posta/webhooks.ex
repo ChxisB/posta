@@ -42,19 +42,19 @@ defmodule Posta.Webhooks do
   alias Posta.{Client, Request}
   alias Posta.Webhooks.Webhook
 
-  @doc "`POST /webhooks` — the response carries the `signing_secret`."
+  @doc "`POST /webhooks`: the response carries the `signing_secret`."
   @spec create(Client.t(), map()) :: {:ok, Webhook.t()} | {:error, Posta.Error.t()}
   def create(client \\ Posta.client(), params) when is_map(params) do
     Request.run(client, method: :post, path: "/webhooks", body: params, as: Webhook)
   end
 
-  @doc "`GET /webhooks/:id` — includes the `signing_secret`."
+  @doc "`GET /webhooks/:id`: includes the `signing_secret`."
   @spec get(Client.t(), String.t()) :: {:ok, Webhook.t()} | {:error, Posta.Error.t()}
   def get(client \\ Posta.client(), id) when is_binary(id) do
     Request.run(client, method: :get, path: member_path(id), as: Webhook)
   end
 
-  @doc "`GET /webhooks` — accepts `limit:`, `after:`, `before:`."
+  @doc "`GET /webhooks`: accepts `limit:`, `after:`, `before:`."
   @spec list(Client.t() | keyword()) :: {:ok, Posta.List.t()} | {:error, Posta.Error.t()}
   def list(), do: list(Posta.client(), [])
   def list(%Client{} = client), do: list(client, [])
@@ -70,14 +70,14 @@ defmodule Posta.Webhooks do
     )
   end
 
-  @doc "`PATCH /webhooks/:id` — `endpoint`, `events`, `status` (`:enabled | :disabled`)."
+  @doc "`PATCH /webhooks/:id`: `endpoint`, `events`, `status` (`:enabled | :disabled`)."
   @spec update(Client.t(), String.t(), map()) :: {:ok, Webhook.t()} | {:error, Posta.Error.t()}
   def update(client \\ Posta.client(), id, params) when is_binary(id) and is_map(params) do
     Request.run(client, method: :patch, path: member_path(id), body: params, as: Webhook)
   end
 
   @doc """
-  `POST /webhooks/:id/rotate` — mint a new signing secret (or install the
+  `POST /webhooks/:id/rotate`: mint a new signing secret (or install the
   `signing_secret:` given, a `whsec_` value). For `overlap_hours:` (0..72) the
   previous secret keeps signing too: every delivery in that window carries both
   signatures, so the receiver can switch at any point without a gap. Both

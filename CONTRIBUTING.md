@@ -109,7 +109,7 @@ Dashboard copy lives in `apps/web/messages/en` and `apps/web/messages/pt-BR`. Ad
 
 Versions follow [semantic versioning](https://semver.org).
 
-- **The server.** Every push to `main` that passes CI publishes `ghcr.io/chxisb/posta:edge`. To release, say, 1.2.0, rename **Unreleased** in CHANGELOG.md to `## 1.2.0 – YYYY-MM-DD`, add an empty **Unreleased** above it, commit, and push the tag `v1.2.0`. CI then publishes `:1.2.0`, `:1.2` and `:latest`, along with the matching `posta-backup` image.
+- **The server.** Every push to `main` that passes CI publishes `ghcr.io/chxisb/posta:edge`. To release, say, 1.2.0, rename **Unreleased** in CHANGELOG.md to `## 1.2.0: YYYY-MM-DD`, add an empty **Unreleased** above it, commit, and push the tag `v1.2.0`. CI then publishes `:1.2.0`, `:1.2` and `:latest`, along with the matching `posta-backup` image.
 - **The CLI.** Bump `version` in `packages/cli/package.json`, then push a tag `cli-v<version>`. The release-cli workflow publishes it to npm through Trusted Publishing.
 - **The setup wizard.** Bump `version` in `packages/setup/package.json`, then run the release-setup workflow from the Actions tab.
 

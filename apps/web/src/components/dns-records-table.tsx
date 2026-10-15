@@ -57,7 +57,7 @@ const RECORD_STATUS_TONE: Record<RecordStatus, string> = {
 
 /**
  * The single source-of-truth Status badge: our live DNS lookup gated by AWS's
- * verification. Sized to its label (inline-block) — never stretched to the cell.
+ * verification. Sized to its label (inline-block), never stretched to the cell.
  */
 function RecordStatusBadge({ status, note }: { status: RecordStatus; note?: React.ReactNode }) {
   const t = useTranslations("domains");
@@ -223,7 +223,7 @@ export function DnsRecordsTable({
                         {record.type === "CNAME" ? <DnsOnlyNote /> : null}
                       </td>
                       <td>{t("detail.ttlAuto")}</td>
-                      {showPriority ? <td>{record.priority ?? "—"}</td> : null}
+                      {showPriority ? <td>{record.priority ?? "-"}</td> : null}
                       {showStatus ? (
                         <td style={{ whiteSpace: "nowrap" }}>
                           <RecordStatusBadge

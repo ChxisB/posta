@@ -132,7 +132,7 @@ contacts (5)
   + contacts  batch upsert, 3 segment memberships
 broadcasts
   + November announcements  draft
-  ! Beta invite  from domain updates.example.com is not verified here — re-run
+  ! Beta invite  from domain updates.example.com is not verified here: re-run
     apply after DNS verification
   − Launch recap  already sent; --include-sent imports sent broadcasts as drafts
 suppressions (3)

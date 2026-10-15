@@ -37,7 +37,7 @@ export type DmarcLookup =
  * DMARC policy discovery (RFC 7489 §6.6.3): _dmarc at the send domain, falling
  * back to _dmarc at the organizational domain when no valid record exists at a
  * subdomain. CRITICAL: timeout/SERVFAIL/network errors read `unknown`, never
- * `missing` — a resolver blip must not look like an absent record (scores
+ * `missing`; a resolver blip must not look like an absent record (scores
  * would stamp permanent penalties on it).
  */
 export async function lookupDmarc(

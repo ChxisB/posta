@@ -15,7 +15,7 @@ export interface CodeEditorHandle {
 /**
  * Source editor: a transparent textarea over a highlighted <pre> with the same
  * font metrics, kept scroll-aligned from the textarea's scroll events. Find
- * matches paint on a third layer under the highlight — plain text made
+ * matches paint on a third layer under the highlight: plain text made
  * transparent, so its <mark>s land under the very same glyphs. Tab inserts
  * two spaces (the palette lives under .po-code-editor in components.css).
  */

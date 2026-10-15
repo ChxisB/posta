@@ -18,7 +18,7 @@
   "onlyInboxes": "Only these inboxes",
   "eventsCount": "{count, plural, one {# event} other {# events}}",
   "loadMore": "Load more",
-  "pageOf": "Page 1 – {pages} of {total} webhooks",
+  "pageOf": "Page 1 to {pages} of {total} webhooks",
   "pageSize": "{count} items",
   "eventGroup": {
     "delivery": "Delivery",
@@ -154,7 +154,7 @@
     "eyebrow": "Webhook",
     "sendTest": "Send test event",
     "testQueued": "Test event queued.",
-    "testRateLimited": "Too many test events — try again in a minute.",
+    "testRateLimited": "Too many test events: try again in a minute.",
     "testFailed": "Couldn't send the test event.",
     "moreActions": "Webhook actions",
     "url": "URL",
@@ -174,7 +174,7 @@
     "noResponse": "No response recorded.",
     "prev": "Previous",
     "next": "Next",
-    "pageOf": "{from}–{to}",
+    "pageOf": "{from} to {to}",
     "notFound": "Webhook not found.",
     "previousSecret": "The previous secret also signs until {date}"
   },

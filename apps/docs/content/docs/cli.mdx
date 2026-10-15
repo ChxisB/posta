@@ -1,10 +1,10 @@
 ---
 title: CLI
-description: "@tack-labs/posta-cli — move an email account to Posta from your terminal: plan, apply, status, rollback."
+description: "@tack-labs/posta-cli moves an email account to Posta from your terminal: plan, apply, status, rollback."
 ---
 
-`@tack-labs/posta-cli` moves an email account to Posta — Cloud or your own
-instance. It reads the source provider, diffs it against the target, applies
+`@tack-labs/posta-cli` moves an email account to Posta (Cloud or your own
+instance). It reads the source provider, diffs it against the target, applies
 the difference and writes a report. Only Resend is a source today.
 
 ## Install
@@ -39,8 +39,8 @@ posta --help | --version
   confirmation, applies it and prints the summary.
 - **`migrate plan`** reads both sides and prints what would change without
   writing anything to the target. `--out plan.json` saves it. Before any
-  write, the plan checks the target's `GET /usage` — plan, limits, cloud
-  flag — and says precisely what does not fit ("7 domains to create; the
+  write, the plan checks the target's `GET /usage` (plan, limits, cloud
+  flag) and says precisely what does not fit ("7 domains to create; the
   Free plan allows 3"), plus an estimate: "~2,140 requests · about 4 min at
   8 req/s".
 - **`migrate apply`** applies a saved plan, or plans and applies in one go.
@@ -50,8 +50,8 @@ posta --help | --version
   differ, left unchanged when they match.
 - **`migrate status`** prints what the last run created and what is left on
   the checklist. Needs no credentials.
-- **`migrate rollback`** deletes only the ids the tool created — never rows
-  it merely updated — in reverse dependency order, after printing the list
+- **`migrate rollback`** deletes only the ids the tool created, never rows
+  it merely updated, in reverse dependency order, after printing the list
   and asking for confirmation (`--yes` skips it). Deleting contacts is one
   request per contact; the prompt shows the time estimate.
 
@@ -98,7 +98,7 @@ Resource names for `--only` and `--skip`, in apply order: `domains`,
 | `DO_NOT_TRACK` | Honored, as a no-op: the tool sends no telemetry, never phones home and never checks for updates. |
 
 Each key is resolved in this order: environment variable, then the `-stdin`
-flag, then the argument flag, then — in a terminal — a masked prompt. The
+flag, then the argument flag, then (in a terminal) a masked prompt. The
 target URL comes from `POSTA_BASE_URL` or `--to-url`; with neither set,
 a terminal offers a choice between Posta Cloud and a self-hosted URL,
 and a non-interactive run targets Posta Cloud, like the SDKs.
@@ -137,14 +137,14 @@ directory; the tool says so once.
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Success — or, for `migrate plan`, nothing to do. |
+| `0` | Success, or, for `migrate plan`, nothing to do. |
 | `1` | Error: bad arguments, missing input, rejected key, unrecoverable failure. |
 | `2` | `migrate plan` only: the plan has changes. |
 | `3` | Partial: some items failed. Details in the state file and the report. |
 
 ## Non-interactive and CI
 
-When stdin is not a terminal — or with `--non-interactive` or `--json` — the
+When stdin is not a terminal (or with `--non-interactive` or `--json`) the
 tool never prompts: a missing input exits 1 with the env var or flag to set.
 Pass keys through the environment or stdin, never as arguments:
 
@@ -169,8 +169,8 @@ appended when piped, rewritten in place in a terminal.
 
 ## `--json`
 
-With `--json`, stdout carries only JSON — the plan for `migrate plan`, the
-report for `migrate apply` — and progress goes to stderr, so the output can
+With `--json`, stdout carries only JSON (the plan for `migrate plan`, the
+report for `migrate apply`) and progress goes to stderr, so the output can
 be piped into `jq` or saved as an artifact. `--json` implies
 `--non-interactive`.
 

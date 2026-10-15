@@ -116,7 +116,7 @@ export interface HttpOptions {
   log: Logger;
   /** Names the side in messages: "Resend" / "Posta". */
   name: string;
-  /** Refuse every non-GET method — the guarantee that the source is never written. */
+  /** Refuse every non-GET method: the guarantee that the source is never written. */
   readOnly?: boolean | undefined;
   timeoutMs?: number | undefined;
   fetch?: typeof fetch | undefined;
@@ -283,11 +283,11 @@ export function createHttp(options: HttpOptions): HttpClient {
           throw new ApiError(
             0,
             "network_error",
-            `${name}: ${label} failed ${failures} times — ${reason}; ${hint}`,
+            `${name}: ${label} failed ${failures} times; ${reason}; ${hint}`,
           );
         }
         const wait = 1000 * 2 ** (failures - 1);
-        log.warn(`retry ${failures + 1}/${maxAttempts} in ${seconds(wait)} — ${name} ${reason}`);
+        log.warn(`retry ${failures + 1}/${maxAttempts} in ${seconds(wait)}. ${name} ${reason}`);
         await sleep(wait);
         continue;
       }
@@ -313,7 +313,7 @@ export function createHttp(options: HttpOptions): HttpClient {
         rps = Math.max(1, rps / 2);
         rampedAt = Date.now();
         log.warn(
-          `retry ${rateLimited + 1}/${rateLimitAttempts} in ${seconds(wait)} — ${name} 429 · slowing to ${Math.round(rps * 10) / 10} req/s`,
+          `retry ${rateLimited + 1}/${rateLimitAttempts} in ${seconds(wait)}. ${name} 429 · slowing to ${Math.round(rps * 10) / 10} req/s`,
         );
         await sleep(wait);
         continue;
@@ -329,7 +329,7 @@ export function createHttp(options: HttpOptions): HttpClient {
           );
         }
         const wait = 1000 * 2 ** (failures - 1);
-        log.warn(`retry ${failures + 1}/${maxAttempts} in ${seconds(wait)} — ${name} ${status}`);
+        log.warn(`retry ${failures + 1}/${maxAttempts} in ${seconds(wait)}. ${name} ${status}`);
         await sleep(wait);
         continue;
       }

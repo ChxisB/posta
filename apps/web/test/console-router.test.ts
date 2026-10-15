@@ -1306,7 +1306,7 @@ describe("review holds", () => {
   it("refuses a review hold from the console's suspend: only the monitor holds", async () => {
     const id = await createTeam(db, "never-held");
     await expect(
-      // @ts-expect-error — the input enum leaves the review reason out
+      // @ts-expect-error, the input enum leaves the review reason out
       operator().console.teams.suspend({ id, reason: "review", notify: false }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     expect(await team(id)).toMatchObject({ suspendedAt: null, suspensionReason: null });

@@ -15,7 +15,7 @@ use crate::types::{
     UpdateContactPropertyOptions, UpdateContactTopicsResponse,
 };
 
-/// Contacts — team-global, addressable by id or email (email wins). Mirrors
+/// Contacts: team-global, addressable by id or email (email wins). Mirrors
 /// Resend's `contacts` resource, plus nested `topics`, `segments` and
 /// `properties`.
 #[derive(Clone)]
@@ -36,13 +36,13 @@ impl Contacts {
         }
     }
 
-    /// `POST /contacts` — 409 `validation_error` on a duplicate email
+    /// `POST /contacts`: 409 `validation_error` on a duplicate email
     /// (case-insensitive per team).
     pub async fn create(&self, contact: &CreateContactOptions) -> Result<ContactId> {
         self.config.post(&["contacts"], contact).await
     }
 
-    /// `POST /contacts/batch` — 1–1000 contacts in one request (Posta
+    /// `POST /contacts/batch`: 1 to 1000 contacts in one request (Posta
     /// extension). `on_conflict` and `batch_validation` default server-side to
     /// `error` and `strict`.
     pub async fn create_batch(
@@ -75,7 +75,7 @@ impl Contacts {
         self.config.get(&["contacts", address.key()], &[]).await
     }
 
-    /// `PATCH /contacts/:idOrEmail` — `null` clears a field, omitted leaves it.
+    /// `PATCH /contacts/:idOrEmail`: `null` clears a field, omitted leaves it.
     pub async fn update(
         &self,
         address: impl Into<ContactAddress>,
@@ -87,7 +87,7 @@ impl Contacts {
             .await
     }
 
-    /// `DELETE /contacts/:idOrEmail` — the contact's emails stay in the send
+    /// `DELETE /contacts/:idOrEmail`: the contact's emails stay in the send
     /// log; `erase` (`?erase=true`) also scrubs the address from email
     /// history, event payloads and API logs.
     pub async fn delete(
@@ -106,7 +106,7 @@ impl Contacts {
             .await
     }
 
-    /// `GET /contacts` — `include` attaches `properties` and/or `topics` to
+    /// `GET /contacts`: `include` attaches `properties` and/or `topics` to
     /// every item (Posta extension).
     pub async fn list(
         &self,
@@ -118,7 +118,7 @@ impl Contacts {
         self.config.get(&["contacts"], &query).await
     }
 
-    /// `POST /contacts/batch/get` — up to 1000 contacts by id or email in one
+    /// `POST /contacts/batch/get`: up to 1000 contacts by id or email in one
     /// request, returned in request order (Posta extension). Entries
     /// that match no contact land in `missing` instead of failing the call.
     pub async fn batch_get(
@@ -133,7 +133,7 @@ impl Contacts {
         self.config.post(&["contacts", "batch", "get"], &body).await
     }
 
-    /// `POST /contacts/batch/remove` — by ids or by emails, up to 1000
+    /// `POST /contacts/batch/remove`: by ids or by emails, up to 1000
     /// (Posta extension). Lists only the contacts actually deleted;
     /// `erase` scrubs the addresses like on [`Contacts::delete`].
     pub async fn batch_remove(
@@ -150,7 +150,7 @@ impl Contacts {
             .await
     }
 
-    /// `POST /contacts/:idOrEmail/preferences-link` — the contact's hosted
+    /// `POST /contacts/:idOrEmail/preferences-link`: the contact's hosted
     /// preference page (Posta extension). 422 when the instance cannot
     /// build hosted links.
     pub async fn preferences_link(
@@ -170,7 +170,7 @@ impl Contacts {
 pub struct ContactTopics(pub(crate) Arc<Config>);
 
 impl ContactTopics {
-    /// `GET /contacts/:idOrEmail/topics` — every topic of the team with the
+    /// `GET /contacts/:idOrEmail/topics`: every topic of the team with the
     /// contact's effective subscription, in one page.
     pub async fn list(&self, address: impl Into<ContactAddress>) -> Result<List<ContactTopic>> {
         let address = address.into();

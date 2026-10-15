@@ -20,7 +20,7 @@ export function resolveBaseUrl(
 
 /**
  * Public URL of this dashboard. Every absolute URL the app emits (redirects,
- * emailed links) must derive from it — never from the request's Host, which a
+ * emailed links) must derive from it, never from the request's Host, which a
  * reverse proxy may rewrite to its upstream address.
  */
 export function appBaseUrl(): string {

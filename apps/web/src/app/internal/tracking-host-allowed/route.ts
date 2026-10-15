@@ -5,7 +5,7 @@ import { trackingHostIs } from "@/server/tracking-host";
 
 // The tracking edge (a Caddy box doing on-demand TLS) calls this before issuing
 // a certificate for a hostname, so a cert is only ever minted for a hostname a
-// team has actually configured as its branded tracking subdomain — without it,
+// team has actually configured as its branded tracking subdomain, without it,
 // anyone pointing DNS at the edge could exhaust the CA's issuance limits. A 2xx
 // authorizes issuance; anything else denies it.
 //

@@ -546,7 +546,7 @@ export async function applyPlan(input: ApplyInput): Promise<ApplyOutcome> {
       if (pass.facet === "properties") outcome.enrichment.withProperties = withValues;
       else outcome.enrichment.withTopics = withValues;
       if (pass.facet === "properties" && processed > 0 && withValues === 0) {
-        const message = "no contact carried a property value — check the source shape";
+        const message = "no contact carried a property value: check the source shape";
         step.note(warn(message));
         log.warn(message);
       }

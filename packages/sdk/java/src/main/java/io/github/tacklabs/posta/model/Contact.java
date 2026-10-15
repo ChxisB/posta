@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A contact. Also used for list and batch-read items — there {@code properties}
+ * A contact. Also used for list and batch-read items: there {@code properties}
  * and {@code topics} are only populated when the call asked for them via
  * {@link ContactInclude}; a single fetch always carries {@code properties}.
  */

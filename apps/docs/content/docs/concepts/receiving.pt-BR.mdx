@@ -262,7 +262,7 @@ const { data: files } = await resend.emails.receiving.attachments.list({ emailId
 
 `GET /emails/receiving` lista do mais novo para o mais antigo, como o
 Resend: `after` avança para e-mails mais antigos, `before` volta para os mais
-novos. Aceita `limit` (1–100, padrão 20; o Resend devolve todos quando falta
+novos. Aceita `limit` (1 a 100, padrão 20; o Resend devolve todos quando falta
 o `limit`) e um cursor `after` ou `before`, como toda
 [listagem](/pt-BR/api-reference#paginação), além destes filtros:
 

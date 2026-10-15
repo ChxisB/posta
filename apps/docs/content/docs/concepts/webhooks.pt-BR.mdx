@@ -20,8 +20,8 @@ entregas por endpoint.
 | `email.bounced` | A mensagem voltou (bounce). `data.bounce.type` diz como: `Permanent` é um hard bounce, e o endereço também é [suprimido](/pt-BR/concepts/suppressions); `Transient` ou `Undetermined` quer dizer que o SES desistiu depois de tentar de novo (caixa cheia, um domínio que não existe), e o endereço não é suprimido. |
 | `email.complained` | O destinatário marcou como spam. Também suprimido. |
 | `email.opened` | Uma pessoa carregou o pixel de rastreamento (exige rastreamento de aberturas no [domínio](/pt-BR/concepts/domains)). `data.open` traz `ipAddress`, `userAgent` e `timestamp` da busca. Um clique em uma mensagem ainda sem abertura também registra uma, com `data.open.reason: "click"`: ninguém clica no que nunca renderizou, e para leitores do Apple Mail é a única abertura que pode ser vista. |
-| `email.clicked` | Uma pessoa clicou em um link reescrito (exige rastreamento de cliques). `data.click` traz `link`, `ipAddress`, `userAgent` e `timestamp`, como no Resend. Um link que uma máquina seguiu — gateway de segurança, pré-visualização de link, busca segundos após a entrega — é registrado como `email.prefetched`. |
-| `email.prefetched` | O pixel foi buscado, ou um link seguido, por uma máquina — o Mail Privacy Protection da Apple, o pré-carregamento do Gmail, um scanner de segurança, uma identidade de navegador que nenhum navegador real envia, uma busca segundos após a entrega ou todos os links da mensagem em um segundo; `data.open.reason` ou `data.click.reason` diz qual (veja [precisão da taxa de abertura](/pt-BR/concepts/domains#precisão-da-taxa-de-abertura)). Um clique registrado antes de o resto da rajada chegar é registrado de novo aqui com o mesmo `data.click.timestamp` que seu `email.clicked` levou: trate isso como o clique sendo desfeito, junto com qualquer `email.opened` com `data.open.reason: "click"` marcado um milissegundo antes dele. Opt-in: entregue só a endpoints que o listam, nunca a "todos os eventos". |
+| `email.clicked` | Uma pessoa clicou em um link reescrito (exige rastreamento de cliques). `data.click` traz `link`, `ipAddress`, `userAgent` e `timestamp`, como no Resend. Um link que uma máquina seguiu (gateway de segurança, pré-visualização de link, busca segundos após a entrega) é registrado como `email.prefetched`. |
+| `email.prefetched` | O pixel foi buscado, ou um link seguido, por uma máquina: o Mail Privacy Protection da Apple, o pré-carregamento do Gmail, um scanner de segurança, uma identidade de navegador que nenhum navegador real envia, uma busca segundos após a entrega ou todos os links da mensagem em um segundo; `data.open.reason` ou `data.click.reason` diz qual (veja [precisão da taxa de abertura](/pt-BR/concepts/domains#precisão-da-taxa-de-abertura)). Um clique registrado antes de o resto da rajada chegar é registrado de novo aqui com o mesmo `data.click.timestamp` que seu `email.clicked` levou: trate isso como o clique sendo desfeito, junto com qualquer `email.opened` com `data.open.reason: "click"` marcado um milissegundo antes dele. Opt-in: entregue só a endpoints que o listam, nunca a "todos os eventos". |
 | `email.received` | Uma mensagem chegou a um dos seus [domínios de recebimento](/pt-BR/concepts/receiving) e foi guardada, uma vez por mensagem, assim que fica visível: o e-mail que uma [caixa de entrada](/pt-BR/concepts/inboxes) retém na quarentena ou durante a análise, e o e-mail infectado, só disparam depois de entregues ou liberados. `data.email_id` é um e-mail recebido: leia com `GET /emails/receiving/{id}`. Veja [o payload](#e-mails-recebidos) abaixo. |
 
 Eventos de conta não carregam e-mail; `data` descreve a situação da equipe:
@@ -30,14 +30,14 @@ Eventos de conta não carregam e-mail; `data` descreve a situação da equipe:
 | --- | --- | --- |
 | `deliverability.warning` | A taxa de hard bounce ou de reclamação da equipe cruzou o limite de risco (uma vez por episódio). | `{ metric, rate, limit, window_days, dashboard_url }` |
 | `deliverability.paused` | A taxa cruzou o limite de pausa; novos envios são recusados até se recuperar. | igual ao anterior |
-| `quota.warning` | 80% da cota foi usada: a cota diária de hoje no Free e no Starter, o volume incluído do período de cobrança no Pro e no Scale (uma vez por dia UTC ou por período, só na nuvem). | `{ used, limit, period, resets_at, dashboard_url }` — `period` é `"day"` ou `"month"`; `resets_at` é a próxima meia-noite UTC ou o fim do período. No dia, `ceiling` é onde os envios começam a ficar em espera; no mês, `overage` diz se os envios além de `limit` são cobrados ou recusados. |
+| `quota.warning` | 80% da cota foi usada: a cota diária de hoje no Free e no Starter, o volume incluído do período de cobrança no Pro e no Scale (uma vez por dia UTC ou por período, só na nuvem). | `{ used, limit, period, resets_at, dashboard_url }`: `period` é `"day"` ou `"month"`; `resets_at` é a próxima meia-noite UTC ou o fim do período. No dia, `ceiling` é onde os envios começam a ficar em espera; no mês, `overage` diz se os envios além de `limit` são cobrados ou recusados. |
 | `quota.reached` | A cota foi usada. Planos diários passam até 50% a mais e depois deixam os envios em espera até a meia-noite UTC; planos mensais cobram excedente quando ele está ativo e, senão, recusam envios pela API e deixam as transmissões em espera até o período renovar. | igual ao anterior |
 | `quota.paused` | Só em planos diários: 50% além da cota, novos envios ficam em espera até a meia-noite UTC, ou até um upgrade de plano liberá-los (uma vez por dia UTC, só na nuvem). | igual ao anterior, sempre `period: "day"` |
 
 Eventos de audiência disparam quando um contato ou a lista de supressão muda,
-seja quem for que mudou. `data` traz o contato no formato do Resend — `id`,
-`email`, `first_name`, `last_name`, `unsubscribed`, `created_at`, `updated_at`
-— mais `source`: `api`, `dashboard`, `hosted_page` (a central de preferências)
+seja quem for que mudou. `data` traz o contato no formato do Resend: `id`,
+`email`, `first_name`, `last_name`, `unsubscribed`, `created_at`, `updated_at`,
+mais `source`: `api`, `dashboard`, `hosted_page` (a central de preferências)
 ou `one_click` (um POST de header RFC 8058). O Resend emite apenas
 `contact.created`, `contact.updated` e `contact.deleted`; os demais são
 extensões do Posta.
@@ -192,7 +192,7 @@ e as entregas deles com um SDK do Posta ou por HTTP direto.
 ## Assinaturas (Standard Webhooks)
 
 As entregas são assinadas seguindo a especificação
-[Standard Webhooks](https://www.standardwebhooks.com) — o mesmo esquema que
+[Standard Webhooks](https://www.standardwebhooks.com): o mesmo esquema que
 Resend e Svix usam, então código de verificação existente funciona sem
 mudanças.
 
@@ -206,7 +206,7 @@ webhook-signature: v1,<base64 HMAC-SHA256>
 ```
 
 Os mesmos três valores também vão como `svix-id`, `svix-timestamp` e
-`svix-signature` — os nomes que a documentação do Resend manda ler. Uma
+`svix-signature`: os nomes que a documentação do Resend manda ler. Uma
 assinatura, dois nomes de header: um handler escrito para qualquer uma das
 famílias verifica sem mudanças.
 
@@ -230,7 +230,7 @@ antigos.
 ## Trazendo seu próprio segredo
 
 `POST /webhooks` aceita um `signing_secret` opcional: `whsec_` seguido de
-base64 padrão de 24 a 64 bytes — o formato que Resend e Svix emitem. Passe o
+base64 padrão de 24 a 64 bytes; o formato que Resend e Svix emitem. Passe o
 segredo com que seu receptor já verifica e o endpoint continua funcionando sem
 novo deploy; omita e o Posta gera um. Qualquer outra coisa é rejeitada
 com `422 signing_secret must be whsec_ followed by base64 of 24-64 bytes`.
@@ -280,7 +280,7 @@ andamento a até **50 requisições por segundo**; uma rajada de eventos espera 
 atingir o receptor de uma vez.
 
 Uma tentativa que falha (não-2xx, timeout, erro de conexão) é repetida em um
-cronograma fixo: **5 s, 5 min, 30 min, 2 h, 5 h, 10 h** — seis tentativas em
+cronograma fixo: **5 s, 5 min, 30 min, 2 h, 5 h, 10 h**; seis tentativas em
 cerca de 18 horas. Um `429` com header `Retry-After` é respeitado (até uma
 hora) e não conta como tentativa: é o receptor pedindo espaço, não falhando.
 Um evento ainda não entregue **24 horas** depois de enfileirado é descartado
@@ -290,18 +290,18 @@ Após **20 entregas esgotadas consecutivas** o endpoint é desativado
 automaticamente e não recebe mais nada até você reativá-lo na página dele;
 os eventos do intervalo não são reenviados. Os proprietários da equipe recebem um
 e-mail quando as entregas de um endpoint começam a falhar (as últimas dez
-entregas encerradas todas esgotadas), quando ele é desativado e — no máximo
-uma vez por dia — quando a fila dele tem mais de seis horas de atraso. O painel
+entregas encerradas todas esgotadas), quando ele é desativado e (no máximo
+uma vez por dia) quando a fila dele tem mais de seis horas de atraso. O painel
 mostra a profundidade da fila de cada endpoint e há quanto tempo a entrega
 mais antiga espera.
 
 Um job de reconciliação rearma filas perdidas em quedas, então a entrega é
-pelo-menos-uma-vez — torne seus handlers idempotentes, chaveados por
+pelo-menos-uma-vez: torne seus handlers idempotentes, chaveados por
 `webhook-id`. As linhas de entrega (payload, resposta, tentativas) são
 mantidas por `WEBHOOK_DELIVERY_RETENTION_DAYS` (padrão 30) e depois
 apagadas.
 
 Inscreva cada endpoint só nos eventos de que ele precisa. Uma reimportação
 completa de contatos não emite nada para os contatos que não mudaram, mas
-cada contato novo é uma entrega `contact.created` — um endpoint inscrito em
+cada contato novo é uma entrega `contact.created`: um endpoint inscrito em
 "todos os eventos" recebe todas elas.

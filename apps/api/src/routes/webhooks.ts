@@ -209,7 +209,7 @@ export function registerWebhookRoutes(app: OpenAPIHono<Env>, db: Db, keyring: Ke
         .where(and(eq(w.id, c.req.valid("param").id), eq(w.teamId, auth.teamId)));
       if (!row) return c.json(errorBody(404, "not_found", "Webhook not found"), 404);
       // Secrets are retrievable by design (SDK wire exposes signing_secret on
-      // get) — envelope-encrypted at rest, decrypted per request. SECURITY:
+      // get): envelope-encrypted at rest, decrypted per request. SECURITY:
       // never for a member, whom the dashboard shows only the last 4.
       const secret =
         auth.role && !isAdminRole(auth.role)

@@ -390,7 +390,7 @@ describe("settings.locale", () => {
 });
 
 describe("settings.smtp", () => {
-  it("exposes connection facts but never a real secret — the password is the placeholder", async () => {
+  it("exposes connection facts but never a real secret: the password is the placeholder", async () => {
     const teamId = await createTeam(db, "acme");
     await addMember(teamId, "u1", "owner");
     const smtp = await callerFor("u1", teamId, "owner").settings.smtp.get();
@@ -402,7 +402,7 @@ describe("settings.smtp", () => {
     expect(JSON.stringify(smtp)).not.toMatch(/po_/);
   });
 
-  it("derives TLS flags from env — both paths required, and never ships the paths", async () => {
+  it("derives TLS flags from env: both paths required, and never ships the paths", async () => {
     const teamId = await createTeam(db, "acme");
     await addMember(teamId, "u1", "owner");
     const caller = callerFor("u1", teamId, "owner");
@@ -429,7 +429,7 @@ describe("settings.smtp", () => {
 });
 
 describe("settings.unsubscribe", () => {
-  // Default get result for a fresh team — tests override what they exercise.
+  // Default get result for a fresh team: tests override what they exercise.
   // teamName rides along so the page can fall back to it as the brand name;
   // hideBranding (the "show your logo" opt-in) defaults on; logo corners to gentle.
   const emptyCfg = {
@@ -556,7 +556,7 @@ describe("settings.unsubscribe", () => {
     const teamId = await createTeam(db, "acme");
     await addMember(teamId, "u1", "owner");
     const caller = callerFor("u1", teamId, "owner");
-    // Colors land in inline styles on the public page — nothing loose may pass.
+    // Colors land in inline styles on the public page: nothing loose may pass.
     const bad = ["red", "#fff", "#12345g", "46a3f9", "#1234567", "rgb(0,0,0)", "url(x)"];
     for (const color of bad) {
       await expect(

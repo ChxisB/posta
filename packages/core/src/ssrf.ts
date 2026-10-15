@@ -12,7 +12,7 @@ import { sniffFileType, sniffImageType } from "./file-type.js";
  *   ports 80 and 443 only;
  * - IP-literal hosts validated before any connection;
  * - hostnames resolved through a custom `lookup` that validates the resolved
- *   address and hands THAT address to the socket — validation and connection
+ *   address and hands THAT address to the socket: validation and connection
  *   use the same single resolution, so DNS rebinding between "check" and
  *   "connect" is impossible by construction;
  * - redirects never followed by the socket: postJson stops at the first
@@ -61,7 +61,7 @@ export function isBlockedIp(ip: string): boolean {
       (firstWord & 0xff00) === 0xff00 // ff00::/8 multicast
     );
   }
-  return true; // not an IP at all — never connect
+  return true; // not an IP at all: never connect
 }
 
 function isIpv6Loopback(ip: string): boolean {

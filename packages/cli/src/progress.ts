@@ -20,7 +20,7 @@ export interface Progress {
    * order the user sees.
    */
   writeAbove(text: string, to?: { write(chunk: string): unknown }): void;
-  /** Drops the live line without finishing the step — before a fatal error is printed. */
+  /** Drops the live line without finishing the step, before a fatal error is printed. */
   clear(): void;
   /**
    * The step labels of the phase about to run: counts align under the longest
@@ -137,7 +137,7 @@ export function createProgress({
           finish(ZERO.test(value) ? dim(row(SYM.ok, label, value)) : row(ok(SYM.ok), label, value));
         },
         fail(message) {
-          if (!finished) finish(`${err(SYM.err)} ${label} — ${message}`);
+          if (!finished) finish(`${err(SYM.err)} ${label}: ${message}`);
         },
         note(text) {
           writeLine(`${noteMark(SYM.note)} ${text}`);

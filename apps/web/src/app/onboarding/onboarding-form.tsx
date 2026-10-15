@@ -27,7 +27,7 @@ export function OnboardingForm({ logoUploadsEnabled = false }: { logoUploadsEnab
       // re-renders this route as the send-your-first-email stepper.
       onSuccess: async ({ teamId }) => {
         // The team exists before the logo uploads; a failed upload must never
-        // block onboarding — settings offers the retry.
+        // block onboarding: settings offers the retry.
         if (logoFile) await uploadTeamLogo(teamId, logoFile).catch(() => {});
         router.refresh();
       },

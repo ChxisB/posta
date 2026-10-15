@@ -136,7 +136,7 @@ export function providerFromNs(hosts: string[]): DnsProvider | null {
 
 /**
  * NS records live at the zone apex, not the sending subdomain: walk up the
- * labels and take the deepest zone cut that answers. Best-effort — any DNS
+ * labels and take the deepest zone cut that answers. Best-effort, any DNS
  * failure means "provider unknown", never a query error.
  */
 async function detectProvider(
@@ -149,7 +149,7 @@ async function detectProvider(
       const hosts = await resolve(labels.join("."));
       if (hosts.length > 0) return providerFromNs(hosts);
     } catch {
-      // NODATA/NXDOMAIN at this depth — try the parent zone.
+      // NODATA/NXDOMAIN at this depth: try the parent zone.
     }
     labels = labels.slice(1);
   }
@@ -287,7 +287,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
         // env is read per call (not at module load) so tests can stub the
         // deployment mode first.
         const isCloud = Boolean(env.IS_CLOUD);
-        // Any region this deployment serves — the list the form reads as
+        // Any region this deployment serves: the list the form reads as
         // system.features.regions. Configuration sets, SNS topics and tenants
         // are regional, so an identity anywhere else would verify but never
         // send or report events.
@@ -347,7 +347,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
           }
         }
 
-        // BYODKIM: the private key lives only in this block — handed to SES,
+        // BYODKIM: the private key lives only in this block; handed to SES,
         // then dereferenced. It must never be stored, returned, or logged.
         let dkim: ReturnType<typeof generateDkimKeyPair> | null = generateDkimKeyPair();
         const dkimPublicKey = dkim.publicKeyB64;
@@ -424,7 +424,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
       // keys never rotate behind our back); SES is only asked for statuses.
       // Rows SES never checks (DMARC, tracking CNAME) have no stored gate, so a
       // page open would read them Pending until a Check DNS ran. Their live
-      // verdict is read here instead — DMARC with the same organizational-domain
+      // verdict is read here instead: DMARC with the same organizational-domain
       // fallback the verify pass applies, so a refresh agrees with the check.
       const resolver = deps.dns ?? nodeDnsResolver;
       const tracking = trackingCname(domain);
@@ -476,7 +476,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
       );
       const { status, liveDns, verification } = result;
       // The branded tracking CNAME never gates status, so computeDomainVerification
-      // omits it — live-check it here so its row badge still reflects real DNS.
+      // omits it: live-check it here so its row badge still reflects real DNS.
       let trackingResolved = false;
       const cname = trackingCname(domain);
       if (cname) {
@@ -680,7 +680,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
           // Detach whenever tenants are on, not only when the row is marked:
           // the marker means the whole association (identity AND configuration
           // set) succeeded, but the identity is attached as soon as its own
-          // association call returned — and SES refuses to delete an attached
+          // association call returned, and SES refuses to delete an attached
           // identity. A tenant or association that is not there is tolerated.
           if (sesTenantsEnabled()) {
             await disassociateIdentity(deps.clientForRegion(domain.region), {
@@ -715,7 +715,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
         await failQueuedEmailsForDomain(txDb, { teamId: ctx.teamId, domainId: domain.id });
         // api_keys.domainId is ON DELETE restrict: a key scoped to this domain
         // would block the delete, and set-null would silently widen it to an
-        // all-domains key. So revoke every scoped key and drop its FK first — a
+        // all-domains key. So revoke every scoped key and drop its FK first: a
         // revoked key never authenticates, and clearing domainId frees the delete.
         await txDb
           .update(schema.apiKeys)

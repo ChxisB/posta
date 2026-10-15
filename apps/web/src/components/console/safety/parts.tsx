@@ -66,7 +66,7 @@ const DOT: Record<Guardrail, string> = {
   paused: "var(--po-danger)",
 };
 
-/** Suspended badge, operator-paused dot, or the guardrail dot — the Teams screen's rules. */
+/** Suspended badge, operator-paused dot, or the guardrail dot: the Teams screen's rules. */
 export function GuardrailCell({
   guardrail,
   suspendedAt,

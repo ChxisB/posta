@@ -27,7 +27,7 @@ export interface SyncTenantsDeps {
  * Hourly backfill: every domain not yet associated with its team's SES tenant
  * (rows created before tenants existed, or whose create-time association
  * failed), and every domain associated with a configuration set other than
- * the one in force now (SES_CONFIGURATION_SET changed after association — a
+ * the one in force now (SES_CONFIGURATION_SET changed after association; a
  * tenant send would name an unassociated set and be rejected), gets the
  * tenant created/adopted and its resources associated, then the marker
  * stamped. One domain's failure never blocks the rest.

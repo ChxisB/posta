@@ -133,7 +133,7 @@ export async function rollback(ctx: Context): Promise<number> {
       `\n${pluralize(state.failures.length, "delete")} failed; the ids stay in ${paths.state}:\n`,
     );
     for (const f of state.failures) {
-      out.write(`  ${err(SYM.err)} ${f.resource}/${f.key} — ${f.message}\n`);
+      out.write(`  ${err(SYM.err)} ${f.resource}/${f.key}: ${f.message}\n`);
     }
     return 3;
   }

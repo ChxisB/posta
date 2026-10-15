@@ -56,7 +56,7 @@ function ChevronStack() {
 }
 
 /**
- * Sidebar team switcher — avatar tile + name on the trigger (the plan pill
+ * Sidebar team switcher: avatar tile + name on the trigger (the plan pill
  * lives only in the popover rows), popover listing every membership with a ✓
  * on the active one, then a "Create team" row.
  * Switching/creating sets the server-side selection cookie, so the follow-up
@@ -67,7 +67,7 @@ export function TeamSwitcher({
   teamLogoUrl,
 }: {
   teamName: string;
-  /** Server-resolved logo for the active team — the trigger before team.list lands. */
+  /** Server-resolved logo for the active team: the trigger before team.list lands. */
   teamLogoUrl?: string | null | undefined;
 }) {
   const t = useTranslations("common.teamSwitcher");
@@ -103,7 +103,7 @@ export function TeamSwitcher({
   );
 
   // Shared by the form submit and the modal's ⌘↵ shortcut, which bypasses
-  // the input's native `required` check — hence the explicit empty guard.
+  // the input's native `required` check, hence the explicit empty guard.
   function submitCreate() {
     if (createTeam.isPending || newName.trim().length === 0) return;
     createTeam.mutate({ name: newName });

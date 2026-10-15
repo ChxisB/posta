@@ -15,7 +15,7 @@ const apiKey = process.env.POSTA_API_KEY;
 const run = apiKey ? describe : describe.skip;
 
 // describe.skip still executes this callback at collection time, so the client
-// must not be constructed unless the key is present — a throwing constructor
+// must not be constructed unless the key is present: a throwing constructor
 // here would fail the whole suite instead of skipping it. The null stand-in is
 // safe: without a key the suite is skipped and no test body ever touches it.
 run("e2e: contacts lifecycle", () => {

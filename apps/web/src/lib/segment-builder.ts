@@ -1,7 +1,7 @@
 /**
  * Pure helpers behind the segment filter builder UI. Kept out of the React
  * component so the wire-shape mapping is unit-testable and the page and tests
- * agree on exactly what a builder row becomes. This is UI shape only — the
+ * agree on exactly what a builder row becomes. This is UI shape only: the
  * authoritative validation and the SQL predicate live in @posta/core
  * (segmentFilterSchema / segmentWhere), which this must never re-implement.
  * The wire shape is the pinned contract: { match, conditions: [{ field, op, value }] }.
@@ -53,7 +53,7 @@ export const OPS_BY_KIND: Record<FieldKind, readonly string[]> = {
   created_at: ["before", "after"],
 };
 
-/** Operators that carry no value — the wire value is null. */
+/** Operators that carry no value: the wire value is null. */
 export const VALUELESS_OPS = new Set(["is_set", "is_not_set", "is_true", "is_false"]);
 
 export function opsFor(field: string): readonly string[] {

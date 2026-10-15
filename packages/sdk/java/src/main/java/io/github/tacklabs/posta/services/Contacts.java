@@ -68,7 +68,7 @@ public final class Contacts {
     return batch;
   }
 
-  /** POST /contacts — 409 {@code validation_error} when the email already exists on the team. */
+  /** POST /contacts: 409 {@code validation_error} when the email already exists on the team. */
   public Id create(CreateContactOptions options) throws PostaException {
     return http.request("POST", "/contacts", options, null, null, new TypeReference<Id>() {});
   }
@@ -102,7 +102,7 @@ public final class Contacts {
   }
 
   /**
-   * DELETE /contacts/{idOrEmail}?erase=true — a plain delete keeps the contact's
+   * DELETE /contacts/{idOrEmail}?erase=true: a plain delete keeps the contact's
    * emails in the send log; {@code erase} also scrubs the address from email
    * history, event payloads and API logs (a GDPR/LGPD erasure).
    */
@@ -118,7 +118,7 @@ public final class Contacts {
   }
 
   /**
-   * POST /contacts/{idOrEmail}/preferences-link — a Posta extension: the
+   * POST /contacts/{idOrEmail}/preferences-link: a Posta extension: the
    * contact's hosted preference page (public topics plus the global
    * unsubscribe). 422 when the instance cannot build hosted links.
    */
@@ -141,7 +141,7 @@ public final class Contacts {
   }
 
   /**
-   * GET /contacts?include=properties,topics — a Posta extension: attaches
+   * GET /contacts?include=properties,topics: a Posta extension: attaches
    * the property map and/or the topic subscriptions to every item, so an
    * audience reads in one request per page instead of one per contact.
    */
@@ -170,7 +170,7 @@ public final class Contacts {
     }
 
     /**
-     * GET /contacts/{idOrEmail}/topics — every topic with the contact's effective
+     * GET /contacts/{idOrEmail}/topics: every topic with the contact's effective
      * subscription; {@code explicit} is false where that is the topic default.
      */
     public ListResponse<ContactTopic> list(String contactIdOrEmail) throws PostaException {
@@ -197,14 +197,14 @@ public final class Contacts {
       this.http = http;
     }
 
-    /** POST /contacts/{idOrEmail}/segments/{segmentId} — idempotent. */
+    /** POST /contacts/{idOrEmail}/segments/{segmentId}: idempotent. */
     public Id add(String contactIdOrEmail, String segmentId) throws PostaException {
       return http.request(
           "POST", "/contacts/" + enc(contactIdOrEmail) + "/segments/" + enc(segmentId), null, null,
           null, new TypeReference<Id>() {});
     }
 
-    /** DELETE /contacts/{idOrEmail}/segments/{segmentId} — 404 when not a member. */
+    /** DELETE /contacts/{idOrEmail}/segments/{segmentId}: 404 when not a member. */
     public DeletedResponse remove(String contactIdOrEmail, String segmentId)
         throws PostaException {
       return http.request(
@@ -235,7 +235,7 @@ public final class Contacts {
     }
 
     /**
-     * POST /contacts/batch?on_conflict={mode} with per-request options — set
+     * POST /contacts/batch?on_conflict={mode} with per-request options: set
      * {@code batchValidation(PERMISSIVE)} to write the valid items and get the
      * rest back in {@code errors}.
      */
@@ -249,7 +249,7 @@ public final class Contacts {
     }
 
     /**
-     * POST /contacts/batch/get — up to 1000 contacts by id or email in one
+     * POST /contacts/batch/get: up to 1000 contacts by id or email in one
      * request (one request against the rate limit), returned in request order;
      * entries that match no contact come back under {@code missing} instead of
      * failing the call. Pass {@link ContactInclude} values to attach properties
@@ -275,7 +275,7 @@ public final class Contacts {
           new TypeReference<BatchGetContactsResponse>() {});
     }
 
-    /** POST /contacts/batch/remove — by emails or by ids; lists only the rows actually deleted. Their emails stay in the send log unless {@code erase} is set. */
+    /** POST /contacts/batch/remove: by emails or by ids; lists only the rows actually deleted. Their emails stay in the send log unless {@code erase} is set. */
     public DataResponse<RemoveContactResponse> remove(RemoveContactsOptions options)
         throws PostaException {
       return http.request(

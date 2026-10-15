@@ -25,7 +25,7 @@
 
 :root,
 [data-theme="dark"] {
-  /* Ground & surfaces — separation comes from darkness + 1px lines, plus a
+  /* Ground & surfaces: separation comes from darkness + 1px lines, plus a
      subtle edge-lit lift on floating/card surfaces (--po-shadow-card below) */
   --po-void: #09090b; /* app/page ground */
   --po-ground: #0c0c0f; /* alternate ground (large editorial surfaces) */
@@ -33,9 +33,9 @@
   --po-panel-raised: #18181d; /* table header strips, hover rows, active nav pill */
   --po-inset: #1d1d23; /* inputs, code blocks, token chips */
   /* Lines */
-  --po-line: #26262d; /* all borders, dividers, table rules — 1px, never heavier */
+  --po-line: #26262d; /* all borders, dividers, table rules: 1px, never heavier */
   --po-line-strong: #33333c; /* menu/modal borders, focused-input border */
-  /* Elevation — one edge-lit lift for cards/popovers on the void ground: a soft
+  /* Elevation: one edge-lit lift for cards/popovers on the void ground: a soft
      outer shadow with a barely-there top-highlight folded in, gentle enough
      that a page dense with cards stays calm. */
   --po-shadow-card:
@@ -45,9 +45,9 @@
      the top, fading to the normal line down the sides. */
   --po-glow-edge: rgba(244, 244, 246, 0.18);
   /* Text */
-  --po-bone: #f4f4f6; /* primary text — off-white, never pure white */
+  --po-bone: #f4f4f6; /* primary text: off-white, never pure white */
   --po-muted: #9b9ba6; /* secondary text, labels, timestamps (≥6:1 on panel) */
-  --po-faint: #5c5c66; /* DISABLED/DECORATIVE ONLY — under 3:1, never readable copy */
+  --po-faint: #5c5c66; /* DISABLED/DECORATIVE ONLY: under 3:1, never readable copy */
   /* The accent. Fills (primary buttons, checked controls) are the flat brand
      violet with white on it in both themes; violet as text, lines and marks
      is lifted to a lighter tint here so it reads on the dark ground. */
@@ -57,7 +57,7 @@
   --po-accent-text: #a98bff; /* links, the lit digit, charts, the focus ring */
   --po-steel: var(--po-accent-text); /* the accent's earlier name, kept for its users */
   --po-focus-ring: 0 0 0 2px rgba(169, 139, 255, 0.6); /* the only glow */
-  /* Status families — dim + desaturated so the accent keeps authority; always carry a text label */
+  /* Status families: dim + desaturated so the accent keeps authority; always carry a text label */
   --po-success: #5fce8b;
   --po-success-bg: #0f2519;
   --po-success-border: #1c3a28;
@@ -81,28 +81,28 @@
   --po-pink: #e88bc0;
   --po-pink-bg: #271320;
   --po-pink-border: #47203a;
-  /* Status dots — filter-option adornments. One hue per terminal outcome;
+  /* Status dots: filter-option adornments. One hue per terminal outcome;
      the in-flight family stays on grays so chroma always means a delivery
      event. Tuned to this palette's dimness, deliberately muted. */
   --po-dot-queued: #75736d;
-  --po-dot-queued-quota: #a3874f; /* quota-held — warm, hints at the cap */
+  --po-dot-queued-quota: #a3874f; /* quota-held, warm, hints at the cap */
   --po-dot-sent: #8b8983;
   --po-dot-delivery-delayed: #9c8f7d;
   --po-dot-delivered: #5fce8b;
   --po-dot-opened: #7ea6db;
   --po-dot-clicked: #a08fd8;
-  --po-dot-bounced: #e0897d; /* salmon — soft fail, vs. the harder failed red */
+  --po-dot-bounced: #e0897d; /* salmon, soft fail, vs. the harder failed red */
   --po-dot-complained: #d9ae5f;
   --po-dot-account: #8fb3d9; /* team-level standing events */
   --po-dot-suppressed: #67655f;
   --po-dot-failed: #cf5546;
 }
 
-/* Light theme — near-white ground, ink text, cool-grey hairlines. Same roles,
+/* Light theme: near-white ground, ink text, cool-grey hairlines. Same roles,
    inverted values; separation still comes from tone + 1px lines, plus a much
    softer edge-lit lift than dark (a light ground shows a heavy shadow as dirt).
    Status text holds ≥4.5:1 on its tinted background. The attribute is set
-   pre-paint by the inline script in the root layout (explicit toggle only —
+   pre-paint by the inline script in the root layout (explicit toggle only;
    system preference is not followed). */
 :root[data-theme="light"],
 [data-theme="light"] {
@@ -113,7 +113,7 @@
   --po-inset: #f5f5f8;
   --po-line: #e5e5eb;
   --po-line-strong: #d3d3dc;
-  /* Softer than dark, with a white top-highlight — cards lift off the ground
+  /* Softer than dark, with a white top-highlight: cards lift off the ground
      without the shadow reading as grime. */
   --po-shadow-card:
     0 1px 2px rgba(22, 22, 29, 0.06), 0 8px 24px rgba(22, 22, 29, 0.08),
@@ -149,7 +149,7 @@
   --po-pink: #a61468;
   --po-pink-bg: #fbe9f3;
   --po-pink-border: #efc3dc;
-  /* Dots — same grammar (grays in flight, chroma on delivery events),
+  /* Dots: same grammar (grays in flight, chroma on delivery events),
      darkened so 8px dots survive the light ground. */
   --po-dot-queued: #8a8880;
   --po-dot-queued-quota: #8f7336;

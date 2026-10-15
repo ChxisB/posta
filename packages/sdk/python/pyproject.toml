@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "posta-sdk"
 version = "0.8.0"
-description = "Official Python SDK for Posta — a self-hostable, Resend-compatible email API."
+description = "Official Python SDK for Posta: a self-hostable, Resend-compatible email API."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }

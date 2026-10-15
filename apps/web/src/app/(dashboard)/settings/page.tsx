@@ -10,7 +10,7 @@ export default async function SettingsPage() {
     <>
       <PageHeader title={t("tabs.settings")} />
       <SettingsTabs />
-      {/* Instance settings steer the whole deployment — an operator concern
+      {/* Instance settings steer the whole deployment: an operator concern
           that exists only on self-host; cloud tenants never see them. */}
       <SettingsSections showInstance={!env.IS_CLOUD} />
     </>

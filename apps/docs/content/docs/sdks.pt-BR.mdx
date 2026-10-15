@@ -10,7 +10,7 @@ repositório principal, em
 [`packages/sdk`](https://github.com/ChxisB/posta/tree/main/packages/sdk).
 
 Como a API é compatível com a do Resend, os SDKs oficiais do
-Resend também funcionam — aponte-os para o Posta pela opção de URL base
+Resend também funcionam: aponte-os para o Posta pela opção de URL base
 (ex.: `RESEND_BASE_URL`). A partir da 0.9.0, todo SDK do Posta também
 cobre os [e-mails recebidos e as caixas de entrada](#recebimento-e-caixas-de-entrada).
 
@@ -19,26 +19,26 @@ cobre os [e-mails recebidos e as caixas de entrada](#recebimento-e-caixas-de-ent
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-`api.posta.example` — o que todos os exemplos desta página usam, e o padrão a partir do SDK 0.5.0: sem uma URL base configurada, o SDK fala com o Posta Cloud.
+`api.posta.example`: o que todos os exemplos desta página usam, e o padrão a partir do SDK 0.5.0: sem uma URL base configurada, o SDK fala com o Posta Cloud.
 
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
 A origem da API da sua instância (ex.: `https://api.acme.dev`, ou
 `http://localhost:3001` localmente). Todo SDK a recebe pela mesma opção em
-que os exemplos passam a URL da Nuvem — `baseUrl` / `base_url` / `BaseURL`
-conforme a convenção da linguagem — e o SDK de Node também lê a variável de
+que os exemplos passam a URL da Nuvem (`baseUrl` / `base_url` / `BaseURL`
+conforme a convenção da linguagem) e o SDK de Node também lê a variável de
 ambiente `POSTA_BASE_URL`. Veja
 [Auto-hospedagem](/pt-BR/self-hosting) para implantar a instância em si.
 
 Todo SDK recusa uma URL base em `http://` puro, a menos que o host seja
 loopback (`localhost`, `127.0.0.1`, `::1`): uma chave de API enviada em texto
 puro para outra máquina é uma chave de API exposta na rede. Uma instância
-acessada por HTTP puro em uma rede privada exige o opt-in de cada SDK — Node
+acessada por HTTP puro em uma rede privada exige o opt-in de cada SDK. Node
 `allowInsecureHttp`, Python `allow_insecure_http`, Go `AllowInsecureHTTP`,
 Ruby `allow_insecure_http`, PHP a opção `allowInsecureHttp`, Rust
 `allow_insecure_http()`, Java o construtor de três argumentos, .NET
-`AllowInsecureHttp`, Elixir `allow_insecure_http` — ou, melhor, um reverse
+`AllowInsecureHttp`, Elixir `allow_insecure_http`, ou, melhor, um reverse
 proxy TLS na frente dela.
 
 </DeploymentTab>
@@ -46,7 +46,7 @@ proxy TLS na frente dela.
 
 ## Node.js / TypeScript
 
-[`@tack-labs/posta` no npm](https://www.npmjs.com/package/@tack-labs/posta) — Node 18+.
+[`@tack-labs/posta` no npm](https://www.npmjs.com/package/@tack-labs/posta): Node 18+.
 
 ```sh
 npm install @tack-labs/posta
@@ -67,7 +67,7 @@ const { data, error } = await ms.emails.send({
 
 ## Python
 
-[`posta-sdk` no PyPI](https://pypi.org/project/posta-sdk/) — Python 3.9+.
+[`posta-sdk` no PyPI](https://pypi.org/project/posta-sdk/): Python 3.9+.
 
 ```sh
 pip install posta-sdk
@@ -89,7 +89,7 @@ email = posta.Emails.send({
 
 ## Go
 
-[`posta-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go) — Go 1.21+.
+[`posta-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go): Go 1.21+.
 
 ```sh
 go get github.com/ChxisB/posta/packages/sdk/go
@@ -109,7 +109,7 @@ sent, err := client.Emails.Send(&posta.SendEmailRequest{
 
 ## Ruby
 
-[`posta` no RubyGems](https://rubygems.org/gems/posta) — Ruby 3.0+.
+[`posta` no RubyGems](https://rubygems.org/gems/posta): Ruby 3.0+.
 
 ```sh
 gem install posta
@@ -131,7 +131,7 @@ email = Posta::Emails.send(
 
 ## PHP
 
-[`chxisb/posta-php` no Packagist](https://packagist.org/packages/chxisb/posta-php) — PHP 8.1+.
+[`chxisb/posta-php` no Packagist](https://packagist.org/packages/chxisb/posta-php): PHP 8.1+.
 
 ```sh
 composer require chxisb/posta-php
@@ -152,7 +152,7 @@ $email = $ms->emails->send([
 
 ## Rust
 
-[`posta` no crates.io](https://crates.io/crates/posta) — async
+[`posta` no crates.io](https://crates.io/crates/posta): async
 (`tokio` + `reqwest`).
 
 ```toml
@@ -177,7 +177,7 @@ let sent = ms.emails.send(&SendEmailOptions {
 
 ## Java
 
-[`io.github.tack-labs:posta-java` no Maven Central](https://central.sonatype.com/artifact/io.github.tack-labs/posta-java) — Java 11+.
+[`io.github.tack-labs:posta-java` no Maven Central](https://central.sonatype.com/artifact/io.github.tack-labs/posta-java). Java 11+.
 
 ```xml
 <dependency>
@@ -201,7 +201,7 @@ CreateEmailResponse sent = ms.emails().send(
 
 ## .NET
 
-[`Posta` no NuGet](https://www.nuget.org/packages/Posta) — alvo net8.0.
+[`Posta` no NuGet](https://www.nuget.org/packages/Posta): alvo net8.0.
 
 ```sh
 dotnet add package Posta
@@ -223,7 +223,7 @@ var res = await client.EmailSendAsync(new EmailMessage
 
 ## Elixir
 
-[`posta` no Hex](https://hex.pm/packages/posta) — Elixir 1.15+.
+[`posta` no Hex](https://hex.pm/packages/posta): Elixir 1.15+.
 
 ```elixir
 # mix.exs

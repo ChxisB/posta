@@ -1,7 +1,7 @@
 /**
  * Editing-side split/compose of a From value for the composer's structured
- * field (display name · local part · domain). Deliberately forgiving — a
- * half-typed value still lands in the right box — because the API stays
+ * field (display name · local part · domain). Deliberately forgiving (a
+ * half-typed value still lands in the right box) because the API stays
  * authoritative at send time via core's parseSingleSender.
  */
 export interface FromParts {
@@ -31,7 +31,7 @@ export function splitFromAddress(value: string): FromParts {
   return { name, local: addr.slice(0, at).trim(), domain: addr.slice(at + 1).trim() };
 }
 
-/** RFC 5322 atext plus space — anything else forces a quoted display name. */
+/** RFC 5322 atext plus space: anything else forces a quoted display name. */
 const UNQUOTED_NAME_RE = /^[A-Za-z0-9 !#$%&'*+/=?^_`{|}~.-]*$/;
 
 export function composeFromAddress({ name, local, domain }: FromParts): string {

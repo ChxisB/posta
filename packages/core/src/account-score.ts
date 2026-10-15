@@ -21,7 +21,7 @@ export const ACCOUNT_SCORE_WINDOW_DAYS = 30;
 
 /**
  * Below this many sends in the window, the outcome sub-score is withheld
- * ("not enough data") rather than fabricated from a tiny sample — the
+ * ("not enough data") rather than fabricated from a tiny sample: the
  * headline then falls back to the content sub-score alone.
  */
 export const MIN_OUTCOME_SENDS = 100;
@@ -35,7 +35,7 @@ export interface AccountScoreInput {
   sent: number;
   complained: number;
   hardBounced: number;
-  /** Current guardrail standing — the score must never contradict it. */
+  /** Current guardrail standing: the score must never contradict it. */
   guardrailStatus: DeliverabilityStatus;
 }
 
@@ -71,9 +71,9 @@ function ramp(rate: number, lo: number, hi: number, max: number): number {
 /**
  * Outcome penalty gradients (in score tenths), anchored to Google's published
  * spam-rate lines (keep below 0.10%, never reach 0.30%) with a severe tail:
- * complaints ramp 0→6pts across 0.1%–0.3% and 6→10pts across 0.3%–1%;
- * hard bounces ramp 0→4pts across 2%–5% and 4→6pts across 5%–10%.
- * Denominator is `sent`, matching evaluateDeliverability — the guardrail and
+ * complaints ramp 0→6pts across 0.1% to 0.3% and 6→10pts across 0.3% to 1%;
+ * hard bounces ramp 0→4pts across 2% to 5% and 4→6pts across 5% to 10%.
+ * Denominator is `sent`, matching evaluateDeliverability: the guardrail and
  * the score must read the same rates or they become two arguing authorities.
  */
 function outcomePenaltyTenths(complaintRate: number, hardBounceRate: number): number {
@@ -84,7 +84,7 @@ function outcomePenaltyTenths(complaintRate: number, hardBounceRate: number): nu
 
 /**
  * Pure account-score math. Two sub-scores, outcome-dominant headline:
- * headline = min(0.4·C + 0.6·O, O + 1.5) — the governor means immaculate
+ * headline = min(0.4·C + 0.6·O, O + 1.5); the governor means immaculate
  * content lint can never mask a real complaint problem. The 7-day guardrail
  * additionally caps the headline (paused ≤ 4.9, warning ≤ 6.9) so "score 8.1
  * but your sends are paused" is impossible by construction.
@@ -159,7 +159,7 @@ export async function fetchAccountScore(
  * The score window's scored sends as (score_tenths, checks, recipients,
  * emails) rows. API sends join their own emailId-keyed insights row; fan-out
  * emails are collapsed per broadcast first and then join the shared
- * broadcastId-keyed row, so each branch is one index-driven join — an OR over
+ * broadcastId-keyed row, so each branch is one index-driven join: an OR over
  * both keys would multiply every email by the checks array and spill.
  */
 function scoredSendsSql(teamId: string, window: { sinceTs: Date; createdFloor: Date }): SQL {
@@ -241,7 +241,7 @@ export interface ContentFactor {
   severity: CheckSeverity;
   emails: number;
   recipients: number;
-  /** Σ penaltyHundredths × recipients — what the check cost the content sub-score's numerator. */
+  /** Σ penaltyHundredths × recipients: what the check cost the content sub-score's numerator. */
   weightedPenaltyHundredths: number;
 }
 

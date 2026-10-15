@@ -336,7 +336,7 @@ function minimal(command: "help" | "version"): Config {
 }
 
 export function helpText(): string {
-  return `posta ${VERSION} — move an email account to Posta
+  return `posta ${VERSION}: move an email account to Posta
 
 Usage
   posta migrate --from resend                          connect, choose resources, plan, confirm, apply, summary

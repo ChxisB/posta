@@ -8,7 +8,7 @@ use Posta\HttpClient;
 use Posta\Util;
 
 /**
- * Contacts — team-global (one record per email, case-insensitive), addressable
+ * Contacts: team-global (one record per email, case-insensitive), addressable
  * by id OR email (email wins when both are present).
  */
 final class Contacts
@@ -31,7 +31,7 @@ final class Contacts
     }
 
     /**
-     * POST /contacts — 409 validation_error when the email already exists on the team.
+     * POST /contacts: 409 validation_error when the email already exists on the team.
      *
      * @param array{email: string, firstName?: string, lastName?: string, unsubscribed?: bool, properties?: array<string,mixed>, segments?: list<array{id: string}>, topics?: list<array{id: string, subscription: string}>} $params
      * @return array<mixed>
@@ -51,7 +51,7 @@ final class Contacts
     }
 
     /**
-     * PATCH — a null value clears a field; omit a key to leave it unchanged.
+     * PATCH: a null value clears a field; omit a key to leave it unchanged.
      * Two shapes: resend-php's `update($idOrEmail, $params)`, or a single array
      * carrying the address (`id`/`email`) alongside the fields to change.
      *
@@ -105,7 +105,7 @@ final class Contacts
     }
 
     /**
-     * POST /contacts/:idOrEmail/preferences-link — the contact's hosted
+     * POST /contacts/:idOrEmail/preferences-link: the contact's hosted
      * preference page (public topics + global unsubscribe). The URL never
      * expires and lets its holder change that contact's preferences, so show it
      * only to the contact. 422 when the instance cannot build hosted links.

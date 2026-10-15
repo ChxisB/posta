@@ -16,7 +16,7 @@ const defaultDeps: ConsoleGateDeps = {
 /**
  * The console's gate, shared by its layout and the pages under it: the
  * signed-in user when they are the instance operator, null for everyone
- * else — signed out or signed in alike, so a member learns nothing more
+ * else; signed out or signed in alike, so a member learns nothing more
  * than a stranger. Callers answer null with notFound().
  */
 export async function consoleOperator(

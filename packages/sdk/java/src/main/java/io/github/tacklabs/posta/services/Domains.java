@@ -21,7 +21,7 @@ public final class Domains {
     this.http = http;
   }
 
-  /** POST /domains — returns the domain with the DNS {@code records} to publish. */
+  /** POST /domains: returns the domain with the DNS {@code records} to publish. */
   public Domain create(CreateDomainOptions options) throws PostaException {
     return http.request("POST", "/domains", options, null, null, new TypeReference<Domain>() {});
   }
@@ -44,14 +44,14 @@ public final class Domains {
         new TypeReference<ListResponse<Domain>>() {});
   }
 
-  /** POST /domains/{id}/verify — re-checks DNS and returns the refreshed domain. */
+  /** POST /domains/{id}/verify: re-checks DNS and returns the refreshed domain. */
   public Domain verify(String id) throws PostaException {
     return http.request(
         "POST", "/domains/" + enc(id) + "/verify", null, null, null,
         new TypeReference<Domain>() {});
   }
 
-  /** PATCH /domains/{id} — tracking settings. Only the fields set on {@code options} are sent. */
+  /** PATCH /domains/{id}: tracking settings. Only the fields set on {@code options} are sent. */
   public Domain update(UpdateDomainOptions options) throws PostaException {
     return http.request(
         "PATCH", "/domains/" + enc(options.getId()), options.getChanges(), null, null,

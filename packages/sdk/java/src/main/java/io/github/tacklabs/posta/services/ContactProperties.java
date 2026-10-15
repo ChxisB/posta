@@ -48,7 +48,7 @@ public final class ContactProperties {
         new TypeReference<ListResponse<ContactProperty>>() {});
   }
 
-  /** PATCH /contact-properties/{id} — only {@code fallbackValue} is updatable (null clears). */
+  /** PATCH /contact-properties/{id}: only {@code fallbackValue} is updatable (null clears). */
   public Id update(UpdateContactPropertyOptions options) throws PostaException {
     return http.request(
         "PATCH", "/contact-properties/" + enc(options.getId()), options.getChanges(), null, null,

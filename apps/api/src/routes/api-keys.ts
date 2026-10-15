@@ -130,7 +130,7 @@ export function registerApiKeyRoutes(app: OpenAPIHono<Env>, db: Db): void {
       }
       if (body.domain_id) {
         // The scope is enforced server-side, but a key can only be scoped to
-        // a domain the team actually owns and has verified — reject anything
+        // a domain the team actually owns and has verified: reject anything
         // else (a foreign id gets the same answer as an unverified one).
         const [domain] = await db
           .select({ id: schema.domains.id })
@@ -185,7 +185,7 @@ export function registerApiKeyRoutes(app: OpenAPIHono<Env>, db: Db): void {
           inboxId,
         },
       });
-      // The full secret exists only in this response — the row stores
+      // The full secret exists only in this response: the row stores
       // tokenPrefix + hash + last4, and the request logger redacts `token`.
       return c.json({ id: row.id, token: generated.token }, 200);
     },

@@ -18,7 +18,7 @@ export interface SessionUser {
 }
 
 /**
- * Structural subset of Better Auth's session payload — kept minimal so
+ * Structural subset of Better Auth's session payload: kept minimal so
  * tests can fake an authenticated context without constructing real
  * sessions.
  */
@@ -147,8 +147,8 @@ const SUPPORT_VIEW_PASS: ReadonlySet<string> = new Set([
  * Read-only support view, enforced once for every procedure: a mutation is
  * refused whatever the router hides or disables, and each read is counted
  * on the grant by procedure path. The console's own procedures pass
- * untouched and uncounted — the operator is still the operator, and a
- * console read is not a read of the team — and so do the procedures above,
+ * untouched and uncounted (the operator is still the operator, and a
+ * console read is not a read of the team) and so do the procedures above,
  * which are about the operator rather than the team's data.
  */
 const supportViewGuard = t.middleware(async ({ ctx, type, path, next }) => {
@@ -200,7 +200,7 @@ export const receivingProcedure = teamProcedure.use(receivingOnly);
 /**
  * The instance console: only the first registered user, re-checked on every
  * call. Anyone else gets the same NOT_FOUND a route that does not exist
- * would give, signed-in members included — the console is not a thing
+ * would give, signed-in members included: the console is not a thing
  * they can see. No team scope: the console reads across every team.
  */
 export const operatorProcedure = protectedProcedure.use(async ({ ctx, next }) => {

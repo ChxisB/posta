@@ -10,7 +10,7 @@ export function turnstileConfigured(): boolean {
 
 /**
  * Cloudflare siteverify. Fails closed: no token, a provider outage, or a
- * timeout all read as not verified — the caller rejects the action, never
+ * timeout all read as not verified; the caller rejects the action, never
  * lets it through on the provider's silence.
  */
 export async function verifyTurnstile(token: string | undefined): Promise<boolean> {

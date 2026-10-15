@@ -220,8 +220,8 @@ export function ReceivedEmailView() {
               key: `screened-${m.inboxId}`,
               label: t("timeline.screened"),
               detail: t("detail.scores", {
-                injection: m.injectionScore ?? "–",
-                phishing: m.phishingScore ?? "–",
+                injection: m.injectionScore ?? "-",
+                phishing: m.phishingScore ?? "-",
               }),
             },
           ]
@@ -240,7 +240,7 @@ export function ReceivedEmailView() {
         ? [
             {
               key: `released-${m.inboxId}`,
-              label: t("timeline.released", { who: m.releasedByName ?? "—" }),
+              label: t("timeline.released", { who: m.releasedByName ?? "-" }),
               at: m.releasedAt,
             },
           ]
@@ -578,7 +578,7 @@ export function ReceivedEmailView() {
                           {t("detail.download")}
                         </a>
                       ) : (
-                        <span style={{ color: "var(--po-faint)" }}>—</span>
+                        <span style={{ color: "var(--po-faint)" }}>-</span>
                       )}
                     </td>
                   </tr>

@@ -69,7 +69,7 @@ final class Emails
     }
 
     /**
-     * PATCH /emails/:id — reschedule a scheduled, unsent email.
+     * PATCH /emails/:id: reschedule a scheduled, unsent email.
      *
      * @param array{scheduledAt?: string, scheduled_at?: string} $params
      * @return array<mixed>
@@ -80,7 +80,7 @@ final class Emails
     }
 
     /**
-     * GET /emails/:id/insights — the pre-send best-practice report. 404 when
+     * GET /emails/:id/insights: the pre-send best-practice report. 404 when
      * the email is unknown or has no insights yet.
      *
      * @return array<mixed>
@@ -91,7 +91,7 @@ final class Emails
     }
 
     /**
-     * POST /emails/:id/cancel — only scheduled, unsent emails.
+     * POST /emails/:id/cancel: only scheduled, unsent emails.
      *
      * @return array<mixed>
      */

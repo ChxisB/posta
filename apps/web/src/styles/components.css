@@ -2,7 +2,7 @@
    from the token custom properties in tokens/.
    Hover/press opacity steps are inferred from the source's `transition: opacity` spec (see design-system readme). */
 
-/* Overlay stacking — portaled/floating layers sit far above any page-content
+/* Overlay stacking: portaled/floating layers sit far above any page-content
    z-index. Popovers rendered inside a modal still win: their z resolves
    within the modal's own stacking context. */
 :root {
@@ -21,7 +21,7 @@
   box-sizing: border-box;
 }
 
-/* Buttons — one primary (flat violet) per view; keycaps ride inside modal buttons */
+/* Buttons: one primary (flat violet) per view; keycaps ride inside modal buttons */
 .po-btn {
   font: 600 var(--po-fs-ui) var(--po-font-sans);
   border-radius: var(--po-r-input);
@@ -96,7 +96,7 @@
   color: var(--po-bone);
 }
 /* Bare "…" trigger for table row menus: just the glyph on a 28px hit area,
-   no box — quieter than po-btn-icon, which is kept for detail-header menus
+   no box, quieter than po-btn-icon, which is kept for detail-header menus
    where it sits alongside other buttons. */
 .po-menu-trigger-bare {
   display: inline-flex;
@@ -140,7 +140,7 @@
   color: var(--po-on-accent);
 }
 
-/* Status badges — semantic, dim, always labelled */
+/* Status badges: semantic, dim, always labelled */
 .po-badge {
   font: 500 var(--po-fs-badge) var(--po-font-sans);
   border-radius: var(--po-r-chip);
@@ -233,7 +233,7 @@
   color: var(--po-bone);
 }
 
-/* Cards — edge-lit lift off the void ground; the border sits a touch above
+/* Cards: edge-lit lift off the void ground; the border sits a touch above
    --po-line so the lifted edge reads clean without going full --po-line-strong. */
 .po-card {
   position: relative;
@@ -374,7 +374,7 @@
 }
 /* Configuration-tab section: a top rule divides it from the one before. Its
    spacing lives here rather than inline so the first-section override below
-   can win — an inline border-top would beat any stylesheet rule. */
+   can win: an inline border-top would beat any stylesheet rule. */
 .po-config-section {
   padding-top: 22px;
   margin-top: 22px;
@@ -453,7 +453,7 @@ table.po-table {
 .po-table td:last-child {
   color: var(--po-muted);
 }
-/* Dense variant — DNS record tables: mono chips on ~4px rows. */
+/* Dense variant: DNS record tables: mono chips on ~4px rows. */
 .po-table.dense td {
   padding: 4px 12px;
 }
@@ -466,7 +466,7 @@ table.po-table {
 .po-table.baseline td.po-cell-menu {
   vertical-align: middle;
 }
-/* Row hover: no background wash — the row's link underlines instead (quieter,
+/* Row hover: no background wash; the row's link underlines instead (quieter,
    and the affordance sits on the thing you'd click). */
 .po-table tbody tr.hoverable:hover td {
   cursor: pointer;
@@ -529,7 +529,7 @@ table.po-table {
   font-size: var(--po-fs-ui);
 }
 
-/* Mono chip — everything an engineer would paste gets a copy affordance.
+/* Mono chip: everything an engineer would paste gets a copy affordance.
    Surface mixes toward bone so the chip separates from panel/inset grounds
    in both themes (plain inset was near-invisible on cards). */
 .po-chip {
@@ -768,7 +768,7 @@ table.po-table {
   margin: -2px 0;
 }
 
-/* Breadcrumb link — quiet until hover, when the shared dotted underline appears. */
+/* Breadcrumb link: quiet until hover, when the shared dotted underline appears. */
 .po-crumb {
   color: var(--po-muted);
   text-decoration: none;
@@ -788,7 +788,7 @@ table.po-table {
   text-decoration-color: var(--po-accent-text);
 }
 
-/* Field/form error line — always block-level with breathing room so it never
+/* Field/form error line: always block-level with breathing room so it never
    glues to the control or a footnote above it. */
 .po-field-error {
   display: block;
@@ -797,7 +797,7 @@ table.po-table {
   font-size: var(--po-fs-label);
 }
 
-/* Switch — pill track + sliding thumb (components/switch.tsx). */
+/* Switch: pill track + sliding thumb (components/switch.tsx). */
 .po-switch {
   flex-shrink: 0;
   width: 40px;
@@ -862,7 +862,7 @@ table.po-table {
   box-shadow: var(--po-focus-ring);
 }
 
-/* Checkbox — bulk row selection. Checked/indeterminate fill with bone and draw
+/* Checkbox: bulk row selection. Checked/indeterminate fill with bone and draw
    the glyph in ground (the primary-button pairing); the glyph is an inline SVG
    so the light theme re-declares it with the flipped ground color. */
 .po-checkbox {
@@ -902,7 +902,7 @@ table.po-table {
 }
 
 /* Selection column: invisible until the row is hovered, the box carries state,
-   or keyboard focus lands on it — so an unselected table stays quiet. */
+   or keyboard focus lands on it, so an unselected table stays quiet. */
 /* The cell takes no width: the box hangs in the Table gutter outside the
    first column, so selection never shifts row content. */
 .po-table .po-check-cell {
@@ -930,12 +930,12 @@ table.po-table {
 .po-table .po-check-cell .po-checkbox:focus-visible {
   opacity: 1;
 }
-/* Selected rows carry a faint raised wash — state, not the hover treatment. */
+/* Selected rows carry a faint raised wash: state, not the hover treatment. */
 .po-table tbody tr.row-selected td {
   background: color-mix(in srgb, var(--po-panel-raised) 60%, transparent);
 }
 
-/* Bulk-selection action bar — bottom-center floater while rows are selected.
+/* Bulk-selection action bar: bottom-center floater while rows are selected.
    Panel treatment; sits below modals so a confirm dialog covers it. */
 .po-bulk-bar {
   position: fixed;
@@ -964,7 +964,7 @@ table.po-table {
   background: var(--po-line);
 }
 
-/* Tabs — one line that scrolls sideways when the row outgrows its container
+/* Tabs: one line that scrolls sideways when the row outgrows its container
    (settings has nine tabs). The 2px padding/negative margin keeps the focus
    ring inside the scroll clip. */
 .po-tabs {
@@ -1018,7 +1018,7 @@ table.po-table {
 .po-toast-host > :where(*) {
   pointer-events: auto;
 }
-/* Toast — near-black ground with a faint status-tinted glow (the system's one gradient) */
+/* Toast: near-black ground with a faint status-tinted glow (the system's one gradient) */
 .po-toast {
   display: inline-flex;
   gap: 12px;
@@ -1101,7 +1101,7 @@ table.po-table {
   color: var(--po-neutral);
 }
 
-/* Notice strip — the toasts' tone border and bottom-left glow, stretched to a
+/* Notice strip: the toasts' tone border and bottom-left glow, stretched to a
    full-width one-liner (global deliverability notices, the templates HTML banner). */
 .po-notice-strip {
   display: flex;
@@ -1176,7 +1176,7 @@ button.po-notice-strip-action {
    mutation, and the buttons that would attempt one are dimmed and inert.
    The marker sits on <html> so dialogs, which portal to document.body, are
    covered too. Anchors drawn as primary buttons stay live, they navigate.
-   ponytail: a pointer-level block only — a keyboard can still activate a
+   ponytail: a pointer-level block only; a keyboard can still activate a
    dimmed button, and the server's refusal is what answers it. Thread a
    read-only context and set `disabled` if that asymmetry starts to matter. */
 [data-support-view] button.po-btn-primary,
@@ -1196,7 +1196,7 @@ button.po-notice-strip-action {
   flex: none;
 }
 
-/* Odometer — the product's only flourish; reduced-motion degrades to a plain swap */
+/* Odometer: the product's only flourish; reduced-motion degrades to a plain swap */
 .po-odometer {
   display: inline-flex;
   line-height: 1;
@@ -1207,11 +1207,11 @@ button.po-notice-strip-action {
   /* The roll's motion blur bleeds past the glyph's 1em line box, and a bare
      clip would cut it to a hard edge. Headroom above and below (pulled back
      with negative margins so the column still sits on a 1em line) fades to
-     transparent, so the blur dissolves — the LP hero's masked wheels. Each
+     transparent, so the blur dissolves: the LP hero's masked wheels. Each
      ramp must lie in the gap between one digit's ink and the next's, or a
      settled digit fades and its strip neighbours show through: across the
-     system stack at the sizes in use (18–40px) digit ink spans roughly
-     0.10–0.95em of its line. Below ~14px the snapped baseline moves the ink
+     system stack at the sizes in use (18 to 40px) digit ink spans roughly
+     0.10 to 0.95em of its line. Below ~14px the snapped baseline moves the ink
      up and the ramps need retuning. */
   padding: 0.18em 0;
   margin: -0.18em 0;
@@ -1310,7 +1310,7 @@ button.po-notice-strip-action {
   }
 }
 
-/* Modal — tokens define --po-r-modal + --po-dur-drawer; ⌘↵-confirm modals per the brief.
+/* Modal: tokens define --po-r-modal + --po-dur-drawer; ⌘↵-confirm modals per the brief.
    Dialog is centered in the viewport on both axes. */
 .po-modal-overlay {
   position: fixed;
@@ -1518,7 +1518,7 @@ button.po-notice-strip-action {
 }
 /* Console lists keep every cell on one line (the wrapper scrolls sideways
    instead) on slightly tighter cells, and print their figures in mono at
-   12.5px — a dense operator list, not a KPI. */
+   12.5px: a dense operator list, not a KPI. */
 .po-table.nowrap th,
 .po-table.nowrap td {
   white-space: nowrap;
@@ -1664,8 +1664,8 @@ button.po-notice-strip-action {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-/* What the server shortened or masked. The span already holds the replacement
-   — the original never reached this page — so it stays legible: the box says
+/* What the server shortened or masked. The span already holds the replacement,
+   (the original never reached this page), so it stays legible: the box says
    "changed", not "hidden behind a bar you could select". */
 .po-redact {
   background: var(--po-line-strong);
@@ -1675,7 +1675,7 @@ button.po-notice-strip-action {
 
 /* Focus policy: the steel --po-focus-ring belongs to interactive controls on
    :focus-visible only. Programmatically focused containers (dialog panels,
-   chart wrappers — anything reached via tabindex="-1") and svg roots must
+   chart wrappers: anything reached via tabindex="-1") and svg roots must
    never show the browser's default blue outline. */
 [tabindex="-1"]:focus,
 .po-modal:focus,
@@ -1701,7 +1701,7 @@ summary:focus-visible,
   box-shadow: var(--po-focus-ring);
 }
 
-/* Status dot — leading adornment in select options and status rows.
+/* Status dot: leading adornment in select options and status rows.
    The ring variant marks the unfiltered "all" row: an empty circle where a
    status would put its color. */
 .po-dot {
@@ -1716,7 +1716,7 @@ summary:focus-visible,
   border: 1.5px solid var(--po-faint);
 }
 
-/* Menu / popover — panel on line-strong, 10px radius, 6px inner padding,
+/* Menu / popover: panel on line-strong, 10px radius, 6px inner padding,
    ~28px rows with a quiet raised hover, hairline separators running the full
    panel width between groups. Grammar shared by row menus, the account menu
    and the team switcher. */
@@ -1794,7 +1794,7 @@ summary:focus-visible,
   text-transform: uppercase;
   color: var(--po-muted);
 }
-/* Search row inside a long select popover — a borderless row with a hairline
+/* Search row inside a long select popover: a borderless row with a hairline
    below, never a boxed input. Negative margins span the menu's 6px padding so
    the hairline runs edge to edge. */
 .po-menu-search {
@@ -1821,7 +1821,7 @@ summary:focus-visible,
 .po-menu-item.static:hover {
   background: none;
 }
-/* Appearance switcher — segmented sun/moon pair; the active side sits raised. */
+/* Appearance switcher: segmented sun/moon pair; the active side sits raised. */
 /* A cell value that stays on one line; the Truncated component adds the
    tooltip with the whole text once it is cut. */
 .po-truncate {
@@ -1894,7 +1894,7 @@ summary:focus-visible,
   box-shadow: var(--po-focus-ring);
 }
 
-/* Scrollbars — thin and dark in every in-app scroll container (popovers,
+/* Scrollbars: thin and dark in every in-app scroll container (popovers,
    drawers, tables); the native two-tone scrollbar never appears. */
 * {
   scrollbar-width: thin;
@@ -1948,7 +1948,7 @@ summary:focus-visible,
   }
 }
 
-/* Empty states — centered 3D app-icon tile render (see empty-state.tsx).
+/* Empty states: centered 3D app-icon tile render (see empty-state.tsx).
    The tile image carries its own face, bevel and depth; CSS adds only the
    glow, the float/tilt loop and the drop shadow. Each area ships a dark and
    a light render, swapped per theme by po-dark-only/po-light-only below. */
@@ -2006,7 +2006,7 @@ summary:focus-visible,
 .po-empty-cta {
   margin-top: 24px;
 }
-/* State card — a failed load or a filtered-empty list: the empty state's
+/* State card: a failed load or a filtered-empty list: the empty state's
    centered column without the tile. The glyph is a danger ring for our own
    errors and a neutral one for a record that is simply gone. */
 .po-state {
@@ -2067,7 +2067,7 @@ summary:focus-visible,
   }
 }
 
-/* ⓘ tooltip (tooltip.tsx) — glyph trigger inline with field labels; the panel
+/* ⓘ tooltip (tooltip.tsx): glyph trigger inline with field labels; the panel
    follows the menu grammar (panel bg, line-strong border) at 12px type.
    pointer-events: none keeps hover-out and outside-tap dismissal simple. */
 .po-tooltip-trigger {
@@ -2098,7 +2098,7 @@ summary:focus-visible,
 .po-tooltip {
   position: fixed;
   /* Modal-level so a tooltip inside a modal wins; ties with the overlay
-     resolve by DOM order — the tooltip portal mounts after the modal's. */
+     resolve by DOM order: the tooltip portal mounts after the modal's. */
   z-index: var(--po-z-modal);
   /* The max-width below is the whole panel, padding and border included,
      which is what tooltip.tsx clamps into the viewport. */
@@ -2137,7 +2137,7 @@ summary:focus-visible,
   height: 12px;
 }
 
-/* Busy spinner (spinner.tsx) — currentColor stroke ring, composed inside
+/* Busy spinner (spinner.tsx): currentColor stroke ring, composed inside
    buttons left of the label. Distinct from .po-spinner (the warn-tinted
    DNS-check ring). Reduced motion: a static muted ring, no rotation. */
 .po-spin-ring {
@@ -2158,7 +2158,7 @@ summary:focus-visible,
   }
 }
 
-/* Recipient-preview mail card (add-domain) — reads as an email client in both
+/* Recipient-preview mail card (add-domain): reads as an email client in both
    themes: true white on paper, a raised panel on the dark ground. */
 .po-mail-preview {
   --po-mp-bg: var(--po-panel-raised);
@@ -2175,14 +2175,14 @@ summary:focus-visible,
   --po-mp-bg: #ffffff;
 }
 
-/* Wordmark — the default file has a white word on a transparent ground, which
+/* Wordmark: the default file has a white word on a transparent ground, which
    disappears on paper; light theme swaps in the same lockup with an ink word.
    The mark is the gradient in both. */
 [data-theme="light"] .po-wordmark {
   content: url("/logo/posta-wordmark-light.svg");
 }
 
-/* Theme-scoped visibility — elements that ship one render per theme (e.g. the
+/* Theme-scoped visibility: elements that ship one render per theme (e.g. the
    empty-state tiles). Both stay in the DOM; display alone flips so a theme
    toggle swaps them with no fetch or reflow of siblings. The nearest scheme
    wins: a dark preview frame inside the light app shows its dark render. */
@@ -2200,7 +2200,7 @@ summary:focus-visible,
   display: block;
 }
 
-/* Inline code pill — method/env names inside running copy (t.rich code tag) */
+/* Inline code pill: method/env names inside running copy (t.rich code tag) */
 .po-code {
   font-family: var(--po-font-mono);
   font-size: 0.9em;
@@ -2295,8 +2295,8 @@ summary:focus-visible,
 }
 
 /* ============================================================================
-   RESPONSIVE — mobile pass (breakpoint 900px; DESIGN.md Layout).
-   Media queries only: narrow desktops (900–1199px) get the first blocks, and
+   RESPONSIVE: mobile pass (breakpoint 900px; DESIGN.md Layout).
+   Media queries only: narrow desktops (900 to 1199px) get the first blocks, and
    from 1200px every rule above holds as written. !important is required only
    where a rule overrides an inline style. */
 
@@ -2610,7 +2610,7 @@ summary:focus-visible,
     min-width: 0;
   }
   /* The vertical rail would wrap to its own line above the card and read as if
-     the card were step 02 — swap it for the labelled horizontal step bar.
+     the card were step 02: swap it for the labelled horizontal step bar.
      !important overrides the rail's inline display:flex. */
   .po-stepper > .po-stepper-rail {
     display: none !important;
@@ -2947,7 +2947,7 @@ summary:focus-visible,
   }
 }
 
-/* Skeletons (skeleton.tsx) — inset base with a slow moving highlight. Every
+/* Skeletons (skeleton.tsx): inset base with a slow moving highlight. Every
    loading surface mirrors its real layout with these blocks; no spinners or
    blank panels before tables/cards. Token-based, so both themes hold: on
    paper the bone highlight reads as a faint darker sweep. */
@@ -3129,7 +3129,7 @@ summary:focus-visible,
 }
 
 /* ============================================================================
-   TEMPLATES — html-authored rows (templates/html-mode.tsx, components/code-editor.tsx).
+   TEMPLATES: html-authored rows (templates/html-mode.tsx, components/code-editor.tsx).
    The notice box follows notice-strip.tsx in the info tone; the source editor
    is a transparent textarea over a highlighted mirror sharing one font box. */
 .po-tpl-html-banner {
@@ -3191,7 +3191,7 @@ summary:focus-visible,
   gap: 14px;
 }
 /* Each pane: a toolbar row over a body of the shared height, framed like the
-   block editor (toolbar + surface). Not clipped — the Variables popover hangs
+   block editor (toolbar + surface). Not clipped, the Variables popover hangs
    out of the code pane's toolbar. */
 .po-tpl-code-source,
 .po-tpl-code-preview {
@@ -4020,7 +4020,7 @@ button.po-pf-issue:hover .po-pf-go {
   background: color-mix(in srgb, var(--po-warn) 52%, transparent);
 }
 
-/* Plan ladder — the landing page's pricing section (posta-site, "Pricing")
+/* Plan ladder: the landing page's pricing section (posta-site, "Pricing")
    without its recommendation: a native range slider over the volumes and
    four level cards; the card the volume lands on carries the primary button
    and, on phones, is the one that unfolds. */

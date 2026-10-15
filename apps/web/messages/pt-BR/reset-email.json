@@ -5,5 +5,5 @@
   "button": "Redefinir senha",
   "linkFallback": "Ou copie e cole este link no seu navegador:",
   "expiry": "Este link expira em {minutes} minutos.",
-  "ignore": "Se você não fez este pedido, ignore este e-mail — sua senha não será alterada."
+  "ignore": "Se você não fez este pedido, ignore este e-mail: sua senha não será alterada."
 }

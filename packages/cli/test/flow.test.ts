@@ -182,7 +182,7 @@ describe("flow on a pipe", () => {
     await flow.ask({ label: "S3_ENDPOINT", hint: "empty skips", initial: "x" });
     await flow.confirm("Delete these?", false, "the access keys stop working immediately");
     expect(questions).toEqual([
-      "S3_ENDPOINT — empty skips [x]: ",
+      "S3_ENDPOINT, empty skips [x]: ",
       "Delete these? (the access keys stop working immediately) [y/N] ",
     ]);
     rl.close();
@@ -225,7 +225,7 @@ describe("flow on a terminal", () => {
       `${RAIL.bar}  https://mail.example.com`,
       RAIL.bar,
       `${RAIL.done}  PUBLIC_API_URL`,
-      `${RAIL.bar}  —`,
+      `${RAIL.bar}  -`,
       RAIL.bar,
       `${RAIL.end}  Done.`,
     ]);

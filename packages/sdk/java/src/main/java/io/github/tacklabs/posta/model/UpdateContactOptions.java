@@ -30,7 +30,7 @@ public final class UpdateContactOptions {
     return email;
   }
 
-  /** The snake_case body to PATCH — only the fields the caller set. */
+  /** The snake_case body to PATCH, only the fields the caller set. */
   public Map<String, Object> getChanges() {
     return changes;
   }

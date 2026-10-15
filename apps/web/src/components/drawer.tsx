@@ -6,7 +6,7 @@ import { useScrollLock } from "@/lib/use-scroll-lock";
 
 /**
  * Right-side remediation drawer: dim overlay, 440px panel on --po-panel with
- * a strong left rule — construction per the design canvas. Esc and overlay
+ * a strong left rule; construction per the design canvas. Esc and overlay
  * click close it.
  */
 export function Drawer({

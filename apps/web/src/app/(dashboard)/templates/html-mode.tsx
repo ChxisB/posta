@@ -232,7 +232,7 @@ export function HtmlCodeMode({
 
 /**
  * The code pane's live preview: ContentPreview's frame, but keeping its scroll
- * position across the srcDoc swaps that every debounced edit makes — otherwise
+ * position across the srcDoc swaps that every debounced edit makes, otherwise
  * editing the footer means scrolling back down after each keystroke. Reading
  * and restoring the scroll needs allow-same-origin; scripts stay disallowed,
  * so nothing in the message can reach the dashboard through that origin.
@@ -314,7 +314,7 @@ export function HtmlAuthoredBanner({
  * The guarded html→blocks conversion. A row that can be copied (a template)
  * offers duplicating as the primary path, the original untouched, beside
  * converting in place; a one-off body (a broadcast) only converts in place.
- * In place is destructive in tone — the stored html changes on the next save.
+ * In place is destructive in tone: the stored html changes on the next save.
  */
 export function ConvertBlocksDialog({
   open,
@@ -334,7 +334,7 @@ export function ConvertBlocksDialog({
 }) {
   const t = useTranslations("templates");
   const common = useTranslations("common");
-  // Same guard as the primary button — Modal's ⌘↵ path routes through here too.
+  // Same guard as the primary button. Modal's ⌘↵ path routes through here too.
   const primary = onDuplicate ?? onConvertInPlace;
   const confirm = () => {
     if (!busy) primary();

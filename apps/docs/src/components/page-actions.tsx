@@ -6,8 +6,8 @@ import { useState } from "react";
 import type { PageActionLabels } from "@/lib/page-actions-copy";
 
 /**
- * Copies the body behind a markdown URL — a page's .md rendition or a
- * prompt file — so it can be pasted straight into an agent.
+ * Copies the body behind a markdown URL (a page's .md rendition or a
+ * prompt file) so it can be pasted straight into an agent.
  */
 export function CopyMarkdownButton({
   markdownUrl,

@@ -7,7 +7,7 @@
 # before upload; restore with `age --decrypt -i <key file>` first. With a
 # leading --skip-if-recent (the entrypoint's start-up run) the cycle is skipped
 # when the bucket already holds a dump from the last 26 hours. Invoked with
-# other arguments it instead runs them with the rclone env prepared — the
+# other arguments it instead runs them with the rclone env prepared: the
 # documented restore path (`... backup.sh sh -c 'rclone ...'`).
 # shellcheck disable=SC3040 # BusyBox ash does support pipefail
 set -euo pipefail
@@ -70,7 +70,7 @@ echo "backup: uploading ${name} (${local_size} bytes)"
 rclone copyto "$dump" "${remote}/${name}"
 
 # Re-read the object's size from the bucket and require a byte-for-byte match
-# before anything gets pruned — never trust an upload that wasn't read back.
+# before anything gets pruned, never trust an upload that wasn't read back.
 remote_size=$(rclone lsjson "${remote}/${name}" | sed -n 's/.*"Size":\([0-9]\{1,\}\).*/\1/p')
 if [ "${remote_size:-0}" != "$local_size" ] || [ "$local_size" -eq 0 ]; then
   echo "backup: verification failed for ${name} (local ${local_size} bytes, remote ${remote_size:-none})" >&2

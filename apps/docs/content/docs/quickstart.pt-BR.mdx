@@ -4,7 +4,7 @@ description: Obtenha o Posta e envie seu primeiro e-mail em poucos minutos.
 ---
 
 O Posta funciona igual no [Posta Cloud](https://posta.example)
-e na sua própria infraestrutura — mesmo painel, mesma API, mesmos SDKs.
+e na sua própria infraestrutura: mesmo painel, mesma API, mesmos SDKs.
 Escolha sua implantação abaixo; as abas lembram sua escolha em toda a
 documentação.
 
@@ -13,7 +13,7 @@ documentação.
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-Cadastre-se em [posta.example](https://posta.example). Só isso — sem
+Cadastre-se em [posta.example](https://posta.example). Só isso: sem
 infraestrutura, sem conta AWS. O painel fica em
 [posta.example](https://posta.example) e a API em
 `api.posta.example`.
@@ -23,11 +23,11 @@ infraestrutura, sem conta AWS. O painel fica em
 
 Você precisa de Docker (com Compose), Node 18+ e uma conta AWS com acesso ao
 SES. Contas AWS novas começam no sandbox do SES, que só envia para
-destinatários verificados —
+destinatários verificados:
 [solicite acesso de produção](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
 para enviar a qualquer um.
 
-Um comando, em um diretório vazio — sem clonar nada:
+Um comando, em um diretório vazio, sem clonar nada:
 
 ```sh
 mkdir posta && cd posta
@@ -36,7 +36,7 @@ npx @tack-labs/posta-setup
 
 O assistente detecta o que já existe no diretório e oferece cada etapa: criar
 o `.env` com segredos gerados, provisionar os recursos da AWS (usuário IAM +
-política, tópico SNS de eventos, fila SQS de eventos, configuration set do SES —
+política, tópico SNS de eventos, fila SQS de eventos, configuration set do SES,
 mais uma assinatura de push quando sua implantação tem URL HTTPS pública), depois baixar o
 arquivo compose e subir a imagem pré-construída com `docker compose up -d`.
 Toda etapa pode ser pulada e é segura de repetir; `--dry-run` imprime o plano
@@ -44,7 +44,7 @@ completo sem tocar em nada.
 
 Ao terminar: painel em `http://localhost:3000`, API em
 `http://localhost:3001`. O primeiro usuário a se registrar vira a conta
-inicial — depois disso o cadastro fica fechado, a menos que você opte por
+inicial: depois disso o cadastro fica fechado, a menos que você opte por
 abri-lo. Prefere fazer manualmente, ou está indo para produção? Veja
 [Auto-hospedagem](/pt-BR/self-hosting).
 
@@ -57,8 +57,8 @@ O Posta só envia a partir de domínios que você verificou.
 
 1. No painel, vá em **Domínios** e adicione um domínio que você controla
    (ex.: `acme.dev`).
-2. Adicione os registros DNS exibidos — um registro TXT de DKIM e os
-   registros de MAIL FROM — no seu provedor de DNS.
+2. Adicione os registros DNS exibidos (um registro TXT de DKIM e os
+   registros de MAIL FROM) no seu provedor de DNS.
 3. Clique em **Checar DNS**. O Posta também resolve os
    registros ao vivo, então você vê na hora quais ainda faltam.
 
@@ -66,7 +66,7 @@ O Posta só envia a partir de domínios que você verificou.
 
 ## 3. Crie uma chave de API
 
-Vá em **Chaves de API** e crie uma. O token `po_` é exibido uma única vez —
+Vá em **Chaves de API** e crie uma. O token `po_` é exibido uma única vez:
 copie agora. Chaves podem ter acesso total ou somente envio, e opcionalmente
 ficar restritas a um único domínio.
 
@@ -84,7 +84,7 @@ Sua URL base da API:
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
-A origem da API da sua instância — `http://localhost:3001` em um compose
+A origem da API da sua instância: `http://localhost:3001` em um compose
 local, ou o hostname em que seu reverse proxy serve a API (`PUBLIC_API_URL`,
 ex.: `https://api.acme.dev`). Os
 exemplos abaixo usam a URL da Nuvem; troque pela sua.
@@ -132,12 +132,12 @@ Ambos retornam `{ "id": "..." }`. Acompanhe o e-mail indo de `queued` a
 <Callout type="info">
 Em uma instância auto-hospedada, eventos de entrega (entregue, bounce,
 reclamação) exigem o pipeline de eventos do SES que o assistente de setup
-configura — veja
+configura: veja
 [Auto-hospedagem → Eventos do SES](/pt-BR/self-hosting#eventos-do-ses-bounces-reclamações-e-entregas).
 Na Nuvem eles fluem automaticamente.
 </Callout>
 
-Já usa o Resend? Aponte o SDK oficial do Resend para o Posta — defina
+Já usa o Resend? Aponte o SDK oficial do Resend para o Posta: defina
 `RESEND_BASE_URL` com a sua URL base e use sua chave `po_`. O formato da
 API é idêntico.
 

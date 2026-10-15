@@ -137,7 +137,7 @@ const defaultTeamDeletionDeps: TeamDeletionDeps = {
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 /**
- * Drops the OAuth grants (and the tokens behind them) bound to a team — for
+ * Drops the OAuth grants (and the tokens behind them) bound to a team, for
  * one user when given, else for everyone. All-teams grants are left alone:
  * the auth layer re-checks membership on every token refresh.
  */
@@ -270,7 +270,7 @@ function smtpPublicHost(): string {
   return new URL(resolveBaseUrl(env.APP_BASE_URL)).hostname;
 }
 
-/** Literal shown in the SMTP tab's password field — never a real secret. */
+/** Literal shown in the SMTP tab's password field, never a real secret. */
 const SMTP_PASSWORD_PLACEHOLDER = "YOUR_API_KEY";
 
 // Trimmed empty strings clear the field. Kept nullable so the client can send
@@ -309,7 +309,7 @@ export function createSettingsRouter(
   /**
    * Awaited, unlike the password reset: `emailed` and the per-invite send
    * counters are shown to the operator, so they must reflect a send SES
-   * accepted. A failure is logged and reported as false — the dialog still
+   * accepted. A failure is logged and reported as false: the dialog still
    * shows the link, and nothing is charged against the invite.
    */
   async function emailInvite(
@@ -401,7 +401,7 @@ export function createSettingsRouter(
        * team row; broadcasts and API keys are removed first because their
        * RESTRICT links to segments/topics/domains would otherwise block the
        * cascade. External cleanup (SES identities, logo object) runs after
-       * commit and never fails the deletion — an orphaned identity is harmless.
+       * commit and never fails the deletion: an orphaned identity is harmless.
        */
       delete: teamProcedure.mutation(async ({ ctx }) => {
         if (ctx.role !== "owner") throw new TRPCError({ code: "FORBIDDEN" });
@@ -804,7 +804,7 @@ export function createSettingsRouter(
        * anyone else. Self-host keeps the signed link as the sole credential:
        * operators routinely invite an address the new user then signs up under
        * verbatim, and there is no email verification to lean on. Single-use is
-       * atomic — acceptedAt is stamped in the same conditional update, so a
+       * atomic: acceptedAt is stamped in the same conditional update, so a
        * second accept finds nothing to stamp.
        */
       accept: protectedProcedure
@@ -885,7 +885,7 @@ export function createSettingsRouter(
           passwordPlaceholder: SMTP_PASSWORD_PLACEHOLDER,
           // Mirrors the relay's AUTH gate (apps/smtp/src/server.ts): AUTH needs
           // STARTTLS (cert+key both set) unless the insecure escape hatch is on.
-          // Booleans only — the cert paths never reach the client. Raw process.env
+          // Booleans only: the cert paths never reach the client. Raw process.env
           // for the flag because under SKIP_ENV_VALIDATION the env proxy carries
           // strings, not zod-parsed booleans.
           tlsConfigured: Boolean(env.SMTP_TLS_CERT_PATH && env.SMTP_TLS_KEY_PATH),

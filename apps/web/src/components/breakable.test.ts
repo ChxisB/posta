@@ -34,6 +34,6 @@ describe("KeepHyphenated", () => {
   });
 
   it("returns text without a word hyphen as it is", () => {
-    expect(kept("Send your first email — 2 steps")).toBe("Send your first email — 2 steps");
+    expect(kept("Send your first email: 2 steps")).toBe("Send your first email: 2 steps");
   });
 });

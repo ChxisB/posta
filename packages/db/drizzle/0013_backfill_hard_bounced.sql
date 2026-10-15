@@ -1,10 +1,10 @@
 -- usage_counters.hard_bounced was added after bounce events started flowing,
 -- so counters predating it read 0 hard bounces against fully-counted sent
--- totals — the 30-day outcome window would understate the hard-bounce rate
+-- totals: the 30-day outcome window would understate the hard-bounce rate
 -- for a month after deploy. Rebuild it from historical Permanent-bounce
 -- events, grouped by owning team and UTC day (the same day key utcDay()
 -- writes). Events whose data was already retention-stripped carry no bounce
--- type and are unclassifiable — correctly skipped by the jsonb filter.
+-- type and are unclassifiable: correctly skipped by the jsonb filter.
 WITH hard_bounces AS (
   SELECT
     e.team_id,

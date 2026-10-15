@@ -10,7 +10,7 @@
   <packaging>jar</packaging>
 
   <name>posta-java</name>
-  <description>Official Posta SDK for Java — a Resend-compatible email API you can self-host.</description>
+  <description>Official Posta SDK for Java: a Resend-compatible email API you can self-host.</description>
   <url>https://github.com/ChxisB/posta/tree/main/packages/sdk/java</url>
 
   <licenses>
@@ -105,7 +105,7 @@
     </profile>
     <!--
       Central Portal release: sources + javadoc jars, GPG signatures, and the
-      Central bundle upload are release-only requirements — the profile keeps
+      Central bundle upload are release-only requirements; the profile keeps
       plain `mvn verify` (CI matrix) free of them. Activated by release.yml.
     -->
     <profile>

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * End-to-end smoke test against a real Posta instance. Opt-in: runs only
  * when {@code POSTA_API_KEY} is set (and {@code POSTA_BASE_URL} for
  * a self-hosted instance). Exercises the contact lifecycle, which needs no verified
- * domain. Sending is not asserted here — it requires a verified sender domain.
+ * domain. Sending is not asserted here: it requires a verified sender domain.
  */
 @EnabledIfEnvironmentVariable(named = "POSTA_API_KEY", matches = ".+")
 class E2ETest {

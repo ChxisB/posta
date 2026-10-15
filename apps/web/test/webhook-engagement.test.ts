@@ -92,7 +92,7 @@ describe("recordEngagement webhook fan-out", () => {
     expect(await deliveries(endpointId)).toHaveLength(1);
   });
 
-  it("delivers once per recorded event — a repeat open past the damping window fans out again", async () => {
+  it("delivers once per recorded event: a repeat open past the damping window fans out again", async () => {
     const teamId = await createTeam(db);
     const emailId = await seedEmail(teamId);
     const endpointId = await createWebhookEndpoint(db, teamId, ["email.opened"]);
@@ -134,7 +134,7 @@ describe("recordEngagement webhook fan-out", () => {
     });
   });
 
-  it("isolates teams — team B's endpoint never sees team A's open", async () => {
+  it("isolates teams, team B's endpoint never sees team A's open", async () => {
     const teamA = await createTeam(db, "team-a");
     const teamB = await createTeam(db, "team-b");
     const emailA = await seedEmail(teamA);

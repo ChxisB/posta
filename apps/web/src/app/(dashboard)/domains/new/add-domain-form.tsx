@@ -74,7 +74,7 @@ function DnsRecordsStep({ id }: { id: string }) {
         }
         active={trackingStep ? 3 : 2}
       />
-      {/* Step 01 — done: recap of the created domain */}
+      {/* Step 01; done: recap of the created domain */}
       <div className="po-step" style={{ display: "flex", gap: 44 }}>
         <MarkerRail marker="01" done fadeTop color="var(--po-success)" />
         <div style={{ flex: 1, minWidth: 0, paddingBottom: 28 }}>
@@ -145,7 +145,7 @@ function DnsRecordsStep({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Step 02 — optional branded tracking. Saving a subdomain here adds its
+      {/* Step 02: optional branded tracking. Saving a subdomain here adds its
           CNAME to the records below; skipping just leaves tracking off. */}
       {trackingStep ? (
         <div className="po-step" style={{ display: "flex", gap: 44 }}>
@@ -179,7 +179,7 @@ function DnsRecordsStep({ id }: { id: string }) {
         </div>
       ) : null}
 
-      {/* Final step — fill in the DNS records */}
+      {/* Final step: fill in the DNS records */}
       <div className="po-step" style={{ display: "flex", gap: 44 }}>
         <MarkerRail marker={dnsMarker} color="var(--po-bone)" fadeBottom />
         <div style={{ flex: 1, minWidth: 0 }}>

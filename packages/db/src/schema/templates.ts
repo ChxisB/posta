@@ -1,7 +1,7 @@
 import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { teams } from "./teams.js";
 
-// Reusable email content only — broadcasts copy a template's content at
+// Reusable email content only: broadcasts copy a template's content at
 // compose time and keep no FK back, so editing a template never rewrites
 // anything already sent or drafted.
 export const templates = pgTable(

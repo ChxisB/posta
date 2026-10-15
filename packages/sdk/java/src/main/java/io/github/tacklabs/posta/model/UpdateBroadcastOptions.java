@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Options for {@code broadcasts().update(...)} — draft broadcasts only. Only the
+ * Options for {@code broadcasts().update(...)}: draft broadcasts only. Only the
  * fields you set are sent; {@code topicId(null)} clears the topic (an explicit
  * JSON null), while not calling it leaves it unchanged.
  */
@@ -20,7 +20,7 @@ public final class UpdateBroadcastOptions {
     return new Builder();
   }
 
-  /** The snake_case body to PATCH — only the fields the caller set. */
+  /** The snake_case body to PATCH, only the fields the caller set. */
   public Map<String, Object> getChanges() {
     return changes;
   }

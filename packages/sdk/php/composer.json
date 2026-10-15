@@ -1,6 +1,6 @@
 {
     "name": "chxisb/posta-php",
-    "description": "Official PHP SDK for Posta — a self-hostable, Resend-compatible email API.",
+    "description": "Official PHP SDK for Posta: a self-hostable, Resend-compatible email API.",
     "type": "library",
     "keywords": ["email", "posta", "ses", "transactional-email", "resend-compatible"],
     "license": "MIT",

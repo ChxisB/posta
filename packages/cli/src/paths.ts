@@ -73,7 +73,7 @@ export function readJson<T>(path: string): T | null {
 
 /**
  * Appends `.posta/` to the .gitignore in `cwd` when one exists and does
- * not list it yet. True when a line was added — the caller says so once.
+ * not list it yet. True when a line was added: the caller says so once.
  */
 export function ensureGitignored(cwd = process.cwd()): boolean {
   const path = join(cwd, ".gitignore");

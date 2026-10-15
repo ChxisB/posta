@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * A throwaway loopback HTTP server that records the last request it received and
  * replies with a canned status + body. Exercises the real {@link io.github.tacklabs.posta.core.HttpClient}
- * wire path (headers, JSON serialization) with no mocking framework — just the JDK's
+ * wire path (headers, JSON serialization) with no mocking framework, just the JDK's
  * {@code com.sun.net.httpserver}.
  */
 final class MockServer implements AutoCloseable {

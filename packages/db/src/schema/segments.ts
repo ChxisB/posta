@@ -15,7 +15,7 @@ import { teams } from "./teams.js";
  * A saved filter over the team's contacts. `all` = AND, `any` = OR; empty
  * `conditions` matches every contact. The shape lives here (the DB layer) so
  * `@posta/core`'s zod validator can annotate against it without a
- * core→db→core import cycle — core is the only place values are validated
+ * core→db→core import cycle: core is the only place values are validated
  * before they reach SQL.
  */
 export type SegmentCondition = { field: string; op: string; value: string | null };

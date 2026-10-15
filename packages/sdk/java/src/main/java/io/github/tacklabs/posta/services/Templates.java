@@ -25,7 +25,7 @@ public final class Templates {
     this.http = http;
   }
 
-  /** POST /templates — 409 {@code validation_error} when the alias is taken. */
+  /** POST /templates: 409 {@code validation_error} when the alias is taken. */
   public Id create(CreateTemplateOptions options) throws PostaException {
     return http.request("POST", "/templates", options, null, null, new TypeReference<Id>() {});
   }
@@ -63,14 +63,14 @@ public final class Templates {
         new TypeReference<DeletedResponse>() {});
   }
 
-  /** POST /templates/{idOrAlias}/publish — a no-op acknowledgement: every save is already live. */
+  /** POST /templates/{idOrAlias}/publish: a no-op acknowledgement: every save is already live. */
   public Id publish(String idOrAlias) throws PostaException {
     return http.request(
         "POST", "/templates/" + enc(idOrAlias) + "/publish", null, null, null,
         new TypeReference<Id>() {});
   }
 
-  /** POST /templates/{idOrAlias}/duplicate — a copy named "&lt;name&gt; (copy)" with no alias. */
+  /** POST /templates/{idOrAlias}/duplicate: a copy named "&lt;name&gt; (copy)" with no alias. */
   public Id duplicate(String idOrAlias) throws PostaException {
     return http.request(
         "POST", "/templates/" + enc(idOrAlias) + "/duplicate", null, null, null,

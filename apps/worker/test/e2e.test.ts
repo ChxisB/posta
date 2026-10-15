@@ -129,7 +129,7 @@ it("accepts a send from the official resend SDK", async () => {
   emailId = data.id;
   const [row] = await db.select().from(schema.emails).where(eq(schema.emails.id, emailId));
   expect(row?.latestStatus).toBe("queued");
-  // The accept must PRODUCE a send job — an email without one never sends.
+  // The accept must PRODUCE a send job: an email without one never sends.
   expect(sendJobs).toEqual([emailId]);
 });
 

@@ -101,7 +101,7 @@ describe("catalog contract", () => {
 });
 
 describe("marketing classification", () => {
-  it("promotes on broadcast, topic, or unsubscribe anchor — send shape and body only", () => {
+  it("promotes on broadcast, topic, or unsubscribe anchor: send shape and body only", () => {
     expect(evaluateEmailInsights(input({ isBroadcast: true })).marketing).toBe(true);
     expect(evaluateEmailInsights(input({ hasTopic: true })).marketing).toBe(true);
     expect(evaluateEmailInsights(input({ preTrackingHtml: BODY_MKT })).marketing).toBe(true);
@@ -111,7 +111,7 @@ describe("marketing classification", () => {
     expect(evaluateEmailInsights(input()).marketing).toBe(false);
   });
 
-  it("a caller List-Unsubscribe header never promotes — adding it must not lower the score", () => {
+  it("a caller List-Unsubscribe header never promotes: adding it must not lower the score", () => {
     const res = evaluateEmailInsights(
       input({ finalHeaders: { "List-Unsubscribe": "<mailto:u@acme.com>" } }),
     );
@@ -187,7 +187,7 @@ describe("list_unsubscribe", () => {
   it("passes when the caller supplied both headers, case-insensitively", () => {
     const c = check(
       input({
-        // Marketing by body shape (unsubscribe anchor), not broadcast/topic —
+        // Marketing by body shape (unsubscribe anchor), not broadcast/topic;
         // those read passed_by_design via our own injection.
         preTrackingHtml: BODY_MKT,
         finalHeaders: {

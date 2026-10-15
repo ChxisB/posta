@@ -16,7 +16,7 @@ import { createLowlight } from "lowlight";
 import type { ReactNode } from "react";
 
 /** Only the grammars the SDK snippets and the body viewers need (xml is
- *  hljs's HTML grammar) — registering all of hljs would drag every language
+ *  hljs's HTML grammar): registering all of hljs would drag every language
  *  into the client bundle. */
 const lowlight = createLowlight({
   bash,
@@ -71,7 +71,7 @@ function renderNodes(nodes: HastNode[], keyPrefix: string): ReactNode[] {
 }
 
 /**
- * Syntax-highlighted code as React spans carrying hljs class names — the
+ * Syntax-highlighted code as React spans carrying hljs class names: the
  * palette lives in components.css under .po-hl, on the design tokens.
  */
 export function CodeHighlight({ code, language }: { code: string; language: HighlightLanguage }) {

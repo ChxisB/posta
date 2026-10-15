@@ -8,7 +8,7 @@ import { createSesQuotaGate, type SendQuotaControls } from "./ses-quota.js";
  * are both per region, so each served region gets its own quota gate and
  * token bucket, fed by one GetAccount probe per region. A send with no region
  * (platform mail, no domain row) and one in a region this deployment does not
- * serve use the default region's controls — the first served region — rather
+ * serve use the default region's controls (the first served region) rather
  * than probing a region nothing was provisioned in.
  *
  * On top of the total gate sits the broadcast share: the part of the window

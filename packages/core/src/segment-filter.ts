@@ -6,10 +6,10 @@ import { z } from "zod";
 /**
  * Translates a team-authored segment filter into a parameterized Drizzle
  * predicate over the contacts table. Reused by the worker fan-out, the API
- * live-count, and broadcast targeting — the single place a filter becomes SQL.
+ * live-count, and broadcast targeting: the single place a filter becomes SQL.
  *
  * SECURITY: every field value AND every `property:<key>` reaches SQL as a bound
- * parameter via the `sql` tag — never string-concatenated — so a value like
+ * parameter via the `sql` tag (never string-concatenated) so a value like
  * `x' OR '1'='1` is compared as literal data, not executed. Unknown fields and
  * operators are rejected before any SQL is built (`segmentFilterSchema`), so the
  * predicate can only ever reference the columns and operators enumerated here.
@@ -36,7 +36,7 @@ export const SEGMENT_FILTER_VALUE_MAX_LENGTH = 500;
 
 type TextOp = (typeof TEXT_OPS)[number];
 
-/** A text op that ignores its `value` — presence tests, not comparisons. */
+/** A text op that ignores its `value`: presence tests, not comparisons. */
 function isPresenceOp(op: TextOp): boolean {
   return op === "is_set" || op === "is_not_set";
 }
@@ -104,7 +104,7 @@ export class SegmentFilterError extends Error {
 /**
  * `%`, `_` and the escape char are LIKE metacharacters; escaping them keeps
  * contains/starts_with/ends_with matching literal substrings (still a bound
- * parameter — this is pattern correctness, not injection defense).
+ * parameter: this is pattern correctness, not injection defense).
  */
 export function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
@@ -143,7 +143,7 @@ function textConditionSql(expr: SQL, op: TextOp, value: string | null): SQL {
       return sql`${expr} is not null and ${expr} <> ''`;
     // Parenthesized: this OR is AND-ed with team/audience scoping by every
     // caller, and a bare OR would flip precedence to (scope AND …) OR (… = ''),
-    // matching contacts outside the scope — a cross-tenant leak.
+    // matching contacts outside the scope; a cross-tenant leak.
     case "is_not_set":
       return sql`(${expr} is null or ${expr} = '')`;
   }
@@ -194,7 +194,7 @@ export function segmentWhere(contacts: ContactsTable, filter: SegmentFilter | nu
 }
 
 /**
- * Segment RESOLUTION — "who is in this segment": a contact matching the saved
+ * Segment RESOLUTION, "who is in this segment": a contact matching the saved
  * filter (when one is set) OR holding an explicit segment_members row. The one
  * resolver behind the segment contact list, contact_count, and broadcast
  * fan-out targeting, so they can never disagree on membership. Parenthesized:

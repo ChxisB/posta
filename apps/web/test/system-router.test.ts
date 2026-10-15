@@ -7,7 +7,7 @@ import { createCaller } from "@/server/routers";
 import { createSystemRouter } from "@/server/routers/system";
 import { type Context, createCallerFactory, router } from "@/server/trpc";
 
-// awsReadiness never touches the db, so a bare ctx suffices — no test db.
+// awsReadiness never touches the db, so a bare ctx suffices: no test db.
 function caller() {
   return createCaller({
     db: {} as Db,

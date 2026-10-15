@@ -20,7 +20,7 @@ final class Domains
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * POST /domains — the response carries the DNS `records` to publish.
+     * POST /domains: the response carries the DNS `records` to publish.
      *
      * @param array{name: string, region?: string, customReturnPath?: string, openTracking?: bool, clickTracking?: bool, trackingSubdomain?: string} $params
      * @return array<mixed>
@@ -46,7 +46,7 @@ final class Domains
     }
 
     /**
-     * PATCH /domains/:id — `trackingSubdomain => null` clears it. resend-php's
+     * PATCH /domains/:id: `trackingSubdomain => null` clears it. resend-php's
      * `tls` and `capabilities` pass through; the server answers 422 for them.
      *
      * @param array{openTracking?: bool, clickTracking?: bool, trackingSubdomain?: string|null, tls?: mixed, capabilities?: mixed} $params
@@ -58,7 +58,7 @@ final class Domains
     }
 
     /**
-     * POST /domains/:id/verify — re-checks DNS and returns the domain.
+     * POST /domains/:id/verify: re-checks DNS and returns the domain.
      *
      * @return array<mixed>
      */

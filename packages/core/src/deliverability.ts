@@ -10,7 +10,7 @@ import { DAY_MS, utcDay } from "./utc-day.js";
 /**
  * Single source of truth for deliverability thresholds and standing. The
  * Metrics page and BOTH send guards (tRPC broadcast + public API) import from
- * here — thresholds must never be re-hardcoded at a call site or they drift.
+ * here: thresholds must never be re-hardcoded at a call site or they drift.
  *
  * Two tiers:
  * - WARN_* are the product "RISK" lines shown on the rate cards. Banner and a
@@ -50,7 +50,7 @@ export const GUARDRAIL_WINDOW_DAYS = 7;
 
 /**
  * Window the pause tier is judged on: today and yesterday. usage_counters is
- * keyed by UTC day, so this is the honest "last 24 hours" — a one-day window
+ * keyed by UTC day, so this is the honest "last 24 hours": a one-day window
  * would hold five minutes of data just after midnight. A team that fixes its
  * list recovers in a day instead of waiting out the warning window.
  */
@@ -99,7 +99,7 @@ export interface DeliverabilityHealth extends DeliverabilityEvaluation {
 /**
  * Milliseconds to space consecutive broadcast enqueues by, given a team's
  * standing. "ok" fans out at full rate (0 spacing); "warning" and "paused"
- * both drip at THROTTLED_BROADCAST_RATE_PER_SECOND — the fan-out throttles
+ * both drip at THROTTLED_BROADCAST_RATE_PER_SECOND: the fan-out throttles
  * rather than halts (initiation guards block new paused sends upstream).
  */
 export function broadcastSendSpacingMs(status: DeliverabilityStatus): number {
@@ -184,7 +184,7 @@ export async function fetchDeliverabilityHealth(
   const sincePause = utcDay(now - (PAUSE_WINDOW_DAYS - 1) * DAY_MS);
 
   const c = schema.usageCounters;
-  // ::bigint — a busy sender's window sum can overflow int4. The driver
+  // ::bigint, a busy sender's window sum can overflow int4. The driver
   // returns bigint as a string; Number() is exact up to 2^53.
   const total = (col: AnyPgColumn) => sql<string>`coalesce(sum(${col}), 0)::bigint`;
   const recent = (col: AnyPgColumn) =>

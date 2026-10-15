@@ -356,7 +356,7 @@ export function validationMessage(error: z.ZodError): string {
 /**
  * SECURITY: a domain-scoped API key (domainId set) may only send from that one
  * verified domain; a null domainId sends from any of the team's domains. The
- * scope is server-side, resolved from the authenticated key — never the payload.
+ * scope is server-side, resolved from the authenticated key, never the payload.
  */
 function keyForbidsSendingDomain(auth: ApiKeyAuth, domainId: string): boolean {
   return auth.domainId !== null && auth.domainId !== domainId;
@@ -485,7 +485,7 @@ class AcceptRejectedError extends Error {
   }
 }
 
-/** Topic lookup scoped to the caller's team — a foreign topic id is a 404. */
+/** Topic lookup scoped to the caller's team: a foreign topic id is a 404. */
 async function findTeamTopic(
   db: Db,
   teamId: string,
@@ -536,7 +536,7 @@ function toAcceptPayload(body: SendEmailRequest, domainId: string | null): Accep
   };
 }
 
-/** Registered property types by lower(key) — the registry index is
+/** Registered property types by lower(key): the registry index is
  * case-insensitive, and contact map keys are matched the same way. */
 type ContactPropertyTypes = Map<string, "string" | "number">;
 
@@ -562,8 +562,8 @@ export function numericPropertyValue(value: unknown): number | null {
  * Coerces an incoming contact `properties` record to the stored flat
  * string→string map: scalars pass through `String()`, null marks the key as
  * `removed` (the update path unsets it; create and batch have nothing to
- * unset). Invalid — for a precise 422 rather than silently storing bad
- * data — are nested objects/arrays, and values for a key registered as
+ * unset). Invalid (for a precise 422 rather than silently storing bad
+ * data) are nested objects/arrays, and values for a key registered as
  * 'number' that don't parse to a finite number.
  */
 function coerceContactProperties(
@@ -604,8 +604,8 @@ type WireContactPropertyValue =
 
 /**
  * GET /contacts/{id} wire: each stored value wrapped as {type, value}, typed
- * per the team's registry. Unregistered keys — and number-typed values that
- * no longer parse (typed after the value was stored) — read as strings.
+ * per the team's registry. Unregistered keys (and number-typed values that
+ * no longer parse (typed after the value was stored)) read as strings.
  */
 function wireContactProperties(
   map: Record<string, string>,
@@ -661,7 +661,7 @@ function fixedWindowCounter() {
 /**
  * Cloud sits behind Cloudflare only (the origin firewall admits nothing
  * else), so cf-connecting-ip is authoritative there; self-host reads the
- * socket. Null when unknowable (in-process requests) — never bucket those
+ * socket. Null when unknowable (in-process requests), never bucket those
  * together, or one shared bucket would throttle everyone.
  */
 function clientIp(c: Context, isCloud: boolean): string | null {
@@ -786,7 +786,7 @@ type ContactTopicRow = {
 
 /**
  * Every topic of the team per contact, with the effective subscription (the
- * contact's explicit choice, else the topic's default) — two statements for
+ * contact's explicit choice, else the topic's default): two statements for
  * any number of contacts, so a page or a batch costs the same as one contact.
  */
 async function loadContactTopicRows(
@@ -872,7 +872,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
   });
   const t = schema.contacts;
 
-  // The contact path segment may be the contact UUID or its email — the
+  // The contact path segment may be the contact UUID or its email: the
   // resend SDK sends either, undistinguished. Email matching is
   // case-insensitive, mirroring the unique index.
   const teamContactWhere = (teamId: string, idOrEmail: string) =>
@@ -955,7 +955,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
 
   /**
    * Full-ownership variants: the map when every id is the team's own, else
-   * null — truthy on ownership, so boolean call sites read the same.
+   * null; truthy on ownership, so boolean call sites read the same.
    */
   const ownsSegments = async (teamId: string, ids: string[]) => {
     const owned = await teamSegmentNames(teamId, ids);
@@ -980,7 +980,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
     | BatchItemError;
   type ContactConflictMode = "error" | "skip" | "upsert";
 
-  /** One write per lower(email) — the key of the contacts unique index. */
+  /** One write per lower(email): the key of the contacts unique index. */
   type BatchContactRow = {
     indices: number[];
     key: string;
@@ -1014,7 +1014,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
    * answer with that item's status; unattempted items are then undefined.
    *
    * SECURITY: segment/topic associations are validated against the caller's
-   * team before anything is written — a foreign id must not link a contact
+   * team before anything is written; a foreign id must not link a contact
    * into another team's segment or topic. Contacts + associations commit in
    * one transaction, so a rejected association never leaves a bare contact
    * behind.
@@ -1022,7 +1022,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
    * Conflicts are classified from a pre-select that is not serializable with
    * concurrent writers: a contact created (or a segment/topic deleted) in
    * between fails the transaction with a unique/FK violation, and the batch is
-   * re-classified against the new state — so the item lands as a conflict or
+   * re-classified against the new state, so the item lands as a conflict or
    * not-found, never as a 500.
    *
    * A plan's contact cap applies to inserts only: past it every new contact
@@ -1087,7 +1087,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
         };
         continue;
       }
-      // skip: the first occurrence wins; upsert: collapse — later scalars
+      // skip: the first occurrence wins; upsert: collapse, later scalars
       // override, associations union.
       prior.indices.push(i);
       if (onConflict === "upsert") {
@@ -1262,7 +1262,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
           const s = schema.contactTopicSubscriptions;
           const updatedIds = updates.map((u) => u.found.id);
           // Effective state before the upsert (explicit row, else the topic's
-          // default) — the timeline records only real transitions.
+          // default): the timeline records only real transitions.
           const prior =
             updatedIds.length === 0 || topicInfo.size === 0
               ? []
@@ -1638,11 +1638,11 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
       description:
         "Posta extension: creates up to 1000 contacts in one request (Resend imports " +
         "contacts only via CSV). Each item is a CreateContactRequest. `on_conflict` decides what " +
-        "happens to an email that already belongs to a contact — `error` (default), `skip`, or " +
+        "happens to an email that already belongs to a contact: `error` (default), `skip`, or " +
         "`upsert`. An upsert updates `first_name`/`last_name` only when provided, merges " +
         "`properties` (provided keys overwrite), adds `segments` and upserts `topics`. " +
         "`unsubscribed: true` opts the contact out; `unsubscribed: false` on an already " +
-        "unsubscribed contact is ignored — a batch never re-subscribes anyone, that stays an " +
+        "unsubscribed contact is ignored; a batch never re-subscribes anyone, that stays an " +
         "explicit PATCH /contacts/{id}. The `x-batch-validation` header picks strict (default, " +
         "all-or-nothing) or permissive (valid subset written, failures listed in `errors`).",
       request: {
@@ -1948,7 +1948,7 @@ function registerContactRootRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
       }
 
       // Effective state before the write (explicit row, else the topic's
-      // default) — the timeline records only real transitions.
+      // default): the timeline records only real transitions.
       const s = schema.contactTopicSubscriptions;
       const prior = new Map(
         (
@@ -2397,7 +2397,7 @@ function registerTopicRoutes(app: OpenAPIHono<Env>, db: Db): void {
 }
 
 /**
- * Segments — Posta segmentation (a saved filter over the team's
+ * Segments: Posta segmentation (a saved filter over the team's
  * contacts, docs/resend-compatibility.md).
  */
 function registerSegmentRoutes(app: OpenAPIHono<Env>, db: Db): void {
@@ -2848,7 +2848,7 @@ function registerBroadcastRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
     if (!row) {
       return fail(400, "invalid_parameter", "Only draft broadcasts can be sent");
     }
-    // Enqueue failure must not undo the commit — the reconcile sweep
+    // Enqueue failure must not undo the commit: the reconcile sweep
     // re-enqueues scheduled broadcasts whose job was lost.
     try {
       await deps.enqueueBroadcastSend?.(row.id, { startAfter: scheduledAt });
@@ -3028,7 +3028,7 @@ function registerBroadcastRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
         })
         .returning({ id: schema.broadcasts.id });
       if (!row) throw new Error("broadcast insert returned no row");
-      // send: true — the identical guards and scheduling as POST
+      // send: true, the identical guards and scheduling as POST
       // /broadcasts/{id}/send. A failed guard returns its error but the
       // just-created draft remains, fixable and sendable later.
       if (body.send) {
@@ -3381,7 +3381,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     return next();
   });
 
-  // Uncaught throws must still speak Resend's error format — SDK clients
+  // Uncaught throws must still speak Resend's error format: SDK clients
   // parse the body as JSON.
   app.onError((err, c) => {
     // The request validators refuse a malformed JSON body (400) or one that
@@ -3439,7 +3439,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     ],
   });
 
-  // After-response request logging, authenticated requests only — an
+  // After-response request logging, authenticated requests only: an
   // unauthenticated 401 has no team to attribute the row to. /ses/events is
   // excluded entirely (SNS traffic, not a customer API call). Fire-and-forget:
   // a logging failure must never fail or slow the response. Headers are never
@@ -3913,7 +3913,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     // and reports the rest as per-index errors.
     const permissive = c.req.header("x-batch-validation")?.toLowerCase() === "permissive";
 
-    // Pass 1 — validate every item with no writes.
+    // Pass 1: validate every item with no writes.
     const payloads: { payload: AcceptEmailPayload; index: number }[] = [];
     const itemErrors: { index: number; message: string }[] = [];
     for (const [i, raw] of items.entries()) {
@@ -3962,7 +3962,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
       }
     }
 
-    // Pass 2 — accept every validated item in ONE transaction so the batch is
+    // Pass 2: accept every validated item in ONE transaction so the batch is
     // all-or-nothing, like single-send: a failure after item k rolls back
     // items 1..k, so a retry can never re-send what a prior attempt already
     // committed. Idempotency completion is recorded in the same transaction;
@@ -4243,7 +4243,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     // team's email).
     if (!email) return c.json(errorBody(404, "not_found", "Email not found"), 404);
     // Atomic flip guarded like the send handler's claim (not-yet-sendable AND
-    // sent_at IS NULL): a cancel racing the send loses cleanly — whichever
+    // sent_at IS NULL): a cancel racing the send loses cleanly; whichever
     // update commits first, the other's WHERE no longer matches. A scheduled
     // email parked over quota sits in queued_quota until the nightly drain, so
     // both pre-send states are cancelable. Requiring scheduled_at excludes
@@ -4337,7 +4337,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
       );
     }
     // Same state gate as cancel: only a scheduled email nothing has claimed
-    // can move — a reschedule racing the send loses cleanly (the WHERE no
+    // can move; a reschedule racing the send loses cleanly (the WHERE no
     // longer matches once the sender claims sentAt).
     const row = await deps.db.transaction(async (tx) => {
       const txDb = tx as unknown as Db;
@@ -4412,7 +4412,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     // midnight drain instead, like at accept. While the original job is still
     // queued the dedupe key collapses this send, so a move to an EARLIER time
     // takes effect only when that job fires (the row is then already due); a
-    // LATER time is exact — the send handler defers to scheduled_at.
+    // LATER time is exact: the send handler defers to scheduled_at.
     if (row.latestStatus === "queued") {
       try {
         await deps.enqueueEmailSend(row.id, { startAfter: scheduledAt });
@@ -4433,7 +4433,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
   if (deps.receiving) registerMxIngestRoutes(app, deps, deps.receiving);
 
   // SECURITY: reads return decrypted bodies and the whole team archive, so
-  // they are management surface — a sending_access key gets a 403 here even
+  // they are management surface; a sending_access key gets a 403 here even
   // though the rest of /emails is open to it.
   const getRoute = createRoute({
     method: "get",
@@ -4741,7 +4741,7 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
       }
 
       if (msg.Type === "SubscriptionConfirmation") {
-        // Fetch only AWS's own URL — a signed message from an allowlisted
+        // Fetch only AWS's own URL: a signed message from an allowlisted
         // topic still doesn't get to point us at arbitrary hosts.
         if (!msg.SubscribeURL || !isAllowedSnsUrl(msg.SubscribeURL)) {
           return c.json(errorBody(400, "invalid_payload", "SubscribeURL rejected"), 400);

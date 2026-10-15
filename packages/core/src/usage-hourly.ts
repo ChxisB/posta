@@ -18,7 +18,7 @@ export type UsageCounter = (typeof USAGE_COUNTERS)[number];
 
 /**
  * The UTC hour an instant falls in.
- * ponytail: hourly grain — in :30/:45 zones the bucket straddling local
+ * ponytail: hourly grain, in :30/:45 zones the bucket straddling local
  * midnight is dated to the earlier day, so up to 45 min of traffic lands on
  * the previous bar; bucket at 15 min if those markets matter.
  */
@@ -31,7 +31,7 @@ export function utcHour(at: Date | number): Date {
 /**
  * Bump the hourly counters beside a daily bump, in the caller's transaction.
  * A release may land in a different hour than its reservation, so an hour
- * can go briefly negative and only sums over a range are meaningful — no
+ * can go briefly negative and only sums over a range are meaningful: no
  * floor here, unlike the daily row quota enforces on. Column names come
  * from USAGE_COUNTERS only, never from input.
  */

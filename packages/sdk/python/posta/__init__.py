@@ -1,4 +1,4 @@
-"""Official Python SDK for Posta — a self-hostable, Resend-compatible email API.
+"""Official Python SDK for Posta: a self-hostable, Resend-compatible email API.
 
 Configure once at the module level, then call resource classes::
 

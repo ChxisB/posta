@@ -599,7 +599,7 @@ describe("storageEnvEntries", () => {
     });
   });
 
-  it("omits the whole storage pair without a public URL — boot rejects a lone bucket", () => {
+  it("omits the whole storage pair without a public URL: boot rejects a lone bucket", () => {
     expect(
       storageEnvEntries({
         credentials,

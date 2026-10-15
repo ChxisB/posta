@@ -1,6 +1,6 @@
 # posta
 
-Official Elixir SDK for [Posta](https://github.com/ChxisB/posta) — a self-hostable, Resend-compatible email API on AWS SES.
+Official Elixir SDK for [Posta](https://github.com/ChxisB/posta): a self-hostable, Resend-compatible email API on AWS SES.
 
 The API is wire-compatible with Resend, and this SDK mirrors the shape of
 [`resend-elixir`](https://hex.pm/packages/resend), so migrating is mostly a
@@ -43,7 +43,7 @@ end
 Two interchangeable styles, use whichever fits:
 
 ```elixir
-# 1. Application env — every call works without an explicit client.
+# 1. Application env, every call works without an explicit client.
 config :posta, Posta.Client,
   api_key: "po_123",
   base_url: "https://mail.acme.dev"
@@ -67,7 +67,7 @@ Resolution precedence for each option: explicit `Posta.client/1` opts →
   `ArgumentError`, since the API key is sent as a bearer header. Set it to `true` to
   talk to a non-TLS instance elsewhere (e.g. inside a private network).
 - `user_agent` (optional) appends a suffix after the SDK's own User-Agent token.
-- `http_client` (optional) swaps the HTTP layer — any module implementing the
+- `http_client` (optional) swaps the HTTP layer: any module implementing the
   `Posta.HTTP` behaviour (used to stub requests in tests).
 
 Every function accepts an optional leading `client` argument; omit it to use the
@@ -75,7 +75,7 @@ configured default.
 
 ## Payloads
 
-Input maps are sent to the API exactly as written — atom or string keys,
+Input maps are sent to the API exactly as written: atom or string keys,
 snake_case names, and every key you pass reaches the wire (an explicit `nil`
 is sent as JSON `null`, which clears a nullable field on update). The API
 validates the payload and rejects what it does not accept, so nothing is
@@ -83,7 +83,7 @@ silently dropped on the way out.
 
 ## Errors
 
-No function raises for an API error — each returns `{:ok, struct}` or
+No function raises for an API error: each returns `{:ok, struct}` or
 `{:error, %Posta.Error{}}`. The error's `name` is a stable snake_case code
 you can match on (`"validation_error"`, `"not_found"`, `"restricted_api_key"`,
 `"sending_paused"`, …). Client-side and transport failures carry
@@ -144,7 +144,7 @@ errors  # [%Posta.BatchError{index: 1, message: "..."}]
 
 ### Contacts
 
-Contacts are team-global — one per email per team (case-insensitive) — and
+Contacts are team-global (one per email per team (case-insensitive)) and
 addressable by id or email.
 
 ```elixir
@@ -192,7 +192,7 @@ topics  # [%Posta.Contacts.TopicSubscription{id: ..., name: ..., subscription: "
 
 # Hosted preference page (the one the contact's unsubscribe links open)
 {:ok, link} = Posta.Contacts.preferences_link(%{email: "ada@acme.dev"})
-link.url   # signed, contact-scoped, no expiry — hand it only to the contact
+link.url   # signed, contact-scoped, no expiry: hand it only to the contact
 ```
 
 ### Contact properties
@@ -211,7 +211,7 @@ Posta.ContactProperties.remove(id)
 Posta.Topics.create(%{name: "Product updates", default_subscription: :opt_in,
                       visibility: :public})
 Posta.Topics.get(id)
-Posta.Topics.list()      # a plain list — topics are unpaginated
+Posta.Topics.list()      # a plain list: topics are unpaginated
 Posta.Topics.update(id, %{description: "Monthly digest"})
 Posta.Topics.remove(id)
 ```
@@ -236,7 +236,7 @@ Posta.Broadcasts.remove(id)                                      # draft only
 
 ### Segments
 
-A segment with a `filter` is dynamic — a saved query over the team's contacts
+A segment with a `filter` is dynamic: a saved query over the team's contacts
 (a Posta extension; Resend segments are static lists). Without a filter
 it is a plain list you add contacts to.
 
@@ -284,7 +284,7 @@ Posta.Domains.remove(id)
 
 ```elixir
 {:ok, key} = Posta.ApiKeys.create(%{name: "ci", permission: :sending_access, domain_id: id})
-key.token        # shown once — store it
+key.token        # shown once: store it
 Posta.ApiKeys.list()
 Posta.ApiKeys.remove(id)
 ```
@@ -331,7 +331,7 @@ Posta.Templates.remove("welcome")
 
 ### Deliverability (Posta extension)
 
-Deliverability scores are 0–10 with one decimal. `Posta.Emails.get/2`
+Deliverability scores are 0 to 10 with one decimal. `Posta.Emails.get/2`
 returns the email's `score` (`nil` when no insights exist);
 `get_insights/2` returns the full per-email report (a `"not_found"` error until
 insights exist); `Posta.Deliverability.get/1` returns the account-level

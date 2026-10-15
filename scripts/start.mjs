@@ -1,8 +1,8 @@
 // Self-host process supervisor. PROCESS selects what runs in this container:
 // api | worker | web | smtp | docs | mx | all (default all). Migrations run
-// first so a fresh database is usable on first boot — except for docs and mx
+// first so a fresh database is usable on first boot, except for docs and mx
 // containers, which have no database at all. "all" excludes smtp, docs and
-// mx — each is opt-in via its own compose service.
+// mx: each is opt-in via its own compose service.
 import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-// ponytail: tsx at runtime is the ceiling here — it resolves NodeNext ".js"
+// ponytail: tsx at runtime is the ceiling here; it resolves NodeNext ".js"
 // specifiers to .ts sources, which node --experimental-strip-types cannot.
 // Precompiled dist images are the upgrade path if boot time or image size hurts.
 // Node runs each entry with its package's tsx loader (pnpm links tsx into each

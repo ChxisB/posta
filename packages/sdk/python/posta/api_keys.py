@@ -8,7 +8,7 @@ from ._client import list_query, path_id, request
 class ApiKeys:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /api-keys — name, permission? (full_access|sending_access), domain_id?"""
+        """POST /api-keys: name, permission? (full_access|sending_access), domain_id?"""
         return request("POST", "/api-keys", body=params)
 
     @classmethod

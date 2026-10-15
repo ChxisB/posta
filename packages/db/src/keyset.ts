@@ -6,7 +6,7 @@ import type { AnyPgColumn } from "drizzle-orm/pg-core";
  * cursor's timestamp is read by a scalar subquery in SQL, never through a JS
  * Date: timestamptz stores microseconds and Date keeps milliseconds, so a
  * Date-bound cursor readmits its own row and every row sharing its
- * millisecond (a batch insert shares one now()) — page 2 == page 1, forever.
+ * millisecond (a batch insert shares one now()); page 2 == page 1, forever.
  */
 export function keysetCursorWhere(
   createdAt: AnyPgColumn,

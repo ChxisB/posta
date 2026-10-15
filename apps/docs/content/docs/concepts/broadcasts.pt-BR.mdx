@@ -19,9 +19,9 @@ draft → scheduled → sending → sent
 
 - Transmissões são criadas como **rascunhos** (`draft`). Só rascunhos podem ser
   editados ou apagados.
-- `POST /broadcasts/{id}/send` agenda o envio — imediatamente, ou em um
+- `POST /broadcasts/{id}/send` agenda o envio: imediatamente, ou em um
   timestamp `scheduled_at`.
-- Uma transmissão **na fila** — agendada, ou já saindo — pode ser cancelada com
+- Uma transmissão **na fila** (agendada, ou já saindo) pode ser cancelada com
   `POST /broadcasts/{id}/cancel`. Os e-mails já enviados não voltam; o
   `canceled_remaining` da resposta diz quantos foram parados, e o
   `sent_count` de uma leitura diz quantos já tinham saído.
@@ -35,16 +35,16 @@ draft → scheduled → sending → sent
 Cada e-mail de destinatário passa pelo mesmo pipeline de um envio
 transacional, mais o tratamento específico de transmissão:
 
-- **Resolução de audiência** — contatos descadastrados globalmente são sempre
+- **Resolução de audiência**: contatos descadastrados globalmente são sempre
   excluídos; filtros de segmento e inscrições em tópicos são avaliados no
   momento do envio.
-- **Checagens de supressão** — endereços na
+- **Checagens de supressão**: endereços na
   [lista de supressão](/pt-BR/concepts/suppressions) são pulados.
-- **Campos de mesclagem** — valores por contato (nome, propriedades
+- **Campos de mesclagem**: valores por contato (nome, propriedades
   personalizadas) são substituídos no template.
-- **Links de descadastro** — headers `List-Unsubscribe` de um clique
+- **Links de descadastro**: headers `List-Unsubscribe` de um clique
   (RFC 8058) e um link de descadastro hospedado são adicionados a cada
-  mensagem. Para colocar o link no corpo, escreva `{{{UNSUBSCRIBE_URL}}}` —
+  mensagem. Para colocar o link no corpo, escreva `{{{UNSUBSCRIBE_URL}}}`:
   ele é substituído por destinatário pela URL de descadastro hospedada.
   `{{{RESEND_UNSUBSCRIBE_URL}}}` é um alias suportado, então templates
   escritos para o Resend continuam funcionando sem mudança (e voltam sem
@@ -59,7 +59,7 @@ no ritmo da taxa de envio do SES da instância.
 <Callout type="info">
 Em uma instância auto-hospedada, os links de descadastro são construídos a
 partir de `APP_BASE_URL`, então o envio de transmissões é rejeitado até que ela
-esteja configurada — veja
+esteja configurada: veja
 [Auto-hospedagem](/pt-BR/self-hosting#referência-de-ambiente). Na Nuvem isso
 é automático.
 </Callout>
@@ -89,13 +89,13 @@ O envio avisa de antemão:
 
 - `finishes_at` é o instante estimado em que o último e-mail sai; `null`
   quando não há estimativa. É uma estimativa: outros envios a movem.
-- `warning` só aparece quando o envio leva mais de uma leva — `paced` quando a
+- `warning` só aparece quando o envio leva mais de uma leva: `paced` quando a
   audiência passa da capacidade disponível agora, `queued_behind` quando
   outros envios estão na frente (a mensagem diz quando este começa).
 - Enquanto uma transmissão está saindo, `GET /broadcasts/{id}` e a lista trazem
   `finishes_at` ao vivo e `sent_count`.
-- Uma audiência que precisaria de mais de 24 dias de capacidade — da
-  plataforma, ou do limite do seu plano — é recusada com
+- Uma audiência que precisaria de mais de 24 dias de capacidade (da
+  plataforma, ou do limite do seu plano) é recusada com
   `422 broadcast_too_large` em vez de aceita e deixada esperando. Divida em
   segmentos menores ou fale com o suporte.
 
@@ -104,7 +104,7 @@ O envio avisa de antemão:
 - Somente um **domínio verificado** da sua equipe pode aparecer em `from`.
 - Se sua taxa recente de bounce ou reclamação cruzou o limite de pausa do
   SES, novos envios de transmissão são bloqueados com um erro
-  `403 sending_paused` — contendo o estrago antes que o SES pause o envio por
+  `403 sending_paused`: contendo o estrago antes que o SES pause o envio por
   completo.
 - Se a taxa agregada de bounce ou de reclamações da plataforma na região SES do
   seu remetente se aproxima do limite em que o SES age sobre a conta, envios de
@@ -117,8 +117,8 @@ transmissões.
 
 ## Mudanças recentes
 
-- Uma transmissão com e-mails ainda esperando — por capacidade, ou pela virada
-  do limite do plano — aparece como `queued` com `sent_at` nulo até o último
+- Uma transmissão com e-mails ainda esperando (por capacidade, ou pela virada
+  do limite do plano) aparece como `queued` com `sent_at` nulo até o último
   e-mail sair. Antes aparecia como `sent` assim que todos os e-mails eram
   gravados.
 - Uma audiência cujo limite do plano precisaria de mais de 24 dias é recusada

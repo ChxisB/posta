@@ -55,7 +55,7 @@ export function auditRow(event: AuditEvent): typeof schema.auditLog.$inferInsert
 
 /**
  * Append one audit row. Call AFTER the mutation commits (never inside its
- * transaction): the write is best-effort — a failure is logged and swallowed
+ * transaction): the write is best-effort; a failure is logged and swallowed
  * so the trail can never fail the action it records.
  */
 export async function recordAudit(db: Db, event: AuditEvent): Promise<void> {

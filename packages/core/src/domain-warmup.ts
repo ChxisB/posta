@@ -33,7 +33,7 @@ import { DAY_MS, utcDay } from "./utc-day.js";
 /** Tier i applies while the domain is younger than WARMUP_TIER_DAYS[i] days; past the last, none. */
 const WARMUP_TIER_DAYS = [1, 7, 30] as const;
 export const WARMUP_FULL_TIER = WARMUP_TIER_DAYS.length;
-/** An unknown age reads as the 1–7 day tier for a team the monitor still counts as new. */
+/** An unknown age reads as the 1 to 7 day tier for a team the monitor still counts as new. */
 const UNKNOWN_AGE_TIER = 1;
 
 /**
@@ -132,7 +132,7 @@ export interface WarmupCap {
  * The warm-up cap on a send from `domainId` at `at`, null when none applies:
  * the instance's own team, an operator's trust, an old domain, the switch
  * off. An unknown age (no source had a date, or the lookup has not landed)
- * is the 1–7 day tier for a team the monitor counts as new or on probation,
+ * is the 1 to 7 day tier for a team the monitor counts as new or on probation,
  * and no cap for an established one. With it, the pool: the highest cap
  * among the team's verified domains warming up, this one included, since a
  * domain that cannot send must not raise what the others may.
@@ -268,7 +268,7 @@ export async function admitWarmup(
 
 /**
  * Early graduation, run by the safety cron: a domain still warming up moves
- * one tier up when its settled sends since its last tier change are clean —
+ * one tier up when its settled sends since its last tier change are clean:
  * at least WARMUP_GRADUATION_SENDS delivered, the first a day old, hard
  * bounces and complaints under their lines, and no phishing-type verdict from
  * the content monitor on its team. Rows sharing a registrable domain move

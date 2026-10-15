@@ -6,7 +6,7 @@ import { makeMergeToken } from "./merge-fields";
 
 /**
  * Server-only email renderer. @maily-to/render pulls in juice + @react-email,
- * which are heavy and Node-bound — never import this from a client component.
+ * which are heavy and Node-bound, never import this from a client component.
  * Editor documents are stored as Maily/Tiptap JSON in the `document` jsonb; the
  * `html` column is the source of send, produced here on save.
  */

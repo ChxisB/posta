@@ -7,7 +7,7 @@ module Posta
       # POST /emails/batch with a bare array body. The trailing hash carries
       # idempotency_key and batch_validation ("strict", the default, rejects the
       # whole batch on one invalid item; "permissive" sends the valid subset and
-      # lists the rest under errors[]) — either flat or under options:, like
+      # lists the rest under errors[]), either flat or under options:, like
       # Emails.send.
       def send(list, options = {})
         Posta::Request.new(

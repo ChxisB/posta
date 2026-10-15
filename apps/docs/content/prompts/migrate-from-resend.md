@@ -1,16 +1,16 @@
 # Migrate this project from Resend to Posta
 
-You are migrating an application from Resend to Posta. Posta's REST API is wire-compatible with Resend's — same endpoints, same request and response shapes — so this is a configuration change plus one account-data move, not a rewrite. Work through the steps in order. Stop and ask before anything irreversible. Never print, log, or commit an API key.
+You are migrating an application from Resend to Posta. Posta's REST API is wire-compatible with Resend's (same endpoints, same request and response shapes) so this is a configuration change plus one account-data move, not a rewrite. Work through the steps in order. Stop and ask before anything irreversible. Never print, log, or commit an API key.
 
 ## Facts you can rely on
 
 - Cloud API base URL: `https://api.posta.example`. Self-hosted: the instance's own API origin (ask if it is not in the repo).
 - API keys start with `po_` and are created in the dashboard under **API keys**. Use a full-access key for the migration and sending-access keys for production senders.
-- Documentation: https://docs.posta.example — append `.md` to any page URL for markdown, `/llms-full.txt` is everything in one file, `/openapi.json` is the OpenAPI 3.1 spec. The migration guide is https://docs.posta.example/migrate-from-resend.md and the CLI reference is https://docs.posta.example/cli.md.
+- Documentation: https://docs.posta.example, append `.md` to any page URL for markdown, `/llms-full.txt` is everything in one file, `/openapi.json` is the OpenAPI 3.1 spec. The migration guide is https://docs.posta.example/migrate-from-resend.md and the CLI reference is https://docs.posta.example/cli.md.
 - The migration CLI (`@tack-labs/posta-cli`) only ever reads from Resend (`GET` requests), keeps keys in memory, writes them to no file, and sends no telemetry.
 - Ids differ between providers: contacts are matched by email, everything else by name, key, alias or endpoint. The CLI's report carries an id map for topics and segments.
 
-## Step 1 — Inventory this codebase
+## Step 1: Inventory this codebase
 
 Find every Resend touchpoint before changing anything, and show the user the list:
 
@@ -22,7 +22,7 @@ Find every Resend touchpoint before changing anything, and show the user the lis
 - Receiving: calls to `resend.emails.receiving.*`, `email.received` handlers, and which addresses of each receiving domain the code relies on.
 - Inboxes (Resend's preview): the `resend@*-preview-inboxes.*` package, calls to `resend.inboxes.*`, the inbox addresses they use, and handlers for `inbox.*` webhook events.
 
-## Step 2 — Move the account
+## Step 2: Move the account
 
 Ask the user for a full-access Resend key, a full-access Posta key, and whether the target is Cloud or a self-hosted URL. Pass keys through environment variables, never as command-line arguments.
 
@@ -46,7 +46,7 @@ Flags worth knowing: `--rps <n>` lowers the read rate against Resend (default 8,
 
 Afterwards read `.posta/migrate-report.md`: counts per resource, the checklist of manual items, the DNS records per domain, and the id map. The tool adds `.posta/` to `.gitignore` when one exists; confirm it did.
 
-## Step 3 — Point the code at Posta
+## Step 3: Point the code at Posta
 
 Choose one of the two, with the user:
 
@@ -68,13 +68,13 @@ Then fix what the report lists:
 - Receiving: a receiving domain here takes mail only at its inboxes' addresses unless its **Catch-all** is on (domain page, or `PATCH /domains/{id}` with `{"receiving_catch_all": true}`; a paid plan on Cloud). If the code receives at arbitrary addresses, as on Resend, the user turns catch-all on before the MX cutover; otherwise each address needs an inbox. Ask which. Docs: https://docs.posta.example/concepts/receiving.md.
 - Inboxes: the account move does not create inboxes. Recreate each inbox the code uses with the same address (`POST /inboxes`), after its domain receives here. Inboxes created through a Resend SDK default to `kind: "agent"` (quarantine, screening, reply-only sending); inboxes read by people need `kind: "human"`, set over plain HTTP or in the dashboard. A reply, forward or draft send can answer `202` with a draft (`object: "inbox_draft"`) when the inbox's rules hold it: make the code handle that. Docs: https://docs.posta.example/concepts/inboxes.md.
 
-## Step 4 — DNS, done by the user
+## Step 4: DNS, done by the user
 
 Posta uses its own DKIM keypair, so every domain needs new DNS records even if it already sends through Resend. The records are in the report and under **Domains** in the dashboard. Both providers can stay verified side by side. Do not switch traffic until each domain reads **Verified**.
 
 A domain that receives mail moves with its MX record: once receiving is on here and catch-all or the inboxes are set up (step 3), the user points the MX at `mx.posta-dns.example` (self-hosted: the instance's `RECEIVING_MX_HOST`). That change is the receiving cutover; mail Resend already received stays there.
 
-## Step 5 — Cut over and verify
+## Step 5: Cut over and verify
 
 1. Re-run `migrate plan` and `migrate apply` right before switching traffic: runs are diffs, so contacts that arrived in between come across and nothing is duplicated.
 2. Deploy the environment changes from step 3.

@@ -9,7 +9,7 @@ import { MenuGlyph } from "@/components/icons/nav-icons";
 import { Sidebar } from "@/components/sidebar";
 
 /**
- * Shared app chrome — sidebar plus the ⌘K palette — around a page's own
+ * Shared app chrome (sidebar plus the ⌘K palette) around a page's own
  * <main>. Every signed-in-with-a-team screen must render inside this so the
  * palette is never dead on a chrome-bearing route.
  *

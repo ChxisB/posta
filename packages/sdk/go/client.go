@@ -1,4 +1,4 @@
-// Package posta is the official Go client for the Posta API — a
+// Package posta is the official Go client for the Posta API: a
 // self-hostable, Resend-compatible email platform.
 //
 // It deliberately mirrors the shape of resend-go, so migrating is close to a
@@ -254,7 +254,7 @@ type BatchError struct {
 	Message string `json:"message"`
 }
 
-// Ptr returns a pointer to v — handy for the optional *string / *bool fields on
+// Ptr returns a pointer to v: handy for the optional *string / *bool fields on
 // update requests, e.g. Unsubscribed: posta.Ptr(true).
 func Ptr[T any](v T) *T { return &v }
 

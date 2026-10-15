@@ -89,7 +89,7 @@ export async function listTeamOwners(
 
 /**
  * The language the instance knows for one address, read the same way;
- * `fallback` when it knows none — the caller's request language, where
+ * `fallback` when it knows none: the caller's request language, where
  * there is a request.
  */
 export async function accountLocale(

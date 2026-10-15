@@ -1,7 +1,7 @@
 /**
  * The one canonical dialog footer: a right-aligned row for a modal's actions.
  * Pass Cancel (po-btn-secondary, filled) first and Confirm (po-btn-primary or
- * po-btn-destructive) second — the flow order the layout preserves left to
+ * po-btn-destructive) second: the flow order the layout preserves left to
  * right. A thin layout wrapper only; it renders whatever buttons it is given.
  */
 export function ModalFooter({ children }: { children: React.ReactNode }) {
@@ -9,7 +9,7 @@ export function ModalFooter({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * The confirm-shortcut badge for a dialog's primary button — every dialog
+ * The confirm-shortcut badge for a dialog's primary button: every dialog
  * shows the same one, matching Modal's onConfirm binding (⌘↵ on Apple
  * platforms, Ctrl↵ elsewhere). Only rendered inside open modals, which never
  * exist at hydration time, so the navigator sniff can't mismatch SSR output.

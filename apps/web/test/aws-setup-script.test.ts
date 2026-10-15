@@ -69,7 +69,7 @@ describe("buildAwsSetupScript", () => {
     expect(script).not.toContain("SES_CONFIGURATION_SET");
   });
 
-  it("never interpolates the raw appBaseUrl — only its sanitized origin", () => {
+  it("never interpolates the raw appBaseUrl, only its sanitized origin", () => {
     const nasty = "https://mail.example.com/$(rm -rf /)?x='y'";
     const script = buildAwsSetupScript({
       region: "us-east-1",

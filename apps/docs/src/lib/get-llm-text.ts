@@ -32,8 +32,8 @@ function inlineRefs(node: Json, depth = 0): Json {
 /**
  * Markdown rendition of a page for agents (*.md routes and /llms-full.txt).
  * API reference pages are generated MDX whose body is just a component call,
- * so they get their operation from the spec — method, path, parameters,
- * request and response schemas with every reference inlined — the shape an
+ * so they get their operation from the spec (method, path, parameters,
+ * request and response schemas with every reference inlined) the shape an
  * agent needs to implement the call without a second fetch.
  */
 export async function getLLMText(page: InferPageType<typeof source>): Promise<string> {

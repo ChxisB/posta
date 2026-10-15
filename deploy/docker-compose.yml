@@ -1,14 +1,14 @@
-# Standalone self-host compose file — no repo clone needed. Quickstart:
+# Standalone self-host compose file: no repo clone needed. Quickstart:
 #   curl -O https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml
 #   curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
 #   (generate the two secrets in .env, then)
 #   docker compose up -d
-# Upgrade: docker compose pull && docker compose up -d — migrations run on boot.
+# Upgrade: docker compose pull && docker compose up -d; migrations run on boot.
 # The default image is the latest tagged release (:edge follows main); to hold
 # a version, set POSTA_IMAGE in .env to a version tag or an immutable
 # @sha256 digest.
 #
-# Optional services sit behind compose profiles — COMPOSE_PROFILES in .env:
+# Optional services sit behind compose profiles: COMPOSE_PROFILES in .env:
 #   docs    the documentation site on DOCS_PORT
 #   smtp    the SMTP relay; mount a STARTTLS keypair first (SELF_HOSTING.md)
 #   mx      inbound mail on port 25; needs RECEIVING_MX_HOST (SELF_HOSTING.md)

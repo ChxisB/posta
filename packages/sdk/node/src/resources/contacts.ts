@@ -69,7 +69,7 @@ export class ContactTopics {
     });
   }
 
-  /** GET /contacts/:id/topics — every team topic with the contact's effective subscription (unpaginated). */
+  /** GET /contacts/:id/topics: every team topic with the contact's effective subscription (unpaginated). */
   list(options: ListContactTopicsOptions): Promise<Result<List<ContactTopic>>> {
     return this.http.request({ method: "GET", path: `${contactPath(options)}/topics` });
   }
@@ -99,7 +99,7 @@ export class ContactSegments {
 export class ContactsBatch {
   constructor(private readonly http: HttpClient) {}
 
-  /** POST /contacts/batch — 1–1000 contacts; `onConflict` and `batchValidation` shape the outcome. */
+  /** POST /contacts/batch: 1 to 1000 contacts; `onConflict` and `batchValidation` shape the outcome. */
   create(
     payload: CreateContactOptions[],
     options: CreateContactsBatchOptions = {},
@@ -114,7 +114,7 @@ export class ContactsBatch {
   }
 
   /**
-   * POST /contacts/batch/get — up to 1000 contacts by id (a bare string) or
+   * POST /contacts/batch/get: up to 1000 contacts by id (a bare string) or
    * `{ email }` in one request, returned in request order; entries that match
    * no contact come back under `missing` instead of failing the call.
    */
@@ -130,7 +130,7 @@ export class ContactsBatch {
   }
 
   /**
-   * POST /contacts/batch/remove — by `ids` or by `emails` (1–1000); lists only
+   * POST /contacts/batch/remove: by `ids` or by `emails` (1 to 1000); lists only
    * the rows deleted. `erase` also scrubs each address from email history.
    */
   remove(options: BatchRemoveContactsOptions): Promise<Result<{ data: RemoveContactResponse[] }>> {
@@ -169,7 +169,7 @@ export class Contacts {
     });
   }
 
-  /** DELETE /contacts/:id — `erase` also scrubs the address from email history (`?erase=true`). */
+  /** DELETE /contacts/:id: `erase` also scrubs the address from email history (`?erase=true`). */
   remove(
     address: string | ContactAddress,
     options: RemoveContactOptions = {},
@@ -181,7 +181,7 @@ export class Contacts {
     });
   }
 
-  /** POST /contacts/:id/preferences-link — the contact's hosted preference page URL (422 when the instance cannot mint links). */
+  /** POST /contacts/:id/preferences-link: the contact's hosted preference page URL (422 when the instance cannot mint links). */
   preferencesLink(address: string | ContactAddress): Promise<Result<ContactPreferencesLink>> {
     return this.http.request({
       method: "POST",

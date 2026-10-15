@@ -44,7 +44,7 @@ function toWire(o: SendEmailOptions) {
 export class Emails {
   constructor(private readonly http: HttpClient) {}
 
-  /** POST /emails — supports an Idempotency-Key. */
+  /** POST /emails: supports an Idempotency-Key. */
   send(
     payload: SendEmailOptions,
     options: RequestOptions = {},
@@ -75,7 +75,7 @@ export class Emails {
     return this.http.request({ method: "GET", path: "/emails", query: listQuery(options) });
   }
 
-  /** PATCH /emails/:id — reschedule a scheduled, unsent email. */
+  /** PATCH /emails/:id: reschedule a scheduled, unsent email. */
   update(payload: UpdateEmailOptions): Promise<Result<UpdateEmailResponse>> {
     return this.http.request({
       method: "PATCH",
@@ -84,7 +84,7 @@ export class Emails {
     });
   }
 
-  /** GET /emails/:id/insights — not_found until insights exist for the email. */
+  /** GET /emails/:id/insights: not_found until insights exist for the email. */
   getInsights(id: string): Promise<Result<EmailInsights>> {
     return this.http.request({
       method: "GET",
@@ -92,7 +92,7 @@ export class Emails {
     });
   }
 
-  /** POST /emails/:id/cancel — only scheduled, unsent emails. */
+  /** POST /emails/:id/cancel: only scheduled, unsent emails. */
   cancel(id: string): Promise<Result<CancelEmailResponse>> {
     return this.http.request({
       method: "POST",
@@ -100,7 +100,7 @@ export class Emails {
     });
   }
 
-  /** DELETE /emails/:id — removes the email and its events. */
+  /** DELETE /emails/:id: removes the email and its events. */
   remove(id: string): Promise<Result<RemoveEmailResponse>> {
     return this.http.request({ method: "DELETE", path: `/emails/${encodeURIComponent(id)}` });
   }
@@ -109,7 +109,7 @@ export class Emails {
 export class Batch {
   constructor(private readonly http: HttpClient) {}
 
-  /** POST /emails/batch — 1–100 emails in one call; supports an Idempotency-Key and `batchValidation`. */
+  /** POST /emails/batch: 1 to 100 emails in one call; supports an Idempotency-Key and `batchValidation`. */
   send(
     payload: SendEmailOptions[],
     options: BatchRequestOptions = {},

@@ -42,7 +42,7 @@ export const domains = pgTable(
     name: text("name").notNull(),
     region: text("region").notNull(),
     status: domainStatusEnum("status").notNull().default("pending"),
-    // BYODKIM: only the selector and public half are stored — the private key
+    // BYODKIM: only the selector and public half are stored; the private key
     // is uploaded to SES at create time and never persisted anywhere. Nullable
     // only so bare fixture inserts stay cheap; the create flow always sets both.
     dkimSelector: text("dkim_selector"),

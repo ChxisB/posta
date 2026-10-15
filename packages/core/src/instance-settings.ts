@@ -12,7 +12,7 @@ export interface InstanceSettings extends MonitorSettingsRow {
 /**
  * Single-row operator overrides (Settings → Instance and the console's
  * monitoring settings). null = unset: the caller falls back to the env var,
- * which already carries the built-in default — precedence is db > env >
+ * which already carries the built-in default; precedence is db > env >
  * default.
  */
 export async function getInstanceSettings(db: Db): Promise<InstanceSettings> {

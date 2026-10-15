@@ -57,7 +57,7 @@ export function registerSuppressionRoutes(
     created_at: row.createdAt.toISOString(),
   });
 
-  // The path segment is the suppression UUID or the address — the resend SDK
+  // The path segment is the suppression UUID or the address: the resend SDK
   // sends either through one parameter. Address lookups match every hash form
   // a stored row may carry and skip erased rows (address column nulled).
   const byIdOrEmail = (teamId: string, idOrEmail: string) =>

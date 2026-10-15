@@ -8,14 +8,14 @@
 set -euf
 
 if [ -z "${S3_BACKUP_BUCKET:-}" ]; then
-  echo "backups disabled — set S3_BACKUP_BUCKET to enable"
+  echo "backups disabled: set S3_BACKUP_BUCKET to enable"
   exit 0
 fi
 
 # BACKUP_CRON keeps its cron shape, but only the daily "<minute> <hour> * * *"
 # form is honoured: BusyBox crond calls initgroups for every job, which needs
 # CAP_SETGID, and this container runs unprivileged with every capability
-# dropped — so the schedule is a sleep loop rather than crond.
+# dropped, so the schedule is a sleep loop rather than crond.
 cron="${BACKUP_CRON:-0 3 * * *}"
 # shellcheck disable=SC2086 # word-split the five cron fields
 set -- $cron

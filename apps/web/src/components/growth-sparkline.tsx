@@ -3,7 +3,7 @@
 /**
  * Audience growth sparkline: cumulative subscribers as a filled area
  * (success tone) with cumulative unsubscribes as a thin line (danger tone)
- * along the bottom — the Resend METRICS block, on our tokens. Pure SVG,
+ * along the bottom; the Resend METRICS block, on our tokens. Pure SVG,
  * with a pointer-tracked hover snapped to the nearest day (ChartTip, same
  * mechanics as the metrics line chart).
  */

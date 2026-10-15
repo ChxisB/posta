@@ -28,7 +28,7 @@ const CUT = "…";
 /**
  * Written with a scheme or as a bare www host; both are links to a reader.
  * The scheme branch takes no word boundary: a link glued to the word before
- * it — or to the tail of a run some other rule matched — is still a link, and
+ * it (or to the tail of a run some other rule matched) is still a link, and
  * a boundary there would let the whole of it through.
  */
 const URL_RE = /(?:https?:\/\/|\bwww\.)[^\s<>"'`)\]]+/gi;
@@ -46,7 +46,7 @@ export function urlsInText(text: string): string[] {
 /**
  * Each run is bounded by its own alphabet rather than by \b: an underscore is
  * a word character, so a boundary would refuse to match after the prefix every
- * modern key wears — sk_live_, whsec_, ghp_ — and hand the secret back whole.
+ * modern key wears (sk_live_, whsec_, ghp_) and hand the secret back whole.
  */
 const SECRETS: RegExp[] = [
   // JWT: three base64url segments.
@@ -218,7 +218,7 @@ function truncate(content: RevealedContent, max: number): RevealedContent {
 /**
  * The only shape of a customer's message an operator ever sees: the rendered
  * visible text of the HTML (hidden elements stripped first, as the content
- * monitor does), or the plain-text part when there is no HTML — redacted and
+ * monitor does), or the plain-text part when there is no HTML; redacted and
  * cut. Never the HTML itself, the recipients, the headers or the attachments.
  */
 export function renderRevealedBody(body: {

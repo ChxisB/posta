@@ -7,7 +7,7 @@ export const revalidate = false;
 // result into .next, which fails on a read-only rootfs.
 export const dynamicParams = false;
 
-// URL shape: /og/<lang>/<...slugs>/image.png — the extension keeps the path
+// URL shape: /og/<lang>/<...slugs>/image.png, the extension keeps the path
 // out of the i18n proxy, which only handles extension-less page URLs.
 export async function GET(
   _req: Request,

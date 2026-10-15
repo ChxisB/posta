@@ -6,7 +6,7 @@ export const ptBR = {
     body: [
       "Olá, {name}, sua conta está pronta.",
       "Primeiro adicione um domínio de envio e publique os registros DNS; os envios saem assim que ele for verificado.",
-      "Depois crie uma chave de API em Chaves de API — ela aparece uma única vez e é o que os SDKs, o SMTP e o servidor MCP usam para enviar.",
+      "Depois crie uma chave de API em Chaves de API: ela aparece uma única vez e é o que os SDKs, o SMTP e o servidor MCP usam para enviar.",
     ],
     button: "Adicionar domínio",
     muted: ["Documentação: {docsUrl}"],
@@ -15,7 +15,7 @@ export const ptBR = {
     subject: "Sua senha do Posta foi alterada",
     body: [
       "A senha de {email} acabou de ser alterada e as outras sessões foram encerradas.",
-      "Se foi você, não há nada a fazer. Se não foi, redefina agora — isso encerra a sessão de quem fez — e revise suas chaves de API e apps conectados.",
+      "Se foi você, não há nada a fazer. Se não foi, redefina agora (isso encerra a sessão de quem fez) e revise suas chaves de API e apps conectados.",
     ],
     button: "Redefinir senha",
   },
@@ -68,7 +68,7 @@ export const ptBR = {
   "domain.verified": {
     subject: "Seu domínio está verificado",
     body: [
-      "Os registros DNS de {domain} estão corretos e ele pode enviar de qualquer endereço — API, SMTP e transmissões.",
+      "Os registros DNS de {domain} estão corretos e ele pode enviar de qualquer endereço; API, SMTP e transmissões.",
       "Continuamos verificando os registros e avisamos se algum sumir.",
     ],
     button: "Abrir domínio",
@@ -76,7 +76,7 @@ export const ptBR = {
   "domain.lost": {
     subject: "Um domínio perdeu a verificação",
     body: [
-      "Um registro DNS obrigatório de {domain} (DKIM ou MAIL FROM) deixou de responder, então os envios são recusados até ele voltar — chamadas à API falham e transmissões agendadas param na hora do envio.",
+      "Um registro DNS obrigatório de {domain} (DKIM ou MAIL FROM) deixou de responder, então os envios são recusados até ele voltar; chamadas à API falham e transmissões agendadas param na hora do envio.",
       "Restaure o registro no seu DNS; a verificação volta sozinha na próxima checagem ou quando você clicar em Verificar.",
     ],
     button: "Abrir domínio",

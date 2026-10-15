@@ -37,7 +37,7 @@ export function printHeader(ctx: Context, text: string): void {
   const { out } = ctx;
   const tier = pickBannerTier(out.columns ?? 0, out.isTTY === true);
   if (tier === "plain") {
-    out.write(`${wrapIndent(`posta ${VERSION} — ${text}`, { hanging: "  " })}\n\n`);
+    out.write(`${wrapIndent(`posta ${VERSION}: ${text}`, { hanging: "  " })}\n\n`);
     return;
   }
   for (const line of banner(tier)) out.write(`${line}\n`);

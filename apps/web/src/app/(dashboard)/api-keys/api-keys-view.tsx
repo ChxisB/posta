@@ -54,7 +54,7 @@ function KeysSkeleton() {
               <Skeleton width={72} />
             </td>
             <td className="right">
-              {/* Loaded rows hold PopoverMenu's 28px bare trigger here — the
+              {/* Loaded rows hold PopoverMenu's 28px bare trigger here: the
                   row's tallest cell content, so the stand-in keeps 28px. */}
               <Skeleton width={28} height={28} radius={8} />
             </td>
@@ -141,7 +141,7 @@ export function ApiKeysView() {
   const closeRevoke = useCallback(() => setRevokeTarget(null), []);
   const closeRename = useCallback(() => setRenameTarget(null), []);
 
-  // Shared by the form submit and Modal's ⌘↵ onConfirm — one guard for both.
+  // Shared by the form submit and Modal's ⌘↵ onConfirm: one guard for both.
   const confirmCreate = () => {
     if (revealedToken) {
       closeCreate();

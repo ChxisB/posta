@@ -4,7 +4,7 @@ import { makeClickToken, makeOpenToken } from "./tracking.js";
 
 /**
  * Rewrites an outgoing HTML body for app-layer engagement tracking. When both
- * toggles are off the html is returned byte-for-byte unchanged — a domain with
+ * toggles are off the html is returned byte-for-byte unchanged: a domain with
  * tracking disabled ships the raw links and no pixel, which is the whole point
  * of owning tracking ourselves instead of letting SES rewrite the mail.
  *
@@ -25,7 +25,7 @@ export interface RewriteOptions {
    * Any href equal to or under this prefix is left un-wrapped by click
    * tracking. For broadcasts the in-body unsubscribe link is already expanded
    * to its real URL before encryption (the {{{-token guard no longer applies),
-   * so wrapping it through /t/c would record a bogus click and add a hop —
+   * so wrapping it through /t/c would record a bogus click and add a hop;
    * pass the `/unsubscribe/` prefix to exclude it.
    */
   skipHrefPrefix?: string;
@@ -34,7 +34,7 @@ export interface RewriteOptions {
 /**
  * Only sign absolute http(s) destinations. mailto:/tel:/relative links have no
  * redirect to protect, and an href still holding an unexpanded mustache token
- * ({{{UNSUBSCRIBE_URL}}} and friends) must pass through untouched — signing the
+ * ({{{UNSUBSCRIBE_URL}}} and friends) must pass through untouched: signing the
  * literal template string would break the link once merged.
  */
 function isTrackableHref(url: string): boolean {

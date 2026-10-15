@@ -9,8 +9,8 @@ import { createCaller } from "@/server/routers";
 import type { Context } from "@/server/trpc";
 
 // The router builds its keyring lazily from the validated env
-// (SKIP_ENV_VALIDATION leaves env reads live), so setting the key here —
-// before any procedure runs — is what production boot does via config.
+// (SKIP_ENV_VALIDATION leaves env reads live), so setting the key here,
+// before any procedure runs, is what production boot does via config.
 const TEST_KEK = randomBytes(32).toString("base64");
 process.env.MASTER_ENCRYPTION_KEY = TEST_KEK;
 

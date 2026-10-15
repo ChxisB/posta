@@ -8,7 +8,7 @@ from ._client import list_query, path_id, request, split_id
 class Webhooks:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /webhooks — endpoint, events[], signing_secret? (whsec_… to reuse instead of minting)."""
+        """POST /webhooks: endpoint, events[], signing_secret? (whsec_… to reuse instead of minting)."""
         return request("POST", "/webhooks", body=params)
 
     @classmethod
@@ -26,7 +26,7 @@ class Webhooks:
 
     @classmethod
     def update(cls, params: Dict[str, Any]) -> Any:
-        """PATCH /webhooks/{id} — ``{"webhook_id" | "id": ..., "endpoint"?, "events"?, "status"?}``."""
+        """PATCH /webhooks/{id}: ``{"webhook_id" | "id": ..., "endpoint"?, "events"?, "status"?}``."""
         webhook_id, body = split_id(params, "webhook_id", "id")
         return request("PATCH", f"/webhooks/{webhook_id}", body=body)
 
@@ -36,7 +36,7 @@ class Webhooks:
 
     @classmethod
     def rotate(cls, webhook_id: str, params: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /webhooks/{id}/rotate — ``{"signing_secret"?: "whsec_…", "overlap_hours"?: 0..72}``.
+        """POST /webhooks/{id}/rotate: ``{"signing_secret"?: "whsec_…", "overlap_hours"?: 0..72}``.
 
         Returns the new ``signing_secret``; ``previous_secret_expires_at`` is when the old one
         stops co-signing deliveries (``None`` when ``overlap_hours`` is 0).

@@ -2,7 +2,7 @@ namespace Posta;
 
 /// <summary>
 /// The result of every SDK call. Methods never throw for an API or transport
-/// error — inspect <see cref="Success"/>, then read <see cref="Content"/> on
+/// error: inspect <see cref="Success"/>, then read <see cref="Content"/> on
 /// success or <see cref="Exception"/> on failure.
 /// </summary>
 public sealed class PostaResponse<T>

@@ -12,7 +12,7 @@ import { createCaller } from "@/server/routers";
 process.env.MASTER_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64");
 
 // vitest.config sets SKIP_ENV_VALIDATION, so env reads stay live process.env
-// reads — send's APP_BASE_URL gate is exercised by setting/clearing it here.
+// reads: send's APP_BASE_URL gate is exercised by setting/clearing it here.
 process.env.APP_BASE_URL = "http://localhost:3000";
 
 vi.mock("@posta/db", async (importOriginal) => {

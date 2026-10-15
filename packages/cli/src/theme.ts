@@ -42,13 +42,13 @@ export const info = sgr("36", "39");
 export const note = sgr("35", "39");
 /** Secondary text. */
 export const dim = sgr("2", "22");
-/** Reserved for numbers and the one thing to act on — never a whole paragraph. */
+/** Reserved for numbers and the one thing to act on, never a whole paragraph. */
 export const bold = sgr("1", "22");
 /** Bold bright white. */
 export const accent = sgr("1;97", "22;39");
-/** Bright white — the selected row in a list prompt. */
+/** Bright white: the selected row in a list prompt. */
 export const bone = sgr("97", "39");
-/** Inverse video — the product mark at the head of a guided flow; renders on every theme. */
+/** Inverse video: the product mark at the head of a guided flow; renders on every theme. */
 export const badge = sgr("7", "27");
 
 export const SYM = {

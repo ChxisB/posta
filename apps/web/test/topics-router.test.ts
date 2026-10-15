@@ -263,7 +263,7 @@ describe("topic-scoped unsubscribe route", () => {
     const res = await post(token);
     expect(res.status).toBe(303);
     expect((await subscriptionRow(contactId, topic.id))?.subscribed).toBe(false);
-    // Global flag and the sibling topic are untouched — no row, still default.
+    // Global flag and the sibling topic are untouched: no row, still default.
     const [c] = await db.select().from(schema.contacts).where(eq(schema.contacts.id, contactId));
     expect(c?.unsubscribed).toBe(false);
     expect(await subscriptionRow(contactId, other.id)).toBeNull();

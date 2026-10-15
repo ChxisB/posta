@@ -12,7 +12,7 @@ final class Batch
     public function __construct(private readonly HttpClient $http) {}
 
     /**
-     * POST /emails/batch — 1..100 emails in one call, sent as a bare JSON array.
+     * POST /emails/batch: 1..100 emails in one call, sent as a bare JSON array.
      * Options: `idempotencyKey`/`idempotency_key` (Idempotency-Key header) and
      * `batchValidation`/`batch_validation` (`strict`, the server default, fails
      * the whole batch on one invalid item; `permissive` sends the valid ones and

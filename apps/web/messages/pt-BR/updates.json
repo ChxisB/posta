@@ -11,7 +11,7 @@
     "confirmPrompt": "Inscrever {email} nas novidades do Posta?",
     "confirmButton": "Sim, quero receber",
     "invalidEmail": "Isso não parece um endereço de e-mail.",
-    "tryLater": "Muitas tentativas — tente de novo mais tarde."
+    "tryLater": "Muitas tentativas: tente de novo mais tarde."
   },
   "email": {
     "subject": "Confirme sua inscrição nas novidades do Posta",
@@ -20,6 +20,6 @@
     "button": "Confirmar inscrição",
     "linkFallback": "Ou copie e cole este link no seu navegador:",
     "expiry": "Este link expira em {hours} horas.",
-    "ignore": "Se não foi você, ignore este e-mail — nada é armazenado até que o link seja aberto."
+    "ignore": "Se não foi você, ignore este e-mail: nada é armazenado até que o link seja aberto."
   }
 }

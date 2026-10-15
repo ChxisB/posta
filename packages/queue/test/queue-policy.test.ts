@@ -286,7 +286,7 @@ it("fails loudly when a pre-existing queue has a policy that ignores singletonKe
   await expect(queue.send("email.send", { emailId: "e1" }, { dedupeKey: "e1" })).rejects.toThrow(
     /policy/,
   );
-  // The job was never enqueued — silent duplicate sends are worse than a 500.
+  // The job was never enqueued: silent duplicate sends are worse than a 500.
   expect(sent).toHaveLength(0);
 });
 

@@ -25,7 +25,7 @@ export const topics = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     // opt-in (true): a contact is subscribed unless it explicitly opts out.
-    // Immutable after creation — flipping it would silently reinterpret every
+    // Immutable after creation: flipping it would silently reinterpret every
     // absent subscription row, so the default is fixed at creation time.
     defaultSubscribed: boolean("default_subscribed").notNull(),
     visibility: topicVisibilityEnum("visibility").notNull().default("private"),

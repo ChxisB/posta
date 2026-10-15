@@ -23,8 +23,8 @@
     "subject": "Subject",
     "loadMore": "Load more",
     "empty": "No emails yet.",
-    "emptyHint": "Send your first email through the API — <code>POST /emails</code>.",
-    "pageOf": "Page 1 – {pages} of {total} emails",
+    "emptyHint": "Send your first email through the API: <code>POST /emails</code>.",
+    "pageOf": "Page 1 to {pages} of {total} emails",
     "pageSize": "{count} items",
     "noMatch": "No emails match your filters.",
     "statusFilter": "Status \"{status}\"",
@@ -33,10 +33,10 @@
     "retry": "Retry",
     "capBanner": {
       "reached": "Today's {limit}-email limit reached.",
-      "queued": "{count} emails queued — they'll send in {duration}.",
+      "queued": "{count} emails queued: they'll send in {duration}.",
       "upgrade": "Upgrade for a higher cap →",
       "reachedMonth": "Monthly quota of {limit} emails reached.",
-      "queuedMonth": "{count} emails queued — they'll send when the period renews on {date}, or as soon as overage is on."
+      "queuedMonth": "{count} emails queued: they'll send when the period renews on {date}, or as soon as overage is on."
     },
     "allDomains": "All domains",
     "when": "When",
@@ -72,7 +72,7 @@
     "apiKey": "API key",
     "events": "Email events",
     "noEvents": "0 events.",
-    "eventsStalled": "No other events will show — SES can only push delivery events to a public https URL, and this deployment doesn't have one. Re-run setup to create the SQS events queue the worker polls instead; new emails then get events within seconds. Emails sent before that stay as they are.",
+    "eventsStalled": "No other events will show: SES can only push delivery events to a public https URL, and this deployment doesn't have one. Re-run setup to create the SQS events queue the worker polls instead; new emails then get events within seconds. Emails sent before that stay as they are.",
     "event": {
       "rendering_failure": "Rendering failure",
       "prefetched": "Prefetched",
@@ -104,7 +104,7 @@
     },
     "retriesUntil": "retries until {time}",
     "bounceBanner": {
-      "hard": "Hard bounce — this address can't receive mail.",
+      "hard": "Hard bounce: this address can't receive mail.",
       "suppressed": "It was added to your <link>suppression list</link>."
     },
     "preview": "Preview",
@@ -158,7 +158,7 @@
     "notCheckedWhy": "DNS state unavailable at send time.",
     "notApplicableToggle": "{count, plural, one {# check not applicable} other {# checks not applicable}}",
     "byDesign": "by design",
-    "byDesignNote": "Posta enforces this structurally — it cannot fail here.",
+    "byDesignNote": "Posta enforces this structurally: it cannot fail here.",
     "adviceLabel": "What to do",
     "detailLabel": "Detail",
     "kb": "{kb} KB",
@@ -170,13 +170,13 @@
       },
       "auth_alignment": {
         "title": "SPF and DKIM alignment",
-        "description": "SPF and DKIM pass and align with your From domain — the base requirement of every major mailbox provider.",
-        "advice": "Nothing to do — Posta verifies SPF and DKIM on your domain before any send leaves."
+        "description": "SPF and DKIM pass and align with your From domain: the base requirement of every major mailbox provider.",
+        "advice": "Nothing to do: Posta verifies SPF and DKIM on your domain before any send leaves."
       },
       "list_unsubscribe": {
         "title": "One-click unsubscribe headers",
         "description": "The message carries List-Unsubscribe and List-Unsubscribe-Post headers. Gmail and Yahoo require one-click unsubscribe for bulk senders.",
-        "advice": "Send marketing through broadcasts or topics — Posta injects both headers automatically."
+        "advice": "Send marketing through broadcasts or topics. Posta injects both headers automatically."
       },
       "link_domains_match": {
         "title": "Links match your domain",
@@ -185,12 +185,12 @@
       },
       "no_shorteners": {
         "title": "No link shorteners",
-        "description": "Shortened links (bit.ly, tinyurl and similar) hide the destination and are heavily abused. With click tracking on, a shortener becomes a tracking-wrapped double redirect — a documented phishing pattern for Gmail. youtu.be is YouTube's own share domain and only counts while click tracking would wrap it.",
-        "advice": "Use full destination URLs — youtube.com/watch instead of youtu.be. Click tracking already reports what was clicked."
+        "description": "Shortened links (bit.ly, tinyurl and similar) hide the destination and are heavily abused. With click tracking on, a shortener becomes a tracking-wrapped double redirect: a documented phishing pattern for Gmail. youtu.be is YouTube's own share domain and only counts while click tracking would wrap it.",
+        "advice": "Use full destination URLs: youtube.com/watch instead of youtu.be. Click tracking already reports what was clicked."
       },
       "body_size": {
         "title": "HTML size",
-        "description": "Gmail clips messages whose HTML exceeds 102KB — everything past the clip point, unsubscribe footer included, hides behind \"View entire message\".",
+        "description": "Gmail clips messages whose HTML exceeds 102KB: everything past the clip point, unsubscribe footer included, hides behind \"View entire message\".",
         "advice": "Keep the HTML under 102KB: fewer inlined styles, shorter content, nothing embedded."
       },
       "plain_text": {
@@ -205,7 +205,7 @@
       },
       "phishing_links": {
         "title": "No phishing-pattern links",
-        "description": "No link text naming a different domain than its destination, no links to raw IP addresses, no http links claiming to be https — the patterns phishing filters match on.",
+        "description": "No link text naming a different domain than its destination, no links to raw IP addresses, no http links claiming to be https: the patterns phishing filters match on.",
         "advice": "Make link text agree with the destination and never link to bare IPs."
       },
       "no_reply_from": {
@@ -215,7 +215,7 @@
       },
       "svg_images": {
         "title": "No SVG images",
-        "description": "SVG does not render in most email clients — Gmail and Outlook show a blank where the image should be.",
+        "description": "SVG does not render in most email clients. Gmail and Outlook show a blank where the image should be.",
         "advice": "Export images as PNG or JPEG."
       },
       "attachments_marketing": {
@@ -245,12 +245,12 @@
       },
       "subject_lint": {
         "title": "Subject line",
-        "description": "The subject avoids all-caps and runs of !!! or ??? — both trip content filters.",
+        "description": "The subject avoids all-caps and runs of !!! or ???: both trip content filters.",
         "advice": "Sentence-case the subject and drop the repeated punctuation."
       },
       "image_alt_text": {
         "title": "Image alt text",
-        "description": "Every image carries alt text — what recipients see while images load or stay blocked, and what screen readers read.",
+        "description": "Every image carries alt text: what recipients see while images load or stay blocked, and what screen readers read.",
         "advice": "Give each meaningful image an alt attribute."
       },
       "images_offsite": {
@@ -291,10 +291,10 @@
       "hint": "Register every domain and subdomain you send from, and every From address, exactly as used. Relay addresses only accept mail from registered senders.",
       "article": "How to stop bounces to @privaterelay.appleid.com recipients"
     },
-    "acceptedThenBounced": "The recipient's server accepted this message first (see the delivered event) and returned it afterwards from inside its own system — a forward, a full mailbox or an auto-reply read as a bounce. Nothing retries it."
+    "acceptedThenBounced": "The recipient's server accepted this message first (see the delivered event) and returned it afterwards from inside its own system: a forward, a full mailbox or an auto-reply read as a bounce. Nothing retries it."
   },
   "occurrencesDrawer": {
-    "title": "{label} — {count, plural, one {# event} other {# events}}",
+    "title": "{label}: {count, plural, one {# event} other {# events}}",
     "subtitle": "Newest first · offset from send"
   },
   "suppressedDrawer": {
@@ -304,7 +304,7 @@
     "recipient": "Recipient",
     "blocked": "Sends to this address are blocked to protect your domain reputation. The API returns <code>422 suppressed_recipient</code>.",
     "suggestedActions": "Suggested actions",
-    "step1": "Confirm the mailbox exists now — removing early usually re-bounces.",
+    "step1": "Confirm the mailbox exists now: removing early usually re-bounces.",
     "step2": "Then remove the suppression; the next send goes through normally.",
     "remove": "Remove email address"
   },
@@ -340,7 +340,7 @@
     "clearFilters": "Clear filters",
     "loadError": "Couldn't load suppressions.",
     "retry": "Retry",
-    "pageOf": "Page 1 – {pages} of {total} suppressions",
+    "pageOf": "Page 1 to {pages} of {total} suppressions",
     "pageSize": "{count} items",
     "reason": {
       "hard_bounce": "Bounce",
@@ -355,7 +355,7 @@
       "recipient": "Recipient",
       "added": "Added",
       "details": "Details",
-      "removeNote": "Removing an address that bounced permanently will likely bounce again — remove it only after the mailbox is fixed."
+      "removeNote": "Removing an address that bounced permanently will likely bounce again: remove it only after the mailbox is fixed."
     },
     "removeDialog": {
       "title": "Remove email address",

@@ -253,7 +253,7 @@ export function DomainsView() {
                     <th className="right" style={{ width: "13%" }}>
                       {t("list.columns.created")}
                     </th>
-                    {/* Overflow-action column — no header label. */}
+                    {/* Overflow-action column; no header label. */}
                     <th className="right" />
                   </tr>
                 </thead>

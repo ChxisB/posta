@@ -5,14 +5,14 @@
  * code that switches on `error.name` ports across unchanged.
  */
 export interface ErrorResponse {
-  /** Stable snake_case code — the discriminant, e.g. "validation_error", "not_found". */
+  /** Stable snake_case code: the discriminant, e.g. "validation_error", "not_found". */
   name: string;
   message: string;
   /** HTTP status; null when the request never reached the API. */
   statusCode: number | null;
 }
 
-/** Every method resolves to this — it never throws for an API error. */
+/** Every method resolves to this: it never throws for an API error. */
 export type Result<T> = { data: T; error: null } | { data: null; error: ErrorResponse };
 
 /** Coerce an arbitrary parsed error body into the canonical shape. */

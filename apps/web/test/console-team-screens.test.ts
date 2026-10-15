@@ -126,7 +126,7 @@ describe("the team's id on the console's team screens", () => {
     // breaks before it rather than inside "owner …".
     expect(html).toMatch(
       new RegExp(
-        `<span class="po-part">owner —\u00a0·</span> <span class="po-part">${copyChip(teamId).source}`,
+        `<span class="po-part">owner -\u00a0·</span> <span class="po-part">${copyChip(teamId).source}`,
       ),
     );
   });

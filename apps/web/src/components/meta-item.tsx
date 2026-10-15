@@ -1,7 +1,7 @@
 /**
  * Labeled cell of a detail page's meta grid. The value row is a centered
- * flex line with a fixed min-height, so mixed-height values in one grid — an
- * id CopyChip (~26px) beside a status badge (~22px) — share a vertical
+ * flex line with a fixed min-height, so mixed-height values in one grid (an
+ * id CopyChip (~26px) beside a status badge (~22px)) share a vertical
  * center instead of hanging from uneven tops.
  */
 export function MetaItem({ label, children }: { label: string; children: React.ReactNode }) {

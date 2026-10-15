@@ -10,7 +10,7 @@ import { createApi } from "../src/app.js";
 
 /**
  * Wire-compat gate for API-key management: the official `resend` npm SDK
- * against a live Posta API — apiKeys.create/list/remove, the once-only
+ * against a live Posta API; apiKeys.create/list/remove, the once-only
  * token, domain scoping, and revocation taking effect immediately.
  */
 

@@ -18,7 +18,7 @@
   "onlyInboxes": "Só estas caixas",
   "eventsCount": "{count, plural, one {# evento} other {# eventos}}",
   "loadMore": "Carregar mais",
-  "pageOf": "Página 1 – {pages} de {total} webhooks",
+  "pageOf": "Página 1 a {pages} de {total} webhooks",
   "pageSize": "{count} itens",
   "eventGroup": {
     "delivery": "Entrega",
@@ -154,7 +154,7 @@
     "eyebrow": "Webhook",
     "sendTest": "Enviar evento de teste",
     "testQueued": "Evento de teste na fila.",
-    "testRateLimited": "Muitos eventos de teste — tente de novo em um minuto.",
+    "testRateLimited": "Muitos eventos de teste: tente de novo em um minuto.",
     "testFailed": "Não foi possível enviar o evento de teste.",
     "moreActions": "Ações do webhook",
     "url": "URL",
@@ -174,7 +174,7 @@
     "noResponse": "Nenhuma resposta registrada.",
     "prev": "Anterior",
     "next": "Próxima",
-    "pageOf": "{from}–{to}",
+    "pageOf": "{from} a {to}",
     "notFound": "Webhook não encontrado.",
     "previousSecret": "O segredo anterior também assina até {date}"
   },

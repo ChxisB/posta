@@ -156,8 +156,8 @@ function isSeparator(c: string): boolean {
 /**
  * Whether a digit run is exactly one date in ASCII digits with one separator
  * throughout ("09/10/2026" either way round, "9.10.2026", "2026-10-09"; years
- * 1900–2099) or one span of up to ten years ("2025-2026", "2025–2026",
- * "2025/2026"). Names and subjects carry them, and the shape fixes too many
+ * 1900 to 2099) or one span of up to ten years ("2025-2026", "2025/2026" or the
+ * same with an en dash). Names and subjects carry them, and the shape fixes too many
  * digits to spell a chosen number.
  */
 function isDateOrYears(run: string): boolean {

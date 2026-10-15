@@ -8,7 +8,7 @@ import { useTRPC } from "@/lib/trpc";
 
 /**
  * Global deliverability notice. Renders nothing while the health query is
- * unresolved or "ok" (a thin strip needs no ghost — it would itself be the
+ * unresolved or "ok" (a thin strip needs no ghost: it would itself be the
  * layout shift it means to avoid). "warning" is an amber nudge; "paused" is a
  * red strip that mirrors the send guard's block. Both link to /metrics,
  * except on /metrics itself.

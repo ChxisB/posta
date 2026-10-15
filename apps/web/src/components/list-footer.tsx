@@ -4,9 +4,9 @@ import { Select } from "@/components/select";
 
 export const PAGE_SIZES = [25, 40, 50] as const;
 
-/** "Page 1 – N of M" footer with the list's controls at the right: the
+/** "Page 1 to N of M" footer with the list's controls at the right: the
  * page-size chooser, then "Load more" (when there is a next page). The
- * chooser only renders when paging is real — when everything already fits
+ * chooser only renders when paging is real, when everything already fits
  * one page, a size choice could only add pagination, never remove it. Omit
  * the chooser props entirely for a static count on an unpaginated list. */
 export function ListFooter({

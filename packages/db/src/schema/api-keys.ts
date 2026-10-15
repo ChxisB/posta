@@ -17,7 +17,7 @@ export const apiKeyPermissionEnum = pgEnum("api_key_permission", ["full_access",
 /**
  * The secret is never stored: only its SHA-256. `tokenPrefix` (e.g. "po_live_a1b2c3")
  * is the indexed lookup handle; verification re-hashes the presented key and
- * compares in constant time. High-entropy machine secrets use a fast hash by design —
+ * compares in constant time. High-entropy machine secrets use a fast hash by design;
  * bcrypt/argon2 are for low-entropy passwords.
  */
 export const apiKeys = pgTable(
@@ -34,7 +34,7 @@ export const apiKeys = pgTable(
     permission: apiKeyPermissionEnum("permission").notNull().default("full_access"),
     // Null = all domains; set = key restricted to one sending domain.
     // restrict, never set-null: deleting a domain must not silently widen a
-    // scoped key into an all-domains key — the delete flow revokes such keys first.
+    // scoped key into an all-domains key; the delete flow revokes such keys first.
     domainId: uuid("domain_id").references(() => domains.id, { onDelete: "restrict" }),
     // Null = not inbox-scoped; set = the key reads and sends for that one
     // inbox only. Restrict for the same reason as domain_id: inbox deletion

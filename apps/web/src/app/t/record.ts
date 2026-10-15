@@ -20,7 +20,7 @@ import { trustedProxies } from "../../server/trusted-proxies";
 /**
  * Signing key for the open/click tokens the /t/o and /t/c endpoints verify.
  * Absent MASTER_ENCRYPTION_KEY (misconfigured deploy) there is no key, so every
- * token is treated as unverifiable — the endpoints degrade to 404 / blank pixel.
+ * token is treated as unverifiable: the endpoints degrade to 404 / blank pixel.
  */
 export function trackingKey(): Buffer | null {
   if (!env.MASTER_ENCRYPTION_KEY) return null;
@@ -31,7 +31,7 @@ export function trackingKey(): Buffer | null {
 export interface EngagementHit {
   userAgent: string | null;
   ipAddress: string | null;
-  /** Click destination — the signed URL the redirect follows. */
+  /** Click destination: the signed URL the redirect follows. */
   link?: string;
 }
 
@@ -117,8 +117,8 @@ interface FoldedClick {
 /**
  * A click recorded before the burst around it could be seen was a
  * machine's after all. The row becomes a prefetch, the open inferred from
- * it goes, and what the click advanced — status, unique counters,
- * deliveries no drain pass holds yet — is taken back. A delivery already
+ * it goes, and what the click advanced (status, unique counters,
+ * deliveries no drain pass holds yet) is taken back. A delivery already
  * posted or leased stays: the opt-in `email.prefetched` that follows
  * carries the click's own timestamp, which is how a consumer learns it was
  * retracted. `folded` is ordered oldest first.
@@ -221,7 +221,7 @@ async function foldBurst(
 
 /**
  * Records an app-layer engagement event for a verified tracking token. The
- * teamId is read from the email row — never taken from the request — so a
+ * teamId is read from the email row (never taken from the request) so a
  * token can only ever touch its own email's team.
  *
  * A pixel fetch is classified first: one a machine plausibly made lands as a
@@ -230,7 +230,7 @@ async function foldBurst(
  * (and fans out webhooks), damped to at most one per minute per (email,
  * type, link): a person who clicks a second link a moment later made a
  * second click. The daily usage counter still advances only on the FIRST
- * event of its type for this email — open/click RATES stay unique-based,
+ * event of its type for this email: open/click RATES stay unique-based,
  * mirroring the old SES OPEN/CLICK path. Both endpoints are public, so a
  * missing/foreign/non-uuid emailId returns silently.
  */
@@ -241,12 +241,12 @@ export async function recordEngagement(
   enqueueWebhookDeliveriesFn?: WebhookEnqueue,
   hit?: EngagementHit,
 ): Promise<void> {
-  // A raw non-uuid string must never reach a uuid column — Postgres would 500.
+  // A raw non-uuid string must never reach a uuid column. Postgres would 500.
   if (!z.uuid().safeParse(emailId).success) return;
 
   const occurredAt = new Date();
-  // The fetcher's identity in SES's shape — the object Resend's email.clicked
-  // carries as `click` — so the webhook payload and the detail page read one
+  // The fetcher's identity in SES's shape (the object Resend's email.clicked
+  // carries as `click`) so the webhook payload and the detail page read one
   // record. Absent facts are omitted rather than nulled.
   const fetcher = {
     ...(hit?.ipAddress ? { ipAddress: hit.ipAddress } : {}),
@@ -282,8 +282,8 @@ export async function recordEngagement(
 
     let recorded: RecordedType = type;
     let data: Record<string, unknown>;
-    // A link a machine followed is no click either — security gateways and
-    // link previews fetch every URL seconds after delivery — so clicks pass
+    // A link a machine followed is no click either (security gateways and
+    // link previews fetch every URL seconds after delivery) so clicks pass
     // through the same rules as the pixel and land as prefetches when they fail.
     const verdict = classifyOpen({
       userAgent: hit?.userAgent ?? null,
@@ -362,7 +362,7 @@ export async function recordEngagement(
     if (recorded !== "prefetched") await applyStatusCas(tx, email.id, recorded);
 
     // A person cannot click a link in a message they never rendered, so a
-    // click on an email with no open yet is also its open — the only way one
+    // click on an email with no open yet is also its open: the only way one
     // can ever be recorded for a reader whose client served the pixel from a
     // cache (Apple Mail Privacy Protection). Stamped a millisecond earlier so
     // the timeline reads open, then click; marked so consumers can tell it

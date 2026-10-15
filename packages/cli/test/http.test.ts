@@ -139,7 +139,7 @@ describe("createHttp", () => {
     await vi.advanceTimersByTimeAsync(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect((await pending).body).toEqual({ ok: true });
-    expect(lines.some((l) => l.startsWith("warning: retry 2/8 in 3s — Resend 429"))).toBe(true);
+    expect(lines.some((l) => l.startsWith("warning: retry 2/8 in 3s. Resend 429"))).toBe(true);
   });
 
   it("429 gives up after rateLimitAttempts", async () => {
@@ -169,10 +169,10 @@ describe("createHttp", () => {
     await vi.runAllTimersAsync();
     await expect(pending).rejects.toMatchObject({ status: 503, name: "server_error" });
     expect(lines.filter((l) => l.startsWith("warning: retry"))).toEqual([
-      "warning: retry 2/5 in 1s — Resend 503",
-      "warning: retry 3/5 in 2s — Resend 503",
-      "warning: retry 4/5 in 4s — Resend 503",
-      "warning: retry 5/5 in 8s — Resend 503",
+      "warning: retry 2/5 in 1s. Resend 503",
+      "warning: retry 3/5 in 2s. Resend 503",
+      "warning: retry 4/5 in 4s. Resend 503",
+      "warning: retry 5/5 in 8s. Resend 503",
     ]);
   });
 
@@ -186,7 +186,7 @@ describe("createHttp", () => {
     await vi.runAllTimersAsync();
     expect((await pending).status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(lines).toContain("warning: retry 2/5 in 1s — Resend fetch failed");
+    expect(lines).toContain("warning: retry 2/5 in 1s. Resend fetch failed");
   });
 
   it("network failures name the cause and the side's next step", async () => {
@@ -203,10 +203,10 @@ describe("createHttp", () => {
     pending.catch(() => {});
     await vi.runAllTimersAsync();
     await expect(pending).rejects.toThrow(
-      "Resend: GET /domains failed 2 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check your network to api.resend.com",
+      "Resend: GET /domains failed 2 times; fetch failed (ECONNREFUSED 10.0.0.5:3000); check your network to api.resend.com",
     );
     expect(lines).toContain(
-      "warning: retry 2/2 in 1s — Resend fetch failed (ECONNREFUSED 10.0.0.5:3000)",
+      "warning: retry 2/2 in 1s. Resend fetch failed (ECONNREFUSED 10.0.0.5:3000)",
     );
 
     const target = http(fetchMock, [], {
@@ -217,7 +217,7 @@ describe("createHttp", () => {
     target.catch(() => {});
     await vi.runAllTimersAsync();
     await expect(target).rejects.toThrow(
-      "Posta: GET /usage failed 1 times — fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / POSTA_BASE_URL",
+      "Posta: GET /usage failed 1 times; fetch failed (ECONNREFUSED 10.0.0.5:3000); check --to-url / POSTA_BASE_URL",
     );
   });
 

@@ -51,7 +51,7 @@ export function SearchBox({
 }
 
 /**
- * Loading stand-in mirroring the Emails-area list tables — real header
+ * Loading stand-in mirroring the Emails-area list tables: real header
  * labels over rows shaped like the loaded columns (mono link, badge, text,
  * right-aligned time). No spinners on lists.
  */
@@ -114,7 +114,7 @@ export function ListSkeleton({
   );
 }
 
-/** Filtered-to-zero / error card — bordered, centered, one action. */
+/** Filtered-to-zero / error card: bordered, centered, one action. */
 export function StateCard({
   headline,
   detail,

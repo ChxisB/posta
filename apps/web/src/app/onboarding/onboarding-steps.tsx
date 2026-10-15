@@ -579,7 +579,7 @@ export function OnboardingSteps({
       ) : (
         <div style={{ marginTop: 32, display: "flex", flexDirection: "column" }}>
           {!sesReady ? (
-            /* Leading step — connect AWS SES before anything can send */
+            /* Leading step: connect AWS SES before anything can send */
             <div className="po-step" style={{ display: "flex", gap: 18 }}>
               <StepRail marker="01" color="var(--po-bone)" />
               <StepCard title={t("stepSes.title")} body={t("stepSes.body")}>

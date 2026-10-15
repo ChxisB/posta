@@ -27,7 +27,7 @@ import { Webhooks } from "./resources/webhooks.js";
  * });
  * ```
  *
- * No method throws for an API error — each resolves to `{ data, error }`, with
+ * No method throws for an API error: each resolves to `{ data, error }`, with
  * `error` being an {@link ErrorResponse} discriminated by `error.name`. The only
  * throw is a missing API key at construction.
  */

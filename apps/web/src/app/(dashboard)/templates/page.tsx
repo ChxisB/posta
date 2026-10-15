@@ -109,7 +109,7 @@ export default function TemplatesPage() {
   // Stable identity: Modal's focus effect depends on onClose.
   const closeDelete = useCallback(() => setDeleteTarget(null), []);
 
-  // Guard mirrors the delete button's disabled state — the same check gates
+  // Guard mirrors the delete button's disabled state: the same check gates
   // both the form submit and Modal's Cmd+Enter path.
   const submitDelete = () => {
     if (!deleteTarget || deleteMutation.isPending) return;
@@ -223,7 +223,7 @@ export default function TemplatesPage() {
           }}
         >
           <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
-            {t("list.deleteBody", { name: deleteTarget?.name ?? "—" })}
+            {t("list.deleteBody", { name: deleteTarget?.name ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>

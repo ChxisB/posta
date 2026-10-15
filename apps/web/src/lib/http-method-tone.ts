@@ -1,5 +1,5 @@
 /**
- * Badge tone per HTTP method, following Postman's palette — the one developers
+ * Badge tone per HTTP method, following Postman's palette: the one developers
  * already read: GET green, POST yellow, PUT blue, PATCH purple, DELETE red,
  * HEAD green, OPTIONS pink. Tones name `.po-badge-*` classes and `--po-*` tokens.
  */

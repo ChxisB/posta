@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// A recipient field that accepts a single address or a list — serializes as a
+/// A recipient field that accepts a single address or a list: serializes as a
 /// bare string or a JSON array to match the wire's `string | string[]`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -128,7 +128,7 @@ pub struct BatchError {
     pub message: String,
 }
 
-/// `{ object, id, deleted: true }` — the envelope every `delete` returns.
+/// `{ object, id, deleted: true }`, the envelope every `delete` returns.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Deleted {
     pub object: String,
@@ -139,7 +139,7 @@ pub struct Deleted {
 // ---- shared list envelope ------------------------------------------------
 
 /// Keyset pagination for `list` calls. `after`/`before` are mutually exclusive
-/// UUID cursors; `limit` is 1–100 (server default 20).
+/// UUID cursors; `limit` is 1 to 100 (server default 20).
 #[derive(Debug, Clone, Default)]
 pub struct ListOptions {
     pub limit: Option<u32>,
@@ -265,21 +265,21 @@ pub struct Email {
     pub scheduled_at: Option<String>,
     pub message_id: String,
     pub last_event: String,
-    /// Best-practice score (0–10, one decimal); `None` when the email has no
+    /// Best-practice score (0 to 10, one decimal); `None` when the email has no
     /// insights (sent before the feature landed, or never sent).
     pub score: Option<f64>,
 }
 
-/// `GET /emails/:id/insights` — the pre-send best-practice report computed when
+/// `GET /emails/:id/insights`: the pre-send best-practice report computed when
 /// the email was sent.
 #[derive(Debug, Clone, Deserialize)]
 pub struct EmailInsights {
     pub object: String,
     pub email_id: String,
-    /// Best-practice score, 0–10, one decimal.
+    /// Best-practice score, 0 to 10, one decimal.
     pub score: f64,
     pub score_version: u32,
-    /// `excellent` | `good` | `needs_attention` | `at_risk` — kept a plain
+    /// `excellent` | `good` | `needs_attention` | `at_risk`: kept a plain
     /// string so future bands never break deserialization.
     pub band: String,
     pub marketing: bool,
@@ -311,7 +311,7 @@ pub struct CancelEmailResponse {
     pub id: String,
 }
 
-/// `PATCH /emails/:id` — reschedule a not-yet-sent email.
+/// `PATCH /emails/:id`: reschedule a not-yet-sent email.
 #[derive(Debug, Clone, Serialize)]
 pub struct UpdateEmailOptions {
     pub scheduled_at: String,
@@ -323,7 +323,7 @@ pub struct UpdateEmailResponse {
     pub id: String,
 }
 
-/// `GET /emails` item — the summary without bodies, `message_id` or `score`.
+/// `GET /emails` item: the summary without bodies, `message_id` or `score`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct EmailListItem {
     pub id: String,
@@ -350,13 +350,13 @@ pub struct BatchResponse {
 
 // ---- deliverability ------------------------------------------------------
 
-/// `GET /deliverability` — the account score over the trailing window. Scores
-/// are 0–10 with one decimal; `None` means not enough data to compute.
+/// `GET /deliverability`: the account score over the trailing window. Scores
+/// are 0 to 10 with one decimal; `None` means not enough data to compute.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DeliverabilityReport {
     pub object: String,
     pub score: Option<f64>,
-    /// `excellent` | `good` | `needs_attention` | `at_risk` — a plain string so
+    /// `excellent` | `good` | `needs_attention` | `at_risk`: a plain string so
     /// future bands never break deserialization.
     pub band: Option<String>,
     pub content_score: Option<f64>,
@@ -367,7 +367,7 @@ pub struct DeliverabilityReport {
     pub scored_recipients: u64,
     pub window_days: u32,
     pub insufficient_outcome_data: bool,
-    /// `ok` | `warning` | `paused` — plain string, same leniency rule.
+    /// `ok` | `warning` | `paused`: plain string, same leniency rule.
     pub guardrail_status: String,
     pub score_version: u32,
 }
@@ -404,7 +404,7 @@ impl CreateContactOptions {
     }
 }
 
-/// `{ id }` — a segment referenced from a contact payload.
+/// `{ id }`: a segment referenced from a contact payload.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct SegmentRef {
     pub id: String,
@@ -580,7 +580,7 @@ impl From<&String> for ContactAddress {
     }
 }
 
-/// In a request body an address is `{ "email": … }` or `{ "id": … }` — one key,
+/// In a request body an address is `{ "email": … }` or `{ "id": … }`, one key,
 /// chosen like [`ContactAddress::key`] (email wins), since the API rejects both.
 impl Serialize for ContactAddress {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -1224,7 +1224,7 @@ pub struct UpdateDomainOptions {
 pub struct Domain {
     pub id: String,
     pub name: String,
-    /// `not_started` | `pending` | `verified` | `failed` | … — kept a plain
+    /// `not_started` | `pending` | `verified` | `failed` | …: kept a plain
     /// string so new states never break deserialization.
     pub status: String,
     pub created_at: String,
@@ -1366,7 +1366,7 @@ pub struct WebhookId {
 }
 
 /// Both fields optional: omit `signing_secret` to have one minted;
-/// `overlap_hours` (0–72, server default 24) is how long the previous secret
+/// `overlap_hours` (0 to 72, server default 24) is how long the previous secret
 /// keeps signing alongside the new one. Serializes as `{}` when both are unset.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct RotateWebhookOptions {
@@ -1485,7 +1485,7 @@ pub type DeleteTemplateResponse = Deleted;
 
 // ---- usage (Posta extension) ---------------------------------------
 
-/// `GET /usage` — plan limits and today's send count. Self-hosted instances
+/// `GET /usage`: plan limits and today's send count. Self-hosted instances
 /// report `cloud: false` with `plan: None` and null limits.
 #[derive(Debug, Clone, Deserialize)]
 pub struct UsageReport {

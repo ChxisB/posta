@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/skeleton";
 /**
  * Instant-navigation fallback for every dashboard section. The whole route
  * tree is dynamic (the layout reads auth cookies), and Next only prefetches
- * a dynamic route when it has a loading boundary — without this file a
+ * a dynamic route when it has a loading boundary, without this file a
  * sidebar click sits frozen for a full server round trip before anything
  * moves. Renders inside the persistent AppShell, so only the content area
  * swaps; kept to the shared page anatomy (title, toolbar, surface) because

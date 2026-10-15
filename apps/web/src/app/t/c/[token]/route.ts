@@ -21,7 +21,7 @@ const MESSAGES = { en: en.trackedLink, "pt-BR": ptBR.trackedLink } as const;
 /**
  * Public click-tracking endpoint. The signed token IS the credential and it
  * carries the destination URL inside the signature, so the redirect can only
- * ever follow a URL WE signed at send time — a tampered or foreign token fails
+ * ever follow a URL WE signed at send time: a tampered or foreign token fails
  * verification and gets a 404, never an off-site redirect (no open redirect).
  *
  * The redirect also needs the sender to stand behind its mail still: while the
@@ -82,7 +82,7 @@ async function senderTeam(
   signedTeamId: string | null,
 ): Promise<string | null> {
   // Non-uuid ids can't be minted by us, but a raw string must never reach a
-  // uuid column — Postgres would 500 instead of answering.
+  // uuid column. Postgres would 500 instead of answering.
   const uuid = z.uuid();
   const [email] = uuid.safeParse(emailId).success
     ? await db

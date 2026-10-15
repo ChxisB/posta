@@ -19,7 +19,7 @@ export type UnsignedSnsMessage = Omit<SnsMessage, "Signature">;
 
 /**
  * Signs with the fixture private key over the SAME canonicalString the
- * verifier uses — the signer cannot drift from the verification code.
+ * verifier uses: the signer cannot drift from the verification code.
  */
 export function signSnsMessage<T extends UnsignedSnsMessage>(msg: T): T & { Signature: string } {
   const signer = createSign(msg.SignatureVersion === "2" ? "RSA-SHA256" : "RSA-SHA1");

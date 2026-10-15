@@ -3,15 +3,15 @@ title: Tópicos
 description: Categorias granulares de inscrição com opt-in por contato.
 ---
 
-Tópicos são categorias de inscrição — "Novidades do produto", "Newsletter",
-"Promoções" — que dão aos destinatários um controle mais fino do que um único
+Tópicos são categorias de inscrição ("Novidades do produto", "Newsletter",
+"Promoções") que dão aos destinatários um controle mais fino do que um único
 descadastro global.
 
 Cada tópico tem um `default_subscription` de `opt_in` ou `opt_out`, fixado na
 criação:
 
-- `opt_in` — todo contato está inscrito, a menos que opte por sair.
-- `opt_out` — contatos só são incluídos depois de optarem explicitamente por
+- `opt_in`: todo contato está inscrito, a menos que opte por sair.
+- `opt_out`: contatos só são incluídos depois de optarem explicitamente por
   entrar.
 
 ![A página Tópicos, listando os tópicos de inscrição da equipe.](/screenshots/pt-BR/topics.png)
@@ -24,7 +24,7 @@ criação:
   descadastrados globalmente.
 - **A página de descadastro hospedada** lista os tópicos públicos da equipe,
   então um destinatário pode sair de uma categoria e continuar inscrito nas
-  outras — ou sair de todo e-mail de marketing. Envios transacionais sem
+  outras, ou sair de todo e-mail de marketing. Envios transacionais sem
   `topic_id` não são afetados por nenhuma das duas escolhas. A página fala
   catorze idiomas, escolhido pelo navegador do destinatário
   (`Accept-Language`), inglês quando nenhum corresponde; Configurações →

@@ -158,7 +158,7 @@ export async function regionCounterTotals(
     .from(d)
     .orderBy(asc(d.teamId), sql`${d.verifiedAt} desc nulls last`, desc(d.createdAt))
     .as("team_region");
-  // ::bigint — a region's weekly sum can overflow int4; the driver returns
+  // ::bigint, a region's weekly sum can overflow int4; the driver returns
   // bigint as a string, exact through Number() up to 2^53.
   const total = (col: AnyPgColumn) => sql<string>`coalesce(sum(${col}), 0)::bigint`;
   const rows = await db

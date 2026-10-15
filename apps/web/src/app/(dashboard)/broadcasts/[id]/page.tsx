@@ -38,7 +38,7 @@ export default function BroadcastDetailPage() {
   const nf = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   // Engagement is counted live from the email rows; once they age out the
   // number is gone, not zero.
-  const engagement = (count: number | null) => (count == null ? "—" : nf.format(count));
+  const engagement = (count: number | null) => (count == null ? "-" : nf.format(count));
 
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -201,7 +201,7 @@ export default function BroadcastDetailPage() {
                   return at ? (
                     <span title={formatUtcTimestamp(at)}>{formatDayTime(at, locale)}</span>
                   ) : (
-                    <span style={{ color: "var(--po-faint)" }}>—</span>
+                    <span style={{ color: "var(--po-faint)" }}>-</span>
                   );
                 })()
               ) : (
@@ -334,7 +334,7 @@ export default function BroadcastDetailPage() {
                   waiting: nf.format(waiting),
                   sent: nf.format(progress.sentCount ?? 0),
                 })
-              : t("detail.cancelBody", { name: title ?? "—" })}
+              : t("detail.cancelBody", { name: title ?? "-" })}
           </p>
           <ModalFooter>
             <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>

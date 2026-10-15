@@ -4,7 +4,7 @@ description: Get Posta and send your first email in a few minutes.
 ---
 
 Posta runs the same on [Posta Cloud](https://posta.example) and
-on your own infrastructure — same dashboard, same API, same SDKs. Pick your
+on your own infrastructure: same dashboard, same API, same SDKs. Pick your
 deployment below; the tabs remember your choice across the docs.
 
 ## 1. Get Posta
@@ -12,7 +12,7 @@ deployment below; the tabs remember your choice across the docs.
 <DeploymentTabs>
 <DeploymentTab deployment="cloud">
 
-Sign up at [posta.example](https://posta.example). That's it — no
+Sign up at [posta.example](https://posta.example). That's it: no
 infrastructure, no AWS account. The dashboard is at
 [posta.example](https://posta.example) and the API at
 `api.posta.example`.
@@ -22,10 +22,10 @@ infrastructure, no AWS account. The dashboard is at
 
 You need Docker (with Compose), Node 18+, and an AWS account with SES access.
 New AWS accounts start in the SES sandbox, which can only send to verified
-recipients — [request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
+recipients: [request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
 to send to anyone.
 
-One command, in an empty directory — no clone needed:
+One command, in an empty directory, no clone needed:
 
 ```sh
 mkdir posta && cd posta
@@ -34,14 +34,14 @@ npx @tack-labs/posta-setup
 
 The wizard detects what is already in the directory and offers each step:
 create `.env` with generated secrets, provision the AWS resources (IAM user +
-policy, SNS event topic, SQS events queue, SES configuration set — plus a push
+policy, SNS event topic, SQS events queue, SES configuration set, plus a push
 subscription when your deployment has a public HTTPS URL), then download the compose file and
 start the prebuilt image with `docker compose up -d`. Every step is skippable
 and safe to re-run; `--dry-run` prints the full plan and touches nothing.
 
 When it finishes: dashboard at `http://localhost:3000`, API at
 `http://localhost:3001`. The first user to register becomes the initial
-account — after that, signup is closed unless you opt in. Prefer doing it by
+account: after that, signup is closed unless you opt in. Prefer doing it by
 hand, or ready for production? See [Self-hosting](/self-hosting).
 
 </DeploymentTab>
@@ -53,8 +53,8 @@ Posta only sends from domains you have verified.
 
 1. In the dashboard, go to **Domains** and add a domain you control
    (e.g. `acme.dev`).
-2. Add the DNS records it shows you — a DKIM TXT record plus MAIL FROM
-   records — at your DNS provider.
+2. Add the DNS records it shows you (a DKIM TXT record plus MAIL FROM
+   records) at your DNS provider.
 3. Click **Verify DNS records**. Posta also resolves the records live,
    so you can see immediately which ones are still missing.
 
@@ -62,7 +62,7 @@ Posta only sends from domains you have verified.
 
 ## 3. Create an API key
 
-Go to **API keys** and create one. The `po_` token is shown once — copy it
+Go to **API keys** and create one. The `po_` token is shown once: copy it
 now. Keys can be scoped to full access or sending-only, and optionally pinned
 to a single domain.
 
@@ -80,7 +80,7 @@ Your API base URL:
 </DeploymentTab>
 <DeploymentTab deployment="self-hosted">
 
-Your instance's API origin — `http://localhost:3001` on a local compose
+Your instance's API origin: `http://localhost:3001` on a local compose
 setup, or the hostname your reverse proxy serves the API on (`PUBLIC_API_URL`,
 e.g. `https://api.acme.dev`). The examples below use the Cloud URL; swap in
 yours.
@@ -127,12 +127,12 @@ Both return `{ "id": "..." }`. Watch the email move from `queued` to
 
 <Callout type="info">
 On a self-hosted instance, delivery events (delivered, bounced, complained)
-require the SES event pipeline the setup wizard configures — see
+require the SES event pipeline the setup wizard configures: see
 [Self-hosting → SES events](/self-hosting#ses-events-bounces-complaints-deliveries).
 On Cloud they flow automatically.
 </Callout>
 
-Already on Resend? Point the official Resend SDK at Posta instead — set
+Already on Resend? Point the official Resend SDK at Posta instead: set
 `RESEND_BASE_URL` to your base URL and use your `po_` key. The wire format is
 identical.
 

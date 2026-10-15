@@ -131,7 +131,7 @@ export interface SetupClients {
 }
 
 /**
- * Real clients on the SDK default provider chain — the setup CLI runs with the
+ * Real clients on the SDK default provider chain: the setup CLI runs with the
  * operator's own admin credentials (profile/env), never the app's send key.
  * The SQS client follows the events queue, which lives in the first region
  * an install was set up in when a later region is added.
@@ -218,7 +218,7 @@ export function setupPlan(input: Pick<SetupInput, "region" | "appBaseUrl">): str
   return [
     `IAM policy ${SETUP_NAMES.policy} (minimal SES send + identity actions)`,
     `IAM user ${SETUP_NAMES.user} with the policy attached`,
-    `Access key for ${SETUP_NAMES.user} — a NEW key on every run`,
+    `Access key for ${SETUP_NAMES.user}: a NEW key on every run`,
     ...eventsPlan(input),
   ];
 }
@@ -295,7 +295,7 @@ export async function syncAdoptedPolicy(iam: SetupIamClient, policyArn: string):
 
 /**
  * Creates everything Posta needs in AWS. Re-runnable: resources that
- * already exist are adopted — but every run mints a NEW access key.
+ * already exist are adopted, but every run mints a NEW access key.
  */
 export async function runSetup(clients: SetupClients, input: SetupInput): Promise<SetupResult> {
   const step = input.onStep ?? (() => {});
@@ -335,7 +335,7 @@ export async function runSetup(clients: SetupClients, input: SetupInput): Promis
   } catch (error) {
     if (errorName(error) === "LimitExceededException") {
       throw new Error(
-        `user ${SETUP_NAMES.user} already has the IAM maximum of 2 access keys — delete a stale one in the IAM console and re-run`,
+        `user ${SETUP_NAMES.user} already has the IAM maximum of 2 access keys: delete a stale one in the IAM console and re-run`,
       );
     }
     throw error;
@@ -475,7 +475,7 @@ export async function runEventsSetup(
   // SES's account-level suppression list is regional and shared by every
   // team on the instance. A hard-bounced mailbox is dead for everyone, so
   // SES may stop those account-wide; a spam report is about one sender's
-  // mail, and Posta already suppresses it for that team alone — left
+  // mail, and Posta already suppresses it for that team alone: left
   // on the SES list it would also block an unrelated team's receipt or a
   // password reset to the same person.
   step("SES account-level suppression: bounces only (complaints are per team)");
@@ -510,7 +510,7 @@ export function teardownPlan(region: string): string[] {
     `SES configuration set ${SETUP_NAMES.configurationSet} (and its event destination)`,
     `SNS topic ${SETUP_NAMES.topic} in ${region} (and its subscriptions)`,
     `SQS events queue ${SETUP_NAMES.queue}`,
-    `ALL access keys of IAM user ${SETUP_NAMES.user} — a running server using them stops sending`,
+    `ALL access keys of IAM user ${SETUP_NAMES.user}: a running server using them stops sending`,
     `IAM user ${SETUP_NAMES.user} and policy ${SETUP_NAMES.policy}`,
   ];
 }
@@ -618,7 +618,7 @@ export interface StorageCredentials {
 
 /**
  * Real S3 client against the custom endpoint. region "auto" + forcePathStyle
- * suit Cloudflare R2 (no bucket-subdomain DNS) — the storage step's primary
+ * suit Cloudflare R2 (no bucket-subdomain DNS): the storage step's primary
  * target; endpoints that need a real region fail the bucket calls and land on
  * the step's warn-and-skip path.
  */
@@ -658,7 +658,7 @@ export async function ensureBucket(
 
 /**
  * The .env entries the storage step produces. The S3_STORAGE_* pair is
- * written only when the public URL is known — boot validation rejects the
+ * written only when the public URL is known: boot validation rejects the
  * bucket without its URL, and the URL exists only after the operator enables
  * public access by hand (the S3 API cannot).
  */
@@ -699,7 +699,7 @@ export function setupEnvEntries(region: string, result: SetupResult): Record<str
 /**
  * A dotenv-safe rendering of a value. CR/LF never survive (a line break would
  * start a new line, and with it a new key), and anything outside the
- * characters compose reads verbatim is quoted — single quotes when possible
+ * characters compose reads verbatim is quoted: single quotes when possible
  * (nothing is interpolated inside them), double quotes otherwise.
  */
 export function quoteEnvValue(value: string): string {
@@ -723,8 +723,8 @@ export function unquoteEnvValue(raw: string): string {
 
 /**
  * Rewrites `KEY=...` lines in a dotenv file, appending keys it does not have
- * yet. Matching tolerates the dotenv variants a hand-edited file accumulates —
- * leading whitespace, `export `, spaces around `=`, an empty value — so an
+ * yet. Matching tolerates the dotenv variants a hand-edited file accumulates:
+ * leading whitespace, `export `, spaces around `=`, an empty value, so an
  * existing line is always replaced in place instead of duplicated at the end.
  * The first occurrence of a key wins; later duplicates of a managed key are
  * removed. Comments and unmanaged lines pass through untouched.

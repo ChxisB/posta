@@ -122,7 +122,7 @@ export function CommandPalette() {
         >
           <span style={{ color: "var(--po-faint)", fontSize: 15 }}>⌕</span>
           <input
-            // biome-ignore lint/a11y/noAutofocus: command palette convention — focus must land in the query field
+            // biome-ignore lint/a11y/noAutofocus: command palette convention; focus must land in the query field
             autoFocus
             className="po-input"
             style={{

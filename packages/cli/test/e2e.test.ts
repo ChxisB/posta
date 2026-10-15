@@ -246,22 +246,22 @@ describe("posta (built bundle)", () => {
         },
       });
 
-      const manual = plan.manual.map((m) => `${m.title} — ${m.detail}`);
+      const manual = plan.manual.map((m) => `${m.title}: ${m.detail}`);
       for (const name of API_KEY_NAMES)
-        expect(manual).toContain(`api-keys/${name} — create by hand; Resend exposes only the name`);
-      expect(manual).toContain("domains/news.example.com — add DNS records (shown after apply)");
+        expect(manual).toContain(`api-keys/${name}: create by hand; Resend exposes only the name`);
+      expect(manual).toContain("domains/news.example.com: add DNS records (shown after apply)");
       expect(manual).toContain(
-        "domains/updates.example.com — over the plan's domain limit; add by hand after upgrading",
+        "domains/updates.example.com: over the plan's domain limit; add by hand after upgrading",
       );
       expect(manual.filter((m) => m.startsWith(`webhooks/${WEBHOOK_ENDPOINTS[1]}`))).toEqual([]);
       expect(manual).toContain(
-        "broadcasts/Spring sale — merge tags left as-is: {{{contact.address.city|your city}}}",
+        "broadcasts/Spring sale: merge tags left as-is: {{{contact.address.city|your city}}}",
       );
       expect(manual).toContain(
-        "templates/welcome — variables first_name, credits, flags are not stored; merge fields resolve from contact properties",
+        "templates/welcome: variables first_name, credits, flags are not stored; merge fields resolve from contact properties",
       );
       expect(manual).toContain(
-        "templates/Receipt — reply_to support@example.com is not stored on templates; pass it when sending",
+        "templates/Receipt: reply_to support@example.com is not stored on templates; pass it when sending",
       );
       expect(plan.warnings).toEqual([
         "2 domains to create; the Free plan allows 3 (2 already there)",
@@ -301,8 +301,8 @@ describe("posta (built bundle)", () => {
         "topics,templates",
       ]);
       expect(code).toBe(2);
-      expect(stderr).toContain("warning: retry 2/8 in 0s — Resend 429");
-      expect(stderr).toContain("warning: retry 2/5 in 1s — Resend 503");
+      expect(stderr).toContain("warning: retry 2/8 in 0s. Resend 429");
+      expect(stderr).toContain("warning: retry 2/5 in 1s. Resend 503");
       expect(stderr).toMatch(/GET \/topics\?limit=100 → 429 \(\d+ ms\)/);
       expect(stderr).toMatch(/GET \/topics\?limit=100 → 200 \(\d+ ms\)/);
       expect(stderr).toMatch(/GET \/templates\?limit=100 → 503 \(\d+ ms\)/);
@@ -373,7 +373,7 @@ describe("posta (built bundle)", () => {
       expect(code).toBe(0);
       expect(fake.writes).toBe(0);
 
-      expect(stdout).toContain(`posta ${VERSION} — Moves your Resend account into Posta.`);
+      expect(stdout).toContain(`posta ${VERSION}: Moves your Resend account into Posta.`);
       expect(stdout).toContain("✓ Resend · connected");
       expect(stdout).toContain("✓ Posta Cloud · plan Free");
       expect(stdout).toContain("0 of 1 domains will be created; the rest are listed as manual.");
@@ -382,7 +382,7 @@ describe("posta (built bundle)", () => {
       expect(stdout).toContain(`${enrichable().toLocaleString("en-US")}  contacts enriched`);
       expect(stdout).toContain("3  broadcasts unchanged");
       expect(stdout).toContain("40  suppressions unchanged");
-      expect(stdout).toContain("steps done — left:");
+      expect(stdout).toContain("steps done. Left:");
       expect(stdout).toContain("[ ] add DNS records for news.example.com");
       expect(stdout).toContain(`[ ] set RESEND_BASE_URL=${cloud.baseUrl} in your app`);
       expect(stdout).toContain(`[ ] create API keys: ${API_KEY_NAMES.join(", ")}`);

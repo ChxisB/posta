@@ -2,7 +2,7 @@
  * Strict parsing of SES event-publishing payloads (the JSON inside a
  * verified SNS Notification's Message). Only fields the pipeline consumes
  * are extracted; the mapping from event to email row happens exclusively via
- * the server-recorded SES MessageId — never via any client-suppliable field.
+ * the server-recorded SES MessageId, never via any client-suppliable field.
  */
 
 export type SesEventType =

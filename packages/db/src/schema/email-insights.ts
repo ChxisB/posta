@@ -13,7 +13,7 @@ export interface EmailInsightCheck {
 }
 
 /**
- * Rows hold only content-DERIVED metadata (booleans/counts/sizes/hostnames —
+ * Rows hold only content-DERIVED metadata (booleans/counts/sizes/hostnames,
  * never body content or full URLs), which is why they deliberately outlive the
  * encrypted-body purge and live on the metadata retention clock (cascade with
  * the email row). Broadcast fan-out stores ONE row keyed by broadcastId shared

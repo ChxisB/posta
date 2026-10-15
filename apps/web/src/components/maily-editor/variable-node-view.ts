@@ -30,7 +30,7 @@ interface NodeViewInstance {
  * Framework-free node view for the in-content variable pill, replacing Maily's
  * VariableView so the edit popover is ours: our design system, our alignment,
  * and translated labels (Maily hardcodes "Variable"/"Default"/"ie. John
- * Doe..."). Vanilla DOM on purpose — a React node view would need a direct
+ * Doe..."). Vanilla DOM on purpose: a React node view would need a direct
  * @tiptap/react dependency, which this app deliberately avoids (all Tiptap
  * types are derived from Maily's surface).
  *

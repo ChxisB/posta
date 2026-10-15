@@ -38,7 +38,7 @@ const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b')');
 
 /// Shared transport: holds auth + base URL and turns typed calls into requests.
-/// Cloneable and cheap to share — every service holds an `Arc<Config>`.
+/// Cloneable and cheap to share: every service holds an `Arc<Config>`.
 #[derive(Clone)]
 pub(crate) struct Config {
     api_key: String,

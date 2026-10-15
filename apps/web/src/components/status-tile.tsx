@@ -45,7 +45,7 @@ export function StatusTile({
   );
 }
 
-/** A section's nav glyph in a status tile — the row mark for lists other than emails. */
+/** A section's nav glyph in a status tile: the row mark for lists other than emails. */
 export function NavTile({
   name,
   color,

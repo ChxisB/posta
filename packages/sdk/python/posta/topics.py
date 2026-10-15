@@ -1,4 +1,4 @@
-"""Subscription topics — granular unsubscribe categories. GET /topics is a bare
+"""Subscription topics: granular unsubscribe categories. GET /topics is a bare
 ``{"data": [...]}`` (unpaginated)."""
 
 from typing import Any, Dict
@@ -21,7 +21,7 @@ class Topics:
 
     @classmethod
     def update(cls, topic_id: str, params: Dict[str, Any]) -> Any:
-        """PATCH /topics/{id} — name, description, visibility."""
+        """PATCH /topics/{id}: name, description, visibility."""
         return request("PATCH", f"/topics/{path_id(topic_id)}", body=params)
 
     @classmethod

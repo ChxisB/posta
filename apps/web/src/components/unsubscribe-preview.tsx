@@ -30,7 +30,7 @@ export function toPreviewTopics(
 }
 
 /**
- * Scaled-down, inert live render of the hosted unsubscribe page — the one
+ * Scaled-down, inert live render of the hosted unsubscribe page: the one
  * preview frame, shared by the settings editor and the topics tab. It opens
  * in the dashboard's language and theme and switches to any language the
  * page speaks and either scheme (the public page itself picks the language

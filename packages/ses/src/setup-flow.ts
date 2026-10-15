@@ -59,7 +59,7 @@ export interface DirState {
 
 /**
  * Reads the directory state through injected seams: `readFile` returns file
- * content or null, `probeDocker` returns a version label or null — pass
+ * content or null, `probeDocker` returns a version label or null; pass
  * probeDocker as null to skip the probe entirely (--dry-run).
  */
 export function detectDirState(
@@ -236,7 +236,7 @@ export function freshDatabaseEntries(): Record<string, string> {
 
 /** Printed when the operator defers a secret to generate it themselves. */
 export function secretLaterHint(key: string): string {
-  return `${key} left empty — before starting, run: openssl rand -base64 32  and put it in .env`;
+  return `${key} left empty. Before starting, run: openssl rand -base64 32  and put it in .env`;
 }
 
 /**
@@ -282,7 +282,7 @@ export function withComposeProfile(content: string, profile: string): string {
 export function sesEventsProxyHint(origin: string, apiPort = 3001): string {
   return [
     `SNS delivers SES events to ${origin}/ses/events, and the api process serves that path.`,
-    "A reverse proxy in front of the dashboard must route it to the api — nginx:",
+    "A reverse proxy in front of the dashboard must route it to the api; nginx:",
     "",
     `    location = /ses/events { proxy_pass http://127.0.0.1:${apiPort}; }`,
     "",
@@ -302,13 +302,13 @@ export function flowPlan(
       .map((o) => o.label)
       .join(", ");
     lines.push(
-      `menu: this install is set up — on a terminal the run opens on a menu (${items}); piped runs walk the steps below`,
+      `menu: this install is set up; on a terminal the run opens on a menu (${items}); piped runs walk the steps below`,
     );
   }
   lines.push(
     state.envContent === null
       ? "env: create .env from the built-in template (offered)"
-      : "env: keep the existing .env — setup only fills gaps",
+      : "env: keep the existing .env; setup only fills gaps",
   );
   const missing = state.envContent === null ? [...SECRET_KEYS] : missingSecrets(state.envContent);
   lines.push(
@@ -318,7 +318,7 @@ export function flowPlan(
   );
   lines.push(`env: APP_BASE_URL prompt (default ${opts.appBaseUrl})`);
   lines.push(
-    "env: PUBLIC_API_URL prompt (optional — the API's own hostname behind a reverse proxy)",
+    "env: PUBLIC_API_URL prompt (optional; the API's own hostname behind a reverse proxy)",
   );
   if (opts.cloud) {
     lines.push(
@@ -331,7 +331,7 @@ export function flowPlan(
     envValue(state.envContent, "SQS_QUEUE_URL")
   ) {
     lines.push(
-      `aws: already set up (${servedRegionsInEnv(state.envContent).join(", ")}) — offer to add a region (its topic and configuration set, events into the existing queue, no new key)${fullRerunOffered(state.envContent) ? " or a full re-run" : ""}`,
+      `aws: already set up (${servedRegionsInEnv(state.envContent).join(", ")}); offer to add a region (its topic and configuration set, events into the existing queue, no new key)${fullRerunOffered(state.envContent) ? " or a full re-run" : ""}`,
     );
   } else {
     for (const line of setupPlan({ region: opts.region, appBaseUrl: opts.appBaseUrl })) {

@@ -24,12 +24,12 @@ const positionEm = (el: HTMLElement) => {
 
 /**
  * CSS odometer over .po-odometer (components.css): each digit is a 1em
- * column whose 0–9 strip slides to the target digit after mount, rolling
+ * column whose 0 to 9 strip slides to the target digit after mount, rolling
  * the number up from zero on load and wearing a motion blur scaled to how
- * far it travels — the hero's mechanic. prefers-reduced-motion zeroes
+ * far it travels; the hero's mechanic. prefers-reduced-motion zeroes
  * the transition in CSS and skips the blur, so it degrades to a plain
- * number. The last digit is steel — the view's single lit element
- * (DESIGN.md rule 1) — but only once the roll has landed: like the hero
+ * number. The last digit is steel (the view's single lit element
+ * (DESIGN.md rule 1)) but only once the roll has landed: like the hero
  * lighting its cell after the climb, a digit still in motion wears the
  * same bone as the rest, and the steel fades in over the base duration.
  * `lit` false keeps every digit bone, for a view whose steel is already

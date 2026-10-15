@@ -81,7 +81,7 @@ export const logsRouter = router({
 
   /**
    * Who can appear as a caller in this team's log: every API key (revoked
-   * ones too — their rows outlive them) and each OAuth client seen in the
+   * ones too; their rows outlive them) and each OAuth client seen in the
    * log, with the connected app's name when the client is still registered.
    */
   callers: teamProcedure.query(async ({ ctx }) => {

@@ -34,7 +34,7 @@ const draftBody = () => ({
   html: "<p>hi</p>",
 });
 
-// A fresh team with its own key, verified domain, and one draft broadcast —
+// A fresh team with its own key, verified domain, and one draft broadcast,
 // isolated so seeding its usage_counters can't affect the shared team-A
 // happy-path tests.
 async function makeSendableTeam(slug: string) {
@@ -349,7 +349,7 @@ describe("broadcasts API deliverability guardrail", () => {
 
   it("sends normally at volume over the floor but under the warn line", async () => {
     const { teamId, token, broadcastId } = await makeSendableTeam("bc-healthy");
-    // Over the floor, but 0.05% bounce / 0% complaint — below both warn lines.
+    // Over the floor, but 0.05% bounce / 0% complaint: below both warn lines.
     await db.insert(schema.usageCounters).values({
       teamId,
       day: utcDay(),

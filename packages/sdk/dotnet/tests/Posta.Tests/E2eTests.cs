@@ -6,7 +6,7 @@ namespace Posta.Tests;
 
 /// <summary>
 /// Opt-in smoke test against a real Posta instance. Gated on
-/// POSTA_E2E=1 — deliberately NOT on POSTA_API_KEY, which the SDK
+/// POSTA_E2E=1: deliberately NOT on POSTA_API_KEY, which the SDK
 /// itself reads and a developer may have exported for other work; that would
 /// make plain `dotnet test` mutate a live instance. Requires the key (and
 /// POSTA_BASE_URL for a self-hosted instance; the default is

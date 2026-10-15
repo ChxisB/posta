@@ -23,7 +23,7 @@
   },
   "step2": {
     "title": "Send an email",
-    "bodyLocked": "To your own inbox, from a domain you verify — the snippet unlocks once you have a key.",
+    "bodyLocked": "To your own inbox, from a domain you verify: the snippet unlocks once you have a key.",
     "bodyReady": "Your key and your inbox are pre-filled. Run it from your terminal with a sender on a domain you verified.",
     "subject": "It works.",
     "html": "<p>0000001 and counting.</p>",
@@ -32,7 +32,7 @@
     "keyCommentReplace": "replace with your API key",
     "keyCommentLocked": "your key, once created",
     "sendCta": "Send email",
-    "sendHint": "No domain yet? Get a test email from Posta — one per team, sent to the team owner.",
+    "sendHint": "No domain yet? Get a test email from Posta: one per team, sent to the team owner.",
     "sending": "Sending…",
     "sentTo": "Sent to {to}. It shows up below the moment it lands.",
     "alreadySent": "This team's test email already went out. Verify a domain to send your own.",
@@ -46,7 +46,7 @@
   },
   "success": {
     "keyAdded": "API key added",
-    "emailPending": "Email to {to} — not delivered yet",
+    "emailPending": "Email to {to}, not delivered yet",
     "emailDelivered": "Email sent · delivered to {to} in {seconds} s",
     "counting": "{count, plural, one {1 delivered. Counting.} other {# delivered. Counting.}}",
     "deliveredIn": "delivered in {seconds} s"
@@ -79,11 +79,11 @@
       "body": "One command moves contacts, segments, templates, webhooks and domains.",
       "cta": "Read the guide"
     },
-    "instance": "Send rate and email retention are instance settings — set them in <link>Settings</link>."
+    "instance": "Send rate and email retention are instance settings: set them in <link>Settings</link>."
   },
   "stepSes": {
     "title": "Connect your AWS SES",
-    "body": "Posta sends through your own AWS SES account. Connect it once in settings — the wizard creates everything and tests the connection.",
+    "body": "Posta sends through your own AWS SES account. Connect it once in settings: the wizard creates everything and tests the connection.",
     "cta": "Open SES setup"
   }
 }

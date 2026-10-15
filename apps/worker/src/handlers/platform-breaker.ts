@@ -111,7 +111,7 @@ export async function runPlatformBreaker(
         ? `over ${d.reason.windowHours}h (${d.reason.events}/${d.reason.sent})`
         : "measured by SES";
     console.warn(
-      `platform.breaker: broadcasts paused in ${region} — ${d.reason.metric} rate ${(d.reason.rate * 100).toFixed(2)}% ${measured}; top contributors: ${top || "none"}`,
+      `platform.breaker: broadcasts paused in ${region}; ${d.reason.metric} rate ${(d.reason.rate * 100).toFixed(2)}% ${measured}; top contributors: ${top || "none"}`,
     );
     await mail(
       region,

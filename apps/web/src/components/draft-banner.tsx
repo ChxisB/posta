@@ -16,7 +16,7 @@ const linkButtonStyle: React.CSSProperties = {
 };
 
 /** Quiet one-line offer for a locally-recovered draft: restore it or throw it
- * away. Deliberately subtle — a footnote under the editor, not a banner. */
+ * away. Deliberately subtle, a footnote under the editor, not a banner. */
 export function DraftBanner({
   savedAt,
   onRestore,
@@ -48,7 +48,7 @@ export function DraftBanner({
           type="button"
           style={linkButtonStyle}
           onClick={() => {
-            // Discarding is irreversible — the draft is the only copy.
+            // Discarding is irreversible: the draft is the only copy.
             void confirmDialog({
               local: true,
               message: common("draftDiscardConfirm"),

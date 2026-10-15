@@ -15,7 +15,7 @@ function opts(over: Partial<Parameters<typeof rewriteForTracking>[1]> = {}) {
   return { emailId, teamId, trackingBaseUrl, click: false, open: false, secretKey: key, ...over };
 }
 
-describe("rewriteForTracking — clean-links guarantee", () => {
+describe("rewriteForTracking, clean-links guarantee", () => {
   it("returns html byte-for-byte UNCHANGED when both tracking toggles are off", () => {
     // The whole point of app-layer tracking: a domain with tracking off ships
     // the raw link and no pixel. Any mutation here is a defect.
@@ -23,7 +23,7 @@ describe("rewriteForTracking — clean-links guarantee", () => {
   });
 });
 
-describe("rewriteForTracking — click", () => {
+describe("rewriteForTracking, click", () => {
   it("routes every http(s) anchor through the redirect endpoint with a verifiable token", () => {
     const out = rewriteForTracking(html, opts({ click: true }));
     const tokens = [...out.matchAll(/track\.example\.com\/t\/c\/([^"']+)/g)].map((m) => m[1]);
@@ -40,7 +40,7 @@ describe("rewriteForTracking — click", () => {
       teamId,
       url: "https://acme.example/docs?x=1&y=2",
     });
-    // The raw destination is gone from the body — the redirect owns it now.
+    // The raw destination is gone from the body: the redirect owns it now.
     expect(out).not.toContain('href="https://acme.example/welcome"');
   });
 
@@ -165,7 +165,7 @@ describe("rewriteForTracking — click", () => {
 
   it("leaves an already-expanded unsubscribe link under skipHrefPrefix un-wrapped, still wrapping ordinary links", () => {
     // Broadcast path: {{{UNSUBSCRIBE_URL}}} was substituted to a real https URL
-    // before encryption, so the {{{-token guard no longer covers it — the prefix
+    // before encryption, so the {{{-token guard no longer covers it; the prefix
     // must exclude it from /t/c to avoid a bogus click and an extra redirect hop.
     const unsub = "https://app.example.com/unsubscribe/abc.def";
     const src = `<a href="https://acme.example/go">go</a><a href="${unsub}">unsub</a>`;
@@ -180,7 +180,7 @@ describe("rewriteForTracking — click", () => {
   });
 });
 
-describe("rewriteForTracking — open pixel", () => {
+describe("rewriteForTracking, open pixel", () => {
   it("injects a hidden 1x1 pixel before </body> with a verifiable open token", () => {
     const out = rewriteForTracking(html, opts({ open: true }));
     const token = out.match(/t\/o\/([^"']+)/)?.[1];

@@ -23,7 +23,7 @@ import { oneOf, useUrlState } from "@/lib/url-state";
 import { useTeamRole } from "@/lib/use-team-role";
 import { ListFooter, ListSkeleton, SearchBox, StateCard } from "./list-parts";
 
-// Keep in enum order (packages/db schema.emailStatusEnum) — the router input
+// Keep in enum order (packages/db schema.emailStatusEnum): the router input
 // rejects anything outside it at typecheck time.
 const STATUSES = [
   "queued_quota",

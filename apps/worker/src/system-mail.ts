@@ -24,7 +24,7 @@ export interface SystemMailer {
 /**
  * Account notifications to team owners and the instance operator. They ride
  * the team pipeline into whichever team holds the sender's verified domain
- * (core sendSystemMail) and go out raw when no team does — from that
+ * (core sendSystemMail) and go out raw when no team does, from that
  * domain's region when a team holds it, else the default served region.
  * Without a configured sender the mailer is a no-op: the webhook events
  * still carry the same facts.
@@ -37,7 +37,7 @@ export function createSystemMailer(deps: {
   const from = notificationsEmailFrom();
   if (!from) {
     console.warn(
-      "system mail: NOTIFICATIONS_EMAIL_FROM and AUTH_EMAIL_FROM are unset — account emails are skipped, webhook events still fire",
+      "system mail: NOTIFICATIONS_EMAIL_FROM and AUTH_EMAIL_FROM are unset; account emails are skipped, webhook events still fire",
     );
     return { send: async () => {} };
   }

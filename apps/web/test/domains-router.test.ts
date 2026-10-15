@@ -525,7 +525,7 @@ describe("domains.verify", () => {
 
     // DKIM + MX live-found + SES success, but SPF TXT absent from the zone: SES
     // reads mail-from success, yet strict verification refuses to call this
-    // verified — the send gate must stay closed.
+    // verified; the send gate must stay closed.
     const pending = callerFor(
       teamId,
       fakeSes({
@@ -554,7 +554,7 @@ describe("domains.verify", () => {
     expect(row?.verifiedAt).toBeInstanceOf(Date);
   });
 
-  it("verifies with DMARC missing — the optional records never gate", async () => {
+  it("verifies with DMARC missing: the optional records never gate", async () => {
     const teamId = await createTeam(db);
     const dkimPublicKey = await seedAndPublicKey(teamId);
     // Set a tracking subdomain so the optional tracking CNAME is also in play;
@@ -978,7 +978,7 @@ describe("domains.updateConfiguration", () => {
     const { id } = await caller.domains.create({ name: "example.com", region: "us-east-1" });
 
     await expect(
-      // @ts-expect-error — exercising the enum guard with an out-of-range value
+      // @ts-expect-error, exercising the enum guard with an out-of-range value
       caller.domains.updateConfiguration({ id, tlsMode: "strict" }),
     ).rejects.toThrow();
     expect((await caller.domains.get({ id })).tlsMode).toBe("opportunistic");

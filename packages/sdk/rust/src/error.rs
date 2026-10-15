@@ -55,7 +55,7 @@ impl ApiError {
 /// Every fallible SDK call resolves to `Result<T, Error>`.
 #[derive(Debug)]
 pub enum Error {
-    /// Transport/connection failure — the request never reached the API, so
+    /// Transport/connection failure: the request never reached the API, so
     /// [`Error::status_code`] is `None`.
     Http(reqwest::Error),
     /// A non-2xx response carrying the API's `{ statusCode, name, message }`.

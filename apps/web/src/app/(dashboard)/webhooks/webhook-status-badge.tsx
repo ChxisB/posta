@@ -10,7 +10,7 @@ export const queuedLabel = (queued: number): string =>
 
 /**
  * One muted line under an endpoint with open deliveries: how many, and how
- * long the earliest has been due — or, when nothing is due yet, when the
+ * long the earliest has been due, or, when nothing is due yet, when the
  * next attempt is.
  */
 export function QueueLine({
@@ -37,7 +37,7 @@ type EndpointStatus = "enabled" | "disabled" | "auto_disabled";
 export const ENDPOINT_VARIANTS: Record<EndpointStatus, keyof typeof TONE_COLOR> = {
   enabled: "success",
   disabled: "neutral",
-  // Auto-disable means deliveries kept failing — that deserves a warning tint.
+  // Auto-disable means deliveries kept failing, that deserves a warning tint.
   auto_disabled: "warn",
 };
 

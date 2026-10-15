@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-/** Centered card on the void with the wordmark above — login/signup/onboarding frame. */
+/** Centered card on the void with the wordmark above: login/signup/onboarding frame. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("common");
   return (

@@ -1173,7 +1173,7 @@ try {
 
   await check("pt-BR subject and body: UTF-8 encoded words and ISO-8859-1", async (note) => {
     const mid = msgId("ptbr");
-    const subject = `Relatório de março — ação necessária ½ ${run}`;
+    const subject = `Relatório de março: ação necessária ½ ${run}`;
     const text =
       "Olá! Segue o relatório de março.\nAtenção às ações pendentes: café, pão e maçã.\nObrigado,\nJoão";
     const raw = await compose({
@@ -1181,7 +1181,7 @@ try {
       to: `vendas@${A_RECV}`,
       subject,
       text,
-      html: "<p>Olá! Segue o <b>relatório</b> de março — ações: café, pão e maçã.</p>",
+      html: "<p>Olá! Segue o <b>relatório</b> de março: ações: café, pão e maçã.</p>",
       messageId: mid,
     });
     const subjectLine = raw.toString("latin1").match(/^Subject: .*$/m)?.[0] ?? "";

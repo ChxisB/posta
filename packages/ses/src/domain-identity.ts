@@ -48,7 +48,7 @@ export function createSesv2Client(options: {
 
 /**
  * Fresh 2048-bit RSA keypair for BYODKIM. The private key is PKCS#1 DER
- * base64 — the format SES's DomainSigningPrivateKey expects (the base64 body
+ * base64: the format SES's DomainSigningPrivateKey expects (the base64 body
  * of an `openssl genrsa` PEM). The public key is SPKI DER base64, which is
  * exactly the `p=` value of the DKIM TXT record (RFC 6376 §3.6.1).
  *

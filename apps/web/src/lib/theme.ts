@@ -5,7 +5,7 @@ export type Theme = "dark" | "light";
 export const THEME_KEY = "po-theme";
 
 /* Dark is the default: the html attribute only ever carries "light"; absent
-   means dark. System preference is deliberately not followed — the toggle in
+   means dark. System preference is deliberately not followed: the toggle in
    the account menu is the only switch. */
 export function applyTheme(theme: Theme): void {
   if (theme === "light") document.documentElement.setAttribute("data-theme", "light");

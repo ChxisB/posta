@@ -7,7 +7,7 @@
     "when": "When",
     "loadMore": "Load more",
     "empty": "No requests yet.",
-    "emptyHint": "Calls to the API with your key show up here — <code>POST /emails</code> is a good first one.",
+    "emptyHint": "Calls to the API with your key show up here: <code>POST /emails</code> is a good first one.",
     "noMatch": "No requests match your filters.",
     "clearFilter": "Clear filters",
     "loadError": "Couldn't load logs.",

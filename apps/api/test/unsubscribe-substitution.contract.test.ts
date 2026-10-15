@@ -20,7 +20,7 @@ import { createApi } from "../src/app.js";
  * Unsubscribe-substitution gate, SDK to inbox payload: a broadcast created
  * through the official `resend` SDK with the {{{RESEND_UNSUBSCRIBE_URL}}}
  * placeholder must fan out into per-contact emails whose bodies carry a real,
- * verifiable unsubscribe URL — never the literal placeholder.
+ * verifiable unsubscribe URL, never the literal placeholder.
  */
 
 const APP_BASE_URL = "https://app.example.test";
@@ -93,7 +93,7 @@ it("fans out with a real per-contact unsubscribe URL, never the literal placehol
   const sent = await resend.broadcasts.send(broadcastId);
   expect(sent.error).toBeNull();
 
-  // The worker fan-out — the step that substitutes the placeholder per contact.
+  // The worker fan-out: the step that substitutes the placeholder per contact.
   const queuedEmailIds: string[] = [];
   const outcome = await sendBroadcast(
     db,

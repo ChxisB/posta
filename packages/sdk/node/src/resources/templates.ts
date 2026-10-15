@@ -47,7 +47,7 @@ export class Templates {
     });
   }
 
-  /** PATCH /templates/:idOrAlias — `alias`/`subject`/`text: null` clear the field. */
+  /** PATCH /templates/:idOrAlias: `alias`/`subject`/`text: null` clear the field. */
   update(idOrAlias: string, payload: UpdateTemplateOptions): Promise<Result<TemplateId>> {
     return this.http.request({
       method: "PATCH",
@@ -63,7 +63,7 @@ export class Templates {
     });
   }
 
-  /** POST /templates/:idOrAlias/publish — no-op (templates are always live). */
+  /** POST /templates/:idOrAlias/publish: no-op (templates are always live). */
   publish(idOrAlias: string): Promise<Result<TemplateId>> {
     return this.http.request({
       method: "POST",
@@ -71,7 +71,7 @@ export class Templates {
     });
   }
 
-  /** POST /templates/:idOrAlias/duplicate — copies into a new template (id of the copy). */
+  /** POST /templates/:idOrAlias/duplicate: copies into a new template (id of the copy). */
   duplicate(idOrAlias: string): Promise<Result<TemplateId>> {
     return this.http.request({
       method: "POST",

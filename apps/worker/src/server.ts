@@ -150,8 +150,8 @@ const tracking = {
   requireBrandedHost: env.IS_CLOUD,
   ...(env.APP_BASE_URL ? { defaultBaseUrl: env.APP_BASE_URL } : {}),
 };
-// Absent APP_BASE_URL doesn't stop the worker — transactional mail still
-// flows — but broadcast fan-out and broadcast sends refuse loudly.
+// Absent APP_BASE_URL doesn't stop the worker, transactional mail still
+// flows, but broadcast fan-out and broadcast sends refuse loudly.
 const unsubscribeHost = unsubscribeBaseUrl();
 const unsubscribe = unsubscribeHost
   ? { secretKey: unsubscribeSecretKey, baseUrl: unsubscribeHost }
@@ -216,7 +216,7 @@ const reputationClients = new Map(
 // process only (see SES_MAX_SEND_RATE in @posta/config); each process
 // takes its share of the rate, so WORKER_REPLICAS keeps N processes at the
 // account's total. A region's rate is its own MaxSendRate under the ceiling
-// the db-backed instance setting (else env) sets — a sandbox region paces
+// the db-backed instance setting (else env) sets: a sandbox region paces
 // itself at 1/s without holding the others back. Polled once a minute
 // together with the rolling 24-hour quota, so sends park as queued_quota
 // before SES starts refusing them and a Settings → Instance change applies
@@ -579,7 +579,7 @@ await queue.scheduleCrons({
     const health = await sesEventsHealth(db);
     if (health.status !== "unhealthy") return;
     console.warn(
-      `events.health: ${health.sentInWindow} email(s) sent in the last 2h but no SES event arrived (last one ${health.lastSesEventAt?.toISOString() ?? "never"}) — the SNS subscription is missing or pending confirmation, or SQS_QUEUE_URL is empty / the queue is not being read`,
+      `events.health: ${health.sentInWindow} email(s) sent in the last 2h but no SES event arrived (last one ${health.lastSesEventAt?.toISOString() ?? "never"}), the SNS subscription is missing or pending confirmation, or SQS_QUEUE_URL is empty / the queue is not being read`,
     );
   },
   "domains.reverify": async () => {
@@ -830,12 +830,12 @@ await queue.work(
 );
 
 // SES events over SQS for deployments without a public https URL. The topic
-// allowlist gates it exactly like the https endpoint — a queue URL without
+// allowlist gates it exactly like the https endpoint: a queue URL without
 // the allowlist stays inert instead of accepting arbitrary payloads.
 if (env.SQS_QUEUE_URL) {
   const allowedTopicArns = env.SNS_TOPIC_ARNS ?? [];
   if (allowedTopicArns.length === 0) {
-    console.warn("SQS_QUEUE_URL is set but SNS_TOPIC_ARNS is empty — SQS event polling disabled");
+    console.warn("SQS_QUEUE_URL is set but SNS_TOPIC_ARNS is empty: SQS event polling disabled");
   } else {
     startSqsPoller({
       sqs: new SQSClient({

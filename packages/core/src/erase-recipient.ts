@@ -56,7 +56,7 @@ export async function eraseRecipient(
 
   // Events first: their scope is derived from the recipient lists that the
   // emails update below tombstones. An open or click carries the fetcher's
-  // IP and user agent — personal data on their own — so those keys go too,
+  // IP and user agent (personal data on their own) so those keys go too,
   // and such rows are selected even though they never mention the address.
   const ev = schema.emailEvents;
   const withoutFetcher = sql`${ev.data} #- '{open,ipAddress}' #- '{open,userAgent}' #- '{click,ipAddress}' #- '{click,userAgent}'`;

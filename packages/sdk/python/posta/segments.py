@@ -1,4 +1,4 @@
-"""Dynamic segments — a saved filter over the team's contacts (Posta
+"""Dynamic segments: a saved filter over the team's contacts (Posta
 extension, no Resend equivalent). ``get`` returns a live ``contact_count``.
 ``filter`` is optional; ``None`` clears it."""
 
@@ -10,7 +10,7 @@ from ._client import list_query, path_id, request
 class Segments:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /segments — name, filter?"""
+        """POST /segments: name, filter?"""
         return request("POST", "/segments", body=params)
 
     @classmethod
@@ -28,7 +28,7 @@ class Segments:
 
     @classmethod
     def update(cls, segment_id: str, params: Dict[str, Any]) -> Any:
-        """PATCH /segments/{id} — name?, filter?"""
+        """PATCH /segments/{id}: name?, filter?"""
         return request("PATCH", f"/segments/{path_id(segment_id)}", body=params)
 
     @classmethod

@@ -741,7 +741,7 @@ describe("POST /domains/{id}/verify", () => {
     });
     const res = await call(app, fullKey, "POST", `/domains/${id}/verify`);
     expect(res.status).toBe(200);
-    // Full object with the freshly computed status — no get_domain round-trip.
+    // Full object with the freshly computed status: no get_domain round-trip.
     const verifyBody = (await res.json()) as Record<string, unknown>;
     expect(verifyBody).toMatchObject({ object: "domain", id, status: "verified" });
     expect(Array.isArray(verifyBody.records)).toBe(true);
@@ -1035,7 +1035,7 @@ describe("PATCH /domains/{id}", () => {
       message: expect.stringContaining("APP_BASE_URL"),
     });
 
-    // Disabling is always possible — it needs no reachable host.
+    // Disabling is always possible: it needs no reachable host.
     const disable = await call(loopback, fullKey, "PATCH", `/domains/${id}`, {
       open_tracking: false,
       click_tracking: false,

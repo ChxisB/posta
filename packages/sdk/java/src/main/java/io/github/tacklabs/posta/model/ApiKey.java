@@ -1,6 +1,6 @@
 package io.github.tacklabs.posta.model;
 
-/** An API key as listed by {@code apiKeys().list()} — the token itself is never returned again. */
+/** An API key as listed by {@code apiKeys().list()}: the token itself is never returned again. */
 public final class ApiKey {
 
   private String id;

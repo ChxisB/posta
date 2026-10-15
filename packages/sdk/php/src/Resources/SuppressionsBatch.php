@@ -24,7 +24,7 @@ final class SuppressionsBatch
     }
 
     /**
-     * POST /suppressions/batch/remove — by `emails` or by `ids`.
+     * POST /suppressions/batch/remove: by `emails` or by `ids`.
      *
      * @param array{emails?: list<string>, ids?: list<string>} $params
      * @return array<mixed>

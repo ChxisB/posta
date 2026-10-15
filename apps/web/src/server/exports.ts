@@ -40,7 +40,7 @@ interface ContactExportRow {
 
 /**
  * The team's contacts, matching the same optional segment and topic filters as
- * audience.contacts.list — so a filtered on-screen view exports the same rows.
+ * audience.contacts.list, so a filtered on-screen view exports the same rows.
  * A foreign segment/topic is rejected by the shared router guards and yields
  * zero rows (an export never errors on it), so a tampered link can't reveal
  * other data.
@@ -206,7 +206,7 @@ interface ApiKeyExportRow {
   createdAt: Date;
 }
 
-/** Active keys only. Never exports keyHash — only the prefix/last4 the UI shows. */
+/** Active keys only. Never exports keyHash, only the prefix/last4 the UI shows. */
 export function apiKeyRowsForExport(db: Db, teamId: string): Promise<ApiKeyExportRow[]> {
   const k = schema.apiKeys;
   return db

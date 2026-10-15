@@ -47,7 +47,7 @@ describe("createProgress (piped)", () => {
     progress.step("Webhooks").fail("Posta answered 500");
     expect(chunks).toEqual([
       "✓ Domains  3 created, 1 unchanged\n",
-      "✗ Webhooks — Posta answered 500\n",
+      "✗ Webhooks: Posta answered 500\n",
     ]);
   });
 
@@ -109,7 +109,7 @@ describe("createProgress (piped)", () => {
       "\x1b[32m✓\x1b[39m Contacts      721\n",
       "\x1b[2m✓ Templates       0\x1b[22m\n",
       "\x1b[35m!\x1b[39m resumed\n",
-      "\x1b[31m✗\x1b[39m Webhooks — Posta answered 500\n",
+      "\x1b[31m✗\x1b[39m Webhooks: Posta answered 500\n",
     ]);
   });
 });
@@ -165,14 +165,14 @@ describe("createProgress (tty)", () => {
     progress.section(["Contacts"]);
     const step = progress.step("Contacts");
     step.update(3200, 12847);
-    progress.writeAbove("warning: retry 2/5 in 1s — Resend 503\n", tag("err"));
+    progress.writeAbove("warning: retry 2/5 in 1s. Resend 503\n", tag("err"));
     progress.clear();
     progress.writeAbove("error: Resend rejected the API key (401)\n", tag("err"));
     expect(bytes).toEqual([
       "out:\r\x1b[2K⟳ Contacts",
       "out:\r\x1b[2K⟳ Contacts 3,200/12,847",
       "out:\r\x1b[2K",
-      "err:warning: retry 2/5 in 1s — Resend 503\n",
+      "err:warning: retry 2/5 in 1s. Resend 503\n",
       "out:⟳ Contacts 3,200/12,847",
       "out:\r\x1b[2K",
       "err:error: Resend rejected the API key (401)\n",

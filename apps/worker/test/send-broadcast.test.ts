@@ -322,7 +322,7 @@ it("re-running a fan-out never double-sends: no duplicate rows, jobs or reports"
   const second = makeDeps(mail);
   expect(await sendBroadcast(db, second.deps, { broadcastId })).toBe("sent");
   expect(await emailsOf(broadcastId)).toHaveLength(2);
-  // Conflicted rows enqueue nothing — their jobs already exist.
+  // Conflicted rows enqueue nothing: their jobs already exist.
   expect(second.enqueued).toHaveLength(0);
 
   await settleRows(broadcastId);
@@ -521,7 +521,7 @@ it("cancel before fan-out sends nothing", async () => {
 
 /**
  * Wraps db so the given hook runs (and commits) just before the FIRST
- * db.update(...) executes — deterministically reproducing a write landing in
+ * db.update(...) executes: deterministically reproducing a write landing in
  * the gap between sendBroadcast's status read and its sending-claim CAS.
  */
 function interposeBeforeFirstUpdate(realDb: Db, hook: () => Promise<void>): Db {
@@ -588,7 +588,7 @@ it("a cancel racing the sending claim fans out nothing", async () => {
   const broadcastId = await insertBroadcast();
   const { deps, enqueued } = makeDeps();
   // The cancel lands after sendBroadcast's status SELECT but before its
-  // claim UPDATE — the claim must lose and the fan-out must not run.
+  // claim UPDATE: the claim must lose and the fan-out must not run.
   const racingDb = interposeBeforeFirstUpdate(db, async () => {
     await db
       .update(schema.broadcasts)
@@ -927,7 +927,7 @@ it("defers a not-yet-due scheduled broadcast back to the queue", async () => {
 
 it("a stored multi-mailbox from fails the fan-out loudly, sending nothing", async () => {
   // Legacy rows predate strict from validation: the last angle-addr's domain
-  // (acme.dev) is verified, but the value is ambiguous — a lenient extractor
+  // (acme.dev) is verified, but the value is ambiguous; a lenient extractor
   // would verify one address while another could be emitted.
   const broadcastId = await insertBroadcast({
     from: "Acme <evil@other.test> <hi@acme.dev>",
@@ -1016,7 +1016,7 @@ it("applyMergeFields substitutes contact fields, with fallbacks for null and emp
   expect(
     applyMergeFields("{{{FIRST_NAME|there}}}", { ...contact, firstName: "" }, { html: false }),
   ).toBe("there");
-  // Absent field without a fallback yields "" — the raw token never ships.
+  // Absent field without a fallback yields "": the raw token never ships.
   expect(applyMergeFields("Hi {{{LAST_NAME}}}.", contact, { html: false })).toBe("Hi .");
 });
 
@@ -1222,7 +1222,7 @@ it("a segment broadcast fans out only to matching contacts, composing with the t
     .returning({ id: schema.topics.id });
   if (!topic) throw new Error("topic insert failed");
   // vip-out opts out of the topic: the segment matches it, the topic filter must
-  // still exclude it — both predicates apply.
+  // still exclude it; both predicates apply.
   await db.insert(schema.contactTopicSubscriptions).values({
     contactId: ids["vip-out@example.com"] as string,
     topicId: topic.id,

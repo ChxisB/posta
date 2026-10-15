@@ -1,16 +1,16 @@
 ---
 title: Migrate from Resend
-description: One command moves your Resend account; two environment lines move your code — the wire format is identical.
+description: One command moves your Resend account, two environment lines move your code, and the wire format is identical.
 ---
 
 Posta's REST API is wire-compatible with Resend's: same endpoints, same
 request and response shapes. Migrating is a configuration change, not a
-rewrite. The account data — contacts, segments, topics, templates, webhooks,
-domains, suppressions — moves with one command.
+rewrite. The account data (contacts, segments, topics, templates, webhooks,
+domains, suppressions) moves with one command.
 
 ## Hand it to an agent
 
-The whole migration — inventory, account move, code changes, DNS, cutover —
+The whole migration (inventory, account move, code changes, DNS, cutover)
 is written up as one prompt an agent can follow end to end, including the
 guardrails (Resend read-only, keys never in files, ask before applying).
 
@@ -53,8 +53,8 @@ What it does:
   upserts contacts with their segment memberships and `unsubscribed` flags.
   It finishes in minutes, and the CLI then prints **Cutover ready** with the
   DNS records and the `RESEND_BASE_URL` line: transactional sending can move
-  at that point. Enrichment — only when the account uses topics or contact
-  properties — then reads each contact once per facet, topic subscriptions
+  at that point. Enrichment (only when the account uses topics or contact
+  properties) then reads each contact once per facet, topic subscriptions
   first (so opt-outs land before properties), then properties, with a live
   rate and time left. Hold topic sends and broadcasts until it finishes. Both
   passes resume where they stopped after Ctrl-C and a re-run, and
@@ -89,7 +89,7 @@ Three things shorten it:
 
 - **Ask Resend for a temporary raise.** Resend's documentation says the team
   limit "can be increased for trusted senders by request" (Settings → Usage
-  shows the current one). Pass the granted rate explicitly — `--rps 50` — the
+  shows the current one). Pass the granted rate explicitly: `--rps 50`; the
   CLI accepts values above 10 and warns when the rate exceeds the limit it
   detected.
 - **Run off-peak.** The limit is per team, so the enrichment competes with
@@ -101,17 +101,17 @@ Three things shorten it:
 | --- | --- |
 | Contacts | Email, names, `unsubscribed`, properties, topic subscriptions, segment memberships. Opt-outs are preserved; nobody is re-subscribed. |
 | Segments, topics, properties | Matched by name / name / key: created when missing, updated when different. |
-| Templates | Name, alias, subject, html, text. `from`, `reply_to` and `variables` cannot be stored — listed as manual steps. |
-| Webhooks | Endpoint and events. The signing secret is copied, so the receiver you already run keeps verifying (deliveries carry the `svix-*` headers). `--fresh-webhook-secrets` mints new ones. Events Posta also emits carry over — the eight `email.*` types, `email.received` included, `contact.created`, `contact.updated` and `contact.deleted`, and the twelve `inbox.*` types Posta sends; the rest (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) are dropped per webhook and listed. |
+| Templates | Name, alias, subject, html, text. `from`, `reply_to` and `variables` cannot be stored: listed as manual steps. |
+| Webhooks | Endpoint and events. The signing secret is copied, so the receiver you already run keeps verifying (deliveries carry the `svix-*` headers). `--fresh-webhook-secrets` mints new ones. Events Posta also emits carry over: the eight `email.*` types, `email.received` included, `contact.created`, `contact.updated` and `contact.deleted`, and the twelve `inbox.*` types Posta sends; the rest (`domain.*`, `email.suppressed`, `inbox.thread.assigned`, `inbox.thread.unassigned`) are dropped per webhook and listed. |
 | Suppressions | Bounces, complaints and manual entries, with their origin. |
-| Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves — the Resend region does not carry over. On Posta Cloud, tracking toggles only carry over together with a tracking subdomain; without one the report lists them for you to set up in the dashboard. DNS records must be added again — see step 3. |
+| Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves: the Resend region does not carry over. On Posta Cloud, tracking toggles only carry over together with a tracking subdomain; without one the report lists them for you to set up in the dashboard. DNS records must be added again: see step 3. |
 | Broadcasts | Drafts and scheduled ones import as drafts. Sent ones are skipped unless `--include-sent`. |
 
-What cannot move: **API keys** (Resend exposes their names only — the report
+What cannot move: **API keys** (Resend exposes their names only; the report
 lists them as a to-do), **DKIM/DNS records** (keys are per provider),
 **inboxes** with their threads and drafts (create them again; see step 3),
 and **email history**, sent or received. Audiences, deprecated in Resend,
-are skipped — segments cover them.
+are skipped: segments cover them.
 
 Flags, environment variables, files, exit codes and CI usage are on the
 [CLI reference](/cli).
@@ -119,7 +119,7 @@ Flags, environment variables, files, exit codes and CI usage are on the
 ## 2. Point your existing code at Posta
 
 The official Resend SDKs honor `RESEND_BASE_URL`, so the migration is two
-environment lines — no code changes:
+environment lines: no code changes:
 
 ```sh
 RESEND_API_KEY=po_...
@@ -163,7 +163,7 @@ The summary ends with a checklist. Three items are always on it:
   (also under **Domains** in the dashboard). Both providers can stay verified
   side by side while you migrate.
 - **Set `RESEND_BASE_URL`** (step 2) in every environment that sends.
-- **Create API keys** — one per name the report lists (for example `prod`,
+- **Create API keys**: one per name the report lists (for example `prod`,
   `staging`) under **API keys**.
 
 Two more appear when they apply: template `from` / `reply_to` values to set
@@ -194,7 +194,7 @@ instance's shared inbox domain, so it needs one. See
 [Inboxes → Resend compatibility](/concepts/inboxes#resend-compatibility).
 
 Send one email through the new base URL and watch it move to **Delivered** on
-the Emails page — that is the whole migration.
+the Emails page: that is the whole migration.
 
 ---
 

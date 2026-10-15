@@ -158,7 +158,7 @@ it("out-of-order events never regress the status ladder", async () => {
   const emailId = await insertSentEmail("mid-order");
   await processSesEvent(db, makeEvent({ eventType: "Delivery", sesMessageId: "mid-order" }));
   expect(await statusOf(emailId)).toBe("delivered");
-  // SES Send events are ignored entirely — the worker's own "sent" event is
+  // SES Send events are ignored entirely: the worker's own "sent" event is
   // the authoritative record, so no row and no status change.
   await processSesEvent(db, makeEvent({ eventType: "Send", sesMessageId: "mid-order" }));
   expect(await statusOf(emailId)).toBe("delivered");
@@ -233,7 +233,7 @@ it("duplicate suppression events collapse to one row", async () => {
   expect(rows).toHaveLength(1);
 });
 
-it("a redelivered SNS MessageId is fully idempotent — counters included", async () => {
+it("a redelivered SNS MessageId is fully idempotent: counters included", async () => {
   await insertSentEmail("mid-redeliver");
   const deliveredBefore = (
     await db.select().from(schema.usageCounters).where(eq(schema.usageCounters.teamId, teamId))
@@ -259,7 +259,7 @@ it("a mid-processing failure never burns the idempotency gate: retry records the
   type AnyFn = (...args: unknown[]) => unknown;
   let failNext = true;
   // Reject the first raw-SQL execute (the status CAS / counter path) once,
-  // whether reached directly or inside a transaction — simulating a crash
+  // whether reached directly or inside a transaction: simulating a crash
   // after the event row was inserted.
   const failOnce = (target: object): object =>
     new Proxy(target, {
@@ -310,7 +310,7 @@ it("a mid-processing failure never burns the idempotency gate: retry records the
 
 // Engagement (opened/clicked) is tracked app-layer now: the per-domain config
 // set excludes OPEN/CLICK, so SES never sends them. A stray legacy event is
-// ignored entirely — no status change, no counter, no event row — so it can
+// ignored entirely (no status change, no counter, no event row) so it can
 // never double-count what the app-layer redirect endpoints already recorded.
 it("legacy Open/Click SES events are ignored entirely", async () => {
   const emailId = await insertSentEmail("mid-legacy-engagement");
@@ -346,7 +346,7 @@ it("unknown event types are a no-op", async () => {
   expect(await statusOf(emailId)).toBe("sent");
 });
 
-it("suppresses only addresses the email was sent to — never a payload-supplied stranger", async () => {
+it("suppresses only addresses the email was sent to, never a payload-supplied stranger", async () => {
   const emailId = await insertSentEmail("mid-bounce-scope", ["real@example.com"]);
   await db
     .update(schema.emails)

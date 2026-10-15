@@ -21,7 +21,7 @@ export interface DnsResolver {
 }
 
 /* Public resolvers are asked first, over DNS-over-HTTPS: the host's stub
-   resolver may serve a record's previous value — or a cached absence — for
+   resolver may serve a record's previous value (or a cached absence) for
    as long as it likes (some providers clamp TTLs), and a check that keeps
    reporting a fixed record as wrong sends people re-pasting a correct value.
    HTTPS rather than UDP port 53 because a VPS drops and rate-limits UDP
@@ -145,7 +145,7 @@ const stripDot = (host: string) => host.toLowerCase().replace(/\.$/, "");
  * network error) is inconclusive and stays a distinct `unknown`. Consumers
  * fold it in opposite directions: the send gate treats it like missing
  * (conservative-closed, combineRecordStatus) while DMARC persistence skips it
- * (conservative-open — a blip must never stamp a score penalty).
+ * (conservative-open; a blip must never stamp a score penalty).
  */
 export function dnsErrorStatus(err: unknown): "missing" | "unknown" {
   const code = (err as { code?: string }).code;
@@ -229,7 +229,7 @@ export function checkDnsRecordsDetailed(
   return Promise.all(records.map((record) => checkOne(record, resolver)));
 }
 
-/** Statuses only — the shape single-record callers (the tracking CNAME) read. */
+/** Statuses only: the shape single-record callers (the tracking CNAME) read. */
 export async function checkDnsRecords(
   records: DnsCheckRecord[],
   resolver: DnsResolver,

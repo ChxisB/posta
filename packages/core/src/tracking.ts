@@ -10,7 +10,7 @@ import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
  * HKDF-derived from the master key so the KEK never signs directly.
  *
  * Click payload raw bytes: `emailId "\n" teamId "\n" url`. The url is INSIDE
- * the signed payload, so a tampered destination fails verification — the
+ * the signed payload, so a tampered destination fails verification: the
  * redirect can only ever follow a URL we signed at send time (no open
  * redirect). The team lets the endpoint check the sender's standing after the
  * email row has aged out. Tokens minted before the team was signed carry

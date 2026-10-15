@@ -8,7 +8,7 @@ from ._client import list_query, path_id, request, split_id
 class ContactProperties:
     @classmethod
     def create(cls, params: Dict[str, Any]) -> Any:
-        """POST /contact-properties — key, type (string|number), fallback_value?"""
+        """POST /contact-properties: key, type (string|number), fallback_value?"""
         return request("POST", "/contact-properties", body=params)
 
     @classmethod
@@ -26,7 +26,7 @@ class ContactProperties:
 
     @classmethod
     def update(cls, params: Dict[str, Any]) -> Any:
-        """PATCH /contact-properties/{id} — ``{"id": ..., "fallback_value": ...}`` (None clears)."""
+        """PATCH /contact-properties/{id}: ``{"id": ..., "fallback_value": ...}`` (None clears)."""
         property_id, body = split_id(params, "id")
         return request("PATCH", f"/contact-properties/{property_id}", body=body)
 

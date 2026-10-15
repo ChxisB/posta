@@ -251,7 +251,7 @@ export function ScoreDetailsDrawer({ open, onClose }: { open: boolean; onClose: 
               >
                 <span>{score("title")}</span>
                 <span style={{ fontSize: 20, fontWeight: 800 }}>
-                  {data.scoreTenths !== null ? points(data.scoreTenths) : "—"}
+                  {data.scoreTenths !== null ? points(data.scoreTenths) : "-"}
                 </span>
               </span>
             </div>

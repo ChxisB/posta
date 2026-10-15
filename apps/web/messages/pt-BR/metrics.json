@@ -8,7 +8,7 @@
   "kpi": {
     "emails": "E-mails",
     "deliverability": "Taxa de entrega",
-    "allTimeDelivered": "E-mails entregues — total histórico"
+    "allTimeDelivered": "E-mails entregues, total histórico"
   },
   "bounce": {
     "title": "Taxa de bounce permanente",
@@ -78,7 +78,7 @@
     "clicked": "Cliques"
   },
   "empty": "Nenhuma métrica ainda.",
-  "emptyHint": "As métricas aparecem após o primeiro envio — <code>POST /emails</code>.",
+  "emptyHint": "As métricas aparecem após o primeiro envio: <code>POST /emails</code>.",
   "guardrail": {
     "window": "últimos {days} dias"
   }

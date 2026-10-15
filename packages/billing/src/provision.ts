@@ -56,7 +56,7 @@ export interface ProvisionStripe {
 
 /** Portal configurations carry this marker so re-runs update rather than duplicate. */
 export const PORTAL_METADATA = { posta: "portal" } as const;
-/** Stripe Tax code "Software as a service (SaaS) — business use". */
+/** Stripe Tax code "Software as a service (SaaS) - business use". */
 export const SAAS_BUSINESS_TAX_CODE = "txcd_10103001";
 
 /**
@@ -331,7 +331,7 @@ async function ensureWebhook(
   log(`webhook: ${created.id} (created)`);
   if (created.secret) {
     log(`webhook: STRIPE_WEBHOOK_SECRET=${created.secret}`);
-    log("webhook: this signing secret is shown ONCE and cannot be read back later — store it now.");
+    log("webhook: this signing secret is shown ONCE and cannot be read back later; store it now.");
   }
   return { id: created.id, secret: created.secret };
 }

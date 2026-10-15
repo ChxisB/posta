@@ -16,7 +16,7 @@ import {
 /**
  * Team logo upload/removal. Authenticated by the Better Auth session (never an
  * API key). Unlike tRPC teamProcedure the target teamId comes from the client
- * — onboarding uploads immediately after creating the team — so authorization
+ * (onboarding uploads immediately after creating the team) so authorization
  * is a fresh membership lookup: the caller must hold an owner/admin membership
  * of that exact team, and the id itself never reaches a query unverified.
  *

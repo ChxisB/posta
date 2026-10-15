@@ -158,8 +158,8 @@ export function ReviewTab({ inbox }: { inbox: InboxDetail }) {
                   {inbox.kind === "agent" ? (
                     <td className="right po-mono" style={{ whiteSpace: "nowrap" }}>
                       {t("detail.scores", {
-                        injection: item.injection_score ?? "–",
-                        phishing: item.phishing_score ?? "–",
+                        injection: item.injection_score ?? "-",
+                        phishing: item.phishing_score ?? "-",
                       })}
                     </td>
                   ) : null}

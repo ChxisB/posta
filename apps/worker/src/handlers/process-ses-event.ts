@@ -30,7 +30,7 @@ import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
  * rewrite links and inject the pixel ourselves, generating the opened/clicked
  * events and counters at the redirect endpoints), and the per-domain config set
  * no longer subscribes to OPEN/CLICK. A stray legacy OPEN/CLICK event therefore
- * finds no mapping here and is ignored entirely — never double-counting the
+ * finds no mapping here and is ignored entirely, never double-counting the
  * app-layer engagement. Send is absent for the same reason: the worker records
  * the authoritative "sent" event locally at send time, so SES's Send (still
  * emitted by event destinations created before it was dropped from
@@ -125,14 +125,14 @@ export async function processSesEvent(
         ),
       );
   }
-  // Unknown message id: not ours (or purged) — never act on it.
+  // Unknown message id: not ours (or purged), never act on it.
   if (!email) return;
 
   // The event insert doubles as the idempotency gate: SNS delivers
   // at-least-once and queue dedupe cannot cover redelivery after the job
   // completed, so a duplicate SNS MessageId stops at the insert. The gate
   // and every effect it guards (status CAS, counters, suppressions, webhook
-  // delivery rows) commit in ONE transaction — a gate committed without its
+  // delivery rows) commit in ONE transaction: a gate committed without its
   // effects would make a retry early-return and permanently drop them,
   // losing e.g. a hard-bounce suppression.
   const deliveries: QueuedWebhookDelivery[] = [];
@@ -174,7 +174,7 @@ export async function processSesEvent(
       await noteConsoleCodeUndelivered(txDb, email);
     }
 
-    // Fan the now-recorded event out to the team's webhook endpoints —
+    // Fan the now-recorded event out to the team's webhook endpoints:
     // delivery rows join the transaction; the queue enqueue happens after
     // commit (a lost job is recovered by the webhook reconcile sweep).
     // "sent" is excluded here: the send worker already fires email.sent at
@@ -205,7 +205,7 @@ export async function processSesEvent(
             ? "complained"
             : null;
     if (counter) {
-      // bounced counts every bounce event; hard_bounced only Permanent ones —
+      // bounced counts every bounce event; hard_bounced only Permanent ones:
       // the deliverability score's bounce-rate input (transient greylisting
       // must not read as a hard-bounce crisis).
       const cols =
@@ -229,7 +229,7 @@ export async function processSesEvent(
     }
 
     // Auto-suppression: permanent bounces and complaints, scoped to the
-    // owning team only and to addresses the email was actually sent to —
+    // owning team only and to addresses the email was actually sent to:
     // the event payload never gets to name who is suppressed.
     const ownRecipients = new Set(
       [...email.to, ...(email.cc ?? []), ...(email.bcc ?? [])].map(hashRecipient),

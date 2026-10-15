@@ -197,7 +197,7 @@ export function registerContactPropertyRoutes(app: OpenAPIHono<Env>, db: Db): vo
         .from(p)
         .where(and(eq(p.id, id), eq(p.teamId, auth.teamId)));
       if (!existing) return c.json(errorBody(404, "not_found", "Property not found"), 404);
-      // The SDK sends {} when fallbackValue is omitted — a valid no-op.
+      // The SDK sends {} when fallbackValue is omitted: a valid no-op.
       if (body.fallback_value !== undefined) {
         const fallback = storedFallback(existing.type, body.fallback_value);
         if (!fallback.ok) {
@@ -227,7 +227,7 @@ export function registerContactPropertyRoutes(app: OpenAPIHono<Env>, db: Db): vo
     }),
     async (c) => {
       const auth = c.get("auth");
-      // Only the definition is removed — values in contacts.properties are
+      // Only the definition is removed: values in contacts.properties are
       // untouched (same as the dashboard); those keys read as strings again.
       const [row] = await db
         .delete(p)

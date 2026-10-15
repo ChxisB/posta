@@ -8,7 +8,7 @@ export const JUDGE_PROVIDERS = ["typesafe"] as const;
 export type JudgeProvider = (typeof JUDGE_PROVIDERS)[number];
 
 export interface JudgeVerdict {
-  /** 0–100, 100 = certainly abusive. */
+  /** 0 to 100, 100 = certainly abusive. */
   score: number;
   verdict: "abuse" | "clean";
   categories: string[];

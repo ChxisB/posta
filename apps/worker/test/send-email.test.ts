@@ -468,7 +468,7 @@ it("the domain's configuration set wins over the deployment fallback", async () 
   expect(sends[0]?.configurationSetName).toBe("ms-config-set");
 });
 
-it("skips anything not in queued state — a job cannot force a send", async () => {
+it("skips anything not in queued state: a job cannot force a send", async () => {
   const { ses, sends } = fakeSes();
   const deps: SendDeps = { keyring, ses };
   for (const latestStatus of ["queued_quota", "sent", "failed"] as const) {
@@ -501,7 +501,7 @@ it("defers a not-yet-due scheduled email back to the queue", async () => {
   expect(sends).toHaveLength(0);
 });
 
-it("skips an already-claimed email — no duplicate delivery on retry", async () => {
+it("skips an already-claimed email: no duplicate delivery on retry", async () => {
   const { ses, sends } = fakeSes();
   // A prior attempt claimed the row (sentAt set) and reached SES before its
   // bookkeeping failed; the retry must NOT send again.
@@ -787,7 +787,7 @@ it("openTracking on injects the pixel; a custom subdomain sets the tracking host
 });
 
 // A deployment with no certificate for customer hostnames must not ship links
-// through one, even for a subdomain stored while the feature was available —
+// through one, even for a subdomain stored while the feature was available:
 // mail already sent cannot be recalled.
 it("allowSubdomains false falls back to the deployment host, stored subdomain and all", async () => {
   const [branded] = await db
@@ -823,7 +823,7 @@ it("allowSubdomains false falls back to the deployment host, stored subdomain an
   const mime = unwrapQp(sends[0]?.raw.toString("utf8") ?? "");
   expect(mime).toContain("https://fallback.test/t/c/");
   expect(mime).not.toContain("track.branded.dev");
-  // Tracking itself still works — only the host changed.
+  // Tracking itself still works, only the host changed.
   const pixel = mime.match(/\/t\/o\/([A-Za-z0-9_.-]+)/);
   expect(verifyOpenToken(pixel?.[1] ?? "", trackingSecret)).toEqual({ emailId });
 });
@@ -916,7 +916,7 @@ it("broadcast: an already-expanded in-body unsubscribe link is NOT click-wrapped
   expect(await sendEmail(db, deps, { emailId })).toBe("sent");
 
   const mime = unwrapQp(sends[0]?.raw.toString("utf8") ?? "");
-  // The visible unsubscribe link survives verbatim — no /t/c hop, no bogus
+  // The visible unsubscribe link survives verbatim: no /t/c hop, no bogus
   // click. Wrapping would fold the raw URL into a signed token, so its literal
   // presence proves it was left untouched.
   expect(mime).toContain(unsubUrl);
@@ -953,7 +953,7 @@ it("token bucket setRate re-paces the existing bucket", async () => {
 });
 
 // A tracking host shared by every tenant is what ad blockers learn to block,
-// so a deployment may require the domain's own subdomain — links then ship
+// so a deployment may require the domain's own subdomain: links then ship
 // clean rather than through the shared host.
 it("requireBrandedHost ships clean links when the domain has no subdomain", async () => {
   const [untracked] = await db

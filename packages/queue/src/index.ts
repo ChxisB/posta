@@ -1,10 +1,10 @@
 import { PgBoss } from "pg-boss";
 
 /**
- * Thin, typed wrapper over pg-boss — the seam behind which Redis/BullMQ can
+ * Thin, typed wrapper over pg-boss: the seam behind which Redis/BullMQ can
  * arrive later without touching product code (stack decision §0). Job
  * payloads are minimal references; workers re-read authoritative state from
- * Postgres — a payload is never trusted as truth.
+ * Postgres: a payload is never trusted as truth.
  */
 
 export interface JobPayloads {
@@ -85,7 +85,7 @@ export type EnqueueEmailSends = (batch: readonly EmailSendRequest[]) => Promise<
 
 /**
  * Job queues use the "short" policy: pg-boss only enforces singletonKey
- * uniqueness under short/singleton/stately/exclusive policies — on the
+ * uniqueness under short/singleton/stately/exclusive policies; on the
  * default "standard" policy the key is silently ignored and dedupe would be
  * a no-op. "short" + a key on every send = at most one CREATED job per key
  * (job_i1 is partial on state = created): an active job, or one waiting in
@@ -201,7 +201,7 @@ export const CRON_JOBS = {
   "notifications.sweep": "*/10 * * * *",
   // Every 15 min: per-region platform breaker on the account-wide bounce/complaint rates.
   "platform.breaker": "*/15 * * * *",
-  // Every 15 min: warn when sends went out but no SES event came back — a
+  // Every 15 min: warn when sends went out but no SES event came back; a
   // broken event pipeline is otherwise silent (everything just reads "Sent").
   "events.health": "*/15 * * * *",
   // Hourly: associate domains with their team's SES tenant where the create-time
@@ -328,7 +328,7 @@ export class Queue {
     }
     // Maintenance every 10 minutes: pg-boss 12.30 runs one DELETE per chunk
     // of up to 100 queue names, unbounded by row count, so the pass stays
-    // small only because retention does — finished jobs live an hour
+    // small only because retention does; finished jobs live an hour
     // (DELETE_AFTER_SECONDS), never-fetched ones pg-boss's 14-day default.
     // The queue monitor counts every five.
     const consumer = await startBoss({
@@ -367,7 +367,7 @@ export class Queue {
     });
     if (policy) {
       // createQueue is INSERT ... ON CONFLICT DO NOTHING: a pre-existing
-      // queue keeps its stored policy, and pg-boss 12 cannot converge it —
+      // queue keeps its stored policy, and pg-boss 12 cannot converge it:
       // updateQueue() throws "queue policy cannot be changed after creation"
       // (its UpdateQueueOptions omits `policy`). A queue left on "standard"
       // silently ignores singletonKey, turning dedupe into duplicate sends,
@@ -376,7 +376,7 @@ export class Queue {
       if (existing && existing.policy !== policy) {
         throw new Error(
           `queue "${name}" has policy "${existing.policy}" but "${policy}" is required for ` +
-            `singletonKey dedupe; pg-boss cannot change a queue's policy after creation — ` +
+            `singletonKey dedupe; pg-boss cannot change a queue's policy after creation: ` +
             `delete and recreate the queue`,
         );
       }

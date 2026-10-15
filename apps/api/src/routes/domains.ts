@@ -73,7 +73,7 @@ export interface DomainsSesDeps {
   /**
    * The SES regions this deployment serves (servedRegions()), the default
    * first: the only regions a create accepts. Absent, every SES region is
-   * offered — the docs generator's case.
+   * offered: the docs generator's case.
    */
   regions?: readonly string[] | undefined;
   /** The AUTH_EMAIL_FROM sender; in cloud its domain is reserved for system mail. */
@@ -276,7 +276,7 @@ function trackingSettingsError(
 ): string | null {
   // Tracking is app-layer: open pixels, rewritten links, and the branded
   // CNAME all point at APP_BASE_URL. A host recipients cannot reach makes
-  // the toggle meaningless, so enabling is refused — disabling is always
+  // the toggle meaningless, so enabling is refused: disabling is always
   // allowed.
   const enabling = input.open === true || input.click === true || Boolean(input.subdomain);
   if (enabling && !deps.appBaseUrl) {
@@ -311,14 +311,14 @@ function trackingSettingsError(
   ) {
     return deps.trackingSubdomains === false
       ? "Tracking is served from the domain's own tracking subdomain, and this deployment cannot serve one, so tracking cannot be turned on."
-      : 'Tracking is served from the domain\'s own tracking subdomain, so it cannot be on without one. Pass tracking_subdomain (a label such as "links") in the same request — the response includes the CNAME record to add — or turn both tracking kinds off first.';
+      : 'Tracking is served from the domain\'s own tracking subdomain, so it cannot be on without one. Pass tracking_subdomain (a label such as "links") in the same request (the response includes the CNAME record to add) or turn both tracking kinds off first.';
   }
   return null;
 }
 
 /**
  * The SES regions this deployment provisions identities in, the default
- * first — the list the dashboard form reads as system.features.regions.
+ * first: the list the dashboard form reads as system.features.regions.
  * Configuration sets, SNS topics and tenants are regional, so a domain
  * anywhere else would verify but never send or report events.
  */
@@ -370,7 +370,7 @@ export function registerDomainRoutes(
   };
 
   // Engagement tracking is app-layer: the branded CNAME points at THIS app
-  // host, not SES — so it only exists once APP_BASE_URL names a real host, and
+  // host, not SES, so it only exists once APP_BASE_URL names a real host, and
   // only where this deployment can actually serve a customer hostname.
   const trackingCname = (
     domain: DomainRow,
@@ -385,7 +385,7 @@ export function registerDomainRoutes(
 
   /**
    * The shared source of truth the dashboard verify and the worker cron also
-   * run — SES status + live DNS folded into the strict stored status — plus a
+   * run (SES status + live DNS folded into the strict stored status) plus a
    * live check of the tracking CNAME, which never gates status so
    * computeDomainVerification omits it. Every single-domain read runs this, so
    * the API describes each record the way the dashboard table does.
@@ -509,7 +509,7 @@ export function registerDomainRoutes(
         }
       }
 
-      // BYODKIM: the private key lives only in this block — handed to SES,
+      // BYODKIM: the private key lives only in this block; handed to SES,
       // then dereferenced. It must never be stored, returned, or logged.
       let dkim: ReturnType<typeof generateDkimKeyPair> | null = generateDkimKeyPair();
       const dkimPublicKey = dkim.publicKeyB64;
@@ -672,7 +672,7 @@ export function registerDomainRoutes(
       const auth = c.get("auth");
       const domain = await findDomain(auth.teamId, c.req.valid("param").id);
       if (!domain) return c.json(errorBody(404, "not_found", "Domain not found"), 404);
-      // A read reports the fresh verdict without persisting the domain status —
+      // A read reports the fresh verdict without persisting the domain status;
       // verify and the reverify sweep own that. The tracking clock is the one
       // exception: a CNAME seen live must open the branded-host gate, or the
       // row reads verified while sends still ship untracked.
@@ -722,7 +722,7 @@ export function registerDomainRoutes(
         });
         await queueDomainAge(domain.id);
       }
-      // Full object with per-record status — the promised "fresh status"
+      // Full object with per-record status: the promised "fresh status"
       // without a get_domain round-trip. Additive over the SDK's { id }.
       return c.json(
         { object: "domain" as const, ...toWire({ ...domain, status }, receives), records },
@@ -882,7 +882,7 @@ export function registerDomainRoutes(
           metadata: { name: domain.name },
         });
       }
-      // Full object so the caller sees the settings it just changed —
+      // Full object so the caller sees the settings it just changed;
       // additive over the SDK's { id }. Records are read the same way GET
       // reads them, for the subdomain that was just set.
       const updated = {
@@ -946,7 +946,7 @@ export function registerDomainRoutes(
           // Detach whenever tenants are on, not only when the row is marked:
           // the marker means the whole association (identity AND configuration
           // set) succeeded, but the identity is attached as soon as its own
-          // association call returned — and SES refuses to delete an attached
+          // association call returned, and SES refuses to delete an attached
           // identity. A tenant or association that is not there is tolerated.
           if (ses.tenants) {
             await disassociateIdentity(ses.clientForRegion(domain.region), {
@@ -1004,7 +1004,7 @@ export function registerDomainRoutes(
           );
         // api_keys.domainId is ON DELETE restrict (a scoped key must never
         // silently widen to all domains): revoke every scoped key and drop its
-        // FK first — a revoked key never authenticates, and clearing domainId
+        // FK first; a revoked key never authenticates, and clearing domainId
         // frees the delete. Same guards as the dashboard delete.
         await txDb
           .update(schema.apiKeys)
