@@ -22,8 +22,8 @@ brand moments, not to the interface.
 
 `--po-brand-gradient` is Coral → Rose → Violet at 135°.
 
-**Where the gradient is allowed:** the logo mark, and large brand moments (a
-hero, an empty-state illustration, the social image). Nowhere else.
+**Where the gradient is allowed:** the logo and the app icon (the files in
+`public/logo/`). Never behind text. Nowhere else.
 
 **Where it is not:** a button, a link, any text, a border, a badge or a chart.
 White on Coral is 2.85:1 and on Rose 3.71:1, so neither carries text; interface
@@ -59,8 +59,10 @@ followed. Both blocks live in `tokens/colors.css`, and light redefines every
 token dark declares. Any element carrying `data-theme` applies that set
 inside itself, which is how a preview frame shows the other scheme.
 
-The neutrals are cool and close to grey so the violet carries the brand. They
-are provisional until the Brand Book gives final ink and slate values.
+The neutrals are cool and close to grey so the violet carries the brand. The
+Brand Book (v1, October 2026) now gives final ink and slate values, and they
+differ from the ones below; `KNOWN_BOOK_GAPS` in
+`src/test-support/brand-rules.ts` lists each value still to bring across.
 
 | Token | Dark | Light | Role |
 | --- | --- | --- | --- |

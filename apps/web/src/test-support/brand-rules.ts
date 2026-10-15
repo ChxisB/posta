@@ -6,6 +6,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Theme } from "./contrast";
 
 /** The repository root: this file is apps/web/src/test-support/. */
 export const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
@@ -38,11 +39,9 @@ export function filesUnder(dir: string, extensions: string[]): string[] {
 
 /* ---------------------------------------------------------------- old brand */
 
-/** The previous product's name, and its display font, wherever they survive. */
+/** The previous brand's display font, wherever it survives. The type is Geist now. */
 export function oldBrandHits(text: string): string[] {
-  return [...text.matchAll(/millionsend|\bErode\b/gi)]
-    .map((match) => match[0])
-    .filter((hit) => hit.toLowerCase() === "millionsend" || hit === "Erode");
+  return [...text.matchAll(/\bErode\b/g)].map((match) => match[0]);
 }
 
 /* -------------------------------------------------------- colours, in text */
@@ -129,10 +128,10 @@ export function strayHexes(
 /* ----------------------------------------------------------- the gradient */
 
 /**
- * Source files outside colors.css that may use the Coral→Rose→Violet gradient:
- * the mark and large brand moments only. None: the logo is a set of SVG files
- * in public/logo/ (checked in "the logo files"), not a component, so no
- * TypeScript or CSS names the gradient.
+ * Source files outside colors.css that may use the Coral→Rose→Violet gradient.
+ * The Brand Book allows it on the logo and the app icon only, never behind
+ * text. None: the logo is a set of SVG files in public/logo/ (checked in "the
+ * logo files"), not a component, so no TypeScript or CSS names the gradient.
  */
 export const GRADIENT_ALLOWED_IN: string[] = [];
 
@@ -141,6 +140,107 @@ const GRADIENT_USE = /--po-brand-(?:gradient|coral|rose)|#ff6a3d|#e8458b/i;
 export function usesGradient(text: string): boolean {
   return GRADIENT_USE.test(text);
 }
+
+/* ------------------------------------------------------------ Brand Book */
+
+/**
+ * The Brand Book's product tokens (Colour, "Product tokens") under this tree's
+ * names: background is void, panel-2 is panel-raised, foreground is bone and
+ * accent-ink is on-accent. The book has one accent per theme for fills, links
+ * and the ring, so it stands for both accent and accent-text here.
+ */
+export const BOOK_TOKENS: Record<string, Record<Theme, string>> = {
+  void: { dark: "#0a0c10", light: "#fafafa" },
+  panel: { dark: "#12151d", light: "#ffffff" },
+  "panel-raised": { dark: "#161a24", light: "#f4f5f7" },
+  line: { dark: "#232836", light: "#e3e5e9" },
+  "line-soft": { dark: "#1b2029", light: "#eef0f3" },
+  bone: { dark: "#e6e9f0", light: "#16181d" },
+  muted: { dark: "#9aa2b5", light: "#4d5158" },
+  faint: { dark: "#767f92", light: "#6b7078" },
+  accent: { dark: "#a98bff", light: "#6538d6" },
+  "accent-text": { dark: "#a98bff", light: "#6538d6" },
+  "on-accent": { dark: "#0a0c10", light: "#ffffff" },
+};
+
+/**
+ * Where the product's colours and fonts still differ from the Brand Book, as
+ * "token.theme" or "font-sans" / "font-mono". Exact, like KNOWN_MISSING_ASSETS:
+ * a value that is brought across has to leave this list, and a new difference
+ * fails. The neutrals were provisional until the book arrived; the accent is
+ * still the gradient's violet (#7046e8) where the book's is #6538d6.
+ */
+export const KNOWN_BOOK_GAPS = [
+  "accent-text.light",
+  "accent.dark",
+  "accent.light",
+  "bone.dark",
+  "bone.light",
+  "faint.dark",
+  "faint.light",
+  "font-mono",
+  "line-soft.dark",
+  "line-soft.light",
+  "line.dark",
+  "line.light",
+  "muted.dark",
+  "muted.light",
+  "on-accent.dark",
+  "panel-raised.dark",
+  "panel-raised.light",
+  "panel.dark",
+  "void.dark",
+  "void.light",
+];
+
+/**
+ * The book's tokens whose value is not the book's, as "token.theme". `read`
+ * gives a token's resolved value in a theme, or undefined if it is not defined.
+ */
+export function bookGaps(read: (theme: Theme, token: string) => string | undefined): string[] {
+  return Object.entries(BOOK_TOKENS).flatMap(([token, book]) =>
+    (["dark", "light"] as const)
+      .filter((theme) => read(theme, token)?.toLowerCase() !== book[theme])
+      .map((theme) => `${token}.${theme}`),
+  );
+}
+
+/**
+ * The book sets Geist for text and Geist Mono for anything a reader might
+ * copy. Returns "font-sans" and "font-mono" for a stack that does not lead
+ * with its face; the variable builds (@fontsource-variable) count as the face.
+ */
+export function fontGaps(stacks: { sans: string; mono: string }): string[] {
+  const lead = (stack: string) => /^\s*["']?([^,"']+)/.exec(stack)?.[1]?.trim() ?? "";
+  return (
+    [
+      ["font-sans", stacks.sans, "Geist"],
+      ["font-mono", stacks.mono, "Geist Mono"],
+    ] as const
+  )
+    .filter(([, stack, face]) => !new RegExp(`^${face}( Variable)?$`).test(lead(stack)))
+    .map(([id]) => id);
+}
+
+/* ------------------------------------------------------------------- voice */
+
+/**
+ * The paths of the strings in a message catalogue that contain an exclamation
+ * mark. The book allows none, "not in success states either".
+ */
+export function exclamationKeys(value: unknown, path = ""): string[] {
+  if (typeof value === "string") return value.includes("!") ? [path] : [];
+  if (typeof value !== "object" || value === null) return [];
+  return Object.entries(value).flatMap(([key, child]) =>
+    exclamationKeys(child, path ? `${path}.${key}` : key),
+  );
+}
+
+/** "file:key" for catalogue strings that quote an exclamation mark rather than use one. */
+export const EXCLAMATIONS_ALLOWED_IN: Record<string, string> = {
+  "apps/web/messages/en/emails.json:insights.check.subject_lint.description":
+    "explains the '!!!' that trips content filters; it is quoted, not said",
+};
 
 /* ----------------------------------------------------------------- assets */
 

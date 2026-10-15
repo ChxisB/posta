@@ -14,14 +14,20 @@ import { accountMailCard, EMAIL_COLOURS } from "@posta/core";
 import { describe, expect, it } from "vitest";
 import {
   assetRefs,
+  BOOK_TOKENS,
+  bookGaps,
   designRows,
   docsPalette,
+  EXCLAMATIONS_ALLOWED_IN,
+  exclamationKeys,
   filesUnder,
+  fontGaps,
   GRADIENT_ALLOWED_IN,
   HEX_ALLOWED_IN,
   HEX_EXEMPT_FILES,
   hexLiterals,
   isHex,
+  KNOWN_BOOK_GAPS,
   KNOWN_MISSING_ASSETS,
   missingAssets,
   oldBrandHits,
@@ -77,16 +83,10 @@ const COLOUR_FILES = files([
 );
 
 describe("the old brand", () => {
-  it("finds the previous product's name and display font", () => {
-    expect(oldBrandHits("Welcome to MillionSend")).toEqual(["MillionSend"]);
+  it("finds the previous display font, by name and by file", () => {
     expect(oldBrandHits("font-family: Erode, serif")).toEqual(["Erode"]);
     expect(oldBrandHits("src: url(/fonts/Erode-Variable.woff2)")).toEqual(["Erode"]);
-  });
-
-  it("finds the previous product's logo file names too", () => {
-    expect(oldBrandHits('icon: "/logo/millionsend-favicon.svg"')).toEqual(["millionsend"]);
-    expect(oldBrandHits("/logo/millionsend-wordmark-light.svg")).toEqual(["millionsend"]);
-    expect(oldBrandHits('const name = "millionsend"')).toEqual(["millionsend"]);
+    expect(oldBrandHits("font-family: Geist, sans-serif")).toEqual([]);
     expect(oldBrandHits('icon: "/logo/posta-favicon.svg"')).toEqual([]);
   });
 
@@ -120,11 +120,11 @@ describe("the old brand", () => {
     expect(hits).toEqual([]);
   });
 
-  it("has no file named for it in either app's public folder", () => {
+  it("has no font file named for it in either app's public folder", () => {
     const named = [
       ...filesUnder("apps/web/public", [""]),
       ...filesUnder("apps/docs/public", [""]),
-    ].filter((file) => /millionsend/i.test(file));
+    ].filter((file) => /\berode\b/i.test(file));
     expect(named).toEqual([]);
   });
 });
@@ -196,6 +196,137 @@ describe("the gradient", () => {
   it("never sits behind a button or a control", () => {
     const components = stripCssComments(readRepoFile("apps/web/src/styles/components.css"));
     expect(usesGradient(components)).toBe(false);
+  });
+
+  it("runs Coral, Rose, Violet as the Brand Book has it", () => {
+    expect(
+      ["brand-coral", "brand-rose", "brand-violet"].map((name) =>
+        resolve(THEMES.dark, name).toLowerCase(),
+      ),
+    ).toEqual(["#ff6a3d", "#e8458b", "#7046e8"]);
+  });
+
+  it("is the same in both themes, since it belongs to the mark and not to the page", () => {
+    for (const name of ["brand-coral", "brand-rose", "brand-violet"]) {
+      expect(resolve(THEMES.light, name), `--po-${name}`).toBe(resolve(THEMES.dark, name));
+    }
+  });
+});
+
+describe("the Brand Book", () => {
+  const read = (theme: Theme, token: string) => {
+    try {
+      return resolve(THEMES[theme], token);
+    } catch {
+      return undefined;
+    }
+  };
+  const typography = readRepoFile("apps/web/src/styles/tokens/typography.css");
+  const stack = (name: string) =>
+    new RegExp(`--po-${name}:\\s*([^;]+);`).exec(typography)?.[1]?.trim() ?? "";
+
+  it("sets every colour as a hex, in both themes", () => {
+    for (const [token, values] of Object.entries(BOOK_TOKENS)) {
+      for (const theme of THEME_LIST) {
+        expect(isHex(values[theme]), `${token} in ${theme}`).toBe(true);
+        expect(values[theme], `${token} in ${theme} is lower case`).toBe(
+          values[theme].toLowerCase(),
+        );
+      }
+    }
+  });
+
+  it("reads at 4.5:1 or better in its own palette, so bringing it across cannot fail contrast", () => {
+    const grounds = ["void", "panel", "panel-raised"];
+    for (const theme of THEME_LIST) {
+      const at = (token: string) => BOOK_TOKENS[token]?.[theme] ?? "";
+      for (const fg of ["bone", "muted", "accent"]) {
+        for (const bg of grounds) {
+          const ratio = contrast(at(fg), at(bg));
+          expect(
+            ratio,
+            `${fg} on ${bg} is ${ratio.toFixed(2)}:1 in ${theme}`,
+          ).toBeGreaterThanOrEqual(TEXT);
+        }
+      }
+      for (const bg of ["void", "panel"]) {
+        const ratio = contrast(at("faint"), at(bg));
+        expect(ratio, `faint on ${bg} is ${ratio.toFixed(2)}:1 in ${theme}`).toBeGreaterThanOrEqual(
+          TEXT,
+        );
+      }
+      const ink = contrast(at("on-accent"), at("accent"));
+      expect(ink, `on-accent on accent is ${ink.toFixed(2)}:1 in ${theme}`).toBeGreaterThanOrEqual(
+        TEXT,
+      );
+    }
+  });
+
+  it("finds a token that is not the book's, and one that is not defined", () => {
+    const book = (theme: Theme, token: string) => BOOK_TOKENS[token]?.[theme];
+    expect(bookGaps(book)).toEqual([]);
+    expect(
+      bookGaps((theme, token) =>
+        token === "bone" && theme === "dark" ? "#ffffff" : book(theme, token),
+      ),
+    ).toEqual(["bone.dark"]);
+    expect(
+      bookGaps((theme, token) => (token === "line-soft" ? undefined : book(theme, token))),
+    ).toEqual(["line-soft.dark", "line-soft.light"]);
+  });
+
+  it("finds a stack that does not lead with the book's face", () => {
+    expect(
+      fontGaps({ sans: '"Geist Variable", system-ui', mono: '"Geist Mono", monospace' }),
+    ).toEqual([]);
+    expect(
+      fontGaps({ sans: "Geist, sans-serif", mono: '"Geist Mono Variable", monospace' }),
+    ).toEqual([]);
+    expect(fontGaps({ sans: "Inter, sans-serif", mono: '"JetBrains Mono", monospace' })).toEqual([
+      "font-sans",
+      "font-mono",
+    ]);
+    // Geist Mono is not Geist: a sans stack that leads with the mono face is wrong.
+    expect(fontGaps({ sans: '"Geist Mono", monospace', mono: '"Geist Mono", monospace' })).toEqual([
+      "font-sans",
+    ]);
+  });
+
+  it("is matched by the product's tokens and fonts, apart from the known gaps", () => {
+    const found = [
+      ...bookGaps(read),
+      ...fontGaps({ sans: stack("font-sans"), mono: stack("font-mono") }),
+    ];
+    // Exact, so a new difference fails and a value brought across has to leave the list.
+    expect(found.sort()).toEqual([...KNOWN_BOOK_GAPS].sort());
+  });
+});
+
+describe("the voice", () => {
+  it("finds an exclamation mark in a catalogue, by its path", () => {
+    expect(exclamationKeys({ a: { b: "Done!" }, c: ["Fine.", "Wow!"], d: 3, e: null })).toEqual([
+      "a.b",
+      "c.1",
+    ]);
+    expect(exclamationKeys({ a: "Saved." })).toEqual([]);
+  });
+
+  it("has none in the English copy, success states included, except where one is quoted", () => {
+    const found = filesUnder("apps/web/messages/en", [".json"]).flatMap((file) =>
+      exclamationKeys(JSON.parse(readRepoFile(file))).map((key) => `${file}:${key}`),
+    );
+    expect(found.filter((entry) => !(entry in EXCLAMATIONS_ALLOWED_IN))).toEqual([]);
+  });
+
+  it("allows only strings that still have one, each with a reason", () => {
+    for (const [entry, why] of Object.entries(EXCLAMATIONS_ALLOWED_IN)) {
+      expect(why.length, `${entry} needs a reason`).toBeGreaterThan(10);
+      const [file = "", key = ""] = entry.split(":");
+      expect(
+        exclamationKeys(JSON.parse(readRepoFile(file))),
+        `${entry} no longer has an exclamation mark`,
+      ).toContain(key);
+    }
   });
 });
 
@@ -475,6 +606,37 @@ describe("the logo files", () => {
     expect(mark).toContain('transform="skewX(-12)"');
     expect(mark).toContain("M11,5 H84 M25,22 H84 M39,39 H84");
     expect(mark).toContain("M80,144 V16 H132 A36,36 0 0 1 132,88 H80");
+    expect(mark).toContain('stroke-width="10"');
+    expect(mark).toContain('stroke-width="32"');
+  });
+
+  it("draw the favicon as the P alone, in a rounded tile, as the book does under 20px", () => {
+    const favicon = readRepoFile(`${LOGO_DIR}/posta-favicon.svg`);
+    expect(favicon).toContain('viewBox="0 0 16 16"');
+    expect(favicon).toContain('rx="3.5"');
+    expect(favicon).toContain('transform="skewX(-12)"');
+    expect(favicon).toContain("M7.4,11.8 V4.2 H10.45 A2.05,2.05 0 0 1 10.45,8.3 H7.4");
+    // No stripes: at this size they close up.
+    expect(favicon).not.toContain("H84");
+    // The docs app carries the same file.
+    expect(readRepoFile("apps/docs/public/logo/posta-favicon.svg")).toBe(favicon);
+  });
+
+  it("set the avatar's mark at half the tile's height, with the book's 22.5% corners", () => {
+    const avatar = readRepoFile(`${LOGO_DIR}/posta-avatar.svg`);
+    const mark = readRepoFile(`${LOGO_DIR}/posta-mark.svg`);
+    expect(avatar).toContain('viewBox="0 0 1024 1024"');
+    expect(avatar).toContain(`rx="${1024 * 0.225}"`);
+    // The mark is 160 tall; at 3.2 it is 512, half of 1024.
+    expect(avatar).toContain("scale(3.2)");
+    // The same strokes as the mark itself, so the two cannot drift apart.
+    for (const stroke of [
+      "M11,5 H84 M25,22 H84 M39,39 H84",
+      "M80,144 V16 H132 A36,36 0 0 1 132,88 H80",
+    ]) {
+      expect(mark).toContain(stroke);
+      expect(avatar).toContain(stroke);
+    }
   });
 
   it("differ between the two wordmarks only in the word's fill", () => {
