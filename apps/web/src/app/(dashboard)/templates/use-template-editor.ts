@@ -4,8 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { confirmDialog } from "@/components/confirm-dialog";
 import type { MailyEditorChange } from "@/components/maily-editor";
 import { revealNode, type TiptapEditor } from "@/components/maily-editor/commands";
+import { toast } from "@/components/toast";
 import { authoredState, isMailyDoc } from "@/lib/email-doc";
 import { type EmailTheme, sameTheme, themeOf, withTheme } from "@/lib/email-theme";
 import { buildMergeOptions } from "@/lib/merge-fields";
@@ -22,6 +24,7 @@ import {
   templateSaveInput,
 } from "@/lib/template-mode";
 import { useTRPC } from "@/lib/trpc";
+import { guardMessage } from "@/lib/trpc-error";
 import { useLocalDraft } from "@/lib/use-local-draft";
 import { confirmUnsavedNavigation, useUnsavedChangesWarning } from "@/lib/use-unsaved-warning";
 import { PREVIEW_TEXT_FIELD_ID, SUBJECT_FIELD_ID, themeFieldId } from "./field-ids";
@@ -351,6 +354,90 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     }
   }
 
+  // Publishing freezes what is saved, so the editor's unsaved edits are saved
+  // first. The state is the server's: which version is newest, whether the
+  // saved draft has moved on from it, and the tags.
+  const publishState = useQuery(
+    trpc.templates.state.queryOptions(
+      { id: initial?.id ?? "" },
+      { enabled: initial !== undefined },
+    ),
+  );
+  const publishMutation = useMutation(trpc.templates.publish.mutationOptions());
+  const publishing = publishMutation.isPending;
+  const published = publishState.data;
+  const canPublish =
+    initial !== undefined &&
+    published !== undefined &&
+    complete &&
+    !saving &&
+    !publishing &&
+    !rendering &&
+    (dirty || published.hasUnpublishedChanges);
+
+  async function publish() {
+    if (!initial || !canPublish) return;
+    if (dirty) {
+      try {
+        await persist();
+        setJustSaved(true);
+      } catch {
+        // Shown via the save state; nothing is published from a failed save.
+        return;
+      }
+    }
+    try {
+      const out = await publishMutation.mutateAsync({ id: initial.id });
+      toast(
+        out.created
+          ? t("publish.done", { version: out.version })
+          : t("publish.unchanged", { version: out.version }),
+        out.created ? "success" : "info",
+      );
+    } catch (error) {
+      toast(guardMessage(error, t("publish.error")), "danger");
+    } finally {
+      queryClient.invalidateQueries(trpc.templates.pathFilter());
+    }
+  }
+
+  /**
+   * Puts a published version's content in the editor as an unsaved edit, the
+   * way a recovered draft is: nothing changes on the server until the next save.
+   * The name stays, since a version's name is only what it was called then.
+   */
+  async function loadVersion(version: number) {
+    if (!initial) return;
+    try {
+      const row = await queryClient.fetchQuery(
+        trpc.templates.version.queryOptions({ id: initial.id, version }),
+      );
+      if (row.html === null) throw new Error("content hidden");
+      if (
+        dirty &&
+        !(await confirmDialog({
+          title: t("versions.loadTitle", { version }),
+          message: t("versions.loadBody"),
+          confirmLabel: t("versions.loadConfirm"),
+          local: true,
+        }))
+      ) {
+        return;
+      }
+      restoreDraft({
+        name: live.current.name,
+        subject: row.subject ?? "",
+        previewText: row.previewText ?? "",
+        html: row.html,
+        text: row.text ?? "",
+        document: row.document,
+      });
+      toast(t("versions.loaded", { version }), "info");
+    } catch {
+      toast(t("versions.loadError"), "danger");
+    }
+  }
+
   // ⌘S saves, ⌘↵ saves and closes: matching the keycaps on the buttons.
   // An open dialog (the convert dialog) owns ⌘↵ as its confirm. The block
   // editor hands ⌘↵ on to here rather than inserting a line break. Capture
@@ -454,6 +541,12 @@ export function useTemplateEditor(initial: EditorInitial | undefined, seed?: Edi
     discardRecovered: draft.discardRecovered,
     complete,
     saving,
+    published,
+    unsaved: dirty,
+    canPublish,
+    publishing,
+    publish,
+    loadVersion,
     saveState: saveState({ saving, failed: saveFailed, dirty, preparing, savedAt }),
     justSaved,
     errorText,

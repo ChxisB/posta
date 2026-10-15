@@ -16,7 +16,9 @@
     "deleteTitle": "Delete template",
     "deleteBody": "\"{name}\" will be deleted. Broadcasts that started from it keep their copy.",
     "deleteConfirm": "Delete",
-    "htmlChipHint": "Created as HTML; opens in code mode"
+    "htmlChipHint": "Created as HTML; opens in code mode",
+    "draft": "Draft",
+    "version": "v{version}"
   },
   "html": {
     "banner": "Created as HTML. The block editor can't edit this layout faithfully, so it opens in code mode.",
@@ -78,6 +80,45 @@
     "saveError": "Couldn't save the template.",
     "error": "Couldn't load the template.",
     "hiddenBySupportView": "Template content is hidden in support view."
+  },
+  "publish": {
+    "button": "Publish",
+    "done": "Published as version {version}.",
+    "unchanged": "Version {version} is already the latest. Nothing changed.",
+    "error": "Couldn't publish the template.",
+    "chipDraft": "Not published",
+    "chipPublished": "Published v{version}",
+    "chipChanges": "v{version} + changes"
+  },
+  "versions": {
+    "open": "Versions",
+    "title": "Versions and tags",
+    "intro": "Publishing freezes the saved draft as the next version. A send that names this template uses the newest version, or the one a tag points at.",
+    "empty": "Nothing is published yet. Publish the template to make version 1.",
+    "listLabel": "Published versions",
+    "version": "Version {version}",
+    "newest": "Newest",
+    "noSubject": "No subject",
+    "removeTag": "Remove tag {name}",
+    "load": "Load into editor",
+    "delete": "Delete",
+    "deleteTagged": "Move or remove its tags first.",
+    "deleteAsk": "Delete version {version}?",
+    "deleteConfirm": "Delete",
+    "tagName": "Tag",
+    "tagPlaceholder": "production",
+    "tagVersion": "Version",
+    "tagSet": "Set tag",
+    "tagHint": "Letters, digits, dots, dashes and underscores. A tag that already exists moves to this version.",
+    "tagInvalid": "Use letters, digits, dots, dashes and underscores, starting with a letter or digit.",
+    "tagDigits": "A tag can't be only digits, since those are version numbers.",
+    "loadTitle": "Load version {version}?",
+    "loadBody": "The editor has unsaved changes, and loading this version replaces them. Nothing is saved until you save.",
+    "loadConfirm": "Load version",
+    "loaded": "Version {version} is in the editor. Save to make it the draft.",
+    "loadError": "Couldn't load that version.",
+    "error": "Couldn't update the versions.",
+    "retry": "Retry"
   },
   "previewText": {
     "label": "Preview text",

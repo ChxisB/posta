@@ -30,18 +30,27 @@ vi.mock("next/dynamic", () => ({
 const rq = vi.hoisted(() => ({
   infinite: { data: undefined as unknown, isPending: false, isError: false, hasNextPage: false },
   mutation: { isPending: false, isError: false },
+  // Plain queries by tRPC path ("templates.state.queryOptions"); absent reads as no data yet.
+  queries: {} as Record<string, unknown>,
 }));
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: () => ({ data: undefined }),
+  useQuery: (options?: { queryKey?: string }) => ({
+    data: options?.queryKey ? rq.queries[options.queryKey] : undefined,
+  }),
   useInfiniteQuery: () => rq.infinite,
   useMutation: () => ({ mutateAsync: vi.fn(), mutate: vi.fn(), ...rq.mutation }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
-// Any trpc.<path>.<helper>(...) call resolves to an inert options object.
+// Any trpc.<path>.<helper>(...) call resolves to an inert options object that
+// carries its path, so a test can say what a query returns.
 vi.mock("@/lib/trpc", () => {
   // biome-ignore lint/suspicious/noExplicitAny: stand-in for the whole router proxy
-  const proxy: any = new Proxy(() => ({}), { get: () => proxy, apply: () => ({}) });
-  return { useTRPC: () => proxy };
+  const at = (path: string[]): any =>
+    new Proxy(() => ({}), {
+      get: (_target, key) => at([...path, String(key)]),
+      apply: () => ({ queryKey: path.join(".") }),
+    });
+  return { useTRPC: () => at([]) };
 });
 // Portals cannot render statically; the dialog's frame is inlined instead.
 vi.mock("@/components/modal", () => ({
@@ -298,8 +307,22 @@ describe("templates list", () => {
       pages: [
         {
           items: [
-            { id: "a", name: "Legacy", updatedAt: new Date(), htmlAuthored: true },
-            { id: "b", name: "Blocks", updatedAt: new Date(), htmlAuthored: false },
+            {
+              id: "a",
+              name: "Legacy",
+              updatedAt: new Date(),
+              htmlAuthored: true,
+              version: null,
+              tags: [],
+            },
+            {
+              id: "b",
+              name: "Blocks",
+              updatedAt: new Date(),
+              htmlAuthored: false,
+              version: null,
+              tags: [],
+            },
           ],
           nextCursor: null,
         },
@@ -313,5 +336,92 @@ describe("templates list", () => {
     expect(out).toMatch(
       /<span class="po-truncate">Legacy<\/span><\/a><span class="po-tooltip-trigger inline"[^>]*><span class="po-chip"/,
     );
+  });
+
+  it("shows a draft chip, or the newest version with its tags and a count past two", () => {
+    const row = { updatedAt: new Date(), htmlAuthored: false };
+    rq.infinite.data = {
+      pages: [
+        {
+          items: [
+            { ...row, id: "a", name: "Unpublished", version: null, tags: [] },
+            {
+              ...row,
+              id: "b",
+              name: "Live",
+              version: 4,
+              tags: ["production", "staging", "canary", "beta"],
+            },
+          ],
+          nextCursor: null,
+        },
+      ],
+    };
+    const out = renderToStaticMarkup(createElement(TemplatesPage));
+    expect(out).toContain("templates.list.draft");
+    expect(out).toContain("templates.list.version");
+    expect(out).toContain(">production<");
+    expect(out).toContain(">staging<");
+    // Two tags show; the rest fold into a count, so a row stays one line.
+    expect(out).not.toContain(">canary<");
+    expect(out).toContain(">+2<");
+  });
+});
+
+describe("publishing from the editor", () => {
+  const STATE = "templates.state.queryOptions";
+  const publishButton = (out: string) =>
+    out.match(/<button([^>]*)>(?:(?!<\/button>)[\s\S])*templates\.publish\.button/)?.[1];
+
+  function renderWith(state: unknown, props: Record<string, unknown> = { initial: HTML_ROW }) {
+    rq.queries[STATE] = state;
+    try {
+      return renderToStaticMarkup(createElement(TemplateEditor, props));
+    } finally {
+      delete rq.queries[STATE];
+    }
+  }
+
+  it("offers Publish on a template that was never published", () => {
+    const out = renderWith({
+      status: "draft",
+      version: null,
+      publishedAt: null,
+      hasUnpublishedChanges: true,
+      tags: [],
+    });
+    expect(out).toContain("templates.publish.chipDraft");
+    expect(out).toContain("templates.versions.open");
+    expect(publishButton(out)).not.toContain("disabled");
+  });
+
+  it("shows the published version, with Publish off while nothing has changed", () => {
+    const out = renderWith({
+      status: "published",
+      version: 3,
+      publishedAt: "2026-10-14T12:00:00.000Z",
+      hasUnpublishedChanges: false,
+      tags: [{ name: "production", version: 3 }],
+    });
+    expect(out).toContain("templates.publish.chipPublished");
+    expect(publishButton(out)).toContain("disabled");
+  });
+
+  it("says when the saved draft has moved on from the newest version", () => {
+    const out = renderWith({
+      status: "published",
+      version: 3,
+      publishedAt: "2026-10-14T12:00:00.000Z",
+      hasUnpublishedChanges: true,
+      tags: [],
+    });
+    expect(out).toContain("templates.publish.chipChanges");
+    expect(publishButton(out)).not.toContain("disabled");
+  });
+
+  it("has no publish chip, Publish or Versions on a template that is not saved yet", () => {
+    const out = renderWith(undefined, {});
+    expect(out).not.toContain("templates.publish.");
+    expect(out).not.toContain("templates.versions.open");
   });
 });

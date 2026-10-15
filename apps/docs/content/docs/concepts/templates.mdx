@@ -51,6 +51,13 @@ curl -X POST https://api.posta.example/templates/welcome/publish \
   newest version. `GET /templates/{id}/versions` lists the versions and
   `GET /templates/{id}/versions/{version}` returns one with its frozen content.
 
+In the dashboard, the editor header shows where the template stands: not
+published, published as a version, or a version plus changes to the draft.
+**Publish** saves your edits and freezes the draft as the next version.
+**Versions** lists every version with its tags, sets, moves and removes tags,
+deletes a version that has no tag, and loads an older version into the editor as
+an unsaved edit, so you can save it as the draft and publish it again.
+
 Templates that existed before versioning were given a version 1 from their
 content at the time, so they send straight away.
 

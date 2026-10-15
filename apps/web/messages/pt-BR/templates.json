@@ -16,7 +16,9 @@
     "deleteTitle": "Excluir modelo",
     "deleteBody": "\"{name}\" será excluído. Transmissões criadas a partir dele mantêm a própria cópia.",
     "deleteConfirm": "Excluir",
-    "htmlChipHint": "Criado como HTML; abre no modo código"
+    "htmlChipHint": "Criado como HTML; abre no modo código",
+    "draft": "Rascunho",
+    "version": "v{version}"
   },
   "html": {
     "banner": "Criado como HTML. O editor de blocos não consegue editar este layout com fidelidade, por isso ele abre no modo código.",
@@ -78,6 +80,45 @@
     "saveError": "Não foi possível salvar o modelo.",
     "error": "Não foi possível carregar o modelo.",
     "hiddenBySupportView": "O conteúdo do modelo fica oculto no modo de suporte."
+  },
+  "publish": {
+    "button": "Publicar",
+    "done": "Publicado como versão {version}.",
+    "unchanged": "A versão {version} já é a mais recente. Nada mudou.",
+    "error": "Não foi possível publicar o modelo.",
+    "chipDraft": "Não publicado",
+    "chipPublished": "Publicado v{version}",
+    "chipChanges": "v{version} + alterações"
+  },
+  "versions": {
+    "open": "Versões",
+    "title": "Versões e tags",
+    "intro": "Publicar congela o rascunho salvo como a próxima versão. Um envio que cita este modelo usa a versão mais recente, ou a que uma tag aponta.",
+    "empty": "Nada foi publicado ainda. Publique o modelo para criar a versão 1.",
+    "listLabel": "Versões publicadas",
+    "version": "Versão {version}",
+    "newest": "Mais recente",
+    "noSubject": "Sem assunto",
+    "removeTag": "Remover a tag {name}",
+    "load": "Carregar no editor",
+    "delete": "Excluir",
+    "deleteTagged": "Mova ou remova as tags dela primeiro.",
+    "deleteAsk": "Excluir a versão {version}?",
+    "deleteConfirm": "Excluir",
+    "tagName": "Tag",
+    "tagPlaceholder": "production",
+    "tagVersion": "Versão",
+    "tagSet": "Definir tag",
+    "tagHint": "Letras, números, pontos, hifens e sublinhados. Uma tag que já existe passa para esta versão.",
+    "tagInvalid": "Use letras, números, pontos, hifens e sublinhados, começando com uma letra ou um número.",
+    "tagDigits": "Uma tag não pode ter só números, porque eles são números de versão.",
+    "loadTitle": "Carregar a versão {version}?",
+    "loadBody": "O editor tem alterações não salvas, e carregar esta versão as substitui. Nada é salvo até você salvar.",
+    "loadConfirm": "Carregar versão",
+    "loaded": "A versão {version} está no editor. Salve para torná-la o rascunho.",
+    "loadError": "Não foi possível carregar essa versão.",
+    "error": "Não foi possível atualizar as versões.",
+    "retry": "Tentar de novo"
   },
   "previewText": {
     "label": "Texto de pré-visualização",

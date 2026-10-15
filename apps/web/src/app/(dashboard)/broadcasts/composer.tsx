@@ -536,7 +536,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
               <label htmlFor="bc-name">
                 {t("composer.nameLabel")}{" "}
                 <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                  , ({t("composer.optional")})
+                  ({t("composer.optional")})
                 </span>
               </label>
               <input
@@ -735,7 +735,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
                   <label htmlFor="bc-reply-to">
                     {t("composer.replyToLabel")}{" "}
                     <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                      , ({t("composer.optional")})
+                      ({t("composer.optional")})
                     </span>
                   </label>
                   <input
@@ -916,7 +916,7 @@ export function BroadcastComposer({ initial }: { initial?: ComposerInitial }) {
             <label htmlFor="bc-schedule">
               {t("guard.scheduleLabel")}{" "}
               <span style={{ color: "var(--po-faint)", textTransform: "none" }}>
-                , ({t("composer.optional")})
+                ({t("composer.optional")})
               </span>
             </label>
             <input

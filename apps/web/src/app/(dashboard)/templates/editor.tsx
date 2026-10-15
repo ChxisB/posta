@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { DraftBanner } from "@/components/draft-banner";
 import {
   ShortcutsButton,
@@ -22,6 +22,7 @@ import { SettingsRail } from "./settings-rail";
 import { ThemePanel } from "./theme-panel";
 import { type EditorInitial, type EditorSeed, useTemplateEditor } from "./use-template-editor";
 import { useRailTier, useTemplateRails } from "./use-template-rails";
+import { VersionsDialog } from "./versions-dialog";
 
 export type { EditorInitial, EditorSeed } from "./use-template-editor";
 
@@ -127,6 +128,9 @@ export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; see
   const ts = useTranslations("templates.starters");
   const blocks = m.mode === "blocks";
   const sheet = useShortcutsCheatsheet(blocks);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  // Stable identity: Modal's focus effect depends on onClose.
+  const closeVersions = useCallback(() => setVersionsOpen(false), []);
   // Where the checks and fields are: in the docked settings rail, or out of
   // sight in a drawer or folded away. Then the checks also show over the body.
   const settingsDocked = rails.modeOf("right") === "docked" && !rails.state.collapsed.right;
@@ -226,6 +230,12 @@ export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; see
         complete={m.complete}
         saving={m.saving}
         onSave={m.save}
+        published={m.published}
+        unsaved={m.unsaved}
+        canPublish={m.canPublish}
+        publishing={m.publishing}
+        onPublish={m.publish}
+        onVersions={() => setVersionsOpen(true)}
       />
 
       {blocks ? (
@@ -275,6 +285,15 @@ export function TemplateEditor({ initial, seed }: { initial?: EditorInitial; see
       )}
 
       {blocks ? <ShortcutsDialog open={sheet.open} onClose={sheet.close} /> : null}
+
+      {initial ? (
+        <VersionsDialog
+          open={versionsOpen}
+          onClose={closeVersions}
+          templateId={initial.id}
+          onLoad={m.loadVersion}
+        />
+      ) : null}
 
       <TemplateConvertDialog
         open={m.convertOpen}

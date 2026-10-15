@@ -1,7 +1,21 @@
+import {
+  deleteTemplateTag,
+  deleteTemplateVersion,
+  getTemplateVersion,
+  listTemplateTags,
+  MAX_TEMPLATE_TAGS,
+  MAX_TEMPLATE_VERSIONS,
+  newestVersions,
+  publishState,
+  publishTemplate,
+  setTemplateTag,
+  tagNameProblem,
+  tagNamesByTemplate,
+} from "@posta/core";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, max, sql } from "drizzle-orm";
 import { z } from "zod";
 import { mailyDocumentSchema } from "@/lib/email-doc";
 import { PREVIEW_TEXT_MAX } from "@/lib/preview-text";
@@ -16,6 +30,15 @@ const previewTextSchema = z.string().trim().max(PREVIEW_TEXT_MAX);
 const bodySchema = z.string().max(500_000);
 // Maily editor source of truth; null clears it back to a legacy raw-HTML row.
 const documentSchema = mailyDocumentSchema.nullable();
+
+const versionSchema = z.number().int().min(1);
+const tagNameSchema = z
+  .string()
+  .trim()
+  .superRefine((name, ctx) => {
+    const problem = tagNameProblem(name);
+    if (problem) ctx.addIssue({ code: "custom", message: problem });
+  });
 
 type TemplateRow = typeof schema.templates.$inferSelect;
 
@@ -63,7 +86,29 @@ export const templatesRouter = router({
         .where(and(...filters))
         .orderBy(desc(t.updatedAt), desc(t.id))
         .limit(input.limit + 1);
-      return paginate(rows, input.limit);
+      const page = paginate(rows, input.limit);
+      // The newest version number and the tags of each row shown, in two small
+      // queries (no version content is read for a list).
+      const ids = page.items.map((item) => item.id);
+      const newest = new Map<string, number>();
+      if (ids.length > 0) {
+        const v = schema.templateVersions;
+        const latest = await ctx.db
+          .select({ templateId: v.templateId, version: max(v.version) })
+          .from(v)
+          .where(inArray(v.templateId, ids))
+          .groupBy(v.templateId);
+        for (const row of latest) if (row.version !== null) newest.set(row.templateId, row.version);
+      }
+      const tags = await tagNamesByTemplate(ctx.db, ids);
+      return {
+        ...page,
+        items: page.items.map((item) => ({
+          ...item,
+          version: newest.get(item.id) ?? null,
+          tags: tags.get(item.id) ?? [],
+        })),
+      };
     }),
 
   get: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
@@ -83,6 +128,128 @@ export const templatesRouter = router({
       hiddenBySupportView: true,
     };
   }),
+
+  /**
+   * Where a template stands: unpublished, or the newest version and whether the
+   * saved draft has moved on from it, plus its tags. Carries no content, so a
+   * support view reads it as it is.
+   */
+  state: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
+    const template = await getOwnTemplate(ctx, input.id);
+    const newest = (await newestVersions(ctx.db, [template.id])).get(template.id);
+    const state = publishState(template, newest);
+    const tags = await listTemplateTags(ctx.db, template.id);
+    return {
+      status: state.status,
+      version: state.version,
+      publishedAt: state.publishedAt,
+      hasUnpublishedChanges: state.hasUnpublishedChanges,
+      tags: tags.map((tag) => ({ name: tag.name, version: tag.version })),
+    };
+  }),
+
+  /** The versions of a template, newest first, with the tags that point at each. No content. */
+  versions: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
+    await getOwnTemplate(ctx, input.id);
+    const v = schema.templateVersions;
+    const rows = await ctx.db
+      .select({ version: v.version, name: v.name, subject: v.subject, createdAt: v.createdAt })
+      .from(v)
+      .where(eq(v.templateId, input.id))
+      .orderBy(desc(v.version));
+    const tags = await listTemplateTags(ctx.db, input.id);
+    return rows.map((row) => ({
+      ...row,
+      tags: tags.filter((tag) => tag.version === row.version).map((tag) => tag.name),
+    }));
+  }),
+
+  /** One version's content, for loading it into the editor. Hidden in a support view like the draft. */
+  version: teamProcedure
+    .input(z.object({ id: z.uuid(), version: versionSchema }))
+    .query(async ({ ctx, input }) => {
+      await getOwnTemplate(ctx, input.id);
+      const row = await getTemplateVersion(ctx.db, input.id, input.version);
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      const content = {
+        version: row.version,
+        subject: row.subject,
+        createdAt: row.createdAt,
+      };
+      if (!ctx.supportView) {
+        return {
+          ...content,
+          previewText: row.previewText,
+          html: row.html,
+          text: row.text,
+          document: row.document,
+          hiddenBySupportView: false,
+        };
+      }
+      return {
+        ...content,
+        previewText: null,
+        html: null,
+        text: null,
+        document: null,
+        hiddenBySupportView: true,
+      };
+    }),
+
+  /** Freezes the saved draft as the next version. A draft equal to the newest version makes none. */
+  publish: teamProcedure.input(z.object({ id: z.uuid() })).mutation(async ({ ctx, input }) => {
+    const out = await publishTemplate(ctx.db, ctx.teamId, input.id);
+    if (!out.ok) {
+      if (out.reason === "not_found") throw new TRPCError({ code: "NOT_FOUND" });
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `A template can have at most ${MAX_TEMPLATE_VERSIONS} versions; delete an old one first.`,
+      });
+    }
+    return { version: out.version, created: out.created };
+  }),
+
+  /** Points a tag at a version, making the tag on first use and moving it after that. */
+  setTag: teamProcedure
+    .input(z.object({ id: z.uuid(), name: tagNameSchema, version: versionSchema }))
+    .mutation(async ({ ctx, input }) => {
+      await getOwnTemplate(ctx, input.id);
+      const out = await setTemplateTag(ctx.db, input.id, input.name, input.version);
+      if (!out.ok) {
+        if (out.reason === "version_not_found") throw new TRPCError({ code: "NOT_FOUND" });
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `A template can have at most ${MAX_TEMPLATE_TAGS} tags; remove one first.`,
+        });
+      }
+      return { name: out.tag.name, version: out.tag.version };
+    }),
+
+  removeTag: teamProcedure
+    .input(z.object({ id: z.uuid(), name: z.string().min(1).max(64) }))
+    .mutation(async ({ ctx, input }) => {
+      await getOwnTemplate(ctx, input.id);
+      if (!(await deleteTemplateTag(ctx.db, input.id, input.name))) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      return { name: input.name };
+    }),
+
+  /** Deletes one version. Refused while a tag points at it. */
+  deleteVersion: teamProcedure
+    .input(z.object({ id: z.uuid(), version: versionSchema }))
+    .mutation(async ({ ctx, input }) => {
+      await getOwnTemplate(ctx, input.id);
+      const out = await deleteTemplateVersion(ctx.db, input.id, input.version);
+      if (!out.ok) {
+        if (out.reason === "not_found") throw new TRPCError({ code: "NOT_FOUND" });
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Version ${input.version} is tagged ${out.tags.join(", ")}. Move or remove the tags first.`,
+        });
+      }
+      return { version: input.version };
+    }),
 
   create: teamProcedure
     .input(

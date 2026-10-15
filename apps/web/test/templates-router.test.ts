@@ -229,6 +229,177 @@ describe("templates.document", () => {
   });
 });
 
+describe("templates publish, versions and tags", () => {
+  async function published(caller: ReturnType<typeof callerFor>, html = "<p>one</p>") {
+    const { id } = await caller.templates.create({ ...TEMPLATE_INPUT, html });
+    await caller.templates.publish({ id });
+    return id;
+  }
+
+  it("reports a template as unpublished, then as its newest version", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const { id } = await caller.templates.create(TEMPLATE_INPUT);
+    expect(await caller.templates.state({ id })).toEqual({
+      status: "draft",
+      version: null,
+      publishedAt: null,
+      hasUnpublishedChanges: true,
+      tags: [],
+    });
+
+    expect(await caller.templates.publish({ id })).toEqual({ version: 1, created: true });
+    expect(await caller.templates.state({ id })).toMatchObject({
+      status: "published",
+      version: 1,
+      hasUnpublishedChanges: false,
+    });
+
+    // An edit is a change to the draft: version 1 stays as it was published.
+    await caller.templates.update({ id, html: "<p>two</p>" });
+    expect(await caller.templates.state({ id })).toMatchObject({
+      version: 1,
+      hasUnpublishedChanges: true,
+    });
+    expect(await caller.templates.version({ id, version: 1 })).toMatchObject({
+      html: TEMPLATE_INPUT.html,
+    });
+  });
+
+  it("makes a new version only when the draft changed", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    // Same content: a second click names the same version and burns no number.
+    expect(await caller.templates.publish({ id })).toEqual({ version: 1, created: false });
+    // A rename is not a content change.
+    await caller.templates.update({ id, name: "Renamed" });
+    expect(await caller.templates.publish({ id })).toEqual({ version: 1, created: false });
+    await caller.templates.update({ id, html: "<p>two</p>" });
+    expect(await caller.templates.publish({ id })).toEqual({ version: 2, created: true });
+  });
+
+  it("lists versions newest first, without content, with the tags on each", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    await caller.templates.update({ id, html: "<p>two</p>" });
+    await caller.templates.publish({ id });
+    await caller.templates.setTag({ id, name: "production", version: 1 });
+
+    const rows = await caller.templates.versions({ id });
+    expect(rows.map((row) => [row.version, row.tags])).toEqual([
+      [2, []],
+      [1, ["production"]],
+    ]);
+    expect(rows[0]).not.toHaveProperty("html");
+    expect(rows[0]).not.toHaveProperty("document");
+  });
+
+  it("sets, moves and removes a tag", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    await caller.templates.update({ id, html: "<p>two</p>" });
+    await caller.templates.publish({ id });
+
+    await caller.templates.setTag({ id, name: "production", version: 1 });
+    // The same name again moves it.
+    await caller.templates.setTag({ id, name: "production", version: 2 });
+    expect((await caller.templates.state({ id })).tags).toEqual([
+      { name: "production", version: 2 },
+    ]);
+
+    await caller.templates.removeTag({ id, name: "production" });
+    expect((await caller.templates.state({ id })).tags).toEqual([]);
+    await expect(caller.templates.removeTag({ id, name: "production" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("refuses a bad tag name and a tag on a version that does not exist", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    for (const name of ["", "has space", "123", "-lead", "a".repeat(65)]) {
+      await expect(caller.templates.setTag({ id, name, version: 1 })).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+      });
+    }
+    await expect(
+      caller.templates.setTag({ id, name: "production", version: 9 }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("deletes an untagged version and refuses a tagged one", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    await caller.templates.update({ id, html: "<p>two</p>" });
+    await caller.templates.publish({ id });
+    await caller.templates.setTag({ id, name: "production", version: 1 });
+
+    await expect(caller.templates.deleteVersion({ id, version: 1 })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("production"),
+    });
+    await caller.templates.deleteVersion({ id, version: 2 });
+    expect((await caller.templates.versions({ id })).map((row) => row.version)).toEqual([1]);
+    await expect(caller.templates.deleteVersion({ id, version: 2 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+
+    // A number is never reused: the next publish is 3, not 2.
+    await caller.templates.update({ id, html: "<p>three</p>" });
+    expect(await caller.templates.publish({ id })).toEqual({ version: 3, created: true });
+  });
+
+  it("shows the newest version and tags on the list", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    await caller.templates.setTag({ id, name: "production", version: 1 });
+    const { id: bare } = await caller.templates.create({ name: "Bare", html: "<p>x</p>" });
+
+    const items = (await caller.templates.list({})).items;
+    expect(items.find((row) => row.id === id)).toMatchObject({
+      version: 1,
+      tags: ["production"],
+    });
+    expect(items.find((row) => row.id === bare)).toMatchObject({ version: null, tags: [] });
+  });
+
+  it("keeps a duplicate unpublished and deletes versions and tags with the template", async () => {
+    const caller = callerFor(await createTeam(db, "team-a"));
+    const id = await published(caller);
+    await caller.templates.setTag({ id, name: "production", version: 1 });
+
+    const { id: copy } = await caller.templates.duplicate({ id });
+    expect(await caller.templates.state({ id: copy })).toMatchObject({
+      status: "draft",
+      version: null,
+      tags: [],
+    });
+
+    await caller.templates.delete({ id });
+    expect(await db.select().from(schema.templateVersions)).toEqual([]);
+    expect(await db.select().from(schema.templateTags)).toEqual([]);
+  });
+
+  it("is scoped to the team", async () => {
+    const id = await published(callerFor(await createTeam(db, "team-a")));
+    const b = callerFor(await createTeam(db, "team-b"));
+    await expect(b.templates.state({ id })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(b.templates.versions({ id })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(b.templates.version({ id, version: 1 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    await expect(b.templates.publish({ id })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(b.templates.setTag({ id, name: "x", version: 1 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    await expect(b.templates.removeTag({ id, name: "x" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    await expect(b.templates.deleteVersion({ id, version: 1 })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+});
+
 describe("email.render", () => {
   it("renders a Maily document to html + text with the worker token, unresolved", async () => {
     const teamId = await createTeam(db, "team-a");

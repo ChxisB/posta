@@ -1141,6 +1141,38 @@ describe("what a view can and cannot see", () => {
     expect(listed.items[0]).not.toHaveProperty("html");
   });
 
+  it("hides a published version's body, and refuses to publish or tag", async () => {
+    const [template] = await db
+      .insert(schema.templates)
+      .values({ teamId, name: "Monthly", subject: "Hi", html: "<p>reusable</p>" })
+      .returning({ id: schema.templates.id });
+    if (!template) throw new Error("template insert failed");
+    await owner().templates.publish({ id: template.id });
+    const grant = await start();
+    const v = viewer(grant);
+
+    expect(await v.templates.version({ id: template.id, version: 1 })).toMatchObject({
+      previewText: null,
+      html: null,
+      text: null,
+      document: null,
+      hiddenBySupportView: true,
+    });
+    // What stands, and which versions exist, carries no content.
+    expect(await v.templates.state({ id: template.id })).toMatchObject({ version: 1 });
+    expect(await v.templates.versions({ id: template.id })).toHaveLength(1);
+
+    await expect(v.templates.publish({ id: template.id })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    await expect(
+      v.templates.setTag({ id: template.id, name: "production", version: 1 }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(v.templates.deleteVersion({ id: template.id, version: 1 })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
   it("lets a support view read the team's own audit trail, and never a member", async () => {
     const grant = await start();
     const trail = await viewer(grant).audit.list({});

@@ -843,7 +843,6 @@ export {
   type ResolveOutcome,
   renderTemplateContent,
   resolveTemplateRef,
-  restoreTemplateVersion,
   type SetTagOutcome,
   sameTemplateContent,
   setTemplateTag,

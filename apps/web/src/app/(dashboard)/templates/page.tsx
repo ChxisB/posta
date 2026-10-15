@@ -25,6 +25,9 @@ import { ListFooter, StateCard } from "../emails/list-parts";
 // column takes the remainder and truncates, so no width needs to scroll.
 const TABLE_STYLE: React.CSSProperties = { tableLayout: "fixed" };
 
+/** Tags drawn beside a name before the rest fold into "+n". */
+const MAX_TAG_CHIPS = 2;
+
 function TemplatesHead() {
   const t = useTranslations("templates");
   return (
@@ -162,6 +165,33 @@ export default function TemplatesPage() {
                               style={{ fontSize: 10.5, padding: "1px 7px" }}
                             >
                               HTML
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                        <span
+                          className="po-chip"
+                          style={{ fontSize: 10.5, padding: "1px 7px", flexShrink: 0 }}
+                        >
+                          {row.version === null
+                            ? t("list.draft")
+                            : t("list.version", { version: row.version })}
+                        </span>
+                        {row.tags.slice(0, MAX_TAG_CHIPS).map((tag) => (
+                          <span
+                            key={tag}
+                            className="po-chip"
+                            style={{ fontSize: 10.5, padding: "1px 7px", flexShrink: 0 }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {row.tags.length > MAX_TAG_CHIPS ? (
+                          <Tooltip inline text={row.tags.slice(MAX_TAG_CHIPS).join(", ")}>
+                            <span
+                              className="po-chip"
+                              style={{ fontSize: 10.5, padding: "1px 7px", flexShrink: 0 }}
+                            >
+                              +{row.tags.length - MAX_TAG_CHIPS}
                             </span>
                           </Tooltip>
                         ) : null}

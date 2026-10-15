@@ -13,7 +13,6 @@ import {
   publishTemplate,
   renderTemplateContent,
   resolveTemplateRef,
-  restoreTemplateVersion,
   setTemplateTag,
   tagNameProblem,
 } from "../src/template-versions.js";
@@ -280,21 +279,6 @@ describe("resolveTemplateRef", () => {
       ok: false,
       reason: "template_not_found",
     });
-  });
-});
-
-describe("restoreTemplateVersion", () => {
-  it("copies a version back into the draft and leaves the version alone", async () => {
-    const id = await template({ html: "<p>one</p>" });
-    await publishTemplate(db, teamId, id);
-    await edit(id, "<p>two</p>");
-    await publishTemplate(db, teamId, id);
-
-    expect(await restoreTemplateVersion(db, teamId, id, 1)).toBe(true);
-    const [row] = await db.select().from(schema.templates).where(eq(schema.templates.id, id));
-    expect(row?.html).toBe("<p>one</p>");
-    expect(await listTemplateVersions(db, id)).toHaveLength(2);
-    expect(await restoreTemplateVersion(db, teamId, id, 9)).toBe(false);
   });
 });
 

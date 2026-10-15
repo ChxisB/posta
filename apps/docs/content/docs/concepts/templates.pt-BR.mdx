@@ -52,6 +52,13 @@ curl -X POST https://api.posta.example/templates/welcome/publish \
   `GET /templates/{id}/versions` lista as versões e
   `GET /templates/{id}/versions/{version}` retorna uma com o conteúdo congelado.
 
+No painel, o cabeçalho do editor mostra em que pé o template está: não
+publicado, publicado como uma versão, ou uma versão mais alterações no
+rascunho. **Publicar** salva suas edições e congela o rascunho como a próxima
+versão. **Versões** lista cada versão com suas tags, define, move e remove
+tags, exclui uma versão que não tem tag e carrega uma versão antiga no editor
+como uma edição não salva, para você salvá-la como rascunho e publicá-la de novo.
+
 Os templates que existiam antes do versionamento ganharam uma versão 1 com o
 conteúdo da época, então já enviam.
 

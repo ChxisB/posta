@@ -359,35 +359,6 @@ export async function deleteTemplateTag(
   return gone.length > 0;
 }
 
-/**
- * Copies a version's content back into the working draft. The version itself
- * is untouched: publishing the restored draft then makes a new number whose
- * content matches the old one, or nothing at all when it is still the newest.
- */
-export async function restoreTemplateVersion(
-  db: Db,
-  teamId: string,
-  templateId: string,
-  version: number,
-): Promise<boolean> {
-  const t = schema.templates;
-  const source = await getTemplateVersion(db, templateId, version);
-  if (!source) return false;
-  const done = await db
-    .update(t)
-    .set({
-      subject: source.subject,
-      previewText: source.previewText,
-      html: source.html,
-      text: source.text,
-      document: source.document,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(t.id, templateId), eq(t.teamId, teamId)))
-    .returning({ id: t.id });
-  return done.length > 0;
-}
-
 /** A template reference as a send request names it. */
 export interface TemplateRef {
   /** Template id or alias. */
