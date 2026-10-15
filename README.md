@@ -71,10 +71,10 @@ Dashboard at http://localhost:3000, API at http://localhost:3001.
 
 ## License
 
-Code is licensed under [AGPL-3.0](LICENSE). The SDKs in `packages/sdk` and the CLI are MIT
-(npm: `@tack-labs/posta`, PyPI: `posta-sdk`).
+[MIT](LICENSE) © Chris Beckett. That covers the platform, the SDKs in `packages/sdk`
+(npm: `@tack-labs/posta`, PyPI: `posta-sdk`) and the CLI.
 
-The Posta name, wordmark, and logos are not licensed under the AGPL.
+The Posta name, wordmark, and logos are not licensed under the MIT License.
 
 ## Community
 

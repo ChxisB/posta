@@ -115,6 +115,6 @@ Versions follow [semantic versioning](https://semver.org).
 
 ## Licence
 
-Posta's code is released under the [AGPL-3.0](LICENSE). The SDKs in `packages/sdk` and the CLI in `packages/cli` are MIT, and each has its own `LICENSE` file. By contributing, you agree that your contributions are released under the licence of the part you change.
+Posta is released under the [MIT licence](LICENSE), including the SDKs in `packages/sdk` and the CLI in `packages/cli`, which each carry their own copy of it. By contributing, you agree that your contributions are released under it too.
 
-The Posta name, wordmark and logos are not covered by either licence.
+The Posta name, wordmark and logos are not covered by the licence.
