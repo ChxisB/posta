@@ -14,8 +14,7 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
-  const { lang } = await props.params;
+export function generateMetadata(): Metadata {
   return {
     metadataBase: new URL(DOCS_ORIGIN),
     icons: { icon: "/logo/posta-favicon.svg" },
@@ -26,9 +25,7 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
       default: "Posta Docs",
     },
     description:
-      lang === "pt-BR"
-        ? "Documentação do Posta: a plataforma de email open source, compatível com Resend, disponível como serviço hospedado ou auto-hospedada."
-        : "Documentation for Posta: the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
+      "Documentation for Posta: the open-source, Resend-compatible email platform, available as a hosted service or self-hosted.",
   };
 }
 

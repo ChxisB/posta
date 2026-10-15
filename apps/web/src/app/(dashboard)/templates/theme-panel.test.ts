@@ -10,24 +10,19 @@ import {
 } from "@/lib/email-theme";
 import enCommon from "../../../../messages/en/common.json";
 import enTemplates from "../../../../messages/en/templates.json";
-import ptCommon from "../../../../messages/pt-BR/common.json";
-import ptTemplates from "../../../../messages/pt-BR/templates.json";
 import { ThemePanel } from "./theme-panel";
 
-function render(children: ReactElement, locale: "en" | "pt-BR" = "en"): string {
-  const messages =
-    locale === "en"
-      ? { templates: enTemplates, common: enCommon }
-      : { templates: ptTemplates, common: ptCommon };
+function render(children: ReactElement): string {
+  const messages = { templates: enTemplates, common: enCommon };
   return renderToStaticMarkup(
-    createElement(NextIntlClientProvider, { locale, messages, children }),
+    createElement(NextIntlClientProvider, { locale: "en", messages, children }),
   );
 }
 
 const noop = () => {};
 
-function panel(theme?: EmailTheme, locale: "en" | "pt-BR" = "en") {
-  return render(createElement(ThemePanel, { theme, onChange: noop }), locale);
+function panel(theme?: EmailTheme) {
+  return render(createElement(ThemePanel, { theme, onChange: noop }));
 }
 
 /** The text of the pressed segment in each segmented row, in order. */
@@ -137,15 +132,5 @@ describe("ThemePanel", () => {
     expect(panel({ corners: "soft" })).toMatch(
       /<button(?![^>]*disabled)[^>]*>Reset to default<\/button>/,
     );
-  });
-
-  it("reads from the Portuguese catalog, with a decimal comma in a ratio", () => {
-    const markup = panel({ text: "#777777" }, "pt-BR");
-    expect(markup).toContain(">Tema do e-mail</h3>");
-    expect(markup).toContain("Restaurar o padrão");
-    expect(markup).toContain("Fundo da página");
-    expect(markup).toContain("Difícil de ler");
-    expect(markup).toContain("4,4:1");
-    expect(markup).not.toContain("Email theme");
   });
 });

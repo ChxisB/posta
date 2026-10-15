@@ -67,7 +67,7 @@ describe("product-updates opt-in", () => {
     expect(
       await requestUpdatesConfirmation(
         db,
-        { email: "op@example.com", source: "self-host", locale: "pt-BR" },
+        { email: "op@example.com", source: "self-host", locale: "en" },
         mail,
       ),
     ).toBe(true);
@@ -75,14 +75,14 @@ describe("product-updates opt-in", () => {
     expect(sent[0]).toMatchObject({
       kind: "updates.confirm",
       to: "op@example.com",
-      subject: "Confirme sua inscrição nas novidades do Posta",
+      subject: "Confirm your Posta product updates",
     });
     expect(await db.select().from(schema.contacts)).toHaveLength(0);
 
     const url = new URL(sent[0]?.text.match(/https?:\/\/\S+/)?.[0] ?? "");
     expect(url.origin + url.pathname).toBe("https://app.example.com/updates/confirm");
     const token = url.searchParams.get("token") ?? "";
-    expect(await confirmUpdatesSubscription(db, token, "pt-BR")).toEqual({
+    expect(await confirmUpdatesSubscription(db, token, "en")).toEqual({
       email: "op@example.com",
     });
     const [contact] = await db
@@ -91,7 +91,7 @@ describe("product-updates opt-in", () => {
       .where(eq(schema.contacts.teamId, teamId));
     expect(contact).toMatchObject({
       email: "op@example.com",
-      properties: { source: "self-host", locale: "pt-BR" },
+      properties: { source: "self-host", locale: "en" },
     });
     // Opening the link twice is harmless.
     expect(await confirmUpdatesSubscription(db, token, "en")).toEqual({ email: "op@example.com" });

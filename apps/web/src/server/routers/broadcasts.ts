@@ -28,7 +28,6 @@ import { z } from "zod";
 import { mailyDocumentSchema } from "@/lib/email-doc";
 import { PREVIEW_TEXT_MAX } from "@/lib/preview-text";
 import enDeliverability from "../../../messages/en/deliverability.json";
-import ptBRDeliverability from "../../../messages/pt-BR/deliverability.json";
 import type { AppLocale } from "../../i18n/request";
 import { fetchQuotaRow } from "../billing";
 import {
@@ -57,7 +56,6 @@ const TEST_SENDS_PER_HOUR = 10;
 
 const DELIVERABILITY_MESSAGES: Record<AppLocale, typeof enDeliverability> = {
   en: enDeliverability,
-  "pt-BR": ptBRDeliverability,
 };
 
 async function sendGuardTranslator() {

@@ -1,13 +1,16 @@
 import { defineI18n } from "fumadocs-core/i18n";
 
 /**
- * English is the source of truth and stays unprefixed (/quickstart); pt-BR
- * lives under /pt-BR/*. Pages without a pt-BR file fall back to the English
- * content on the pt-BR route (loader default: fallbackLanguage = defaultLanguage).
+ * English is the only language and stays unprefixed (/quickstart). The
+ * locale routing is kept with that one entry, so adding a language later is
+ * an entry here, a `[page].<locale>.mdx` file per page and a block in
+ * lib/i18n-ui.ts, with no change to the English URLs. Pages without a file in
+ * a language fall back to the English content (loader default:
+ * fallbackLanguage = defaultLanguage).
  */
 export const i18n = defineI18n({
   defaultLanguage: "en",
-  languages: ["en", "pt-BR"],
+  languages: ["en"],
   hideLocale: "default-locale",
 });
 

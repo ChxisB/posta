@@ -5,8 +5,8 @@ import { source } from "@/lib/source";
 export const revalidate = false;
 
 export function GET(): Response {
-  // Serves the default locale (English, the source of truth) only. Agents
-  // reach pt-BR pages via their locale-prefixed .md URLs (/pt-BR/<page>.md).
+  // Serves the default locale (English) only; another language's pages would
+  // be reached through their locale-prefixed .md URLs (/<locale>/<page>.md).
   const lines = source.getPages(i18n.defaultLanguage).map((page) => {
     const md = page.url === "/" ? "/index.md" : `${page.url}.md`;
     const description = page.data.description ? `: ${page.data.description}` : "";

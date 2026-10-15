@@ -752,21 +752,17 @@ describe("connected-app receipt", () => {
     expect(sent).toHaveLength(1);
   });
 
-  it("writes in the account's stored language, not the consenting browser's", async () => {
+  it("writes in English, the only language shipped, whatever the browser asked for", async () => {
     vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
     const { userId, cookie } = await signUp("ada@example.com", { "accept-language": "pt-BR" });
-    // The new session carries the account's language to the browser...
-    expect(cookie.split("; ")).toContain("NEXT_LOCALE=pt-BR");
+    // Sign-up in another language still lands on the one language shipped.
+    expect(cookie.split("; ")).toContain("NEXT_LOCALE=en");
+    expect(cookie.split("; ")).not.toContain("NEXT_LOCALE=pt-BR");
     const teamId = await createTeam(db, "acme");
     await addMember(userId, teamId);
     const clientId = await registerClient();
     sent.length = 0;
-    // ...and the consent comes from a browser that says nothing of it.
-    const bare = cookie
-      .split("; ")
-      .filter((c) => !c.startsWith("NEXT_LOCALE="))
-      .join("; ");
-    await authorize(clientId, bare);
-    expect(sent[0]?.subject).toBe("Um app foi conectado à sua conta do Posta");
+    await authorize(clientId, cookie);
+    expect(sent[0]?.subject).toBe("An app is connected to your Posta account");
   });
 });

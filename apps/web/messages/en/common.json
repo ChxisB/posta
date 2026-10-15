@@ -18,11 +18,7 @@
     "onboarding": "Onboarding",
     "appearance": "Appearance",
     "themeLight": "Light",
-    "themeDark": "Dark",
-    "language": "Language",
-    "language_en": "English",
-    "language_ptBR": "Português (Brasil)",
-    "languageSaveFailed": "Could not save the language. Try again."
+    "themeDark": "Dark"
   },
   "teamSwitcher": {
     "teams": "Teams",

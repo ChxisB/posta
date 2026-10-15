@@ -33,8 +33,6 @@ import { httpOrigin } from "@/lib/http-url";
 import { isAppLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/lib/locale-cookie";
 import enAuth from "../../messages/en/auth.json";
 import enCommon from "../../messages/en/common.json";
-import ptBRAuth from "../../messages/pt-BR/auth.json";
-import ptBRCommon from "../../messages/pt-BR/common.json";
 import { disposableAddressTest } from "./disposable-email";
 import { accountMailLocale, localeFromHeaders } from "./locale";
 import { getActiveMembership, listMemberships } from "./membership";
@@ -77,7 +75,7 @@ const CLIENT_LINK_FIELDS = ["client_uri", "logo_uri", "tos_uri", "policy_uri"] a
  */
 const MAX_REGISTRATION_JSON = 16 * 1024;
 
-const NAME_RULE = { en: enCommon.nameRule, "pt-BR": ptBRCommon.nameRule } as const;
+const NAME_RULE = { en: enCommon.nameRule } as const;
 
 /**
  * Sign-up and the profile endpoint store the display name that system mail
@@ -96,8 +94,8 @@ function assertPlainName(body: unknown, headers: Headers | undefined): void {
 }
 
 const DISPOSABLE_REFUSAL = {
-  signup: { en: enAuth.signup.disposable, "pt-BR": ptBRAuth.signup.disposable },
-  change: { en: enAuth.changeEmail.disposable, "pt-BR": ptBRAuth.changeEmail.disposable },
+  signup: { en: enAuth.signup.disposable },
+  change: { en: enAuth.changeEmail.disposable },
 } as const;
 
 /**

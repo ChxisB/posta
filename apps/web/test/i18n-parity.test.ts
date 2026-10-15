@@ -12,19 +12,28 @@ function keysOf(node: unknown, prefix = ""): string[] {
   );
 }
 
+// English is the only language shipped. These checks hold any language added
+// later to English's shape, so a new folder starts out complete.
 describe("i18n catalog parity", () => {
   const files = readdirSync(join(root, "en"));
+  const others = readdirSync(root).filter((dir) => dir !== "en" && dir !== "unsubscribe");
 
-  it("both locales carry the same namespace files", () => {
-    expect(readdirSync(join(root, "pt-BR")).sort()).toEqual([...files].sort());
+  it("has English namespaces to check the rest against", () => {
+    expect(files.length).toBeGreaterThan(0);
   });
 
-  for (const file of files) {
-    it(`${file}: en and pt-BR carry the same keys`, () => {
-      const load = (locale: string): unknown =>
-        JSON.parse(readFileSync(join(root, locale, file), "utf8"));
-      expect(keysOf(load("pt-BR")).sort()).toEqual(keysOf(load("en")).sort());
+  for (const locale of others) {
+    it(`${locale} carries the same namespace files as en`, () => {
+      expect(readdirSync(join(root, locale)).sort()).toEqual([...files].sort());
     });
+
+    for (const file of files) {
+      it(`${locale}/${file}: carries the same keys as en`, () => {
+        const load = (dir: string): unknown =>
+          JSON.parse(readFileSync(join(root, dir, file), "utf8"));
+        expect(keysOf(load(locale)).sort()).toEqual(keysOf(load("en")).sort());
+      });
+    }
   }
 });
 
@@ -33,6 +42,10 @@ describe("hosted unsubscribe catalogs", () => {
   const load = (file: string): Record<string, string> =>
     JSON.parse(readFileSync(join(dir, file), "utf8"));
   const en = load("en.json");
+
+  it("has the English catalog the others are checked against", () => {
+    expect(Object.keys(en).length).toBeGreaterThan(0);
+  });
 
   for (const file of readdirSync(dir).filter((f) => f !== "en.json")) {
     it(`${file}: carries the English keys, slots included`, () => {

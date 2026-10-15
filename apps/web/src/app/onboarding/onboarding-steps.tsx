@@ -166,7 +166,7 @@ export function OnboardingSteps({
 }) {
   const t = useTranslations("onboarding");
   const locale = useLocale();
-  const mailLocale = locale === "pt-BR" ? "pt-BR" : "en";
+  const mailLocale = "en";
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

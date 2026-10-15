@@ -4,14 +4,14 @@ import { type NextFetchEvent, type NextRequest, NextResponse } from "next/server
 import { i18n } from "@/lib/i18n";
 
 // hideLocale "default-locale": English paths (/quickstart) are rewritten to
-// /en/* internally; /en/* itself redirects to the unprefixed form; /pt-BR/*
-// passes through.
+// /en/* internally; /en/* itself redirects to the unprefixed form. Any other
+// locale prefix would pass through.
 const i18nMiddleware = createI18nMiddleware(i18n);
 
 /**
  * Content negotiation runs first: a client whose Accept header prefers
- * text/markdown gets the page's markdown from the page URL itself, for both
- * locales, since the locale prefix is part of the pathname forwarded to
+ * text/markdown gets the page's markdown from the page URL itself, in every
+ * locale, since the locale prefix is part of the pathname forwarded to
  * /llms.mdx. Explicit-extension URLs (.md, .txt, .json, assets) are left to
  * their own routes.
  */

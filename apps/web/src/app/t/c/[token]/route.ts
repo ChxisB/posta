@@ -10,13 +10,12 @@ import { type Db, getDb, schema } from "@posta/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import en from "../../../../../messages/en/common.json";
-import ptBR from "../../../../../messages/pt-BR/common.json";
 import { localeFromHeaders } from "../../../../server/locale";
 import { enqueueWebhookDeliveries } from "../../../../server/queue";
 import { trackingHostIs } from "../../../../server/tracking-host";
 import { engagementHit, recordEngagement, trackingKey } from "../../record";
 
-const MESSAGES = { en: en.trackedLink, "pt-BR": ptBR.trackedLink } as const;
+const MESSAGES = { en: en.trackedLink } as const;
 
 /**
  * Public click-tracking endpoint. The signed token IS the credential and it

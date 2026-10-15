@@ -1,7 +1,6 @@
 import { autoLinks, LURE_NAMES, mailLinks, REAL_NAMES, readable } from "@posta/test-utils";
 import { describe, expect, it } from "vitest";
 import { en } from "../src/account-mail/en.js";
-import { ptBR } from "../src/account-mail/pt-BR.js";
 import {
   ACCOUNT_MAIL_KINDS,
   type AccountMailEntry,
@@ -186,7 +185,6 @@ describe("isPlainName", () => {
 describe("system mail catalogs and customer text", () => {
   const entries: [string, AccountMailEntry][] = [
     ...Object.entries(en).map(([k, v]): [string, AccountMailEntry] => [`en ${k}`, v]),
-    ...Object.entries(ptBR).map(([k, v]): [string, AccountMailEntry] => [`pt-BR ${k}`, v]),
   ];
 
   it("names no customer slot in any subject", () => {
@@ -236,7 +234,7 @@ describe("system mail catalogs and customer text", () => {
       const values = Object.fromEntries([...CUSTOMER_SLOTS].map((slot) => [slot, lure]));
       for (const locale of MAIL_LOCALES) {
         for (const kind of ACCOUNT_MAIL_KINDS) {
-          const entry: AccountMailEntry = (locale === "en" ? en : ptBR)[kind];
+          const entry: AccountMailEntry = en[kind];
           for (const key of Object.keys(entry.extra ?? {})) {
             const phrase = accountMailPhrase({ locale, kind, key, values });
             expect(autoLinks(phrase), `${locale} ${kind} ${key} ${JSON.stringify(lure)}`).toEqual(
@@ -253,7 +251,7 @@ describe("system mail catalogs and customer text", () => {
       const values = Object.fromEntries([...CUSTOMER_SLOTS].map((slot) => [slot, name]));
       for (const locale of MAIL_LOCALES) {
         for (const kind of ACCOUNT_MAIL_KINDS) {
-          const entry: AccountMailEntry = (locale === "en" ? en : ptBR)[kind];
+          const entry: AccountMailEntry = en[kind];
           const printed = [...entry.body, ...(entry.muted ?? [])].flatMap(slots);
           if (!printed.some((slot) => CUSTOMER_SLOTS.has(slot))) continue;
           const mail = buildAccountMail({ kind, locale, url: "https://app.example/x", values });

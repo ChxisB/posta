@@ -77,6 +77,7 @@ describe("display names", () => {
           "Names can't contain links, email addresses, phone numbers, line breaks or hidden characters, and can be up to 64 characters long.",
       });
     }
+    // Only English is shipped: a browser asking for another language gets it too.
     const portuguese = await post(
       auth,
       "/sign-up/email",
@@ -85,7 +86,7 @@ describe("display names", () => {
     );
     expect(await portuguese.json()).toMatchObject({
       message:
-        "Nomes não podem ter links, endereços de e-mail, números de telefone, quebras de linha nem caracteres invisíveis, e podem ter até 64 caracteres.",
+        "Names can't contain links, email addresses, phone numbers, line breaks or hidden characters, and can be up to 64 characters long.",
     });
     expect(await db.select().from(schema.user)).toEqual([]);
 

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { EllipsisGlyph, MenuGlyph } from "@/components/icons/nav-icons";
 import { useDismiss } from "@/components/popover-menu";
-import { AppearanceRow, LanguageRow } from "@/components/sidebar";
+import { AppearanceRow } from "@/components/sidebar";
 import { signOutToLogin } from "@/lib/auth-client";
 import { pickActive } from "@/lib/nav";
 
@@ -176,7 +176,6 @@ function ConsoleSidebar({
             }}
           >
             <AppearanceRow />
-            <LanguageRow />
             <hr className="po-menu-sep" />
             <button type="button" role="menuitem" className="po-menu-item" onClick={signOutToLogin}>
               {tCommon("signOut")}

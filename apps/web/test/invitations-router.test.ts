@@ -149,12 +149,12 @@ describe("settings.invitations.create", () => {
         message: "Invite a permanent email address. Temporary inboxes can't join a team.",
       });
     }
+    // Only English is shipped: a dashboard cookie naming another language gets it too.
     dashboard.locale = "pt-BR";
     await expect(
       caller.settings.invitations.create({ email: "new@mailinator.com" }),
     ).rejects.toMatchObject({
-      message:
-        "Convide um e-mail permanente. Endereços temporários não podem entrar em uma equipe.",
+      message: "Invite a permanent email address. Temporary inboxes can't join a team.",
     });
     expect(await db.select().from(schema.teamInvitations)).toEqual([]);
 
@@ -286,25 +286,6 @@ describe("settings.invitations list/revoke isolation", () => {
 });
 
 describe("settings.invitations email + resend", () => {
-  it("writes to an invitee with an account in their language, else in the inviter's", async () => {
-    stubSender();
-    const teamId = await createTeam(db, "acme");
-    await addMember(teamId, "owner1", "owner");
-    await db
-      .insert(schema.user)
-      .values({ id: "ana", name: "Ana", email: "ana@example.com", locale: "pt-BR" });
-    const { caller, sent } = mailCaller("owner1", teamId, "owner");
-    await caller.settings.invitations.create({ email: "ana@example.com" });
-    await caller.settings.invitations.create({ email: "new@example.com" });
-    expect(sent.map((m) => m.subject)).toEqual([
-      "Você recebeu um convite para uma equipe no Posta",
-      "You've been invited to a team on Posta",
-    ]);
-    expect(sent[0]?.text).toContain(
-      "Você recebeu um convite para entrar em uma equipe no Posta como membro.",
-    );
-  });
-
   it("emails the invitee at create, naming the team and carrying the accept link", async () => {
     stubSender();
     const teamId = await createTeam(db, "acme");
@@ -630,15 +611,9 @@ describe("settings.invitations limits", () => {
     await expect(
       admin.settings.invitations.create({ email: "e@example.com" }),
     ).rejects.toMatchObject(refused);
-    dashboard.locale = "pt-BR";
-    await expect(
-      admin.settings.invitations.create({ email: "e@example.com" }),
-    ).rejects.toMatchObject({
-      message: "Você atingiu o seu limite de 2 convites por dia. Tente de novo amanhã.",
-    });
   });
 
-  it("refuses over the cap, a second pending invitation and an early resend in the dashboard's language", async () => {
+  it("refuses over the cap, a second pending invitation and an early resend", async () => {
     vi.stubEnv("INVITES_PER_TEAM_PER_DAY", "2");
     stubSender();
     const teamId = await createTeam(db, "acme");
@@ -657,23 +632,12 @@ describe("settings.invitations limits", () => {
       message: "This invitation was just sent. Wait a couple of minutes before resending.",
     });
 
-    dashboard.locale = "pt-BR";
-    await expect(
-      caller.settings.invitations.create({ email: "a@example.com" }),
-    ).rejects.toMatchObject({
-      code: "CONFLICT",
-      message: "Este endereço já tem um convite pendente. Reenvie ou revogue o convite pela lista.",
-    });
-    await expect(caller.settings.invitations.resend({ id: created.id })).rejects.toMatchObject({
-      code: "TOO_MANY_REQUESTS",
-      message: "Este convite acabou de ser enviado. Espere alguns minutos antes de reenviar.",
-    });
     await caller.settings.invitations.create({ email: "b@example.com" });
     await expect(
       caller.settings.invitations.create({ email: "c@example.com" }),
     ).rejects.toMatchObject({
       code: "TOO_MANY_REQUESTS",
-      message: "Esta equipe atingiu o limite de 2 convites por dia. Tente de novo amanhã.",
+      message: "This team reached its limit of 2 invitations a day. Try again tomorrow.",
     });
   });
 });

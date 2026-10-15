@@ -60,7 +60,7 @@ It's a pnpm workspace, with Turborepo running tasks across packages.
 | `apps/worker`         | Background jobs: sending, broadcasts, SES events, webhooks, inbound mail, scheduled tasks   |
 | `apps/smtp`           | The SMTP relay, for apps that send over SMTP instead of the API                             |
 | `apps/mx`             | Receives inbound mail on port 25                                                            |
-| `apps/docs`           | The documentation site (Fumadocs), in English and Brazilian Portuguese                      |
+| `apps/docs`           | The documentation site (Fumadocs)                                                           |
 | `packages/core`       | Shared business logic                                                                       |
 | `packages/db`         | The Drizzle schema and migrations                                                           |
 | `packages/config`     | Environment parsing and shared settings                                                     |
@@ -96,7 +96,7 @@ Format and lint with Biome: `pnpm lint` checks, and `pnpm lint:fix` fixes what i
 
 If you change the database schema in `packages/db`, run `pnpm db:generate` and commit the migration it writes to `packages/db/drizzle`. CI fails when the schema and the migrations disagree.
 
-Dashboard copy lives in `apps/web/messages/en` and `apps/web/messages/pt-BR`. Add every new key to both; a test checks that they match. The docs pages come in pairs too: `page.mdx` and `page.pt-BR.mdx`.
+Posta ships in English only. Dashboard copy lives in `apps/web/messages/en`, and each docs page is one `page.mdx`.
 
 ## Commits and pull requests
 

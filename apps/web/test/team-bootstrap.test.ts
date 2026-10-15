@@ -217,10 +217,10 @@ describe("team.createTeam", () => {
       .update(schema.teams)
       .set({ suspendedAt: new Date(), suspensionReason: "phishing" })
       .where(eq(schema.teams.id, teamId));
+    // A cookie naming a language that is no longer shipped still gets English.
     locale.cookie = "pt-BR";
     await expect(callerFor("owner").team.createTeam({ name: "Again" })).rejects.toMatchObject({
-      message:
-        "Isso não está disponível para esta equipe no momento. Fale com o suporte se precisar de ajuda.",
+      message: "This isn't available for this team right now. Contact support if you need help.",
     });
     await callerFor("outsider").team.createTeam({ name: "Clean" });
     expect(await db.select().from(schema.teams).where(eq(schema.teams.name, "Again"))).toEqual([]);

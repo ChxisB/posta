@@ -9,7 +9,6 @@ import {
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import en from "../messages/en/common.json";
-import ptBR from "../messages/pt-BR/common.json";
 
 // A known 32-byte master key so the endpoints derive the same tracking key we
 // sign tokens with here. Set before the route modules read env.
@@ -379,7 +378,7 @@ describe("a click on mail whose sender no longer vouches for it", () => {
     expect(page).not.toContain('a"b');
   });
 
-  it("speaks the reader's language", async () => {
+  it("reads in English whatever language the reader asks for", async () => {
     const { emailId, teamId } = await seedEmail();
     const token = await clickToken(emailId, url);
     await suspend(teamId, "manual");
@@ -387,8 +386,8 @@ describe("a click on mail whose sender no longer vouches for it", () => {
       ...req(token, { "user-agent": IPHONE, "accept-language": "pt-BR,pt;q=0.9,en;q=0.8" }),
     );
     const page = await res.text();
-    expect(page).toContain('<html lang="pt-BR">');
-    expect(page).toContain(ptBR.trackedLink.disabledTitle);
+    expect(page).toContain('<html lang="en">');
+    expect(page).toContain(en.trackedLink.disabledTitle);
   });
 });
 

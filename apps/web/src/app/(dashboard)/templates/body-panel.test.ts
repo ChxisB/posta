@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import enBlocks from "../../../../messages/en/block-editor.json";
 import en from "../../../../messages/en/templates.json";
-import ptBR from "../../../../messages/pt-BR/templates.json";
 import { ContentPreview } from "../broadcasts/parts";
 import { BodyPanel } from "./body-panel";
 import { SourceActions, SourceView } from "./source-view";
@@ -216,10 +215,9 @@ describe("messages", () => {
     "download",
   ] as const;
 
-  it("has every view-switch string in both languages", () => {
+  it("has every view-switch string", () => {
     for (const key of keys) {
       expect(en.editor[key], key).toBeTruthy();
-      expect(ptBR.editor[key], key).toBeTruthy();
     }
   });
 });

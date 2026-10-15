@@ -1,34 +1,21 @@
 /**
- * Locale registry. `source` is the authoring language; `launch` locales ship
- * complete and block release when untranslated; `community` locales are
- * translated via Weblate and may lag behind source.
+ * Locale registry. English is the only language Posta ships: `source` is the
+ * authoring language, `launch` locales ship complete and block release when
+ * untranslated, and `community` locales are the ones a translator could add
+ * later. The lists stay so a second language is one entry and one folder of
+ * messages, not new plumbing.
  */
 export const SOURCE_LOCALE = "en" as const;
 
-export const LAUNCH_LOCALES = ["en", "pt-BR"] as const;
+export const LAUNCH_LOCALES = ["en"] as const;
 
-export const COMMUNITY_LOCALES = [
-  "es",
-  "fr",
-  "de",
-  "it",
-  "nl",
-  "pl",
-  "tr",
-  "ru",
-  "ja",
-  "ko",
-  "zh-CN",
-  "id",
-  "vi",
-  "ar",
-] as const;
+export const COMMUNITY_LOCALES = [] as const;
 
 export const ALL_LOCALES = [...LAUNCH_LOCALES, ...COMMUNITY_LOCALES] as const;
 
 export type Locale = (typeof ALL_LOCALES)[number];
 
-export const RTL_LOCALES: readonly Locale[] = ["ar"];
+export const RTL_LOCALES: readonly Locale[] = [];
 
 export function isLocale(value: string): value is Locale {
   return (ALL_LOCALES as readonly string[]).includes(value);
@@ -43,9 +30,8 @@ export function resolveLocale(candidates: ReadonlyArray<string | null | undefine
   for (const candidate of candidates) {
     if (!candidate) continue;
     if (isLocale(candidate)) return candidate;
-    // Fall back across region subtags: "pt-PT" → "pt-BR" is wrong, but
-    // "de-AT" → "de" is right; only match when the base language is itself
-    // a registered locale.
+    // Fall back across region subtags: "en-GB" → "en" is right; only match
+    // when the base language is itself a registered locale.
     const base = candidate.split("-")[0];
     if (base && isLocale(base)) return base;
   }

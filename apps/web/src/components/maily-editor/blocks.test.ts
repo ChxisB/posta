@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import enBlockEditor from "../../../messages/en/block-editor.json";
-import ptBlockEditor from "../../../messages/pt-BR/block-editor.json";
 import { EDITOR_BLOCK_GROUPS, EDITOR_BLOCKS, type EditorBlockKey, filterBlocks } from "./blocks";
 import { BLOCK_ICONS } from "./icons";
 
-const catalogs = { en: enBlockEditor, "pt-BR": ptBlockEditor };
+const catalogs = { en: enBlockEditor };
 
 // The slash menu's order before the list moved here: the menu must not change.
 const SLASH_ORDER: EditorBlockKey[] = [

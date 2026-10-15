@@ -67,13 +67,13 @@ describe("email verification", () => {
     const a = auth();
     const res = await signUp(a);
     expect(res.token).toBeNull();
-    // Written in the language sign-up stored for the account from its request.
+    // Written in English, the only language shipped, though sign-up asked in Portuguese.
     await vi.waitFor(() => expect(sent).toHaveLength(1));
     expect(sent[0]).toMatchObject({
       kind: "email_verification",
       to: "ada@example.com",
       from: "Posta <no-reply@mail.example.com>",
-      subject: "Confirme seu e-mail do Posta",
+      subject: "Verify your Posta email",
     });
     const url = new URL(sent[0]?.text.match(/https?:\/\/\S+/)?.[0] ?? "");
     expect(url.pathname).toBe("/api/auth/verify-email");
@@ -83,8 +83,7 @@ describe("email verification", () => {
     await expect(signIn(a)).rejects.toMatchObject({ status: "FORBIDDEN" });
     await vi.waitFor(() => expect(sent).toHaveLength(2));
 
-    // Over HTTP, as the browser opens the link: here one reading English,
-    // as a phone or a link scanner may: the account's stored language wins.
+    // Over HTTP, as the browser opens the link, as a phone or a link scanner may.
     const opened = await a.handler(new Request(url, { headers: { "accept-language": "en-US" } }));
     expect(opened.status).toBe(302);
     const [user] = await db
@@ -98,7 +97,7 @@ describe("email verification", () => {
       "email_verification",
       "welcome",
     ]);
-    expect(sent[2]).toMatchObject({ to: "ada@example.com", subject: "Bem-vindo ao Posta" });
+    expect(sent[2]).toMatchObject({ to: "ada@example.com", subject: "Welcome to Posta" });
     expect((await signIn(a)).token).toBeTruthy();
     // The verified sign-in sends nothing: the next mail out is the reset.
     await a.api.requestPasswordReset({ body: { email: "ada@example.com", redirectTo: "/x" } });
@@ -127,9 +126,6 @@ describe("email verification", () => {
     expect(mail.text).toContain("https://x.com/v?token=t");
     expect(mail.text).toContain("60");
     expect(mail.text).toMatch(/^Hi,$/m);
-    const pt = buildVerificationEmail({ to: "a@b.com", url: "https://x.com/v", locale: "pt-BR" });
-    expect(pt.subject).toBe("Confirme seu e-mail do Posta");
-    expect(pt.text).toMatch(/^Olá,$/m);
   });
 
   it("prints no part of the name sign-up typed, on sign-up and on the re-send", async () => {

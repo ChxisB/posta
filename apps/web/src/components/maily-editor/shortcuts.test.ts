@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isModEnter, saveShortcut } from "@/lib/save-shortcut";
 import en from "../../../messages/en/block-editor.json";
-import ptBR from "../../../messages/pt-BR/block-editor.json";
 import { BLOCK_ACTIONS } from "./block-actions";
 import {
   BLOCK_ACTION_IDS,
@@ -164,8 +163,8 @@ describe("drift between the list and what is bound", () => {
     ).toBe(true);
   });
 
-  it("gives every entry and group a label, in English and Brazilian Portuguese", () => {
-    for (const catalog of [en, ptBR]) {
+  it("gives every entry and group a label", () => {
+    for (const catalog of [en]) {
       for (const entry of SHORTCUTS) {
         expect(typeof at(catalog, shortcutLabelKey(entry.id)), entry.id).toBe("string");
       }
@@ -177,7 +176,7 @@ describe("drift between the list and what is bound", () => {
 
   it("has no label for an entry that is not in the list", () => {
     const ids = SHORTCUTS.map((entry) => entry.id).sort();
-    for (const catalog of [en, ptBR]) {
+    for (const catalog of [en]) {
       const labelled = Object.keys(at(catalog, "shortcuts.actions") as object).sort();
       expect(labelled).toEqual(ids);
       const groups = Object.keys(at(catalog, "shortcuts.groups") as object).sort();

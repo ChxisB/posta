@@ -3,7 +3,6 @@ import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import en from "../../../messages/en/block-editor.json";
-import ptBR from "../../../messages/pt-BR/block-editor.json";
 import { ShortcutsButton, ShortcutsList } from "./cheatsheet";
 import {
   isChord,
@@ -15,15 +14,15 @@ import {
   shortcutsIn,
 } from "./shortcuts";
 
-function render(children: ReactElement, locale: "en" | "pt-BR" = "en"): string {
-  const messages = { "block-editor": locale === "en" ? en : ptBR };
+function render(children: ReactElement): string {
+  const messages = { "block-editor": en };
   return renderToStaticMarkup(
-    createElement(NextIntlClientProvider, { locale, messages, children }),
+    createElement(NextIntlClientProvider, { locale: "en", messages, children }),
   );
 }
 
-function list(platform: KeyPlatform, locale: "en" | "pt-BR" = "en"): string {
-  return render(createElement(ShortcutsList, { platform }), locale);
+function list(platform: KeyPlatform): string {
+  return render(createElement(ShortcutsList, { platform }));
 }
 
 /** The row holding a label, as markup. */
@@ -89,7 +88,7 @@ describe("ShortcutsList", () => {
     expect(markup).not.toContain("⌘");
   });
 
-  it("shows what to type as it is, with a translated Space", () => {
+  it("shows what to type as it is, with Space spelled out", () => {
     expect(rowOf(list("mac"), "Heading 1")).toBeDefined();
     const markup = list("mac");
     const typed = SHORTCUTS.filter((entry) => !isChord(entry));
@@ -97,8 +96,6 @@ describe("ShortcutsList", () => {
     expect(markup).toContain(">###</kbd>");
     expect(markup).toContain(">Space</kbd>");
     expect(markup).toContain(">?</kbd>");
-    expect(list("mac", "pt-BR")).toContain(">Espaço</kbd>");
-    expect(list("mac", "pt-BR")).not.toContain(">Space</kbd>");
   });
 
   it("explains the groups that need it, and only those", () => {
@@ -108,27 +105,15 @@ describe("ShortcutsList", () => {
     expect(markup).toContain(en.shortcuts.notes.blocks);
   });
 
-  it("reads in Brazilian Portuguese", () => {
-    const markup = list("other", "pt-BR");
-    for (const group of SHORTCUT_GROUPS) {
-      const heading = ptBR.shortcuts.groups[group];
-      expect(markup).toContain(`>${heading}</h3>`);
+  it("has a label and a heading for everything it draws", () => {
+    for (const entry of SHORTCUTS) {
+      const key = shortcutLabelKey(entry.id).replace("shortcuts.actions.", "");
+      expect(en.shortcuts.actions, entry.id).toHaveProperty(key);
     }
-    expect(markup).toContain("<dt>Duplicar bloco</dt>");
-    expect(markup).not.toContain("<dt>Duplicate block</dt>");
-  });
-
-  it("has a label and a heading for everything it draws, in both languages", () => {
-    for (const catalog of [en, ptBR]) {
-      for (const entry of SHORTCUTS) {
-        const key = shortcutLabelKey(entry.id).replace("shortcuts.actions.", "");
-        expect(catalog.shortcuts.actions, entry.id).toHaveProperty(key);
-      }
-      for (const group of SHORTCUT_GROUPS) {
-        expect(catalog.shortcuts.groups, group).toHaveProperty(
-          shortcutGroupKey(group).replace("shortcuts.groups.", ""),
-        );
-      }
+    for (const group of SHORTCUT_GROUPS) {
+      expect(en.shortcuts.groups, group).toHaveProperty(
+        shortcutGroupKey(group).replace("shortcuts.groups.", ""),
+      );
     }
   });
 });
@@ -140,10 +125,5 @@ describe("ShortcutsButton", () => {
     expect(markup).toContain('aria-keyshortcuts="?"');
     expect(markup).toContain("Shortcuts");
     expect(markup).toContain('<span class="po-keycap" aria-hidden="true">?</span>');
-  });
-
-  it("reads in Brazilian Portuguese", () => {
-    const markup = render(createElement(ShortcutsButton, { onClick: () => {} }), "pt-BR");
-    expect(markup).toContain("Atalhos");
   });
 });

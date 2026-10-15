@@ -3,26 +3,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
-  locale: "en" as "en" | "pt-BR",
   history: undefined as unknown,
   kpis: undefined as unknown,
 }));
 
 vi.mock("next-intl", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next-intl")>();
-  const catalogs = {
-    en: { console: (await import("../messages/en/console.json")).default },
-    "pt-BR": { console: (await import("../messages/pt-BR/console.json")).default },
-  };
+  const messages = { console: (await import("../messages/en/console.json")).default };
   return {
     ...actual,
-    useLocale: () => h.locale,
+    useLocale: () => "en",
     useTranslations: (namespace: string) =>
-      actual.createTranslator({
-        locale: h.locale,
-        messages: catalogs[h.locale],
-        namespace: namespace as "console",
-      }),
+      actual.createTranslator({ locale: "en", messages, namespace: namespace as "console" }),
   };
 });
 vi.mock("@/lib/trpc", () => {
@@ -67,20 +59,17 @@ const chart = () =>
 
 describe("a probe chart's note on how its points were folded", () => {
   it("names the highest reading or the average, and the bucket from the period", () => {
-    h.locale = "pt-BR";
     h.history = {
       bucketSeconds: 6 * 3_600,
       aggregate: "max",
       points: [point("2026-10-01T00:00:00Z", 8000, 360), point("2026-10-01T06:00:00Z", 2, 360)],
     };
-    expect(chart()).toContain("Cada ponto: o maior valor em 6h");
-    h.locale = "en";
+    expect(chart()).toContain("Each point: the highest reading in 6h");
     h.history = { ...(h.history as object), bucketSeconds: 300, aggregate: "avg" };
     expect(chart()).toContain("Each point: the average over 5 min");
   });
 
   it("says nothing when every point is a single reading", () => {
-    h.locale = "en";
     h.history = {
       bucketSeconds: 24 * 3_600,
       aggregate: "max",
@@ -92,7 +81,6 @@ describe("a probe chart's note on how its points were folded", () => {
 
 describe("the stat tiles", () => {
   it("print whole numbers, as the Health card does", () => {
-    h.locale = "pt-BR";
     const html = renderToStaticMarkup(
       createElement(StatTiles, {
         summary: {
@@ -103,9 +91,9 @@ describe("the stat tiles", () => {
         } as never,
       }),
     );
-    expect(html).toContain(">123.456<");
+    expect(html).toContain(">123,456<");
     expect(html).toContain(">512<");
-    expect(html).not.toMatch(/123\.456,|512,084/);
+    expect(html).not.toMatch(/123,456\.|512\.084/);
   });
 });
 
@@ -119,14 +107,9 @@ describe("the bounce KPI card", () => {
       totals: counts,
       previous: counts,
     };
-    h.locale = "en";
     const html = renderToStaticMarkup(createElement(KpiCards));
     expect(html).toContain(">Hard bounces<");
     expect(html).toContain(">1.00%<");
     expect(html).toContain(">SES line 5% · 4.00% incl. transient<");
-    h.locale = "pt-BR";
-    expect(renderToStaticMarkup(createElement(KpiCards))).toContain(
-      ">limite do SES 5% · 4,00% contando os temporários<",
-    );
   });
 });

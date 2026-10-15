@@ -24,10 +24,10 @@ describe("formatDayUtc", () => {
 
 describe("formatUsd", () => {
   it("prints a bare $ with cents, and a tenth of a cent when asked for 3 digits", () => {
-    expect(formatUsd(3150, "pt-BR")).toBe("$31,50");
+    expect(formatUsd(3150, "en")).toBe("$31.50");
     expect(formatUsd(2000, "en")).toBe("$20");
-    expect(formatUsd(10.5, "pt-BR", 3)).toBe("$0,105");
-    expect(formatUsd(10, "pt-BR", 3)).toBe("$0,10");
+    expect(formatUsd(10.5, "en", 3)).toBe("$0.105");
+    expect(formatUsd(10, "en", 3)).toBe("$0.10");
     expect(formatUsd(10.5, "en")).toBe("$0.11");
   });
 });
@@ -98,8 +98,8 @@ describe("formatMoneyTotals", () => {
   it("sums per currency: US dollars as formatUsd writes them, any other as the locale does", () => {
     const usd = (amount: number) => ({ amount, currency: "usd" });
     expect(formatMoneyTotals([usd(2000), usd(2000)], "en")).toBe("$40");
-    expect(formatMoneyTotals([usd(2050), { amount: 9800, currency: "brl" }], "pt-BR")).toBe(
-      "$20,50 + R$\u00a098,00",
+    expect(formatMoneyTotals([usd(2050), { amount: 9800, currency: "brl" }], "en")).toBe(
+      "$20.50 + R$98.00",
     );
     expect(formatMoneyTotals([{ amount: 500, currency: "jpy" }], "en")).toBe("¥500");
     expect(formatMoneyTotals([], "en")).toBe("");

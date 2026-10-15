@@ -544,7 +544,7 @@ describe("the emailed code in front of a start", () => {
     expect(minutes).toBeLessThanOrEqual(CONSOLE_CODE_MINUTES);
   });
 
-  it("writes the code in the operator's language under a fixed subject", async () => {
+  it("writes the code in English under a fixed subject, even for a stored other language", async () => {
     canSendMail();
     await db.update(schema.user).set({ locale: "pt-BR" }).where(eq(schema.user.id, OPERATOR));
     try {
@@ -552,8 +552,8 @@ describe("the emailed code in front of a start", () => {
     } finally {
       await db.update(schema.user).set({ locale: null }).where(eq(schema.user.id, OPERATOR));
     }
-    expect(h.sent.at(-1)?.subject).toBe("Seu código do console Posta");
-    expect(h.sent.at(-1)?.text).toContain(`Ele vale uma vez, por ${CONSOLE_CODE_MINUTES} minutos.`);
+    expect(h.sent.at(-1)?.subject).toBe("Your Posta console code");
+    expect(h.sent.at(-1)?.text).toContain(`It works once, for ${CONSOLE_CODE_MINUTES} minutes.`);
   });
 
   it("starts the view with the code, once, leaving the team's start row as it was", async () => {
@@ -880,16 +880,6 @@ describe("the read-only guard", () => {
     expect((await db.select().from(schema.teams).where(eq(schema.teams.id, teamId)))[0]?.name).toBe(
       "acme",
     );
-  });
-
-  it("lets the operator switch their own language during a view", async () => {
-    const grant = await start();
-    await viewer(grant).settings.locale.set({ locale: "pt-BR" });
-    const [row] = await db
-      .select({ locale: schema.user.locale })
-      .from(schema.user)
-      .where(eq(schema.user.id, OPERATOR));
-    expect(row?.locale).toBe("pt-BR");
   });
 
   it("leaves the console's own procedures working during a view", async () => {

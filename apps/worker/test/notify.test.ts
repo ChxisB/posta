@@ -834,7 +834,7 @@ it("a paid period that lapsed past its grace reads as the downgrade, keyed like 
   expect(sends).toHaveLength(1);
 });
 
-it("an owner whose account contact is pt-BR reads the notice in pt-BR", async () => {
+it("an owner whose account contact names a language no longer shipped reads English", async () => {
   vi.stubEnv("AUTH_EMAIL_FROM", "Posta <account@mail.example.com>");
   const home = await createTeam(db, "home");
   await db
@@ -845,7 +845,7 @@ it("an owner whose account contact is pt-BR reads the notice in pt-BR", async ()
     .values({ teamId: home, email: "owner@example.com", properties: { locale: "pt-BR" } });
   await domain();
   await sweepNotifications(db, deps(false));
-  expect(sends.map((s) => s.subject)).toEqual(["Seu domínio está verificado"]);
+  expect(sends.map((s) => s.subject)).toEqual(["Your domain is verified"]);
 });
 
 it("an owner who turned a notice off is skipped for it, and still gets a security receipt", async () => {

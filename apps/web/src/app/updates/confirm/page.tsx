@@ -6,11 +6,10 @@ import { AuthScreen } from "@/components/auth/auth-screen";
 import { localeFromHeaders } from "@/server/locale";
 import { readUpdatesLink } from "@/server/updates";
 import en from "../../../../messages/en/updates.json";
-import ptBR from "../../../../messages/pt-BR/updates.json";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-const MESSAGES = { en, "pt-BR": ptBR } as const;
+const MESSAGES = { en } as const;
 
 /**
  * Where the confirmation link lands. Opening it commits to nothing, mail

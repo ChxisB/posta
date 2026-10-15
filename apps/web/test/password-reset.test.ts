@@ -68,10 +68,6 @@ describe("buildResetEmail", () => {
     expect(en.text).toContain("https://app.example.com/api/auth/reset-password/tok");
     expect(en.text).toContain("30");
     expect(en.html).toContain("reset-password/tok");
-
-    const pt = buildResetEmail({ to: "a@b.com", url: "https://x.com/r", locale: "pt-BR" });
-    expect(pt.subject).toBe("Redefina sua senha do Posta");
-    expect(pt.text).toContain("Olá,");
   });
 });
 
@@ -153,40 +149,27 @@ describe("sendPasswordResetEmail", () => {
     expect(sent[0]?.text).toContain("/r/tok2");
   });
 
-  it("without a stored language, localizes from the NEXT_LOCALE cookie, then Accept-Language", async () => {
-    await requestReset(
-      "tok1",
-      new Request("https://x.com", { headers: { cookie: "NEXT_LOCALE=pt-BR" } }),
-    );
-    await vi.waitFor(() => expect(sent).toHaveLength(1));
-    expect(sent[0]?.subject).toBe("Redefina sua senha do Posta");
-
-    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
-    await db.update(schema.verification).set({ createdAt: beforeWindow });
-    await requestReset(
-      "tok2",
-      new Request("https://x.com", { headers: { "accept-language": "pt-BR,pt;q=0.9,en;q=0.5" } }),
-    );
-    await vi.waitFor(() => expect(sent).toHaveLength(2));
-    expect(sent[1]?.subject).toBe("Redefina sua senha do Posta");
-
-    await db.update(schema.verification).set({ createdAt: beforeWindow });
-    await requestReset(
-      "tok3",
-      new Request("https://x.com", { headers: { "accept-language": "de" } }),
-    );
-    await vi.waitFor(() => expect(sent).toHaveLength(3));
-    expect(sent[2]?.subject).toBe("Reset your Posta password");
-  });
-
-  it("writes in the account's stored language over the request's", async () => {
+  it("writes in English, the only language shipped, whatever was stored or asked", async () => {
+    // A stored language, a cookie and Accept-Language from when others shipped.
     await db.update(schema.user).set({ locale: "pt-BR" }).where(eq(schema.user.id, user.id));
     await requestReset(
       "tok1",
-      new Request("https://x.com", { headers: { "accept-language": "en-US" } }),
+      new Request("https://x.com", {
+        headers: { cookie: "NEXT_LOCALE=pt-BR", "accept-language": "pt-BR,pt;q=0.9,en;q=0.5" },
+      }),
     );
     await vi.waitFor(() => expect(sent).toHaveLength(1));
-    expect(sent[0]?.subject).toBe("Redefina sua senha do Posta");
+    expect(sent[0]?.subject).toBe("Reset your Posta password");
+
+    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
+    await db.update(schema.verification).set({ createdAt: beforeWindow });
+    await db.update(schema.user).set({ locale: null }).where(eq(schema.user.id, user.id));
+    await requestReset(
+      "tok2",
+      new Request("https://x.com", { headers: { "accept-language": "de" } }),
+    );
+    await vi.waitFor(() => expect(sent).toHaveLength(2));
+    expect(sent[1]?.subject).toBe("Reset your Posta password");
   });
 
   it("prints no part of the account's name, whatever it says", async () => {
@@ -273,8 +256,7 @@ describe("password changed receipt", () => {
         auth.api.resetPassword({ body: { newPassword: "another horse battery", token: "nope" } }),
       ).rejects.toBeTruthy();
       expect(sent.map((m) => m.kind)).toEqual(["password_reset"]);
-      // Over HTTP, from a browser reading Portuguese: the receipt keeps the
-      // language the account signed up in.
+      // Over HTTP, from a browser reading Portuguese: the receipt is still English.
       const reset = await auth.handler(
         new Request("http://localhost:3000/api/auth/reset-password", {
           method: "POST",

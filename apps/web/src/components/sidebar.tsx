@@ -3,18 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BetaPill } from "@/components/beta-pill";
 import { EllipsisGlyph, NavGlyph, type NavIconName } from "@/components/icons/nav-icons";
 import { useDismiss } from "@/components/popover-menu";
 import { TeamSwitcher } from "@/components/team-switcher";
 import { signOutToLogin } from "@/lib/auth-client";
-import { isAppLocale, LOCALES } from "@/lib/locale-cookie";
 import { isActive } from "@/lib/nav";
 import { applyTheme, currentTheme, type Theme } from "@/lib/theme";
 import { useTRPC } from "@/lib/trpc";
-import { useSwitchLocale } from "@/lib/use-switch-locale";
 
 // Canvas nav order (Row 1 chrome): Settings lives in the main list.
 export const NAV_ITEMS: ReadonlyArray<{
@@ -73,35 +71,6 @@ export function useNavItems() {
   const trpc = useTRPC();
   const receiving = useQuery(trpc.system.features.queryOptions()).data?.receiving === true;
   return useMemo(() => navItemsFor(receiving), [receiving]);
-}
-
-/* Language row: the same segmented pill with the two language codes. */
-export function LanguageRow() {
-  const tCommon = useTranslations("common");
-  const locale = useLocale();
-  const switchLocale = useSwitchLocale();
-  return (
-    <div className="po-menu-item static">
-      {tCommon("accountMenu.language")}
-      <span className="po-theme-toggle">
-        {LOCALES.map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={locale === value ? "active wide" : "wide"}
-            aria-label={tCommon(`accountMenu.language_${value === "en" ? "en" : "ptBR"}`)}
-            aria-pressed={locale === value}
-            onClick={() => {
-              if (locale === value || !isAppLocale(value)) return;
-              switchLocale(value);
-            }}
-          >
-            {value === "en" ? "EN" : "PT"}
-          </button>
-        ))}
-      </span>
-    </div>
-  );
 }
 
 /* Appearance row: label + segmented sun/moon toggle, per the account-menu
@@ -282,7 +251,6 @@ export function Sidebar({
               {tCommon("accountMenu.onboarding")}
             </Link>
             <AppearanceRow />
-            <LanguageRow />
             <hr className="po-menu-sep" />
             <button type="button" role="menuitem" className="po-menu-item" onClick={signOutToLogin}>
               {tCommon("signOut")}

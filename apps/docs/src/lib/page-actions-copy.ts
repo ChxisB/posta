@@ -24,17 +24,6 @@ const LABELS: Record<string, PageActionLabels> = {
     github: "Open in GitHub",
     prompt: "Read {url}, I want to ask questions about it.",
   },
-  "pt-BR": {
-    copy: "Copiar Markdown",
-    copied: "Copiado",
-    open: "Abrir",
-    view: "Ver como Markdown",
-    claude: "Abrir no Claude",
-    chatgpt: "Abrir no ChatGPT",
-    cursor: "Abrir no Cursor",
-    github: "Abrir no GitHub",
-    prompt: "Leia {url}, quero fazer perguntas sobre a página.",
-  },
 };
 
 export function pageActionLabels(lang: string): PageActionLabels {

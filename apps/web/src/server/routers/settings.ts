@@ -67,7 +67,6 @@ import { isUniqueViolation } from "@/lib/db-errors";
 import { isHexColor } from "@/lib/hex-color";
 import { isHttpUrl } from "@/lib/http-url";
 import enSettings from "../../../messages/en/settings.json";
-import ptBRSettings from "../../../messages/pt-BR/settings.json";
 import { recordAudit } from "../audit";
 import { resolveBaseUrl } from "../auth";
 import { requireAuthSecret } from "../auth-secret";
@@ -207,7 +206,6 @@ const inviteEmailsLimited = createFixedWindowLimiter(INVITE_EMAILS_PER_HOUR, 3_6
 
 const INVITE_REFUSALS = {
   en: enSettings.invitations.refused,
-  "pt-BR": ptBRSettings.invitations.refused,
 } as const;
 
 /** An invitation refused in the dashboard's language; the dialogs show the message as is. */
@@ -927,21 +925,6 @@ export function createSettingsRouter(
             })
             .where(eq(u.id, ctx.session.user.id));
           return { optOuts: await mailOptOuts(ctx.db, ctx.session.user.id) };
-        }),
-    }),
-
-    /**
-     * The account's language, which the dashboard and every account mail
-     * use; the language switcher writes it alongside the cookie.
-     */
-    locale: router({
-      set: protectedProcedure
-        .input(z.object({ locale: z.enum(MAIL_LOCALES) }))
-        .mutation(async ({ ctx, input }) => {
-          await ctx.db
-            .update(schema.user)
-            .set({ locale: input.locale, updatedAt: new Date() })
-            .where(eq(schema.user.id, ctx.session.user.id));
         }),
     }),
 

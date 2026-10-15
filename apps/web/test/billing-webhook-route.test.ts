@@ -338,7 +338,7 @@ describe("owner mail", () => {
     ).toEqual([{ kind: "billing.downgraded", key: PERIOD_END.toISOString() }]);
   });
 
-  it("writes each owner in the language of their account contact", async () => {
+  it("writes each owner in English, whatever language their account contact holds", async () => {
     await addOwner(teamId, "bia", "bia@example.com");
     const home = await createTeam(h.db, "home");
     await h.db.insert(schema.domains).values({
@@ -354,10 +354,7 @@ describe("owner mail", () => {
     await send("evt_1", "customer.subscription.updated");
     expect(h.sent.map((m) => [m.to, m.subject]).sort()).toEqual([
       ["ada@example.com", "Your team is on Pro 100K"],
-      ["bia@example.com", "Sua equipe está no plano Pro 100K"],
+      ["bia@example.com", "Your team is on Pro 100K"],
     ]);
-    expect(h.sent.find((m) => m.to === "bia@example.com")?.text).toContain(
-      "até 100.000 e-mails por mês",
-    );
   });
 });

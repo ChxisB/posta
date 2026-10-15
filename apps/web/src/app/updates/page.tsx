@@ -5,11 +5,10 @@ import styles from "@/components/auth/auth.module.css";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { localeFromHeaders } from "@/server/locale";
 import en from "../../../messages/en/updates.json";
-import ptBR from "../../../messages/pt-BR/updates.json";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-const MESSAGES = { en, "pt-BR": ptBR } as const;
+const MESSAGES = { en } as const;
 
 /**
  * Public page: subscribe to product updates. A plain form, so it works from

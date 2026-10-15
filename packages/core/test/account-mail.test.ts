@@ -4,7 +4,6 @@ import { createTeam, createTestDb } from "@posta/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MONITOR_TIERS } from "../src/abuse-monitor.js";
 import { en } from "../src/account-mail/en.js";
-import { ptBR } from "../src/account-mail/pt-BR.js";
 import {
   ACCOUNT_MAIL_KINDS,
   type AccountMailEntry,
@@ -21,7 +20,7 @@ import { accountLocale, listTeamOwners } from "../src/notifications.js";
 import type { SystemMailKind } from "../src/system-mail.js";
 
 const VALUES: Record<string, string> = Object.fromEntries(
-  [...Object.values(en), ...Object.values(ptBR)]
+  Object.values(en)
     .flatMap((e: AccountMailEntry) => [
       e.subject,
       ...e.body,
@@ -51,32 +50,13 @@ describe("account mail catalogs", () => {
   });
 
   it("has no mail for an operator's content access, in any language", () => {
-    for (const kinds of [[...ACCOUNT_MAIL_KINDS], Object.keys(en), Object.keys(ptBR)]) {
+    for (const kinds of [[...ACCOUNT_MAIL_KINDS], Object.keys(en)]) {
       expect(kinds.filter((kind) => kind.startsWith("content."))).toEqual([]);
     }
   });
 
-  it("carries the same slots in pt-BR as in en, entry by entry", () => {
-    const slots = (s: string) => [...s.matchAll(/\{\w+\}/g)].map((m) => m[0]).sort();
-    for (const kind of ACCOUNT_MAIL_KINDS) {
-      const a: AccountMailEntry = en[kind];
-      const b: AccountMailEntry = ptBR[kind];
-      expect(slots(b.subject), `${kind} subject`).toEqual(slots(a.subject));
-      expect(slots(b.body.join(" ")), `${kind} body`).toEqual(slots(a.body.join(" ")));
-      expect(Object.keys(b.extra ?? {}).sort(), `${kind} extra`).toEqual(
-        Object.keys(a.extra ?? {}).sort(),
-      );
-      for (const key of Object.keys(a.extra ?? {})) {
-        expect(slots(b.extra?.[key] ?? ""), `${kind} extra ${key}`).toEqual(
-          slots(a.extra?.[key] ?? ""),
-        );
-      }
-    }
-  });
-
   it("billing mail promises no sending: it also reaches teams whose sending is suspended", () => {
-    const promise =
-      /keeps? sending|now sends|\[team\] sends|released within minutes|continuar? enviando|agora envia|\[team\] envia|liberado em minutos/i;
+    const promise = /keeps? sending|now sends|\[team\] sends|released within minutes/i;
     for (const locale of MAIL_LOCALES) {
       for (const kind of ACCOUNT_MAIL_KINDS.filter((k) => k.startsWith("billing."))) {
         const mail = buildAccountMail({
@@ -105,12 +85,12 @@ describe("account mail catalogs", () => {
   it("fills a phrase from an entry's extras", () => {
     expect(
       accountMailPhrase({
-        locale: "pt-BR",
+        locale: "en",
         kind: "billing.payment_failed",
         key: "retryOn",
-        values: { date: "1 de outubro" },
+        values: { date: "October 1" },
       }),
-    ).toBe("O Stripe tenta de novo em 1 de outubro.");
+    ).toBe("Stripe retries on October 1.");
   });
 
   it("names every monitor tier in the operator's language, never by its key", () => {
@@ -121,15 +101,14 @@ describe("account mail catalogs", () => {
     }
     const alert = buildAccountMail({
       kind: "monitor.alert",
-      locale: "pt-BR",
+      locale: "en",
       url: "https://app.example/console/safety/t",
       values: {
         ...VALUES,
-        tier: accountMailPhrase({ locale: "pt-BR", kind: "monitor.alert", key: "probation" }),
+        tier: accountMailPhrase({ locale: "en", kind: "monitor.alert", key: "probation" }),
       },
     });
-    expect(alert.text).toContain("(nível em observação,");
-    expect(alert.text).not.toContain("probation");
+    expect(alert.text).toContain("(probation tier,");
   });
 });
 
@@ -207,12 +186,12 @@ describe("listTeamOwners", () => {
       { teamId, userId: "u3", role: "member" },
     ]);
     await db.insert(schema.contacts).values([
-      { teamId: home, email: "ana@example.com", properties: { locale: "pt-BR" } },
+      { teamId: home, email: "ana@example.com", properties: { locale: "en" } },
       { teamId: home, email: "bob@example.com", properties: { locale: "xx" } },
     ]);
     const owners = await listTeamOwners(db, teamId, "Posta <account@mail.example.com>");
     expect(owners.map((o) => [o.email, o.locale]).sort()).toEqual([
-      ["Ana@example.com", "pt-BR"],
+      ["Ana@example.com", "en"],
       ["bob@example.com", "en"],
     ]);
     // No sender, or a sender no team holds: nothing to read, English.
@@ -222,7 +201,7 @@ describe("listTeamOwners", () => {
     );
   });
 
-  it("prefers the account's stored language over its contact, with or without a sender team", async () => {
+  it("reads English for a stored or stamped language no longer shipped, with or without a sender team", async () => {
     const teamId = await createTeam(db, "stored");
     const home = await createTeam(db, "stored-home");
     await db.insert(schema.domains).values({
@@ -247,15 +226,14 @@ describe("listTeamOwners", () => {
       (await listTeamOwners(db, teamId, from)).map((o) => [o.email, o.locale]).sort();
     const expected = [
       ["sol@example.com", "en"],
-      ["tia@example.com", "pt-BR"],
+      ["tia@example.com", "en"],
     ];
     expect(await locales(sender)).toEqual(expected);
     expect(await locales()).toEqual(expected);
 
     expect(await accountLocale(db, sender, "SOL@example.com")).toBe("en");
-    expect(await accountLocale(db, undefined, "tia@example.com")).toBe("pt-BR");
+    expect(await accountLocale(db, undefined, "tia@example.com")).toBe("en");
     // Nothing stored anywhere: the caller's fallback, English by default.
-    expect(await accountLocale(db, sender, "nobody@example.com", "pt-BR")).toBe("pt-BR");
     expect(await accountLocale(db, sender, "nobody@example.com")).toBe("en");
   });
 
@@ -280,17 +258,13 @@ describe("listTeamOwners", () => {
 });
 
 describe("billing phrases", () => {
-  it("say a plan's cap as a clause and a date on its UTC day, each in the reader's language", () => {
+  it("say a plan's cap as a clause and a date on its UTC day", () => {
     expect(planCapPhrase("en", "starter", null)).toBe("up to 1,500 emails a day");
-    expect(planCapPhrase("pt-BR", "starter", null)).toBe("até 1.500 e-mails por dia");
     expect(planCapPhrase("en", "pro", 100_000)).toBe("up to 100,000 emails a month");
-    expect(planCapPhrase("pt-BR", "pro", 100_000)).toBe("até 100.000 e-mails por mês");
     expect(planCapPhrase("en", "scale", 2_500_000)).toBe("up to 2,500,000 emails a month");
     expect(planCapPhrase("en", "system", null)).toBe("with no sending cap");
-    expect(planCapPhrase("pt-BR", "system", null)).toBe("sem limite de envio");
     const lateUtc = new Date("2026-09-30T23:30:00Z");
     expect(formatMailDate("en", lateUtc)).toBe("September 30, 2026");
-    expect(formatMailDate("pt-BR", lateUtc)).toBe("30 de setembro de 2026");
   });
 });
 
@@ -324,10 +298,10 @@ describe("planMove", () => {
     );
     expect(moved?.kind).toBe("billing.plan_changed");
     expect(moved?.periodKey).toBe("pro_100k>scale_500k:2026-10-08T00:00:00.000Z");
-    expect(moved?.values("pt-BR", "Acme")).toMatchObject({
+    expect(moved?.values("en", "Acme")).toMatchObject({
       old: "Pro 100K",
       new: "Scale 500K",
-      cap: "até 500.000 e-mails por mês",
+      cap: "up to 500,000 emails a month",
     });
     // A step between rungs of one plan is a change like any other.
     const stepped = planMove(
@@ -371,9 +345,9 @@ describe("planMove", () => {
       row("free", "2026-08-30T00:00:00Z"),
       now,
     );
-    expect(lapsed?.values("pt-BR", "Acme")).toMatchObject({
+    expect(lapsed?.values("en", "Acme")).toMatchObject({
       plan: "Scale 500K",
-      date: "30 de agosto de 2026",
+      date: "August 30, 2026",
       freeCap: "100",
     });
   });

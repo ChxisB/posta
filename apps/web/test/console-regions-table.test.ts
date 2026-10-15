@@ -3,31 +3,22 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { ServedRegion } from "@/components/console/region-actions";
 
-const h = vi.hoisted(() => ({ locale: "en" as "en" | "pt-BR" }));
-
 // The real catalogs, so the test reads what the operator reads.
 vi.mock("next-intl", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next-intl")>();
-  const catalogs = {
-    en: {
-      console: (await import("../messages/en/console.json")).default,
-      domains: (await import("../messages/en/domains.json")).default,
-      common: (await import("../messages/en/common.json")).default,
-    },
-    "pt-BR": {
-      console: (await import("../messages/pt-BR/console.json")).default,
-      domains: (await import("../messages/pt-BR/domains.json")).default,
-      common: (await import("../messages/pt-BR/common.json")).default,
-    },
+  const messages = {
+    console: (await import("../messages/en/console.json")).default,
+    domains: (await import("../messages/en/domains.json")).default,
+    common: (await import("../messages/en/common.json")).default,
   };
   return {
     ...actual,
-    useLocale: () => h.locale,
+    useLocale: () => "en",
     useTranslations: (namespace: string) =>
       actual.createTranslator({
-        locale: h.locale,
-        messages: catalogs[h.locale],
-        namespace: namespace as keyof (typeof catalogs)["en"],
+        locale: "en",
+        messages,
+        namespace: namespace as keyof typeof messages,
       }),
   };
 });
@@ -118,7 +109,6 @@ const tipOf = (cell: string) =>
 
 describe("the Overview's regions table", () => {
   it("reads the fine state across its columns, figures right, details in tooltips", () => {
-    h.locale = "en";
     const html = render([served({ region: "sa-east-1" })]);
     expect([...html.matchAll(/<th[^>]*>([^<]*)<\/th>/g)].map((m) => m[1])).toEqual([
       "Region",
@@ -161,8 +151,7 @@ describe("the Overview's regions table", () => {
     expect(html).toContain('<td class="right po-cell-menu" style="width:40px">');
   });
 
-  it("names trouble in a word or two, with the reason one hover away (pt-BR)", () => {
-    h.locale = "pt-BR";
+  it("names trouble in a word or two, with the reason one hover away", () => {
     const [paused, probation] = cells(
       render([
         served({
@@ -197,14 +186,14 @@ describe("the Overview's regions table", () => {
     );
     if (!paused || !probation) throw new Error("rows missing");
     expect(paused.map(text).slice(3, 8)).toEqual([
-      "pausadas",
-      "em análise",
-      "250.000",
-      "0,10%",
-      "0,25%",
+      "paused",
+      "under review",
+      "250,000",
+      "0.10%",
+      "0.25%",
     ]);
     expect(tipOf(paused[3] ?? "")).toBe(
-      "Pausa automática: bounce de 5,20% em 24h, acima do limite de 4%.\nO transacional segue saindo.",
+      "Automatic pause: bounce at 5.20% over 24h, above the 4% limit.\nTransactional mail keeps flowing.",
     );
     // The dot leads, outside the tooltip's trigger, so the dots form a column.
     expect(paused[3]).toMatch(/^<span class="po-dot" style="background:var\(--po-danger\)/);
@@ -212,9 +201,9 @@ describe("the Overview's regions table", () => {
       /^<span class="po-dot" style="background:var\(--po-warn\)[^>]*><\/span><span class="tip"/,
     );
     expect(tipOf(paused[4] ?? "")).toBe(
-      "A AWS colocou a conta em análise (probation) nesta região.",
+      "AWS put the account under review (probation) in this region.",
     );
-    expect(tipOf(paused[5] ?? "")).toBe("3 transmissões · em espera durante a pausa");
+    expect(tipOf(paused[5] ?? "")).toBe("3 broadcasts · held during the pause");
     // Amber from SES's review line, red from our pause line.
     expect(paused[7]).toContain("color:var(--po-warn)");
     expect(probation[7]).toContain("color:var(--po-danger)");
@@ -223,7 +212,6 @@ describe("the Overview's regions table", () => {
   });
 
   it("shows sandbox and unreachable regions with dashes, the GetAccount error on the badge", () => {
-    h.locale = "pt-BR";
     const [sandbox, down, shutdown] = cells(
       render([
         served({
@@ -268,22 +256,21 @@ describe("the Overview's regions table", () => {
       "Sandbox",
       "12 / 200",
       "-",
-      "saudável",
+      "healthy",
       "-",
       "-",
       "-",
       "$0",
     ]);
-    expect(tipOf(sandbox[2] ?? "")).toBe("12 / 200 · taxa máxima 1/s");
-    expect(tipOf(sandbox[8] ?? "")).toBe("12 enviados × $0,10/mil");
-    expect(down.map(text).slice(1, 9)).toEqual(["Inacessível", "-", "-", "-", "-", "-", "-", "$0"]);
-    expect(tipOf(down[1] ?? "")).toBe("GetAccount falhou: ThrottlingException");
+    expect(tipOf(sandbox[2] ?? "")).toBe("12 / 200 · max rate 1/s");
+    expect(tipOf(sandbox[8] ?? "")).toBe("12 sent × $0.10/1k");
+    expect(down.map(text).slice(1, 9)).toEqual(["Unreachable", "-", "-", "-", "-", "-", "-", "$0"]);
+    expect(tipOf(down[1] ?? "")).toBe("GetAccount failed: ThrottlingException");
     expect(shutdown[4]).toContain("background:var(--po-danger)");
-    expect(text(shutdown[4] ?? "")).toBe("suspensa");
+    expect(text(shutdown[4] ?? "")).toBe("suspended");
   });
 
   it("says when SES's rate can't be read, and that the pause watches our estimate of it on the same line", () => {
-    h.locale = "pt-BR";
     const [unreadable, none] = cells(
       render([
         served({ region: "sa-east-1", sesComplaintRate: null, sesComplaintRead: false }),
@@ -293,17 +280,14 @@ describe("the Overview's regions table", () => {
     if (!unreadable || !none) throw new Error("rows missing");
     expect(text(unreadable[7] ?? "")).toBe("-");
     const estimate =
-      "A pausa regional segue nossa estimativa dessa taxa: 0,030% em 7 dias, limite de 0,4%\nNossa estimativa da taxa do SES deixa de fora os e-mails para provedores que nunca repassam reclamações, como o Gmail";
-    expect(tipOf(unreadable[7] ?? "")).toBe(`Não foi possível ler a taxa do SES\n${estimate}`);
-    expect(tipOf(none[7] ?? "")).toBe(
-      `O SES ainda não publicou uma taxa para esta região\n${estimate}`,
-    );
+      "The regional pause watches our estimate of it: 0.030% over 7 days, 0.4% limit\nOur estimate of SES's rate leaves out mail to providers that never report complaints, such as Gmail";
+    expect(tipOf(unreadable[7] ?? "")).toBe(`SES's rate couldn't be read\n${estimate}`);
+    expect(tipOf(none[7] ?? "")).toBe(`SES hasn't published a rate for this region\n${estimate}`);
   });
 });
 
 describe("the Broadcasts cell the Regions page shares", () => {
   it("says why a region is paused: SES's own rate, or the operator's hold", () => {
-    h.locale = "en";
     const cell = (region: ServedRegion) =>
       renderToStaticMarkup(createElement(BroadcastsCell, { region, complaintLine: LINES.breaker }));
     const ses = cell(
@@ -369,9 +353,8 @@ describe("the Broadcasts cell the Regions page shares", () => {
     expect(tipOf(cell(older))).toBe(
       "Automatic pause: complaint at 0.09% over 7 days, above the 0.08% limit.\nTransactional mail keeps flowing.",
     );
-    h.locale = "pt-BR";
     expect(tipOf(cell(ours))).toBe(
-      "Pausa automática: reclamações de 0,45% em 7 dias nos e-mails para provedores que repassam reclamações, acima do limite de 0,4%.\nO transacional segue saindo.",
+      "Automatic pause: complaints at 0.45% over 7 days on mail to providers that report them, above the 0.4% limit.\nTransactional mail keeps flowing.",
     );
   });
 });

@@ -11,28 +11,20 @@ import {
 import common from "../../../../../messages/en/common.json";
 import mergeFieldsEn from "../../../../../messages/en/merge-fields.json";
 import templatesEn from "../../../../../messages/en/templates.json";
-import commonPt from "../../../../../messages/pt-BR/common.json";
-import mergeFieldsPt from "../../../../../messages/pt-BR/merge-fields.json";
-import templatesPt from "../../../../../messages/pt-BR/templates.json";
 import { NewTemplate } from "./new-template";
 import { StarterPicker, StarterSketch } from "./starter-picker";
 
-type Locale = "en" | "pt-BR";
+const CATALOG = { common, templates: templatesEn, "merge-fields": mergeFieldsEn } as const;
 
-const CATALOGS = {
-  en: { common, templates: templatesEn, "merge-fields": mergeFieldsEn },
-  "pt-BR": { common: commonPt, templates: templatesPt, "merge-fields": mergeFieldsPt },
-} as const;
-
-function render(children: ReactElement, locale: Locale = "en"): string {
+function render(children: ReactElement): string {
   return renderToStaticMarkup(
-    createElement(NextIntlClientProvider, { locale, messages: CATALOGS[locale], children }),
+    createElement(NextIntlClientProvider, { locale: "en", messages: CATALOG, children }),
   );
 }
 
-/** The starters as the picker gets them, in a language, from the real catalog. */
-function startersIn(locale: Locale): StarterTemplate[] {
-  const { templates, "merge-fields": fields } = CATALOGS[locale];
+/** The starters as the picker gets them, from the real catalog. */
+function starters(): StarterTemplate[] {
+  const { templates, "merge-fields": fields } = CATALOG;
   const lookup = (path: string, tree: unknown) =>
     path.split(".").reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], tree);
   return STARTERS.map((spec) =>
@@ -43,8 +35,8 @@ function startersIn(locale: Locale): StarterTemplate[] {
   );
 }
 
-function picker(locale: Locale = "en"): string {
-  return render(createElement(StarterPicker, { starters: startersIn(locale) }), locale);
+function picker(): string {
+  return render(createElement(StarterPicker, { starters: starters() }));
 }
 
 /** The cards, as markup, in the order they appear. */
@@ -69,7 +61,7 @@ describe("StarterPicker", () => {
     const found = cards(picker());
     expect(found[0]).toContain(templatesEn.starters.picker.blank);
     expect(found[0]).toContain(templatesEn.starters.picker.blankHint);
-    const built = startersIn("en");
+    const built = starters();
     built.forEach((starter, index) => {
       const card = found[index + 1] ?? "";
       expect(card, starter.id).toContain(`${starter.name}<span class="po-starter-kind">`);
@@ -113,13 +105,11 @@ describe("StarterPicker", () => {
     ).toBe(true);
   });
 
-  it("reads in Brazilian Portuguese, from its own catalog", () => {
-    const markup = picker("pt-BR");
-    expect(markup).toContain(templatesPt.starters.picker.blank);
-    expect(markup).toContain(templatesPt.starters.picker.hint);
-    for (const starter of startersIn("pt-BR")) expect(markup).toContain(starter.name);
-    expect(markup).not.toContain(templatesEn.starters.picker.blank);
-    expect(markup).not.toContain(templatesEn.starters.picker.hint);
+  it("reads from the catalog: the blank card, the hint and every starter's name", () => {
+    const markup = picker();
+    expect(markup).toContain(templatesEn.starters.picker.blank);
+    expect(markup).toContain(templatesEn.starters.picker.hint);
+    for (const starter of starters()) expect(markup).toContain(starter.name);
   });
 });
 
@@ -158,7 +148,7 @@ describe("StarterSketch", () => {
   });
 
   it("shows the top of a long email only: the newsletter's sketch ends before its footer", () => {
-    const newsletter = startersIn("en").find((starter) => starter.id === "newsletter");
+    const newsletter = starters().find((starter) => starter.id === "newsletter");
     if (!newsletter) throw new Error("no newsletter starter");
     const markup = render(createElement(StarterSketch, { document: newsletter.document }));
     expect(markup).toContain("po-sketch-quote");
@@ -169,7 +159,7 @@ describe("StarterSketch", () => {
   });
 
   it("holds no words: it is drawn from shapes alone", () => {
-    const starter = startersIn("en")[0];
+    const starter = starters()[0];
     if (!starter) throw new Error("no starters");
     const markup = render(createElement(StarterSketch, { document: starter.document }));
     expect(markup.replace(/<[^>]*>/g, "")).toBe("");

@@ -32,7 +32,7 @@ means changing two environment variables, not rewriting your integration.
 | API request logs | ✅ | Every API request recorded with request/response bodies, secrets redacted. |
 | SMTP relay | ✅ | Drop-in SMTP on port 2587; authenticate with an API key. |
 | Receiving | Beta | Mail to any address on a verified domain, through an MX the instance runs (`PROCESS=mx`); Resend's `emails.receiving` API, `forward()` included, and the `email.received` webhook. |
-| Dashboard (en/pt-BR) | ✅ | Full dashboard in English and Brazilian Portuguese. |
+| Dashboard | ✅ | Full dashboard, in English. |
 | Self-host (Docker) | ✅ | Compose file plus a setup wizard; sends through your own AWS SES. |
 | Migrate from Resend | ✅ | `npx @tack-labs/posta-cli migrate --from resend` moves contacts, segments, topics, templates, webhooks, domains and suppressions; read-only against Resend, safe to re-run before cutover. |
 | Content monitoring | ✅ | Optional outbound judge via [TypeSafe Jev](https://typesafe.ai). Off by default on self-host. |

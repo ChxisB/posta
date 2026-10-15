@@ -27,11 +27,6 @@ import enInvite from "../../messages/en/invite-email.json";
 import en from "../../messages/en/reset-email.json";
 import enUpdates from "../../messages/en/updates.json";
 import enVerify from "../../messages/en/verify-email.json";
-import ptBRConsoleCode from "../../messages/pt-BR/console-code-email.json";
-import ptBRInvite from "../../messages/pt-BR/invite-email.json";
-import ptBR from "../../messages/pt-BR/reset-email.json";
-import ptBRUpdates from "../../messages/pt-BR/updates.json";
-import ptBRVerify from "../../messages/pt-BR/verify-email.json";
 import { getKeyring } from "./keyring";
 import { accountMailLocale } from "./locale";
 import { enqueueEmailSend } from "./queue";
@@ -42,11 +37,11 @@ export const VERIFY_TOKEN_TTL_MINUTES = 60;
 /** Repeat reset requests for the same account inside this window send nothing. */
 export const RESET_EMAIL_THROTTLE_MS = 2 * 60 * 1000;
 
-const MESSAGES = { en, "pt-BR": ptBR } as const;
-const INVITE_MESSAGES = { en: enInvite, "pt-BR": ptBRInvite } as const;
-const VERIFY_MESSAGES = { en: enVerify, "pt-BR": ptBRVerify } as const;
-const UPDATES_MESSAGES = { en: enUpdates.email, "pt-BR": ptBRUpdates.email } as const;
-const CONSOLE_CODE_MESSAGES = { en: enConsoleCode, "pt-BR": ptBRConsoleCode } as const;
+const MESSAGES = { en } as const;
+const INVITE_MESSAGES = { en: enInvite } as const;
+const VERIFY_MESSAGES = { en: enVerify } as const;
+const UPDATES_MESSAGES = { en: enUpdates.email } as const;
+const CONSOLE_CODE_MESSAGES = { en: enConsoleCode } as const;
 
 export type { MailLocale };
 

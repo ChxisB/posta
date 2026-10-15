@@ -132,8 +132,8 @@ export function formatDurationShort(ms: number): string {
   return `${trimFixed(ms / 86_400_000, 1)} d`;
 }
 
-/** Cents as US dollars with a bare "$" in every locale ("$20", "$0.30", pt-BR "$0,30"
-    rather than "US$ 0,30"): whole dollars drop the decimals. A price per
+/** Cents as US dollars with a bare "$" in every locale ("$20", "$0.30", never
+    "US$ 0.30"): whole dollars drop the decimals. A price per
     thousand passes 3 digits to keep a tenth of a cent ("$0.105"). */
 export function formatUsd(cents: number, locale: string, maxFractionDigits = 2): string {
   return new Intl.NumberFormat(locale, {

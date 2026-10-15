@@ -25,12 +25,10 @@ import { authClient } from "@/lib/auth-client";
 import { UPDATES_URL } from "@/lib/docs-links";
 import { formatDayTime, formatMmSs } from "@/lib/format";
 import { TEAM_LOGO_ACCEPT, TEAM_LOGO_MAX_BYTES } from "@/lib/image-type";
-import { isAppLocale, LOCALES } from "@/lib/locale-cookie";
 import { removeTeamLogo, uploadTeamLogo } from "@/lib/team-logo-api";
 import { useTRPC } from "@/lib/trpc";
 import { guardMessage, trpcErrorCode } from "@/lib/trpc-error";
 import { useCountdown } from "@/lib/use-countdown";
-import { useSwitchLocale } from "@/lib/use-switch-locale";
 import { useTeamRole } from "@/lib/use-team-role";
 import { ListFooter } from "../emails/list-parts";
 
@@ -826,31 +824,6 @@ function SupportAccessSection() {
   );
 }
 
-function LanguageSection() {
-  const t = useTranslations("settings");
-  const locale = useLocale();
-  const switchLocale = useSwitchLocale();
-
-  return (
-    <SectionCard title={t("language.title")}>
-      <div className="po-field" style={{ flex: "1 1 220px", maxWidth: 280 }}>
-        <label htmlFor="settings-locale">{t("language.label")}</label>
-        <Select
-          id="settings-locale"
-          width={260}
-          value={locale}
-          onChange={(value) => {
-            if (!isAppLocale(value)) return;
-            switchLocale(value);
-          }}
-          ariaLabel={t("language.label")}
-          options={LOCALES.map((value) => ({ value, label: t(`language.${value}`) }))}
-        />
-      </div>
-    </SectionCard>
-  );
-}
-
 /** One numeric override field: empty = no override, hint shows the effective value. */
 function InstanceField({
   id,
@@ -1152,7 +1125,6 @@ export function SettingsSections({ showInstance }: { showInstance: boolean }) {
       <MembersSection />
       <SupportAccessSection />
       {showInstance ? <InstanceSection /> : null}
-      <LanguageSection />
       <DangerSection />
     </div>
   );

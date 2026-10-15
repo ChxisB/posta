@@ -257,12 +257,6 @@
     "error": "Could not save.",
     "updates": "Product updates from Posta: <link>subscribe at app.posta.example/updates</link>. This instance never contacts posta.example on its own."
   },
-  "language": {
-    "title": "Language",
-    "label": "Interface language",
-    "en": "English",
-    "pt-BR": "Português (Brasil)"
-  },
   "usage": {
     "sentToday": "Emails sent today",
     "resetsMidnightUtc": "Resets at midnight UTC",
@@ -339,7 +333,7 @@
       "integrations": "Webhooks and API keys",
       "agents": "MCP server, CLI and nine SDKs"
     },
-    "checkoutSuccess": "Thanks! Your plan updates as soon as Stripe confirms the payment: usually within a few seconds.",
+    "checkoutSuccess": "Thanks. Your plan updates as soon as Stripe confirms the payment: usually within a few seconds.",
     "checkoutCancel": "Checkout canceled. Your plan is unchanged.",
     "error": "Something went wrong with Stripe. Try again."
   },

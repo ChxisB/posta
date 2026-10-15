@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { RESOURCE_SHEETS, type ResourceSheet } from "./api-sheet";
 import { LANGS } from "./api-sheet-snippets";
 
-const LOCALES = ["en", "pt-BR"] as const;
+const LOCALES = ["en"] as const;
 
 /** Walks "audience.contacts" → messages/<locale>/audience.json → .contacts. */
 async function sheetMessages(locale: string, ns: string): Promise<Record<string, unknown>> {

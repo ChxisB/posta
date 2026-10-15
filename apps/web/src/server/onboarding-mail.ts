@@ -1,9 +1,8 @@
 import { MAIL_LOCALES, type MailLocale } from "@posta/core";
 import { accountMailCard } from "@posta/core/html";
 import en from "../../messages/en/onboarding-email.json";
-import ptBR from "../../messages/pt-BR/onboarding-email.json";
 
-const MESSAGES = { en, "pt-BR": ptBR } as const;
+const MESSAGES = { en } as const;
 
 export { MAIL_LOCALES, type MailLocale };
 

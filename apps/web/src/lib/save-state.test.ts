@@ -58,12 +58,10 @@ describe("formatSavedAt", () => {
   it("shows only the time for a save today", () => {
     const now = new Date(2026, 9, 14, 18, 0);
     expect(label(now, "en")).toBe("2:32 PM");
-    expect(label(now, "pt-BR")).toBe("14:32");
   });
 
   it("adds the day for an earlier save", () => {
     const now = new Date(2026, 9, 16, 9, 0);
     expect(label(now, "en")).toBe("Oct 14, 2:32 PM");
-    expect(label(now, "pt-BR")).toMatch(/^14 de out\.?,? 14:32$/);
   });
 });

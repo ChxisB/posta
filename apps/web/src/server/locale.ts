@@ -22,19 +22,11 @@ export async function activeLocale(): Promise<AppLocale> {
 
 /**
  * The locale of bare request headers, for mail sent from an auth endpoint
- * where next-intl's request scope does not exist: the NEXT_LOCALE cookie the
- * app sets, then Accept-Language. Anything that isn't Portuguese reads
- * English: the email locales mirror the dashboard's launch locales.
+ * where next-intl's request scope does not exist. English is the only
+ * language shipped, so there is nothing to choose between; when a second one
+ * is added this is where the NEXT_LOCALE cookie and Accept-Language are read.
  */
-export function localeFromHeaders(headers: Headers | null | undefined): AppLocale {
-  const cookie = headers?.get("cookie")?.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/)?.[1];
-  const acceptLanguage = headers?.get("accept-language") ?? "";
-  for (const candidate of [cookie, ...acceptLanguage.split(",")]) {
-    const tag = candidate?.trim().toLowerCase();
-    if (!tag) continue;
-    if (tag.startsWith("pt")) return "pt-BR";
-    if (tag.startsWith("en")) return "en";
-  }
+export function localeFromHeaders(_headers: Headers | null | undefined): AppLocale {
   return DEFAULT_LOCALE;
 }
 

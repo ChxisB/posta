@@ -12,7 +12,6 @@ import {
 // The real English catalog, so the test reads what a customer reads.
 const catalogs = {
   en: (await import("../../../../messages/en/templates.json")).default,
-  "pt-BR": (await import("../../../../messages/pt-BR/templates.json")).default,
 };
 vi.mock("next-intl", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next-intl")>();

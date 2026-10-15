@@ -73,7 +73,7 @@ export async function generateMetadata(props: PageParams): Promise<Metadata> {
     openGraph: {
       siteName: "Posta Docs",
       type: "article",
-      locale: lang === "pt-BR" ? "pt_BR" : "en_US",
+      locale: "en_US",
       url: absoluteUrl(page.url),
       title: page.data.title,
       description: page.data.description,

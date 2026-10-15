@@ -18,7 +18,7 @@ import {
   starterById,
 } from "./starter-templates";
 
-const LOCALES = ["en", "pt-BR"] as const;
+const LOCALES = ["en"] as const;
 type Locale = (typeof LOCALES)[number];
 
 function catalog(locale: Locale, file: string): Record<string, unknown> {

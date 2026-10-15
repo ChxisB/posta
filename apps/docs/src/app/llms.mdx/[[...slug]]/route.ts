@@ -7,7 +7,7 @@ import { source } from "@/lib/source";
 
 export const revalidate = false;
 
-/** Agent prompts under content/prompts, one file per locale (`<name>.md`, `<name>.pt-BR.md`). */
+/** Agent prompts under content/prompts, one file per locale (`<name>.md`, then `<name>.<locale>.md`). */
 const PROMPTS = ["migrate-from-resend"] as const;
 
 async function promptText(name: string, locale: string): Promise<string | null> {
@@ -22,8 +22,8 @@ export async function GET(
   ctx: { params: Promise<{ slug?: string[] }> },
 ): Promise<Response> {
   const { slug = [] } = await ctx.params;
-  // Mirrors page URLs: /pt-BR/quickstart.md → ["pt-BR", "quickstart"]; the
-  // default locale is unprefixed.
+  // Mirrors page URLs: /<locale>/quickstart.md → ["<locale>", "quickstart"];
+  // the default locale is unprefixed.
   const locale = isLocale(slug[0]) ? slug[0] : i18n.defaultLanguage;
   const rest = isLocale(slug[0]) ? slug.slice(1) : slug;
   if (rest[0] === "prompts" && rest.length === 2) {
@@ -33,7 +33,7 @@ export async function GET(
       headers: { "Content-Type": "text/markdown; charset=utf-8" },
     });
   }
-  // "/index.md" (or "/pt-BR.md" → []) is the markdown URL of the root page.
+  // "/index.md" (or "/<locale>.md" → []) is the markdown URL of the root page.
   const slugs = rest.length === 1 && rest[0] === "index" ? [] : rest;
   const page = source.getPage(slugs, locale);
   if (!page) notFound();

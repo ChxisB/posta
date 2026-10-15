@@ -38,7 +38,7 @@ description = "Made-up sign-in link tokens in the code and link extraction tests
 condition = "AND"
 paths = [
   '''packages/core/test/(inboxes-compose|receiving-codes|receiving-read)\.test\.ts''',
-  '''apps/docs/content/docs/concepts/inboxes(\.pt-BR)?\.mdx''',
+  '''apps/docs/content/docs/concepts/inboxes\.mdx''',
 ]
 regexTarget = "match"
 regexes = ['''Qm9vdHN0cmFwLTQ4MjkxMw|a1B2c3D4e5F6g7H8i9J0k1L2|9f8e7d6c5b4a3f2e1d0c9b8a|AbCdEf1234567890123456''']

@@ -21,7 +21,7 @@ describe("MCP tools manifest", () => {
 
   // The consent page and this page name each scope as auth.consent.scopes.<scope, ":" as "_">.
   it("labels every scope a connected app can be granted, in each locale", () => {
-    for (const locale of ["en", "pt-BR"]) {
+    for (const locale of ["en"]) {
       const auth = JSON.parse(
         readFileSync(join(__dirname, `../messages/${locale}/auth.json`), "utf8"),
       ) as { consent: { scopes: Record<string, string> } };

@@ -3,10 +3,9 @@ import { type Db, schema } from "@posta/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNotNull } from "drizzle-orm";
 import en from "../../messages/en/common.json";
-import ptBR from "../../messages/pt-BR/common.json";
 import { activeLocale } from "./locale";
 
-const MESSAGES = { en: en.suspensionLock, "pt-BR": ptBR.suspensionLock } as const;
+const MESSAGES = { en: en.suspensionLock } as const;
 
 export type SuspensionLock = keyof typeof en.suspensionLock;
 

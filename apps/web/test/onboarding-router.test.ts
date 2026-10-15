@@ -75,7 +75,7 @@ describe("onboarding.sendFirstEmail", () => {
     const enqueued: string[] = [];
     const c = caller(teamId, "team-a", enqueued);
 
-    const first = await c.onboarding.sendFirstEmail({ locale: "pt-BR" });
+    const first = await c.onboarding.sendFirstEmail({ locale: "en" });
     expect(first).toEqual({ sent: true, id: expect.any(String), to: "ada@team-a.example" });
     const [row] = await teamEmails(teamId);
     expect(row).toMatchObject({
@@ -83,14 +83,14 @@ describe("onboarding.sendFirstEmail", () => {
       apiKeyId: null,
       from: PLATFORM,
       to: ["ada@team-a.example"],
-      subject: "Funciona.",
+      subject: "It works.",
       latestStatus: "queued",
     });
     expect(enqueued).toEqual([row?.id]);
 
     // Every later press sends nothing.
     expect(await c.onboarding.sendFirstEmail({ locale: "en" })).toEqual({ sent: false });
-    expect(await c.onboarding.sendFirstEmail({ locale: "pt-BR" })).toEqual({ sent: false });
+    expect(await c.onboarding.sendFirstEmail({ locale: "en" })).toEqual({ sent: false });
     expect(await teamEmails(teamId)).toHaveLength(1);
     expect(enqueued).toHaveLength(1);
     const [team] = await db

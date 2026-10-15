@@ -64,22 +64,20 @@ const contactsOf = (email: string) =>
   db.select().from(schema.contacts).where(eq(schema.contacts.email, email));
 
 describe("the language of mail to an account", () => {
-  it("reads the stored language, then the asking request's, then the sign-up contact", async () => {
+  it("is English whatever is stored, asked or stamped on the sign-up contact", async () => {
     await db.insert(schema.user).values([
       { id: "old", name: "Old", email: "old@example.com" },
-      { id: "new", name: "New", email: "new@example.com", locale: "en" },
+      { id: "new", name: "New", email: "new@example.com", locale: "pt-BR" },
     ]);
     await db.insert(schema.contacts).values([
       { teamId, email: "old@example.com", properties: { locale: "pt-BR" } },
       { teamId, email: "new@example.com", properties: { locale: "pt-BR" } },
     ]);
-    const english = new Headers({ cookie: "NEXT_LOCALE=en" });
-    const portuguese = new Headers({ cookie: "NEXT_LOCALE=pt-BR" });
-    // An account from before the stored language: a request outranks the contact.
-    expect(await accountMailLocale(db, "old@example.com", english)).toBe("en");
-    expect(await accountMailLocale(db, "old@example.com", undefined)).toBe("pt-BR");
-    // A stored language outranks both.
-    expect(await accountMailLocale(db, "new@example.com", portuguese)).toBe("en");
+    const asked = new Headers({ cookie: "NEXT_LOCALE=pt-BR", "accept-language": "pt-BR" });
+    // Rows written when other languages shipped fall back to English, not to an error.
+    expect(await accountMailLocale(db, "old@example.com", asked)).toBe("en");
+    expect(await accountMailLocale(db, "old@example.com", undefined)).toBe("en");
+    expect(await accountMailLocale(db, "new@example.com", asked)).toBe("en");
     expect(await accountMailLocale(db, "new@example.com", undefined)).toBe("en");
   });
 });
@@ -92,16 +90,16 @@ describe("enrollment and the sign-up flag", () => {
     expect(sends.map((m) => [m.kind, m.to])).toEqual([["welcome", "first@example.com"]]);
   });
 
-  it("welcomes once, in the sign-up request's language, with the docs and the domains page", async () => {
+  it("welcomes once, in English, with the docs and the domains page", async () => {
     await signUp(createAuth(db, seam), "ada@example.com");
     expect(sends).toHaveLength(1);
     expect(sends[0]).toMatchObject({
       kind: "welcome",
       to: "ada@example.com",
       from: "Posta <no-reply@mail.example.com>",
-      subject: "Bem-vindo ao Posta",
+      subject: "Welcome to Posta",
     });
-    expect(sends[0]?.text).toContain("Olá, Ada Lovelace");
+    expect(sends[0]?.text).toContain("Hi Ada Lovelace");
     expect(sends[0]?.text).toContain("http://localhost:3000/domains");
     expect(sends[0]?.text).toContain("https://docs.posta.example");
   });
@@ -123,7 +121,7 @@ describe("accounts as contacts of the account-mail team", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       unsubscribed: false,
-      properties: { source: "signup", locale: "pt-BR" },
+      properties: { source: "signup", locale: "en" },
     });
     expect(contact?.properties.signed_up_at).toMatch(/^\d{4}-/);
     const activities = await db

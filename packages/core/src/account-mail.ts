@@ -1,11 +1,10 @@
 import { en, enPhrases } from "./account-mail/en.js";
-import { ptBR, ptBRPhrases } from "./account-mail/pt-BR.js";
 import { fillMailTemplate } from "./customer-text.js";
 import { accountMailCard, fillTemplate } from "./html.js";
 import { type Plan, planLabel, teamRung } from "./plans.js";
 
-/** The languages account mail is written in; the dashboard's own two. */
-export const MAIL_LOCALES = ["en", "pt-BR"] as const;
+/** The languages account mail is written in; the dashboard's own. */
+export const MAIL_LOCALES = ["en"] as const;
 export type MailLocale = (typeof MAIL_LOCALES)[number];
 
 export function isMailLocale(value: unknown): value is MailLocale {
@@ -76,14 +75,12 @@ export interface MailContent {
 
 const CATALOGS: Record<MailLocale, Record<AccountMailKind, AccountMailEntry>> = {
   en,
-  "pt-BR": ptBR,
 };
 
 export type MailPhraseKey = "capUpToDay" | "capUpToMonth" | "capNone";
 
 const PHRASES: Record<MailLocale, Record<MailPhraseKey, string>> = {
   en: enPhrases,
-  "pt-BR": ptBRPhrases,
 };
 
 /** The free plan's daily cap as the mails print it. */
