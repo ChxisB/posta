@@ -188,7 +188,9 @@ takes `accept_from` and no other safety setting.
 | `list_broadcasts` | `broadcasts:read` | List broadcasts with their status. |
 | `get_broadcast` | `broadcasts:read` | Get one broadcast. |
 | `list_templates` | `templates:read` | List email templates. |
-| `get_template` | `templates:read` | Get one template by id or alias, with its subject, html and text. |
+| `get_template` | `templates:read` | Get one template by id or alias, with its working draft's subject, html and text. |
+| `list_template_versions` | `templates:read` | List a template's published versions and the tags on each. |
+| `get_template_version` | `templates:read` | Get one published version with its frozen content. |
 | `list_webhooks` | `webhooks:write` | List webhook endpoints (list rows never carry signing secrets). |
 | `get_webhook` | `webhooks:write` | Get one webhook: URL, events and status. |
 | `list_api_keys` | `api-keys:write` | List active API keys (never their tokens). |
@@ -224,8 +226,12 @@ takes `accept_from` and no other safety setting.
 | `send_broadcast` | `broadcasts:write` | Send or schedule a draft broadcast. |
 | `cancel_broadcast` | `broadcasts:write` | Cancel a queued broadcast, scheduled or already going out; emails already sent are not recalled. |
 | `delete_broadcast` | `broadcasts:write` | Delete a draft broadcast. |
-| `create_template` | `templates:write` | Create an email template (live immediately). |
-| `update_template` | `templates:write` | Change a template's name, subject, html, text or alias. |
+| `create_template` | `templates:write` | Create an email template as a draft. |
+| `update_template` | `templates:write` | Change a template's draft: name, subject, html, text or alias. |
+| `publish_template` | `templates:write` | Freeze the draft as the next version, optionally tagging it. |
+| `set_template_tag` | `templates:write` | Create a tag or move it to another published version. |
+| `delete_template_tag` | `templates:write` | Delete a tag; the version stays. |
+| `delete_template_version` | `templates:write` | Delete a published version that no tag points at. |
 | `delete_template` | `templates:write` | Delete a template; broadcasts keep their own copy. |
 | `create_webhook` | `webhooks:write` | **admin** Create a webhook endpoint. |
 | `update_webhook` | `webhooks:write` | **admin** Update a webhook's URL, events or status. |

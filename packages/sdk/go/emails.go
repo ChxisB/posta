@@ -23,11 +23,14 @@ type Attachment struct {
 	Path        string `json:"path,omitempty"`
 }
 
-// EmailTemplate selects a stored template for a send, Resend-style. The API
-// does not support it yet: it is sent through so the server answers 422
-// instead of the field being dropped silently.
+// EmailTemplate selects a published template version for a send instead of
+// Html and Text. Id is the template id or alias. Set Version or Tag, not both:
+// with neither, the newest published version is sent. Variables fills the
+// {{{NAME}}} merge fields. A Subject on the request wins over the template's.
 type EmailTemplate struct {
 	Id        string         `json:"id"`
+	Version   int            `json:"version,omitempty"`
+	Tag       string         `json:"tag,omitempty"`
 	Variables map[string]any `json:"variables,omitempty"`
 }
 
@@ -37,7 +40,7 @@ type EmailTemplate struct {
 type SendEmailRequest struct {
 	From        string            `json:"from"`
 	To          []string          `json:"to"`
-	Subject     string            `json:"subject"`
+	Subject     string            `json:"subject,omitempty"` // required unless Template is set
 	Html        string            `json:"html,omitempty"`
 	Text        string            `json:"text,omitempty"`
 	Cc          []string          `json:"cc,omitempty"`

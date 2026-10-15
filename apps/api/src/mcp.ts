@@ -68,8 +68,10 @@ import {
   listContactsQuerySchema,
   listQuerySchema,
   listSuppressionsQuerySchema,
+  publishTemplateRequestSchema,
   sendBroadcastRequestSchema,
   sendEmailRequestSchema,
+  setTemplateTagRequestSchema,
   updateBroadcastRequestSchema,
   updateContactPropertyRequestSchema,
   updateContactRequestSchema,
@@ -298,7 +300,7 @@ function toolResult(data: unknown, ok = true): CallToolResult {
   };
 }
 
-type RestMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type RestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /** One REST call on behalf of the token's team: whether it succeeded, and its JSON reply. */
 async function restCall(
@@ -867,7 +869,7 @@ function buildServer(
     {
       title: "List templates",
       description:
-        "List email templates (name, alias, timestamps), oldest first, with cursor pagination.",
+        "List email templates (name, alias, status, newest published version, tags, timestamps), oldest first, with cursor pagination.",
       inputSchema: listQuerySchema,
       readOnly: true,
     },
@@ -879,11 +881,38 @@ function buildServer(
     {
       title: "Get template",
       description:
-        "Get one template by id or alias, including its subject, html and text. Every save is live: there is no draft/publish cycle.",
+        "Get one template by id or alias, including the working draft's subject, html and text. status is draft until the first publish, and has_unpublished_versions says whether the draft differs from the newest published version.",
       inputSchema: z.object({ id: z.string().min(1).describe("Template id or alias") }),
       readOnly: true,
     },
     ({ id }) => api("GET", `/templates/${enc(id)}`),
+  );
+  tool(
+    "list_template_versions",
+    "templates:read",
+    {
+      title: "List template versions",
+      description:
+        "List the published versions of a template, newest first, with the tags pointing at each. Content is left out: read one version with get_template_version.",
+      inputSchema: z.object({ id: z.string().min(1).describe("Template id or alias") }),
+      readOnly: true,
+    },
+    ({ id }) => api("GET", `/templates/${enc(id)}/versions`),
+  );
+  tool(
+    "get_template_version",
+    "templates:read",
+    {
+      title: "Get template version",
+      description:
+        "Get one published version of a template with its frozen subject, preview text, html and text.",
+      inputSchema: z.object({
+        id: z.string().min(1).describe("Template id or alias"),
+        version: z.number().int().min(1).describe("Version number"),
+      }),
+      readOnly: true,
+    },
+    ({ id, version }) => api("GET", `/templates/${enc(id)}/versions/${version}`),
   );
   tool(
     "list_webhooks",
@@ -1783,7 +1812,7 @@ function buildServer(
     {
       title: "Create template",
       description:
-        "Create an email template: name, html, optional subject, text and alias (a stable handle, unique per team). Live immediately. A template created with html opens in the dashboard's code mode and keeps its HTML byte for byte; converting it to blocks is the user's explicit choice there. from, reply_to and variables are not supported yet; passing them is a 422.",
+        "Create an email template: name, html, optional subject, text and alias (a stable handle, unique per team). It starts as a draft: sends use it only after publish_template. A template created with html opens in the dashboard's code mode and keeps its HTML byte for byte; converting it to blocks is the user's explicit choice there. from, reply_to and variables are not supported yet; passing them is a 422.",
       inputSchema: createTemplateRequestSchema,
     },
     (body) => api("POST", "/templates", body),
@@ -1794,7 +1823,7 @@ function buildServer(
     {
       title: "Update template",
       description:
-        "Change a template's name, subject, html, text or alias (null clears the alias). Omitted fields are left unchanged; the change is live immediately. Writing html makes the template html-authored: it opens in the dashboard's code mode and keeps its HTML byte for byte; converting it to blocks is the user's explicit choice there.",
+        "Change a template's name, subject, html, text or alias (null clears the alias). Omitted fields are left unchanged. This edits the working draft only: sends and tags keep using the published versions until publish_template. Writing html makes the template html-authored: it opens in the dashboard's code mode and keeps its HTML byte for byte; converting it to blocks is the user's explicit choice there.",
       inputSchema: updateTemplateRequestSchema.extend({
         id: z.string().min(1).describe("Template id or alias"),
       }),
@@ -1802,6 +1831,68 @@ function buildServer(
       idempotent: true,
     },
     ({ id, ...body }) => api("PATCH", `/templates/${enc(id)}`, body),
+  );
+  tool(
+    "publish_template",
+    "templates:write",
+    {
+      title: "Publish template",
+      description:
+        "Freeze the template's working draft as the next numbered version, optionally pointing tags at it (for example production). Nothing new is made when the draft already matches the newest version: that version comes back with created: false. Send it with send_email or create_broadcast using template.",
+      inputSchema: publishTemplateRequestSchema.extend({
+        id: z.string().min(1).describe("Template id or alias"),
+      }),
+      idempotent: true,
+    },
+    ({ id, ...body }) => api("POST", `/templates/${enc(id)}/publish`, body),
+  );
+  tool(
+    "set_template_tag",
+    "templates:write",
+    {
+      title: "Set template tag",
+      description:
+        "Create a tag or move it to another published version. Sends that name the tag use the new version from their next request.",
+      inputSchema: setTemplateTagRequestSchema.extend({
+        id: z.string().min(1).describe("Template id or alias"),
+        name: z.string().min(1).max(64).describe("Tag name, for example production"),
+      }),
+      destructive: true,
+      idempotent: true,
+    },
+    ({ id, name, ...body }) => api("PUT", `/templates/${enc(id)}/tags/${enc(name)}`, body),
+  );
+  tool(
+    "delete_template_tag",
+    "templates:write",
+    {
+      title: "Delete template tag",
+      description:
+        "Delete a tag. The version it pointed at stays. A send that names the tag fails afterwards.",
+      inputSchema: z.object({
+        id: z.string().min(1).describe("Template id or alias"),
+        name: z.string().min(1).max(64).describe("Tag name"),
+      }),
+      destructive: true,
+      idempotent: true,
+    },
+    ({ id, name }) => api("DELETE", `/templates/${enc(id)}/tags/${enc(name)}`),
+  );
+  tool(
+    "delete_template_version",
+    "templates:write",
+    {
+      title: "Delete template version",
+      description:
+        "Delete a published version. Refused while a tag points at it. The number is never reused. This cannot be undone.",
+      inputSchema: z.object({
+        id: z.string().min(1).describe("Template id or alias"),
+        version: z.number().int().min(1).describe("Version number"),
+      }),
+      destructive: true,
+      idempotent: true,
+    },
+    ({ id, version }) => api("DELETE", `/templates/${enc(id)}/versions/${version}`),
   );
   tool(
     "delete_template",

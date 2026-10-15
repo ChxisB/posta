@@ -38,7 +38,7 @@ class Templates:
 
     @classmethod
     def publish(cls, id_or_alias: str) -> Any:
-        """POST /templates/{idOrAlias}/publish: templates are always published; kept for Resend compatibility."""
+        """POST /templates/{idOrAlias}/publish: freezes the draft as the next numbered version; sends use published versions."""
         return request("POST", f"/templates/{path_id(id_or_alias)}/publish")
 
     @classmethod

@@ -184,8 +184,57 @@ const scheduledAtSchema = z.string().superRefine((v, ctx) => {
   }
 });
 
-export const TEMPLATE_UNSUPPORTED_MESSAGE =
-  "template is not supported; an email takes html and/or text";
+/**
+ * Names a published template version for a send: by number, by a movable tag,
+ * or (neither) the newest published version. The draft is never sent.
+ */
+const templateRefFields = {
+  id: z.string().min(1).max(200).describe("Template id or alias"),
+  version: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe("Published version number; omit both version and tag for the newest published one"),
+  tag: z
+    .string()
+    .min(1)
+    .max(64)
+    .optional()
+    .describe('Tag name such as "production"; resolved to its version at send time'),
+};
+
+const versionXorTag = {
+  message: "name a version or a tag, not both",
+  path: ["tag"],
+};
+
+export const TEMPLATE_VARIABLE_NAME = /^[A-Za-z0-9_]+$/;
+export const MAX_TEMPLATE_VARIABLES = 100;
+
+const templateVariablesSchema = z
+  .record(
+    z.string().regex(TEMPLATE_VARIABLE_NAME, {
+      message: "variable names use letters, digits and underscores",
+    }),
+    z.union([z.string().max(50_000), z.number()]),
+  )
+  .refine((v) => Object.keys(v).length <= MAX_TEMPLATE_VARIABLES, {
+    message: `at most ${MAX_TEMPLATE_VARIABLES} variables`,
+  })
+  .describe(
+    "Values for {{{NAME}}} and {{{NAME|fallback}}} fields; a field with no value takes its fallback, or nothing",
+  );
+
+export const sendTemplateSchema = z
+  .object({ ...templateRefFields, variables: templateVariablesSchema.optional() })
+  .refine((v) => v.version === undefined || v.tag === undefined, versionXorTag)
+  .openapi("SendTemplate");
+
+export const broadcastTemplateSchema = z
+  .object(templateRefFields)
+  .refine((v) => v.version === undefined || v.tag === undefined, versionXorTag)
+  .openapi("BroadcastTemplate");
 
 export const sendEmailRequestSchema = z
   .object({
@@ -203,9 +252,16 @@ export const sendEmailRequestSchema = z
       .refine((v) => !hasHeaderControlChar(v), {
         message: "subject must not contain control characters",
       })
-      .describe("Subject line"),
-    html: z.string().optional().describe("HTML body; at least one of html/text is required"),
-    text: z.string().optional().describe("Plain-text body; at least one of html/text is required"),
+      .optional()
+      .describe("Subject line; required unless template supplies one, and wins over it"),
+    html: z
+      .string()
+      .optional()
+      .describe("HTML body; at least one of html/text is required unless template is given"),
+    text: z
+      .string()
+      .optional()
+      .describe("Plain-text body; at least one of html/text is required unless template is given"),
     cc: recipientList.optional().describe("Cc address or list"),
     bcc: recipientList.optional().describe("Bcc address or list"),
     reply_to: recipientList.optional().describe("Reply-To address or list"),
@@ -247,20 +303,22 @@ export const sendEmailRequestSchema = z
     headers: customHeadersSchema
       .optional()
       .describe("Extra message headers (transport headers are rejected)"),
-    // Declared so the key survives parsing and can be refused loudly; other
-    // unknown keys stay silently dropped for Resend compatibility.
-    template: z
-      .unknown()
+    template: sendTemplateSchema
       .optional()
-      .describe("Not supported: any value is a 422; an email takes html and/or text"),
+      .describe(
+        "Send a published template version instead of html/text. Name a version or a tag, or neither for the newest published version",
+      ),
   })
-  .refine((v) => v.template === undefined, {
-    message: TEMPLATE_UNSUPPORTED_MESSAGE,
+  .refine((v) => v.template === undefined || (v.html === undefined && v.text === undefined), {
+    message: "template cannot be combined with html or text",
     path: ["template"],
-    abort: true,
   })
-  .refine((v) => v.html !== undefined || v.text !== undefined, {
+  .refine((v) => v.template !== undefined || v.html !== undefined || v.text !== undefined, {
     message: "Either html or text must be provided",
+  })
+  .refine((v) => v.template !== undefined || v.subject !== undefined, {
+    message: "subject is required",
+    path: ["subject"],
   })
   .refine(
     (v) => v.to.length + (v.cc?.length ?? 0) + (v.bcc?.length ?? 0) <= MAX_RECIPIENTS_PER_EMAIL,
@@ -1117,14 +1175,28 @@ export const createBroadcastRequestSchema = z
     subject: z
       .string()
       .min(1)
-      .describe("Subject line; supports {{{FIRST_NAME|there}}} merge fields"),
+      .optional()
+      .describe(
+        "Subject line; supports {{{FIRST_NAME|there}}} merge fields. Required unless template supplies one, and wins over it",
+      ),
     html: z
       .string()
       .optional()
       .describe("HTML body; include {{{UNSUBSCRIBE_URL}}} for the opt-out link"),
-    text: z.string().optional().describe("Plain-text body; at least one of html/text is required"),
+    text: z
+      .string()
+      .optional()
+      .describe("Plain-text body; at least one of html/text is required unless template is given"),
     reply_to: replyToList.optional().describe("Reply-To address or list"),
-    preview_text: z.string().optional().describe("Inbox preview (preheader) text"),
+    preview_text: z
+      .string()
+      .optional()
+      .describe("Inbox preview (preheader) text; wins over the template's"),
+    template: broadcastTemplateSchema
+      .optional()
+      .describe(
+        "Copy the content of a published template version into the broadcast. Merge fields stay for each contact; later edits to the template do not change it",
+      ),
     topic_id: z
       .uuid()
       .nullable()
@@ -1140,8 +1212,16 @@ export const createBroadcastRequestSchema = z
         'Deliver later (requires send: true): ISO 8601 with offset or relative like "in 1 hour"',
       ),
   })
-  .refine((v) => v.html !== undefined || v.text !== undefined, {
+  .refine((v) => v.template === undefined || (v.html === undefined && v.text === undefined), {
+    message: "template cannot be combined with html or text",
+    path: ["template"],
+  })
+  .refine((v) => v.template !== undefined || v.html !== undefined || v.text !== undefined, {
     message: "Either html or text must be provided",
+  })
+  .refine((v) => v.template !== undefined || v.subject !== undefined, {
+    message: "subject is required",
+    path: ["subject"],
   })
   // Mirrors the SDK's type-level constraint: a schedule only makes sense on a
   // create that also sends.
@@ -1895,13 +1975,15 @@ export const batchRemoveSuppressionsResponseSchema = z
   .openapi("BatchRemoveSuppressionsResponse");
 
 /**
- * Templates: wire-compatible with the resend SDK's templates surface.
- * Posta templates have no draft/publish cycle and no version history
- * (every save is live), so on the wire `status` is always "published",
- * `published_at` is created_at, `current_version_id` is the template id and
- * `has_unpublished_versions` is false. `from`, `reply_to` and `variables` are
- * not modelled: a value on write is a 422, reads emit null/null/[] so the key
- * set matches the SDK's Template type.
+ * Templates: wire-compatible with the resend SDK's templates surface, plus
+ * numbered versions and movable tags. A template row is the working draft;
+ * `POST /templates/{id}/publish` freezes it as the next version. `status` is
+ * "draft" until the first publish. `published_at` and `current_version_id`
+ * describe the newest published version (before the first publish
+ * `current_version_id` is the template id). `has_unpublished_versions` is
+ * true while the draft differs from that version. `from`, `reply_to` and
+ * `variables` are not modelled: a value on write is a 422, reads emit
+ * null/null/[] so the key set matches the SDK's Template type.
  */
 
 export const TEMPLATE_ALIAS_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -1969,8 +2051,10 @@ const templateListItemSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   alias: z.string().nullable(),
-  status: z.literal("published"),
-  published_at: z.string(),
+  status: z.enum(["draft", "published"]),
+  published_at: z.string().nullable().describe("When the newest published version was made"),
+  version: z.number().int().nullable().describe("Newest published version; null while a draft"),
+  tags: z.array(z.string()).describe("Tags set on any version of this template"),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -1986,10 +2070,13 @@ export const getTemplateResponseSchema = templateListItemSchema
     from: z.null(),
     subject: z.string().nullable(),
     reply_to: z.null(),
+    preview_text: z.string().nullable(),
     html: z.string(),
     text: z.string().nullable(),
     variables: z.array(z.unknown()).describe("Always empty"),
-    has_unpublished_versions: z.literal(false),
+    has_unpublished_versions: z
+      .boolean()
+      .describe("The draft differs from the newest published version (true while a draft)"),
   })
   .openapi("GetTemplateResponse");
 
@@ -2004,3 +2091,81 @@ export const listTemplatesResponseSchema = z
 export const removeTemplateResponseSchema = z
   .object({ object: z.literal("template"), id: z.uuid(), deleted: z.literal(true) })
   .openapi("RemoveTemplateResponse");
+
+export const publishTemplateRequestSchema = z
+  .object({
+    tags: z
+      .array(z.string().min(1).max(64))
+      .max(5)
+      .optional()
+      .describe("Tags to point at the version this publish makes (or finds, when nothing changed)"),
+  })
+  .openapi("PublishTemplateRequest");
+
+export const publishTemplateResponseSchema = z
+  .object({
+    object: z.literal("template"),
+    id: z.uuid(),
+    version: z.number().int(),
+    created: z
+      .boolean()
+      .describe("false when the draft already matched the newest version and nothing was made"),
+    tags: z.array(z.string()),
+  })
+  .openapi("PublishTemplateResponse");
+
+const templateVersionSchema = z.object({
+  object: z.literal("template_version"),
+  id: z.uuid(),
+  template_id: z.uuid(),
+  version: z.number().int(),
+  name: z.string(),
+  tags: z.array(z.string()).describe("Tags pointing at this version"),
+  created_at: z.string(),
+});
+
+export const listTemplateVersionsResponseSchema = z
+  .object({
+    object: z.literal("list"),
+    data: z.array(templateVersionSchema),
+  })
+  .openapi("ListTemplateVersionsResponse");
+
+export const getTemplateVersionResponseSchema = templateVersionSchema
+  .extend({
+    subject: z.string().nullable(),
+    preview_text: z.string().nullable(),
+    html: z.string(),
+    text: z.string().nullable(),
+  })
+  .openapi("GetTemplateVersionResponse");
+
+export const removeTemplateVersionResponseSchema = z
+  .object({
+    object: z.literal("template_version"),
+    version: z.number().int(),
+    deleted: z.literal(true),
+  })
+  .openapi("RemoveTemplateVersionResponse");
+
+export const templateTagSchema = z
+  .object({
+    object: z.literal("template_tag"),
+    name: z.string(),
+    version: z.number().int(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  })
+  .openapi("TemplateTag");
+
+export const listTemplateTagsResponseSchema = z
+  .object({ object: z.literal("list"), data: z.array(templateTagSchema) })
+  .openapi("ListTemplateTagsResponse");
+
+export const setTemplateTagRequestSchema = z
+  .object({ version: z.number().int().min(1).describe("Published version the tag points at") })
+  .openapi("SetTemplateTagRequest");
+
+export const removeTemplateTagResponseSchema = z
+  .object({ object: z.literal("template_tag"), name: z.string(), deleted: z.literal(true) })
+  .openapi("RemoveTemplateTagResponse");

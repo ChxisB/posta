@@ -1,4 +1,20 @@
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
+import {
+  deleteTemplateTag,
+  deleteTemplateVersion,
+  getTemplateVersion,
+  listTemplateTags,
+  listTemplateVersions,
+  MAX_TEMPLATE_TAGS,
+  MAX_TEMPLATE_VERSIONS,
+  newestVersions,
+  publishState,
+  publishTemplate,
+  setTemplateTag,
+  type TemplateVersionRow,
+  tagNameProblem,
+  tagNamesByTemplate,
+} from "@posta/core";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, asc, desc, eq } from "drizzle-orm";
@@ -7,15 +23,24 @@ import {
   createTemplateRequestSchema,
   errorSchema,
   getTemplateResponseSchema,
+  getTemplateVersionResponseSchema,
   listQuerySchema,
   listTemplatesResponseSchema,
+  listTemplateTagsResponseSchema,
+  listTemplateVersionsResponseSchema,
+  publishTemplateRequestSchema,
+  publishTemplateResponseSchema,
   removeTemplateResponseSchema,
+  removeTemplateTagResponseSchema,
+  removeTemplateVersionResponseSchema,
+  setTemplateTagRequestSchema,
   templateIdResponseSchema,
+  templateTagSchema,
   updateTemplateRequestSchema,
 } from "../schemas.js";
 
-const NO_PUBLISH_CYCLE =
-  "Templates have no draft/publish cycle: every save is live, so status is always published.";
+const DRAFT_PUBLISH_CYCLE =
+  "A template row is the working draft: edits are not sent anywhere until POST /templates/{id}/publish freezes it as the next numbered version.";
 
 export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
   const jsonErr = (description: string) => ({
@@ -27,27 +52,37 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
   const idParam = z.object({ id: z.string().min(1).describe("Template id or alias") });
   const t = schema.templates;
 
-  const listItem = (row: typeof t.$inferSelect) => ({
-    id: row.id,
-    name: row.name,
-    alias: row.alias,
-    status: "published" as const,
-    published_at: row.createdAt.toISOString(),
-    created_at: row.createdAt.toISOString(),
-    updated_at: row.updatedAt.toISOString(),
-  });
+  type Newest = TemplateVersionRow | undefined;
 
-  const wire = (row: typeof t.$inferSelect) => ({
+  const listItem = (row: typeof t.$inferSelect, newest: Newest, tags: readonly string[]) => {
+    const state = publishState(row, newest);
+    return {
+      id: row.id,
+      name: row.name,
+      alias: row.alias,
+      status: state.status,
+      published_at: state.publishedAt?.toISOString() ?? null,
+      version: state.version,
+      tags: [...tags],
+      created_at: row.createdAt.toISOString(),
+      updated_at: row.updatedAt.toISOString(),
+    };
+  };
+
+  const wire = (row: typeof t.$inferSelect, newest: Newest, tags: readonly string[]) => ({
     object: "template" as const,
-    ...listItem(row),
-    current_version_id: row.id,
+    ...listItem(row, newest, tags),
+    // The id of the newest published version; a draft has none yet, so the
+    // template's own id stands in (the SDK types this as a string).
+    current_version_id: newest?.id ?? row.id,
     from: null,
     subject: row.subject,
     reply_to: null,
+    preview_text: row.previewText,
     html: row.html,
     text: row.text,
     variables: [],
-    has_unpublished_versions: false as const,
+    has_unpublished_versions: publishState(row, newest).hasUnpublishedChanges,
   });
 
   const byIdOrAlias = (teamId: string, idOrAlias: string) =>
@@ -58,6 +93,11 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
 
   const findTemplate = async (teamId: string, idOrAlias: string) =>
     (await db.select().from(t).where(byIdOrAlias(teamId, idOrAlias)))[0];
+
+  const versionParam = idParam.extend({
+    version: z.coerce.number().int().min(1).describe("Version number"),
+  });
+  const tagParam = idParam.extend({ name: z.string().min(1).max(200).describe("Tag name") });
 
   const notFound = () => errorBody(404, "not_found", "Template not found");
 
@@ -87,7 +127,7 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
       responses: {
         200: {
           content: { "application/json": { schema: templateIdResponseSchema } },
-          description: `Template created. ${NO_PUBLISH_CYCLE}`,
+          description: `Template created as a draft. ${DRAFT_PUBLISH_CYCLE}`,
         },
         409: jsonErr("Alias already in use"),
         422: jsonErr("Validation error, including from/reply_to/variables (not supported yet)"),
@@ -170,8 +210,17 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
           422,
         );
       }
+      const ids = page.rows.map((row) => row.id);
+      const [newest, tags] = await Promise.all([
+        newestVersions(db, ids),
+        tagNamesByTemplate(db, ids),
+      ]);
       return c.json(
-        { object: "list" as const, data: page.rows.map(listItem), has_more: page.hasMore },
+        {
+          object: "list" as const,
+          data: page.rows.map((row) => listItem(row, newest.get(row.id), tags.get(row.id) ?? [])),
+          has_more: page.hasMore,
+        },
         200,
       );
     },
@@ -185,7 +234,7 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
       responses: {
         200: {
           content: { "application/json": { schema: getTemplateResponseSchema } },
-          description: `Template by id or alias. ${NO_PUBLISH_CYCLE} from, reply_to and variables are not supported yet and read as null, null and [].`,
+          description: `Template by id or alias, with the working draft's content. ${DRAFT_PUBLISH_CYCLE} from, reply_to and variables are not supported yet and read as null, null and [].`,
         },
         404: jsonErr("Not found"),
       },
@@ -194,7 +243,11 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
       const auth = c.get("auth");
       const row = await findTemplate(auth.teamId, c.req.valid("param").id);
       if (!row) return c.json(notFound(), 404);
-      return c.json(wire(row), 200);
+      const [newest, tags] = await Promise.all([
+        newestVersions(db, [row.id]),
+        tagNamesByTemplate(db, [row.id]),
+      ]);
+      return c.json(wire(row, newest.get(row.id), tags.get(row.id) ?? []), 200);
     },
   );
 
@@ -209,7 +262,7 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
       responses: {
         200: {
           content: { "application/json": { schema: templateIdResponseSchema } },
-          description: "Template updated (live immediately)",
+          description: `Template draft updated. ${DRAFT_PUBLISH_CYCLE}`,
         },
         404: jsonErr("Not found"),
         409: jsonErr("Alias already in use"),
@@ -266,7 +319,8 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
       responses: {
         200: {
           content: { "application/json": { schema: removeTemplateResponseSchema } },
-          description: "Template deleted. Broadcasts keep their own copy of the content.",
+          description:
+            "Template deleted with its versions and tags. Broadcasts keep their own copy of the content.",
         },
         404: jsonErr("Not found"),
       },
@@ -282,27 +336,295 @@ export function registerTemplateRoutes(app: OpenAPIHono<Env>, db: Db): void {
     },
   );
 
+  const versionLimit = () =>
+    errorBody(
+      422,
+      "template_version_limit",
+      `A template holds at most ${MAX_TEMPLATE_VERSIONS} versions: delete an old one first`,
+    );
+  const tagLimit = () =>
+    errorBody(
+      422,
+      "template_tag_limit",
+      `A template holds at most ${MAX_TEMPLATE_TAGS} tags: delete one first`,
+    );
+  const badTag = (problem: string) => errorBody(422, "validation_error", `tag: ${problem}`);
+
   app.openapi(
     createRoute({
       method: "post",
       path: "/templates/{id}/publish",
+      // The body is optional and read by hand: the resend SDK posts an empty
+      // body under a JSON content type, which a declared body would refuse as
+      // malformed JSON. A body of {"tags": ["production"]} points those tags
+      // at the version.
       request: { params: idParam },
       responses: {
         200: {
-          content: { "application/json": { schema: templateIdResponseSchema } },
-          description: `No-op kept for SDK compatibility. ${NO_PUBLISH_CYCLE}`,
+          content: { "application/json": { schema: publishTemplateResponseSchema } },
+          description:
+            "Version published, or the newest one returned with created: false when the draft has not changed since it. Optional JSON body: { tags: string[] } (up to 5) to point those tags at the version",
+        },
+        400: jsonErr("Malformed JSON body"),
+        404: jsonErr("Not found"),
+        422: jsonErr("Validation error, or the version or tag limit is reached"),
+      },
+    }),
+    async (c) => {
+      const auth = c.get("auth");
+      const raw = (await c.req.text()).trim();
+      let tags: string[] = [];
+      if (raw !== "") {
+        let json: unknown;
+        try {
+          json = JSON.parse(raw);
+        } catch {
+          return c.json(errorBody(400, "invalid_parameter", "Malformed JSON in request body"), 400);
+        }
+        const parsed = publishTemplateRequestSchema.safeParse(json);
+        if (!parsed.success) {
+          const issue = parsed.error.issues[0];
+          const where = issue?.path.join(".");
+          return c.json(
+            errorBody(
+              422,
+              "validation_error",
+              where ? `${where}: ${issue?.message}` : (issue?.message ?? "Invalid body"),
+            ),
+            422,
+          );
+        }
+        tags = parsed.data.tags ?? [];
+      }
+      for (const name of tags) {
+        const problem = tagNameProblem(name);
+        if (problem) return c.json(badTag(problem), 422);
+      }
+      const row = await findTemplate(auth.teamId, c.req.valid("param").id);
+      if (!row) return c.json(notFound(), 404);
+      const out = await publishTemplate(db, auth.teamId, row.id, { tags });
+      if (!out.ok) {
+        if (out.reason === "not_found") return c.json(notFound(), 404);
+        return c.json(out.reason === "version_limit" ? versionLimit() : tagLimit(), 422);
+      }
+      return c.json(
+        {
+          object: "template" as const,
+          id: row.id,
+          version: out.version,
+          created: out.created,
+          tags: out.tags,
+        },
+        200,
+      );
+    },
+  );
+
+  const versionNotFound = () => errorBody(404, "not_found", "Template version not found");
+
+  const versionWire = (
+    row: Awaited<ReturnType<typeof listTemplateVersions>>[number],
+    tagNames: readonly string[],
+  ) => ({
+    object: "template_version" as const,
+    id: row.id,
+    template_id: row.templateId,
+    version: row.version,
+    name: row.name,
+    tags: [...tagNames],
+    created_at: row.createdAt.toISOString(),
+  });
+
+  const tagsByVersion = async (templateId: string) => {
+    const out = new Map<number, string[]>();
+    for (const tag of await listTemplateTags(db, templateId)) {
+      const list = out.get(tag.version) ?? [];
+      list.push(tag.name);
+      out.set(tag.version, list);
+    }
+    return out;
+  };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/templates/{id}/versions",
+      request: { params: idParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: listTemplateVersionsResponseSchema } },
+          description: "Published versions, newest first, without their content",
         },
         404: jsonErr("Not found"),
       },
     }),
     async (c) => {
-      const auth = c.get("auth");
-      const [row] = await db
-        .select({ id: t.id })
-        .from(t)
-        .where(byIdOrAlias(auth.teamId, c.req.valid("param").id));
+      const row = await findTemplate(c.get("auth").teamId, c.req.valid("param").id);
       if (!row) return c.json(notFound(), 404);
-      return c.json({ object: "template" as const, id: row.id }, 200);
+      const [versions, tags] = await Promise.all([
+        listTemplateVersions(db, row.id),
+        tagsByVersion(row.id),
+      ]);
+      return c.json(
+        {
+          object: "list" as const,
+          data: versions.map((v) => versionWire(v, tags.get(v.version) ?? [])),
+        },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/templates/{id}/versions/{version}",
+      request: { params: versionParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: getTemplateVersionResponseSchema } },
+          description: "One published version with its frozen content",
+        },
+        404: jsonErr("Template or version not found"),
+      },
+    }),
+    async (c) => {
+      const { id, version } = c.req.valid("param");
+      const row = await findTemplate(c.get("auth").teamId, id);
+      if (!row) return c.json(notFound(), 404);
+      const found = await getTemplateVersion(db, row.id, version);
+      if (!found) return c.json(versionNotFound(), 404);
+      const tags = await tagsByVersion(row.id);
+      return c.json(
+        {
+          ...versionWire(found, tags.get(found.version) ?? []),
+          subject: found.subject,
+          preview_text: found.previewText,
+          html: found.html,
+          text: found.text,
+        },
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/templates/{id}/versions/{version}",
+      request: { params: versionParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: removeTemplateVersionResponseSchema } },
+          description: "Version deleted. Its number is not reused",
+        },
+        404: jsonErr("Template or version not found"),
+        409: jsonErr("A tag still points at the version"),
+      },
+    }),
+    async (c) => {
+      const { id, version } = c.req.valid("param");
+      const row = await findTemplate(c.get("auth").teamId, id);
+      if (!row) return c.json(notFound(), 404);
+      const out = await deleteTemplateVersion(db, row.id, version);
+      if (!out.ok) {
+        if (out.reason === "not_found") return c.json(versionNotFound(), 404);
+        return c.json(
+          errorBody(
+            409,
+            "template_version_tagged",
+            `Version ${version} is used by ${out.tags.length === 1 ? "tag" : "tags"} ${out.tags.join(", ")}: move or delete ${out.tags.length === 1 ? "it" : "them"} first`,
+          ),
+          409,
+        );
+      }
+      return c.json({ object: "template_version" as const, version, deleted: true as const }, 200);
+    },
+  );
+
+  const tagWire = (tag: Awaited<ReturnType<typeof listTemplateTags>>[number]) => ({
+    object: "template_tag" as const,
+    name: tag.name,
+    version: tag.version,
+    created_at: tag.createdAt.toISOString(),
+    updated_at: tag.updatedAt.toISOString(),
+  });
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/templates/{id}/tags",
+      request: { params: idParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: listTemplateTagsResponseSchema } },
+          description: "Tags of the template, by name",
+        },
+        404: jsonErr("Not found"),
+      },
+    }),
+    async (c) => {
+      const row = await findTemplate(c.get("auth").teamId, c.req.valid("param").id);
+      if (!row) return c.json(notFound(), 404);
+      const tags = await listTemplateTags(db, row.id);
+      return c.json({ object: "list" as const, data: tags.map(tagWire) }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/templates/{id}/tags/{name}",
+      request: {
+        params: tagParam,
+        body: { content: { "application/json": { schema: setTemplateTagRequestSchema } } },
+      },
+      responses: {
+        200: {
+          content: { "application/json": { schema: templateTagSchema } },
+          description:
+            "Tag created, or moved to the version. Sends that name the tag use the new version from their next request",
+        },
+        404: jsonErr("Template or version not found"),
+        422: jsonErr("Invalid tag name, or the tag limit is reached"),
+      },
+    }),
+    async (c) => {
+      const { id, name } = c.req.valid("param");
+      const problem = tagNameProblem(name);
+      if (problem) return c.json(badTag(problem), 422);
+      const row = await findTemplate(c.get("auth").teamId, id);
+      if (!row) return c.json(notFound(), 404);
+      const out = await setTemplateTag(db, row.id, name, c.req.valid("json").version);
+      if (!out.ok) {
+        if (out.reason === "version_not_found") return c.json(versionNotFound(), 404);
+        return c.json(tagLimit(), 422);
+      }
+      return c.json(tagWire(out.tag), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/templates/{id}/tags/{name}",
+      request: { params: tagParam },
+      responses: {
+        200: {
+          content: { "application/json": { schema: removeTemplateTagResponseSchema } },
+          description: "Tag deleted. The version it pointed at stays",
+        },
+        404: jsonErr("Template or tag not found"),
+      },
+    }),
+    async (c) => {
+      const { id, name } = c.req.valid("param");
+      const row = await findTemplate(c.get("auth").teamId, id);
+      if (!row) return c.json(notFound(), 404);
+      if (!(await deleteTemplateTag(db, row.id, name))) {
+        return c.json(errorBody(404, "not_found", "Template tag not found"), 404);
+      }
+      return c.json({ object: "template_tag" as const, name, deleted: true as const }, 200);
     },
   );
 

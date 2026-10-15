@@ -388,9 +388,10 @@ client.ApiKeys.Remove(k.Id)
 
 ### Templates
 
-Every method takes the template id or its alias. Templates have no
-draft/publish cycle (every save is live) so `Publish` is a no-op kept for
-resend-go compatibility.
+Every method takes the template id or its alias. A template is a draft until
+`Publish` freezes it as the next numbered version, which is what sends and
+broadcasts use. Listing versions and managing tags are REST, CLI, MCP and Node
+SDK calls; this SDK does not wrap them yet.
 
 ```go
 t, _ := client.Templates.Create(&posta.CreateTemplateRequest{
@@ -400,7 +401,7 @@ client.Templates.List(nil)
 client.Templates.Get("welcome")
 client.Templates.Update("welcome", &posta.UpdateTemplateRequest{Subject: "Hello"})
 client.Templates.Duplicate(t.Id) // "<name> (copy)", no alias
-client.Templates.Publish(t.Id)   // no-op
+client.Templates.Publish(t.Id)   // freezes the draft as the next version
 client.Templates.Remove(t.Id)
 ```
 
@@ -483,8 +484,9 @@ Method names and nesting match (`client.Emails.Send`, `client.Contacts`,
   pointers) passed to `List`.
 - **Contacts are addressed** with `ContactAddress{Id | Email}` instead of
   per-call option structs.
-- **Template sends** (`SendEmailRequest.Template`) are passed through but
-  answered with `422`: the API does not render stored templates yet.
+- **Template sends** use `SendEmailRequest.Template` (`Id`, `Version` or `Tag`,
+  `Variables`), and `CreateBroadcastRequest.Template` starts a broadcast from a
+  version. `Subject` may be left out when a template is given.
 - **Extensions with no Resend counterpart**: `Segments`, `Contacts.Batch`,
   `Contacts.CreatePreferencesLink`, `Webhooks.Rotate`, `Deliverability`,
   `Usage`, `Emails.GetInsights`, the `unsubscribe` suppression origin, and

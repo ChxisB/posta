@@ -289,6 +289,11 @@ describe("writers", () => {
     });
   });
 
+  it("publishes a template by alias so a send can name it", async () => {
+    expect(await target.publishTemplate("welcome")).toEqual({ ok: true, id: ids.template });
+    expect(await target.publishTemplate("nope")).toMatchObject({ ok: false, status: 404 });
+  });
+
   it("creates a draft broadcast and 422s a missing body", async () => {
     ids.broadcast = ok(
       await target.createBroadcast({

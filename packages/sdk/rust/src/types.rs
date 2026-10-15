@@ -1454,8 +1454,16 @@ pub struct TemplateListItem {
     pub id: String,
     pub name: String,
     pub alias: Option<String>,
+    /// `draft` until the first publish, then `published`.
     pub status: String,
-    pub published_at: String,
+    /// When the newest published version was made; `None` while a draft.
+    pub published_at: Option<String>,
+    /// The newest published version; `None` while a draft.
+    #[serde(default)]
+    pub version: Option<i64>,
+    /// Tags set on any version of the template.
+    #[serde(default)]
+    pub tags: Vec<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -1467,13 +1475,19 @@ pub struct Template {
     pub name: String,
     pub alias: Option<String>,
     pub status: String,
-    pub published_at: String,
+    pub published_at: Option<String>,
+    #[serde(default)]
+    pub version: Option<i64>,
+    #[serde(default)]
+    pub tags: Vec<String>,
     pub created_at: String,
     pub updated_at: String,
     pub current_version_id: String,
     pub from: Option<String>,
     pub subject: Option<String>,
     pub reply_to: Option<Recipients>,
+    #[serde(default)]
+    pub preview_text: Option<String>,
     pub html: String,
     pub text: Option<String>,
     #[serde(default)]

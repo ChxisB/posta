@@ -91,8 +91,8 @@ suppression list or opted out of the send's `topicId`.
 ## Resources
 
 Every request field you set reaches the wire: nothing is dropped client-side.
-Fields the server does not support yet (`template` on send, `from`/`replyTo`/`variables`
-on templates) are forwarded as-is and answered with a 422.
+Fields the server does not support yet (`from`/`replyTo`/`variables` on templates) are
+forwarded as-is and answered with a 422.
 
 ### Request options
 
@@ -130,7 +130,8 @@ Send options are camelCase and mapped to the wire: `replyTo` → `reply_to`,
 accept one or more addresses. Also available: `.tag(new Tag(name, value))`,
 `.attachment(Attachment.builder().fileName("a.pdf").content(base64).build())`
 (or `.path(url)`, plus `contentType`/`contentId`), `.header(name, value)` and
-`.template(...)` (forwarded; the server answers 422: send `html`/`text`).
+`.template(Map.of("id", "welcome", "tag", "production", "variables", Map.of("FIRST_NAME", "Ada")))`
+(a published template version instead of `html`/`text`; `version` or `tag`, not both).
 `resend-java`'s `addTag`/`addAttachment`/`addHeader` spellings work too.
 
 ### Batch
@@ -347,7 +348,7 @@ ms.templates().create(CreateTemplateOptions.builder()
 ms.templates().get("welcome");
 ms.templates().list();
 ms.templates().update("welcome", UpdateTemplateOptions.builder().html("<p>new</p>").subject(null).build()); // null clears subject/text/alias
-ms.templates().publish(id);     // no-op kept for compatibility: every save is already live
+ms.templates().publish(id);     // freezes the draft as the next version; sends use published versions
 ms.templates().duplicate(id);
 ms.templates().remove(id);
 ```

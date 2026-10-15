@@ -1087,38 +1087,171 @@ describe("recipient validation", () => {
   });
 });
 
-describe("template sends are refused, not silently stripped", () => {
-  const withTemplate = { ...validBody, template: { id: "welcome", variables: { name: "Ada" } } };
-  const notSupported = {
-    statusCode: 422,
-    name: "validation_error",
-    message: expect.stringMatching(/template is not supported; an email takes html and\/or text/),
-  };
+describe("sending a template", () => {
+  const api = (method: string, path: string, body?: unknown) =>
+    app.request(path, {
+      method,
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  const sent = async (id: string) =>
+    (await (await api("GET", `/emails/${id}`)).json()) as {
+      subject: string;
+      html: string | null;
+      text: string | null;
+    };
+  const { from, to } = validBody;
+  let templateId: string;
 
-  it("422s POST /emails even when html/text is present", async () => {
-    const res = await post(withTemplate);
-    expect(res.status).toBe(422);
-    expect(await res.json()).toMatchObject(notSupported);
-    // Template-only bodies name the template, not the missing html/text.
-    const { text: _text, ...templateOnly } = withTemplate;
-    const only = await post(templateOnly);
-    expect(only.status).toBe(422);
-    expect(((await only.json()) as { message: string }).message).not.toMatch(/html or text/);
+  beforeAll(async () => {
+    const created = await api("POST", "/templates", {
+      name: "Order",
+      alias: "order",
+      subject: "Order {{{ORDER|none}}} for {{{FIRST_NAME|you}}}",
+      html: "<p>Hi {{{FIRST_NAME|there}}}, order {{{ORDER}}}.</p>",
+      text: "Order {{{ORDER|none}}}",
+    });
+    templateId = ((await created.json()) as { id: string }).id;
   });
 
-  it("422s POST /emails/batch on the offending index, accepting nothing", async () => {
-    const before = enqueuedSends.length;
-    const res = await app.request("/emails/batch", {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify([validBody, withTemplate]),
-    });
+  it("refuses a template that was never published", async () => {
+    const res = await post({ from, to, template: { id: "order" } });
     expect(res.status).toBe(422);
     expect(await res.json()).toMatchObject({
-      ...notSupported,
-      message: expect.stringMatching(/^emails\.1: template: template is not supported;/),
+      name: "template_not_published",
+      message: expect.stringMatching(/no published version/),
+    });
+  });
+
+  it("sends the newest published version with variables filled in", async () => {
+    await api("POST", `/templates/${templateId}/publish`);
+    const res = await post({
+      from,
+      to,
+      template: { id: "order", variables: { FIRST_NAME: "Ada", ORDER: 42 } },
+    });
+    expect(res.status).toBe(200);
+    const email = await sent(((await res.json()) as { id: string }).id);
+    expect(email.subject).toBe("Order 42 for Ada");
+    expect(email.html).toBe("<p>Hi Ada, order 42.</p>");
+    expect(email.text).toBe("Order 42");
+  });
+
+  it("does not send an unpublished edit, and lets an explicit subject win", async () => {
+    await api("PATCH", `/templates/${templateId}`, { html: "<p>draft edit</p>" });
+    const res = await post({ from, to, subject: "Mine", template: { id: templateId } });
+    expect(res.status).toBe(200);
+    const email = await sent(((await res.json()) as { id: string }).id);
+    expect(email.subject).toBe("Mine");
+    expect(email.html).toBe("<p>Hi there, order .</p>");
+  });
+
+  it("follows a tag as it moves and pins a version by number", async () => {
+    await api("POST", `/templates/${templateId}/publish`, { tags: ["production"] });
+    await api("PATCH", `/templates/${templateId}`, { html: "<p>v3 {{{ORDER}}}</p>" });
+    await api("POST", `/templates/${templateId}/publish`);
+
+    const viaTag = await post({ from, to, template: { id: "order", tag: "production" } });
+    expect((await sent(((await viaTag.json()) as { id: string }).id)).html).toBe(
+      "<p>draft edit</p>",
+    );
+
+    await api("PUT", `/templates/${templateId}/tags/production`, { version: 3 });
+    const moved = await post({
+      from,
+      to,
+      template: { id: "order", tag: "production", variables: { ORDER: "A1" } },
+    });
+    expect((await sent(((await moved.json()) as { id: string }).id)).html).toBe("<p>v3 A1</p>");
+
+    const pinned = await post({ from, to, template: { id: "order", version: 1 } });
+    expect((await sent(((await pinned.json()) as { id: string }).id)).html).toBe(
+      "<p>Hi there, order .</p>",
+    );
+  });
+
+  it("404s an unknown template, version or tag", async () => {
+    for (const [template, message] of [
+      [{ id: "no-such-template" }, "Template not found"],
+      [{ id: "order", version: 99 }, "Template version 99 not found"],
+      [{ id: "order", tag: "nope" }, 'Template tag "nope" not found'],
+    ] as const) {
+      const res = await post({ from, to, template });
+      expect(res.status, message).toBe(404);
+      expect(await res.json()).toMatchObject({ name: "not_found", message });
+    }
+  });
+
+  it("422s a template with html or text, with both version and tag, or with no subject", async () => {
+    const withHtml = await post({ from, to, html: "<p>x</p>", template: { id: "order" } });
+    expect(withHtml.status).toBe(422);
+    expect(await withHtml.json()).toMatchObject({
+      message: expect.stringMatching(/template cannot be combined with html or text/),
+    });
+
+    const both = await post({ from, to, template: { id: "order", version: 1, tag: "production" } });
+    expect(both.status).toBe(422);
+    expect(await both.json()).toMatchObject({
+      message: expect.stringMatching(/name a version or a tag, not both/),
+    });
+
+    const created = await api("POST", "/templates", { name: "No subject", html: "<p>x</p>" });
+    const bare = ((await created.json()) as { id: string }).id;
+    await api("POST", `/templates/${bare}/publish`);
+    const none = await post({ from, to, template: { id: bare } });
+    expect(none.status).toBe(422);
+    expect(await none.json()).toMatchObject({
+      message: expect.stringMatching(/subject is required: the template has none/),
+    });
+  });
+
+  it("422s a send with neither a template nor a subject", async () => {
+    const res = await post({ from, to, text: "t" });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({
+      message: expect.stringMatching(/subject is required/),
+    });
+  });
+
+  it("resolves a template per item in a batch and names the failing index", async () => {
+    const ok = await app.request("/emails/batch", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify([
+        validBody,
+        { from, to, template: { id: "order", version: 1, variables: { FIRST_NAME: "Bo" } } },
+      ]),
+    });
+    expect(ok.status).toBe(200);
+    const ids = ((await ok.json()) as { data: { id: string }[] }).data;
+    expect((await sent(ids[1]?.id ?? "")).subject).toBe("Order none for Bo");
+
+    const before = enqueuedSends.length;
+    const bad = await app.request("/emails/batch", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify([validBody, { from, to, template: { id: "order", tag: "nope" } }]),
+    });
+    expect(bad.status).toBe(404);
+    expect(await bad.json()).toMatchObject({
+      message: 'emails.1: Template tag "nope" not found',
     });
     expect(enqueuedSends.length).toBe(before);
+  });
+
+  it("keeps the unsubscribe tokens for the worker", async () => {
+    const created = await api("POST", "/templates", {
+      name: "Unsub",
+      subject: "News",
+      html: '<a href="{{{UNSUBSCRIBE_URL}}}">Unsubscribe</a>',
+    });
+    const id = ((await created.json()) as { id: string }).id;
+    await api("POST", `/templates/${id}/publish`);
+    const res = await post({ from, to, template: { id } });
+    expect(res.status).toBe(200);
+    expect((await sent(((await res.json()) as { id: string }).id)).html).toBe(
+      '<a href="{{{UNSUBSCRIBE_URL}}}">Unsubscribe</a>',
+    );
   });
 
   it("still drops other unknown keys silently", async () => {

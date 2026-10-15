@@ -378,6 +378,8 @@ describe("tool listing", () => {
       "get_broadcast",
       "list_templates",
       "get_template",
+      "list_template_versions",
+      "get_template_version",
       "list_webhooks",
       "get_webhook",
       "list_api_keys",
@@ -428,6 +430,10 @@ describe("tool listing", () => {
       "delete_broadcast",
       "create_template",
       "update_template",
+      "publish_template",
+      "set_template_tag",
+      "delete_template_tag",
+      "delete_template_version",
       "delete_template",
       "create_webhook",
       "update_webhook",
@@ -731,6 +737,28 @@ describe('"." and ".." ids', () => {
     await client.close();
   });
 
+  it('the template tag tools refuse the tag name "." and ".." before any REST call', async () => {
+    // ".." as the last path segment would resolve to DELETE /templates/{id}.
+    const client = await connect(await mintToken());
+    const dispatched = vi.spyOn(INTERNAL_AUTH, "set");
+    try {
+      for (const dots of [".", ".."]) {
+        for (const [name, args] of [
+          ["set_template_tag", { id: randomUUID(), name: dots, version: 1 }],
+          ["delete_template_tag", { id: randomUUID(), name: dots }],
+        ] as const) {
+          dispatched.mockClear();
+          const res = await client.callTool({ name, arguments: args });
+          expect(res.isError, `${name} name="${dots}"`).toBe(true);
+          expect(dispatched, `${name} name="${dots}"`).not.toHaveBeenCalled();
+        }
+      }
+    } finally {
+      dispatched.mockRestore();
+    }
+    await client.close();
+  });
+
   it("every tool that takes an id refuses them before any REST call", async () => {
     // The other required arguments, so only the id can be what is refused.
     const rest: Record<string, Record<string, unknown>> = {
@@ -744,6 +772,10 @@ describe('"." and ".." ids', () => {
       update_contact_topics: { topics: [] },
       create_broadcast: { from: "Acme <news@acme.dev>", subject: "s", text: "t" },
       forward_received_email: { to: ["x@example.com"] },
+      get_template_version: { version: 1 },
+      delete_template_version: { version: 1 },
+      set_template_tag: { name: "production", version: 1 },
+      delete_template_tag: { name: "production" },
     };
     const client = await connect(await mintToken());
     const dispatched = vi.spyOn(INTERNAL_AUTH, "set");
@@ -1074,6 +1106,71 @@ describe("REST parity tools", () => {
     expect(
       resultJson(await client.callTool({ name: "delete_template", arguments: { id } })),
     ).toMatchObject({ id, deleted: true });
+    await client.close();
+  });
+
+  it("templates: publish with a tag, read the version, move the tag, delete the old version", async () => {
+    const client = await connect(await mintToken());
+    const created = await client.callTool({
+      name: "create_template",
+      arguments: { name: "Receipt", alias: "receipt", subject: "Receipt", html: "<p>One</p>" },
+    });
+    const id = resultJson(created).id as string;
+    expect(
+      resultJson(await client.callTool({ name: "get_template", arguments: { id } })),
+    ).toMatchObject({
+      status: "draft",
+      version: null,
+    });
+
+    const first = resultJson(
+      await client.callTool({ name: "publish_template", arguments: { id, tags: ["production"] } }),
+    );
+    expect(first).toMatchObject({ version: 1, created: true, tags: ["production"] });
+
+    await client.callTool({ name: "update_template", arguments: { id, html: "<p>Two</p>" } });
+    const second = resultJson(
+      await client.callTool({ name: "publish_template", arguments: { id } }),
+    );
+    expect(second).toMatchObject({ version: 2, created: true });
+
+    const versions = resultJson(
+      await client.callTool({ name: "list_template_versions", arguments: { id } }),
+    ) as { data: Array<{ version: number; tags: string[] }> };
+    expect(versions.data.map((v) => v.version)).toEqual([2, 1]);
+    expect(
+      resultJson(
+        await client.callTool({ name: "get_template_version", arguments: { id, version: 1 } }),
+      ),
+    ).toMatchObject({ version: 1, html: "<p>One</p>" });
+
+    const tagged = await client.callTool({
+      name: "delete_template_version",
+      arguments: { id, version: 1 },
+    });
+    expect(tagged.isError).toBe(true);
+
+    expect(
+      (
+        await client.callTool({
+          name: "set_template_tag",
+          arguments: { id, name: "production", version: 2 },
+        })
+      ).isError,
+    ).toBeFalsy();
+    expect(
+      resultJson(
+        await client.callTool({ name: "delete_template_version", arguments: { id, version: 1 } }),
+      ),
+    ).toMatchObject({ deleted: true });
+    expect(
+      resultJson(
+        await client.callTool({
+          name: "delete_template_tag",
+          arguments: { id, name: "production" },
+        }),
+      ),
+    ).toMatchObject({ name: "production", deleted: true });
     await client.close();
   });
 

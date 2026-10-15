@@ -372,7 +372,7 @@ $ms->templates->list();
 $ms->templates->get('welcome');
 $ms->templates->update('welcome', ['subject' => null, 'html' => '<p>v2</p>']); // null clears alias/subject/text
 $ms->templates->remove($idOrAlias);
-$ms->templates->publish($idOrAlias);   // no-op on Posta (templates are always live); kept for compatibility
+$ms->templates->publish($idOrAlias);   // freezes the draft as the next version; sends use published versions
 $ms->templates->duplicate($idOrAlias);
 ```
 

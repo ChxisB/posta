@@ -4,24 +4,101 @@ description: Reusable email content for broadcasts, managed in the dashboard or 
 ---
 
 A template is reusable email content (subject, HTML and an optional plain
-text part) kept ready for the next [broadcast](/concepts/broadcasts). Compose
-one in the dashboard's block editor, with the same per-contact merge fields
-broadcasts use, or manage templates via the API. Picking a template in the
-broadcast composer copies its content in as a starting point; editing the
-template later does not touch that broadcast, and deleting it leaves every
-broadcast intact.
+text part) kept ready for the next [broadcast](/concepts/broadcasts) or API
+send. Compose one in the dashboard's block editor, with the same per-contact
+merge fields broadcasts use, or manage templates via the API. Picking a
+template in the broadcast composer copies its content in as a starting point;
+editing the template later does not touch that broadcast, and deleting it
+leaves every broadcast intact.
 
 ![The template editor: a welcome email in the block editor, with the subject, preview text and email theme in the side panel.](/screenshots/en/template-editor.png)
 
-## No drafts, no versions
+## Drafts, versions and tags
 
-Every save is live. There is no draft/publish cycle and no version history:
-what `GET /templates/{id}` returns is what the next broadcast starts from. The
-Resend-shaped fields are filled accordingly: `status` is always
-`published`, `published_at` equals `created_at`, `current_version_id` is the
-template's own id and `has_unpublished_versions` is `false`, and
-`POST /templates/{id}/publish` is an idempotent no-op, kept so the Resend
-SDK's `templates.publish()` (and `templates.create(...).publish()`) work.
+A template is a working draft until you publish it. Saving through the
+dashboard or `PATCH /templates/{id}` only changes the draft. Publishing freezes
+the draft as the next numbered version (1, 2, 3 and so on), and a version never
+changes after that.
+
+```bash
+curl -X POST https://api.posta.example/templates/welcome/publish \
+  -H "Authorization: Bearer po_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "tags": ["production"] }'
+```
+
+```json
+{ "object": "template", "id": "7f5e...", "version": 3, "created": true, "tags": ["production"] }
+```
+
+- **Publishing is idempotent.** If the draft's subject, preview text, html and
+  text already match the newest version, nothing new is made and that version
+  comes back with `created: false`. Renaming a template does not count as a
+  change.
+- **Tags** are names such as `production` or `staging` that point at one
+  version. `PUT /templates/{id}/tags/{name}` with `{ "version": 2 }` moves a
+  tag, so what a tag means can change without touching the code that sends it.
+  A tag name is letters, digits, `.`, `_` or `-`, starts with a letter or
+  digit, runs up to 64 characters, is case-sensitive and cannot be digits only.
+  A template holds up to 20 tags and up to 200 versions, and you can set up to
+  5 tags in one publish call.
+- **Deleting** a version is refused with `409 template_version_tagged` while a
+  tag points at it. Version numbers are never reused.
+- **Reading** a draft: `GET /templates/{id}` returns the draft, with
+  `status` `draft` until the first publish and `published` after, `version`
+  and `published_at` for the newest version, `tags`, and
+  `has_unpublished_versions`, which is `true` while the draft differs from the
+  newest version. `GET /templates/{id}/versions` lists the versions and
+  `GET /templates/{id}/versions/{version}` returns one with its frozen content.
+
+Templates that existed before versioning were given a version 1 from their
+content at the time, so they send straight away.
+
+## Sending with a template
+
+`POST /emails`, `POST /emails/batch` and `POST /broadcasts` take a `template`
+reference in place of `html` and `text`:
+
+```json
+{
+  "from": "Acme <hello@acme.dev>",
+  "to": ["ada@example.com"],
+  "template": {
+    "id": "welcome",
+    "tag": "production",
+    "variables": { "FIRST_NAME": "Ada", "ORDER_ID": 1042 }
+  }
+}
+```
+
+- `id` is the template's id or alias.
+- Name at most one of `version` and `tag`. With neither, the newest published
+  version is used. The draft is never sent, so an unpublished edit cannot reach
+  an inbox by accident.
+- `template.variables` fills the merge fields (`{{{FIRST_NAME}}}`, `{{{ORDER_ID}}}`,
+  and `{{{NAME|fallback}}}` for a default) on a send. Values are strings or
+  numbers, keys use letters, digits and `_`, and there can be up to 100.
+  `EMAIL`, `FIRST_NAME` and `LAST_NAME` are looked up in `variables` like any
+  other name. Values land escaped in the html, and a value placed in an `href`
+  or `src` must start with `http://`, `https://` or `mailto:`.
+- The template's subject is used unless the request has its own `subject`,
+  which wins. If neither exists the request is `422`. The version's preview
+  text is injected as the inbox preview.
+- `template` cannot be combined with `html` or `text`.
+- A broadcast made from a template copies that version's content when you
+  create it and keeps the merge tokens, so every contact still gets their own
+  values on send. It keeps no link back to the template.
+
+| Problem | Response |
+| --- | --- |
+| Template, version or tag not found | `404 not_found` |
+| The template has no published version | `422 template_not_published` |
+| Neither the request nor the template has a subject | `422 validation_error` |
+| Over 200 versions or 20 tags | `422 template_version_limit`, `422 template_tag_limit` |
+| Deleting a version a tag points at | `409 template_version_tagged` |
+
+The Resend SDK's `templates.publish()` and `templates.create(...).publish()`
+work as they do against Resend, and a publish with no body is fine.
 
 ## HTML templates and the block editor
 
@@ -58,15 +135,19 @@ resolve by id first).
 - `DELETE /templates/{id-or-alias}`.
 - `POST /templates/{id-or-alias}/duplicate`: creates `<name> (copy)` with the
   same content and no alias.
+- `POST /templates/{id-or-alias}/publish`: freezes the draft as the next
+  version, with optional `{ "tags": [...] }`.
+- `GET /templates/{id-or-alias}/versions`,
+  `GET` and `DELETE /templates/{id-or-alias}/versions/{version}`.
+- `GET /templates/{id-or-alias}/tags`, and `PUT` and `DELETE`
+  `/templates/{id-or-alias}/tags/{name}`.
 
 ## Not supported yet
 
-- `from`, `reply_to` and `variables`: a value on create or update is
-  rejected with `422 <field> is not supported on templates yet` rather than
-  silently dropped; reads return `null`, `null` and `[]`. Put `from` and
-  `reply_to` on the broadcast, and use merge fields directly: contact
-  properties need no declared variables.
-- Sending with a template id, neither `POST /emails` nor `POST /broadcasts`
-  takes a template reference yet; pass `html`/`text` yourself (for
-  broadcasts, the dashboard composer's template picker copies the content
-  in).
+- `from`, `reply_to` and `variables` on the template itself: a value on
+  create or update is rejected with `422 <field> is not supported on templates
+  yet` rather than silently dropped; reads return `null`, `null` and `[]`. Put
+  `from` and `reply_to` on the send or the broadcast, and pass `template.variables`
+  on the send.
+- Restoring a version into the draft is a dashboard action only. Through the
+  API, read the version and `PATCH` its fields back.

@@ -40,6 +40,7 @@ import {
   fetchTeamStanding,
   findSuppressed,
   findTopicOptOuts,
+  hasHeaderControlChar,
   INBOX_KEY_FROM_MESSAGE,
   INBOX_KEY_SCOPE_MESSAGE,
   type InboxKeys,
@@ -61,15 +62,18 @@ import {
   quotaChargeAt,
   quotaRoom,
   quotaUsage,
+  type ResolveOutcome,
   recordContactActivity,
   recountSegment,
   regionPause,
   releaseIdempotent,
   releasePeriodCount,
   releaseQuota,
+  renderTemplateContent,
   reserveDailyQuota,
   reservedSenderRefusal,
   reserveQuota,
+  resolveTemplateRef,
   reviewBacklogLimit,
   roundUpToSlot,
   SCHEDULED_AT_FORMS,
@@ -506,8 +510,85 @@ function findEmailInsights(
   return fetchEmailInsights(db, teamId, { emailId: email.id, broadcastId: email.broadcastId });
 }
 
+/** A send body whose template, if it named one, is filled into subject, html and text. */
+type ResolvedSendEmail = Omit<SendEmailRequest, "subject" | "template"> & { subject: string };
+
+type TemplateFailure = { status: 404 | 422; name: string; message: string };
+
+/** What a refused template reference answers, shared by sends and broadcasts. */
+function templateRefFailure(out: Exclude<ResolveOutcome, { ok: true }>): TemplateFailure {
+  switch (out.reason) {
+    case "template_not_found":
+      return { status: 404, name: "not_found", message: "Template not found" };
+    case "version_not_found":
+      return {
+        status: 404,
+        name: "not_found",
+        message: `Template version ${out.version} not found`,
+      };
+    case "tag_not_found":
+      return { status: 404, name: "not_found", message: `Template tag "${out.tag}" not found` };
+    case "not_published":
+      return {
+        status: 422,
+        name: "template_not_published",
+        message:
+          "Template has no published version: publish it with POST /templates/{id}/publish, or name a version or tag",
+      };
+  }
+}
+
+const TEMPLATE_NO_SUBJECT: TemplateFailure = {
+  status: 422,
+  name: "validation_error",
+  message: "subject is required: the template has none",
+};
+
+/**
+ * Fills a template reference into the send: the version's html, text and
+ * subject with `variables` applied. An explicit `subject` wins over the
+ * template's. A body with no template passes through unchanged.
+ */
+async function resolveSendTemplate(
+  db: Db,
+  teamId: string,
+  request: SendEmailRequest,
+): Promise<{ ok: true; body: ResolvedSendEmail } | ({ ok: false } & TemplateFailure)> {
+  const { template, subject, ...rest } = request;
+  if (!template) {
+    // The schema refuses a body with neither template nor subject.
+    return { ok: true, body: { ...rest, subject: subject ?? "" } };
+  }
+  const out = await resolveTemplateRef(db, teamId, {
+    id: template.id,
+    version: template.version,
+    tag: template.tag,
+  });
+  if (!out.ok) return { ok: false, ...templateRefFailure(out) };
+  const rendered = renderTemplateContent(out.content, template.variables);
+  const finalSubject = subject ?? rendered.subject;
+  if (!finalSubject?.trim()) return { ok: false, ...TEMPLATE_NO_SUBJECT };
+  if (hasHeaderControlChar(finalSubject)) {
+    return {
+      ok: false,
+      status: 422,
+      name: "validation_error",
+      message: "subject must not contain control characters",
+    };
+  }
+  return {
+    ok: true,
+    body: {
+      ...rest,
+      subject: finalSubject,
+      html: rendered.html,
+      text: rendered.text ?? undefined,
+    },
+  };
+}
+
 /** Maps a validated Resend-shaped send body to the shared accept payload. */
-function toAcceptPayload(body: SendEmailRequest, domainId: string | null): AcceptEmailPayload {
+function toAcceptPayload(body: ResolvedSendEmail, domainId: string | null): AcceptEmailPayload {
   // `content` is guaranteed by the schema's superRefine; the `?? ""` only
   // satisfies the optional wire type.
   const attachments = body.attachments?.map((a) => ({
@@ -2990,8 +3071,8 @@ function registerBroadcastRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
         },
         400: jsonErr("Broadcast state conflict"),
         403: jsonErr("Restricted API key or sending paused"),
-        404: jsonErr("Not found"),
-        422: jsonErr("Validation error"),
+        404: jsonErr("Not found, including an unknown template, version or tag"),
+        422: jsonErr("Validation error, or a template with no published version"),
       },
     }),
     async (c) => {
@@ -3012,6 +3093,41 @@ function registerBroadcastRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
       if (domain.ok && keyForbidsSendingDomain(auth, domain.domainId)) {
         return c.json(errorBody(403, "restricted_api_key", RESTRICTED_DOMAIN_MESSAGE), 403);
       }
+      // A template is copied at compose time, exactly as the dashboard does:
+      // the broadcast keeps no link back, so a later publish or tag move
+      // never rewrites a draft or a send in flight. Merge fields stay for
+      // each contact.
+      let subject = body.subject;
+      let previewText = body.preview_text ?? null;
+      let html = body.html ?? null;
+      let text = body.text ?? null;
+      let document: unknown = null;
+      if (body.template) {
+        const out = await resolveTemplateRef(db, auth.teamId, {
+          id: body.template.id,
+          version: body.template.version,
+          tag: body.template.tag,
+        });
+        if (!out.ok) {
+          const failure = templateRefFailure(out);
+          return c.json(errorBody(failure.status, failure.name, failure.message), failure.status);
+        }
+        subject = subject ?? out.content.subject ?? undefined;
+        previewText = previewText ?? out.content.previewText;
+        html = out.content.html;
+        text = out.content.text;
+        document = out.content.document ?? null;
+      }
+      if (subject === undefined || subject.trim() === "") {
+        return c.json(
+          errorBody(
+            TEMPLATE_NO_SUBJECT.status,
+            TEMPLATE_NO_SUBJECT.name,
+            TEMPLATE_NO_SUBJECT.message,
+          ),
+          TEMPLATE_NO_SUBJECT.status,
+        );
+      }
       const [row] = await db
         .insert(schema.broadcasts)
         .values({
@@ -3020,11 +3136,12 @@ function registerBroadcastRoutes(app: OpenAPIHono<Env>, deps: ApiDeps): void {
           topicId: body.topic_id ?? null,
           name: body.name ?? null,
           from: body.from,
-          subject: body.subject,
+          subject,
           replyTo: body.reply_to ? JSON.stringify(body.reply_to) : null,
-          previewText: body.preview_text ?? null,
-          html: body.html ?? null,
-          text: body.text ?? null,
+          previewText,
+          html,
+          text,
+          document,
         })
         .returning({ id: schema.broadcasts.id });
       if (!row) throw new Error("broadcast insert returned no row");
@@ -3769,21 +3886,31 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     }
 
     try {
-      const result = await acceptEmail(deps, auth, toAcceptPayload(body, domain.domainId), {
-        parkUnderReview: true,
-        completeInTx: idemKey
-          ? async (tx, emailId) => {
-              const recorded = await completeIdempotent(tx, {
-                teamId: auth.teamId,
-                key: idemKey,
-                emailIds: [emailId],
-              });
-              // Another owner took over and recorded its own response:
-              // abort so this branch produces no second email.
-              if (!recorded) throw new IdempotencyTakeoverError();
-            }
-          : undefined,
-      });
+      const resolved = await resolveSendTemplate(deps.db, auth.teamId, body);
+      if (!resolved.ok) {
+        if (idemKey) await releaseIdempotent(deps.db, { teamId: auth.teamId, key: idemKey });
+        return c.json(errorBody(resolved.status, resolved.name, resolved.message), resolved.status);
+      }
+      const result = await acceptEmail(
+        deps,
+        auth,
+        toAcceptPayload(resolved.body, domain.domainId),
+        {
+          parkUnderReview: true,
+          completeInTx: idemKey
+            ? async (tx, emailId) => {
+                const recorded = await completeIdempotent(tx, {
+                  teamId: auth.teamId,
+                  key: idemKey,
+                  emailIds: [emailId],
+                });
+                // Another owner took over and recorded its own response:
+                // abort so this branch produces no second email.
+                if (!recorded) throw new IdempotencyTakeoverError();
+              }
+            : undefined,
+        },
+      );
       if (!result.ok) {
         if (idemKey) await releaseIdempotent(deps.db, { teamId: auth.teamId, key: idemKey });
         const rejection = acceptRejection(result);
@@ -3850,10 +3977,18 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
     if (!parsed.success) {
       return { status: 422, name: "validation_error", message: validationMessage(parsed.error) };
     }
-    const body = parsed.data;
-    if (body.topic_id != null && !(await findTeamTopic(deps.db, auth.teamId, body.topic_id))) {
+    const request = parsed.data;
+    if (
+      request.topic_id != null &&
+      !(await findTeamTopic(deps.db, auth.teamId, request.topic_id))
+    ) {
       return { status: 404, name: "not_found", message: "Topic not found" };
     }
+    const resolved = await resolveSendTemplate(deps.db, auth.teamId, request);
+    if (!resolved.ok) {
+      return { status: resolved.status, name: resolved.name, message: resolved.message };
+    }
+    const body = resolved.body;
     const reserved = reservedSenderRefusal(body.from, deps.onboardingEmailFrom);
     if (reserved) return { status: 422, ...reserved };
     if (isSharedInboxSender(body.from, deps.sharedInboxDomain)) {

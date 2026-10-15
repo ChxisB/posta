@@ -121,7 +121,7 @@ public interface IPosta
     Task<PostaResponse<Template>> TemplateRetrieveAsync(string idOrAlias, CancellationToken cancellationToken = default);
     Task<PostaResponse<ObjectId>> TemplateUpdateAsync(string idOrAlias, TemplateUpdateOptions options, CancellationToken cancellationToken = default);
     Task<PostaResponse<DeletedResponse>> TemplateDeleteAsync(string idOrAlias, CancellationToken cancellationToken = default);
-    /// <summary>No-op kept for resend-dotnet compatibility: Posta templates have no draft state.</summary>
+    /// <summary>Freezes the draft as the next numbered version; sends use published versions.</summary>
     Task<PostaResponse<ObjectId>> TemplatePublishAsync(string idOrAlias, CancellationToken cancellationToken = default);
     Task<PostaResponse<ObjectId>> TemplateDuplicateAsync(string idOrAlias, CancellationToken cancellationToken = default);
 

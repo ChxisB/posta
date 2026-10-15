@@ -325,7 +325,7 @@ Posta.Templates.list()
 Posta.Templates.get("welcome")
 Posta.Templates.update("welcome", %{subject: nil})   # nil clears subject/text/alias
 Posta.Templates.duplicate("welcome")
-Posta.Templates.publish("welcome")     # no-op kept for compatibility: templates publish on write
+Posta.Templates.publish("welcome")     # freezes the draft as the next version; sends use published versions
 Posta.Templates.remove("welcome")
 ```
 
@@ -376,7 +376,9 @@ Module names, function names and payloads match. Notes:
   this SDK. Target broadcasts with a `segment_id` and/or a `topic_id` instead.
 - **Segment filters, deliverability insights and usage** are Posta
   extensions with no Resend counterpart.
-- `Templates.publish/2` is a no-op: templates are published on every write.
+- `Templates.publish/2` freezes the draft as the next numbered version. Saving only
+  changes the draft, and sends use published versions. Versions and tags have no
+  wrapper here yet: use the REST API, the CLI, MCP or the Node SDK.
 
 ## Testing against a real instance
 

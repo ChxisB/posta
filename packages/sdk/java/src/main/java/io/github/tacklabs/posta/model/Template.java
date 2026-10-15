@@ -5,8 +5,8 @@ import java.util.List;
 /**
  * An email template. Also used for template list items: the content fields
  * ({@code html}, {@code text}, {@code subject}, …) are only populated when a
- * single template is fetched. Templates have no draft/publish cycle here:
- * every save is live and {@code status} is always {@code published}.
+ * single template is fetched. {@code status} is {@code draft} until the first
+ * publish, and {@code publishedAt} is null while it is a draft.
  */
 public final class Template {
 

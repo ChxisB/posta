@@ -123,7 +123,7 @@ posta.Emails.get_insights(email_id)                     # GET /emails/{id}/insig
 posta.Batch.send([payload_a, payload_b], batch_validation="permissive")  # up to 100; see `errors`
 ```
 
-`to` / `cc` / `bcc` / `reply_to` accept a string or a list of strings. `template` is passed through too; the server answers 422 until templates can be sent from.
+`to` / `cc` / `bcc` / `reply_to` accept a string or a list of strings. `template` is passed through too: `{"id": "welcome", "tag": "production", "variables": {...}}` sends a published template version instead of `html`/`text` (`version` or `tag`, not both).
 
 ### Contacts
 
@@ -340,7 +340,7 @@ posta.Templates.get("welcome-v1")
 posta.Templates.list()
 posta.Templates.update({"id": "welcome-v1", "subject": None, "alias": None})  # None clears
 posta.Templates.duplicate(template.id)
-posta.Templates.publish(template.id)   # templates are always published; kept for resend compatibility
+posta.Templates.publish(template.id)   # freezes the draft as the next version; sends use published versions
 posta.Templates.remove(template.id)
 ```
 

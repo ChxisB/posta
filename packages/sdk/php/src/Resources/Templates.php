@@ -58,8 +58,8 @@ final class Templates
     }
 
     /**
-     * POST /templates/:idOrAlias/publish: templates are always published on
-     * Posta; kept for resend-php compatibility.
+     * POST /templates/:idOrAlias/publish: freezes the draft as the next
+     * numbered version; sends use published versions.
      *
      * @return array<mixed>
      */

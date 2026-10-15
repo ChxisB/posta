@@ -165,6 +165,7 @@ describe("createResendSource", () => {
         replyTo: null,
         html: "<h1>Welcome, {{{first_name}}}</h1>",
         text: "Welcome, {{{first_name}}}",
+        published: true,
         variables: [
           { key: "first_name", type: "string", fallbackValue: "there" },
           { key: "credits", type: "number", fallbackValue: 10 },

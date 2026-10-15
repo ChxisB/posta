@@ -286,6 +286,20 @@ describe("contacts", () => {
 });
 
 describe("broadcasts", () => {
+  it("starts from a template version", async () => {
+    const { ms, calls } = makeClient();
+    await ms.broadcasts.create({
+      segmentId: "s1",
+      from: "a@x.dev",
+      template: { id: "welcome", tag: "production" },
+    });
+    expect(calls[0]?.body).toEqual({
+      segment_id: "s1",
+      from: "a@x.dev",
+      template: { id: "welcome", tag: "production" },
+    });
+  });
+
   it("covers the full lifecycle", async () => {
     const { ms, calls } = makeClient();
     await ms.broadcasts.create({
@@ -860,6 +874,47 @@ describe("templates", () => {
     });
     await ms.templates.remove("tp1");
     expect(calls[4]).toMatchObject({ method: "DELETE", url: "https://api.test/templates/tp1" });
+  });
+
+  it("publishes with tags and manages versions and tags", async () => {
+    const { ms, calls } = makeClient();
+    await ms.templates.publish("welcome", { tags: ["production"] });
+    expect(calls[0]).toMatchObject({
+      method: "POST",
+      url: "https://api.test/templates/welcome/publish",
+    });
+    expect(calls[0]?.body).toEqual({ tags: ["production"] });
+    await ms.templates.listVersions("welcome");
+    expect(calls[1]).toMatchObject({
+      method: "GET",
+      url: "https://api.test/templates/welcome/versions",
+    });
+    await ms.templates.getVersion("welcome", 2);
+    expect(calls[2]).toMatchObject({
+      method: "GET",
+      url: "https://api.test/templates/welcome/versions/2",
+    });
+    await ms.templates.removeVersion("welcome", 1);
+    expect(calls[3]).toMatchObject({
+      method: "DELETE",
+      url: "https://api.test/templates/welcome/versions/1",
+    });
+    await ms.templates.listTags("welcome");
+    expect(calls[4]).toMatchObject({
+      method: "GET",
+      url: "https://api.test/templates/welcome/tags",
+    });
+    await ms.templates.setTag("welcome", "production", 2);
+    expect(calls[5]).toMatchObject({
+      method: "PUT",
+      url: "https://api.test/templates/welcome/tags/production",
+    });
+    expect(calls[5]?.body).toEqual({ version: 2 });
+    await ms.templates.removeTag("welcome", "prod/ctn");
+    expect(calls[6]).toMatchObject({
+      method: "DELETE",
+      url: "https://api.test/templates/welcome/tags/prod%2Fctn",
+    });
   });
 });
 

@@ -12,12 +12,15 @@ defmodule Posta.Templates.Template do
     :alias,
     :status,
     :published_at,
+    :version,
+    :tags,
     :created_at,
     :updated_at,
     :current_version_id,
     :from,
     :subject,
     :reply_to,
+    :preview_text,
     :html,
     :text,
     :variables,
@@ -87,7 +90,7 @@ defmodule Posta.Templates do
     Request.run(client, method: :delete, path: member_path(id_or_alias), as: Template)
   end
 
-  @doc "`POST /templates/:id_or_alias/publish`: a no-op kept for compatibility: templates publish on write."
+  @doc "`POST /templates/:id_or_alias/publish`: freezes the draft as the next numbered version; sends use published versions."
   @spec publish(Client.t(), String.t()) :: {:ok, Template.t()} | {:error, Posta.Error.t()}
   def publish(client \\ Posta.client(), id_or_alias) when is_binary(id_or_alias) do
     Request.run(client, method: :post, path: member_path(id_or_alias) <> "/publish", as: Template)

@@ -101,7 +101,10 @@ await ms.emails.getInsights(id);             // GET /emails/:id/insights (best-p
 ```
 
 `attachments[].content` is a base64 string or a `Buffer` (encoded for you).
-`template` is sent through as-is; Posta answers `422` until templates can be sent.
+`template` sends a published template version instead of `html` and `text`:
+`template: { id: "welcome", tag: "production", variables: { FIRST_NAME: "Ada" } }`.
+Name a `version` or a `tag`, or neither for the newest published version. `subject`
+is optional with a template and wins over the template's when set.
 
 ### Batch
 
@@ -282,9 +285,20 @@ await ms.templates.list();
 await ms.templates.get("welcome");
 await ms.templates.update("welcome", { subject: null, alias: null }); // null clears
 await ms.templates.duplicate(id);
-await ms.templates.publish(id);   // no-op: every save is live (kept for Resend compatibility)
 await ms.templates.remove(id);
+
+// Drafts, versions and tags: saving edits the draft; publish freezes it.
+await ms.templates.publish(id, { tags: ["production"] });  // { version, created, tags }
+await ms.templates.listVersions(id);
+await ms.templates.getVersion(id, 2);
+await ms.templates.removeVersion(id, 1);                  // 409 while a tag points at it
+await ms.templates.listTags(id);
+await ms.templates.setTag(id, "production", 2);           // creates the tag or moves it
+await ms.templates.removeTag(id, "production");
 ```
+
+A template is a draft until its first publish. Sends and broadcasts use published
+versions only, never the draft.
 
 ### Segments (Posta extension)
 
@@ -336,8 +350,9 @@ match `resend`. Notes:
   equivalent: drop them and call `.contacts` directly. The API keeps
   `/audiences/*` routes as a compatibility shim, but the SDK does not expose them.
   For subsets of contacts, use `.segments` (dynamic filters) or topics.
-- **Templates** cannot be sent yet: `emails.send({ template })` is forwarded and
-  answered with `422`. `templates.publish` is a no-op (every save is live).
+- **Templates** have drafts, numbered versions and tags, which Resend's API does
+  not. `templates.publish(id)` with no options works as it does in `resend`; the
+  version and tag methods are Posta extensions.
 - **Posta extensions** (no Resend counterpart): `segments`,
   `deliverability`, `usage`, `emails.getInsights`, `contacts.batch`,
   `contacts.preferencesLink`, `webhooks.rotate`, and the `origin` field on

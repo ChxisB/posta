@@ -127,7 +127,9 @@ await client.EmailInsightsRetrieveAsync(id);                        // GET /emai
 `EmailMessage` carries every wire field: `From`, `To`, `Subject`, `Html`, `Text`,
 `Cc`, `Bcc`, `ReplyTo`, `ScheduledAt`, `Tags`, `TopicId`, `Attachments`
 (`Filename`, base64 `Content`, `ContentType`, `ContentId`, `Path`), `Headers`, and
-`Template` (passed through; the server answers 422 until template sending ships).
+`Template` (`TemplateId` plus `Version` or `Tag`, and `Variables`; `Subject` may be left out
+when a template is given). The draft is never sent: with neither `Version` nor `Tag`, the
+newest published version is.
 
 Batches take up to 100 messages. `BatchValidationMode.Permissive` sends the
 `x-batch-validation` header so valid items go out and invalid ones come back in
@@ -367,8 +369,9 @@ await client.ApiKeyDeleteAsync(key.Content.Id);
 
 ### Templates
 
-Addressed by id **or** alias. Posta templates have no draft/publish cycle:
-`TemplatePublishAsync` is a no-op kept for resend-dotnet compatibility.
+Addressed by id **or** alias. A template is a draft until `TemplatePublishAsync` freezes it as
+the next numbered version, which is what sends and broadcasts use. Listing versions and
+managing tags are REST, CLI, MCP and Node SDK calls; this SDK does not wrap them yet.
 
 ```csharp
 await client.TemplateCreateAsync(new TemplateCreateOptions

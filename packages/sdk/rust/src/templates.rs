@@ -8,8 +8,8 @@ use crate::types::{
 };
 
 /// Reusable email templates, addressable by id or alias. Mirrors Resend's
-/// `templates` resource; templates are always published, so `publish` is a
-/// compatibility no-op.
+/// `templates` resource; a template is a draft until `publish` freezes it as
+/// the next numbered version.
 #[derive(Clone)]
 pub struct Templates(pub(crate) Arc<Config>);
 
@@ -43,8 +43,8 @@ impl Templates {
         self.0.delete(&["templates", id_or_alias]).await
     }
 
-    /// `POST /templates/:idOrAlias/publish`: kept for Resend compatibility;
-    /// Posta templates are always published.
+    /// `POST /templates/:idOrAlias/publish`: freezes the draft as the next
+    /// numbered version; sends use published versions.
     pub async fn publish(&self, id_or_alias: &str) -> Result<TemplateId> {
         self.0
             .post_empty(&["templates", id_or_alias, "publish"])

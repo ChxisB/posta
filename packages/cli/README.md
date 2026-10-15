@@ -22,7 +22,7 @@ Node 18 or newer; no dependencies.
 | --- | --- |
 | Contacts | Upserted by email through the batch endpoint; `unsubscribed` and topic opt-outs are preserved, never re-subscribed. Topic subscriptions and properties follow in two per-contact passes that run after everything else, so the account is sendable before they finish. |
 | Segments, topics, properties | Matched by name / name / key: created when missing, updated when different, left alone when equal. Segment memberships follow the contacts. |
-| Templates | Name, alias, subject, html, text. From, reply-to and variables cannot be stored: listed as manual steps. |
+| Templates | Name, alias, subject, html, text. A template published in Resend is published here too, as its next version. From, reply-to and variables cannot be stored: listed as manual steps. |
 | Webhooks | Endpoint and events. Signing secrets are copied so receivers keep verifying (`--fresh-webhook-secrets` mints new ones, shown once). Events Posta also emits carry over (`email.*`, `contact.created`, `contact.updated`, `contact.deleted`); the rest are dropped per webhook and listed. |
 | Suppressions | Bounces, complaints and manual entries, with their origin. |
 | Domains | Created with return path and tracking settings, in the one SES region your Posta instance serves: the Resend region does not carry over. DNS records must be added again (DKIM keys are per provider); the report prints a copy-ready table. Both providers can stay verified side by side. |

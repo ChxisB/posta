@@ -175,19 +175,33 @@ public sealed class EmailAttachment
     public string? Path { get; init; }
 }
 
-/// <summary>Resend's template reference. Passed through verbatim; the server answers
-/// 422 until template-based sending ships.</summary>
+/// <summary>A published template version to send instead of Html and Text.
+/// <see cref="TemplateId"/> is the template id or alias. Set <see cref="Version"/> or
+/// <see cref="Tag"/>, not both: with neither, the newest published version is sent.</summary>
 public sealed class EmailMessageTemplate
 {
     [JsonPropertyName("id")] public string TemplateId { get; init; } = string.Empty;
+    public int? Version { get; init; }
+    public string? Tag { get; init; }
     public Dictionary<string, object?>? Variables { get; init; }
+}
+
+/// <summary>The template version a broadcast starts from; the content is copied in
+/// when the broadcast is created. Same fields as <see cref="EmailMessageTemplate"/>
+/// without variables.</summary>
+public sealed class BroadcastTemplate
+{
+    [JsonPropertyName("id")] public string TemplateId { get; init; } = string.Empty;
+    public int? Version { get; init; }
+    public string? Tag { get; init; }
 }
 
 public sealed class EmailMessage
 {
     public string From { get; init; } = string.Empty;
     public Recipients To { get; init; } = null!;
-    public string Subject { get; init; } = string.Empty;
+    /// <summary>Required unless <see cref="Template"/> is set; a subject here wins over the template's.</summary>
+    public string? Subject { get; init; }
     public string? Html { get; init; }
     public string? Text { get; init; }
     public Recipients? Cc { get; init; }
@@ -556,9 +570,12 @@ public sealed class BroadcastCreateOptions
     public string? Name { get; init; }
     public Guid? SegmentId { get; init; }
     public string From { get; init; } = string.Empty;
-    public string Subject { get; init; } = string.Empty;
+    /// <summary>Required unless <see cref="Template"/> is set.</summary>
+    public string? Subject { get; init; }
     public string? Html { get; init; }
     public string? Text { get; init; }
+    /// <summary>Start from a published template version instead of Html and Text.</summary>
+    public BroadcastTemplate? Template { get; init; }
     public Recipients? ReplyTo { get; init; }
     public string? PreviewText { get; init; }
     public Guid? TopicId { get; init; }

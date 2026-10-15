@@ -11,17 +11,29 @@ import (
 // Send: true sends (or, with ScheduledAt, schedules) immediately instead of
 // saving a draft.
 type CreateBroadcastRequest struct {
-	Name        string `json:"name,omitempty"`
-	SegmentId   string `json:"segment_id,omitempty"`
-	From        string `json:"from"`
-	Subject     string `json:"subject"`
-	Html        string `json:"html,omitempty"`
-	Text        string `json:"text,omitempty"`
-	ReplyTo     string `json:"reply_to,omitempty"`
-	PreviewText string `json:"preview_text,omitempty"`
-	TopicId     string `json:"topic_id,omitempty"`
-	Send        bool   `json:"send,omitempty"`
-	ScheduledAt string `json:"scheduled_at,omitempty"` // requires Send: true
+	Name      string `json:"name,omitempty"`
+	SegmentId string `json:"segment_id,omitempty"`
+	From      string `json:"from"`
+	Subject   string `json:"subject,omitempty"` // required unless Template is set
+	Html      string `json:"html,omitempty"`
+	Text      string `json:"text,omitempty"`
+	// Template starts the broadcast from a published template version. Its
+	// content is copied in on create and no link back is kept.
+	Template    *BroadcastTemplate `json:"template,omitempty"`
+	ReplyTo     string             `json:"reply_to,omitempty"`
+	PreviewText string             `json:"preview_text,omitempty"`
+	TopicId     string             `json:"topic_id,omitempty"`
+	Send        bool               `json:"send,omitempty"`
+	ScheduledAt string             `json:"scheduled_at,omitempty"` // requires Send: true
+}
+
+// BroadcastTemplate names the template version a broadcast starts from. Id is
+// the template id or alias. Set Version or Tag, not both: with neither, the
+// newest published version is used.
+type BroadcastTemplate struct {
+	Id      string `json:"id"`
+	Version int    `json:"version,omitempty"`
+	Tag     string `json:"tag,omitempty"`
 }
 
 // UpdateBroadcastRequest is the payload for Broadcasts.Update (draft only).

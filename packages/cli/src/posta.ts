@@ -523,6 +523,9 @@ export function createPostaTarget(http: Http, log: Logger, baseUrl = "the Posta 
       },
     ) => write(() => id(api.patch(`/templates/${idOrAlias}`, input))),
     deleteTemplate: (idOrAlias: string) => write(() => id(api.delete(`/templates/${idOrAlias}`))),
+    /** Freezes the draft as the next version: what a send names with `template`. */
+    publishTemplate: (idOrAlias: string) =>
+      write(() => id(api.post(`/templates/${idOrAlias}/publish`, {}))),
 
     /** Always a draft; sending stays a deliberate act in the dashboard. */
     createBroadcast: (input: {

@@ -72,19 +72,21 @@ describe("official resend SDK: templates", () => {
       from: null,
       subject: "Welcome aboard",
       reply_to: null,
+      preview_text: null,
       html: "<h1>Hi {{{FIRST_NAME|there}}}</h1>",
       text: "Hi there",
       variables: [],
-      status: "published",
-      published_at: expect.any(String),
-      has_unpublished_versions: false,
+      status: "draft",
+      published_at: null,
+      version: null,
+      tags: [],
+      has_unpublished_versions: true,
       created_at: expect.any(String),
       updated_at: expect.any(String),
     };
     const byId = await resend.templates.get(templateId);
     expect(byId.error).toBeNull();
     expect(byId.data).toEqual(expected);
-    expect(byId.data?.published_at).toBe(byId.data?.created_at);
 
     const byAlias = await resend.templates.get("welcome");
     expect(byAlias.error).toBeNull();
@@ -101,8 +103,10 @@ describe("official resend SDK: templates", () => {
         id: templateId,
         name: "Welcome",
         alias: "welcome",
-        status: "published",
-        published_at: expect.any(String),
+        status: "draft",
+        published_at: null,
+        version: null,
+        tags: [],
         created_at: expect.any(String),
         updated_at: expect.any(String),
       },
@@ -157,16 +161,28 @@ describe("official resend SDK: templates", () => {
     });
   });
 
-  it("publishes as a no-op, standalone and chained off create/duplicate", async () => {
+  it("publishes a version, standalone and chained off create/duplicate", async () => {
     const published = await resend.templates.publish(templateId);
     expect(published.error).toBeNull();
-    expect(published.data).toEqual({ object: "template", id: templateId });
+    expect(published.data).toMatchObject({ object: "template", id: templateId });
+    expect(await resend.templates.get(templateId)).toMatchObject({
+      data: {
+        status: "published",
+        published_at: expect.any(String),
+        has_unpublished_versions: false,
+      },
+    });
+
+    // Nothing changed, so the second publish finds the same version.
+    const again = await resend.templates.publish(templateId);
+    expect(again.error).toBeNull();
+    expect(again.data).toMatchObject({ id: templateId });
 
     const chained = await resend.templates
       .create({ name: "Chained", html: "<p>chained</p>" })
       .publish();
     expect(chained.error).toBeNull();
-    expect(chained.data).toEqual({ object: "template", id: expect.any(String) });
+    expect(chained.data).toMatchObject({ object: "template", id: expect.any(String) });
     const fetched = await resend.templates.get(chained.data?.id ?? "");
     expect(fetched.data).toMatchObject({ status: "published", has_unpublished_versions: false });
   });

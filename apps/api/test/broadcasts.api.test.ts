@@ -913,3 +913,113 @@ describe("broadcasts API pacing", () => {
     return row;
   }
 });
+
+describe("broadcasts from a template", () => {
+  const from = "Acme <hi@acme.dev>";
+  let templateId: string;
+
+  beforeAll(async () => {
+    const created = await call(tokenA, "POST", "/templates", {
+      name: "Newsletter",
+      alias: "newsletter",
+      subject: "News for {{{FIRST_NAME|you}}}",
+      html: "<p>Hello {{{FIRST_NAME|there}}}</p>",
+      text: "Hello {{{FIRST_NAME|there}}}",
+    });
+    templateId = (await json(created)).id;
+  });
+
+  const read = async (id: string) =>
+    (await (await call(tokenA, "GET", `/broadcasts/${id}`)).json()) as {
+      subject: string;
+      html: string | null;
+      text: string | null;
+      preview_text: string | null;
+    };
+
+  it("422s a template with no published version", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", { from, template: { id: "newsletter" } });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({ name: "template_not_published" });
+  });
+
+  it("copies the newest published version, keeping merge fields for each contact", async () => {
+    await call(tokenA, "POST", `/templates/${templateId}/publish`);
+    // A later edit to the draft must not reach the broadcast.
+    await call(tokenA, "PATCH", `/templates/${templateId}`, { html: "<p>edited</p>" });
+    const res = await call(tokenA, "POST", "/broadcasts", { from, template: { id: "newsletter" } });
+    expect(res.status).toBe(200);
+    expect(await read((await json(res)).id)).toMatchObject({
+      subject: "News for {{{FIRST_NAME|you}}}",
+      html: "<p>Hello {{{FIRST_NAME|there}}}</p>",
+      text: "Hello {{{FIRST_NAME|there}}}",
+    });
+  });
+
+  it("lets subject and preview_text override, and takes a tag or version", async () => {
+    await call(tokenA, "POST", `/templates/${templateId}/publish`, { tags: ["production"] });
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      subject: "Mine",
+      preview_text: "peek",
+      template: { id: templateId, tag: "production" },
+    });
+    expect(res.status).toBe(200);
+    expect(await read((await json(res)).id)).toMatchObject({
+      subject: "Mine",
+      preview_text: "peek",
+      html: "<p>edited</p>",
+    });
+
+    const v1 = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId, version: 1 },
+    });
+    expect((await read((await json(v1)).id)).html).toBe("<p>Hello {{{FIRST_NAME|there}}}</p>");
+  });
+
+  it("does not follow the template once created", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId, tag: "production" },
+    });
+    const id = (await json(res)).id;
+    await call(tokenA, "PUT", `/templates/${templateId}/tags/production`, { version: 1 });
+    expect((await read(id)).html).toBe("<p>edited</p>");
+  });
+
+  it("404s an unknown template, version or tag, and another team's template", async () => {
+    for (const template of [
+      { id: "missing" },
+      { id: "newsletter", version: 42 },
+      { id: "newsletter", tag: "nope" },
+    ]) {
+      const res = await call(tokenA, "POST", "/broadcasts", { from, template });
+      expect(res.status, JSON.stringify(template)).toBe(404);
+    }
+    const foreign = await call(tokenB, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId },
+    });
+    expect(foreign.status).toBe(404);
+  });
+
+  it("422s a template with html or text, or with both version and tag", async () => {
+    const withHtml = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      html: "<p>x</p>",
+      template: { id: "newsletter" },
+    });
+    expect(withHtml.status).toBe(422);
+    const both = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: "newsletter", version: 1, tag: "production" },
+    });
+    expect(both.status).toBe(422);
+  });
+
+  it("422s a create with neither a template nor a subject", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", { from, html: "<p>x</p>" });
+    expect(res.status).toBe(422);
+  });
+});

@@ -156,6 +156,7 @@ interface WireTemplate {
   reply_to?: string[] | null;
   html?: string | null;
   text?: string | null;
+  status?: string | null;
   variables?: { key: string; type: string; fallback_value?: unknown }[] | null;
 }
 interface WireWebhook {
@@ -266,6 +267,7 @@ function toTemplate(wire: WireTemplate): SourceTemplate {
     html: wire.html ?? null,
     text: wire.text ?? null,
     variables: (wire.variables ?? []).map(toVariable),
+    published: wire.status === "published",
   };
 }
 

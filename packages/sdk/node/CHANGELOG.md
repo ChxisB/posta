@@ -2,6 +2,11 @@
 
 Versions follow the Posta API they target; the API stays wire-compatible with Resend.
 
+## Unreleased
+
+- Template versions and tags: `templates.publish(id, { tags })` freezes the draft as the next version and returns `{ version, created, tags }`; `listVersions`, `getVersion`, `removeVersion`, `listTags`, `setTag` and `removeTag` cover the rest. `Template` and `TemplateListItem` gain `version` and `tags`, and `status` is `"draft"` until the first publish.
+- `emails.send` and `broadcasts.create` take `template: { id, version?, tag? }` (and `variables` on a send), and `subject` is optional when a template is given.
+
 ## 0.8.0 - 2026-09-08
 
 - `contacts.remove(address, { erase: true })` and `contacts.batch.remove({ ids | emails, erase: true })` also scrub the address from email history, event payloads and API logs (`?erase=true` on the single delete, body `erase` on the batch); a GDPR/LGPD erasure. Without `erase` a delete keeps the contact's emails in the send log, as before. Responses are unchanged. Needs Posta v0.6.54.

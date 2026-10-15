@@ -15,6 +15,7 @@ The first release of Posta as an email platform you host on your own AWS SES. It
 - Domains with guided DNS verification, and DKIM managed by SES or brought by you.
 - Contacts with segments, topics, CSV import and bulk endpoints, and broadcasts sent to all contacts, a segment or a topic.
 - Templates with merge fields, one-click unsubscribe (RFC 8058) with a hosted page, and a suppression list fed by hard bounces and complaints.
+- Template versions and tags. A template is a draft until `POST /templates/{id}/publish` freezes it as the next numbered version, and tags such as `production` point at a version and can move. `POST /emails`, `POST /emails/batch` and `POST /broadcasts` take `template: { id, version?, tag?, variables? }` in place of `html` and `text`, and `subject` is optional with a template. New routes list, read and delete versions and set and delete tags, and the MCP server, the Node SDK and the CLI follow.
 - Signed webhooks in the Standard Webhooks format, with a delivery log.
 - An SMTP relay on port 2587 that authenticates with an API key.
 - Receiving (beta): mail to any address on a verified domain, through an MX the instance runs, with Resend's `emails.receiving` API and the `email.received` webhook.

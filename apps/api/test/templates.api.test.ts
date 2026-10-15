@@ -74,7 +74,7 @@ beforeAll(async () => {
 afterAll(() => close());
 
 describe("POST /templates", () => {
-  it("creates a live template, storing html raw and blank subject/text as null", async () => {
+  it("creates a draft template, storing html raw and blank subject/text as null", async () => {
     const html = '<h1>Hi {{{FIRST_NAME|there}}}</h1><script>alert(1)</script><p onclick="x">x</p>';
     const id = await createTemplate({
       name: "  Welcome  ",
@@ -106,12 +106,15 @@ describe("POST /templates", () => {
       from: null,
       subject: null,
       reply_to: null,
+      preview_text: null,
       html,
       text: null,
       variables: [],
-      status: "published",
-      published_at: row?.createdAt.toISOString(),
-      has_unpublished_versions: false,
+      status: "draft",
+      published_at: null,
+      version: null,
+      tags: [],
+      has_unpublished_versions: true,
       created_at: row?.createdAt.toISOString(),
       updated_at: row?.updatedAt.toISOString(),
     });
@@ -208,10 +211,14 @@ describe("GET /templates", () => {
         "name",
         "published_at",
         "status",
+        "tags",
         "updated_at",
+        "version",
       ]);
-      expect(row.status).toBe("published");
-      expect(row.published_at).toBe(row.created_at);
+      expect(row.status).toBe("draft");
+      expect(row.published_at).toBeNull();
+      expect(row.version).toBeNull();
+      expect(row.tags).toEqual([]);
     }
     // Oldest first, like the other lists.
     const times = body.data.map((r) => String(r.created_at));
@@ -347,19 +354,204 @@ describe("PATCH /templates/{id}", () => {
 });
 
 describe("POST /templates/{id}/publish", () => {
-  it("is an idempotent no-op that leaves the row untouched", async () => {
+  it("freezes the draft as the next version and is idempotent while it is unchanged", async () => {
     const id = await createTemplate({ name: "Publish", html: "<p>p</p>", alias: "publish-me" });
-    const before = await getTemplate(id);
+    const first = await call(fullKey, "POST", `/templates/publish-me/publish`);
+    expect(first.status).toBe(200);
+    expect(await first.json()).toEqual({
+      object: "template",
+      id,
+      version: 1,
+      created: true,
+      tags: [],
+    });
+
+    const published = await getTemplate(id);
+    expect(published.body).toMatchObject({
+      status: "published",
+      version: 1,
+      has_unpublished_versions: false,
+    });
+    expect(published.body.published_at).toEqual(expect.any(String));
+    expect(published.body.current_version_id).not.toBe(id);
+
     for (const key of [id, "publish-me"]) {
-      const res = await call(fullKey, "POST", `/templates/${key}/publish`);
-      expect(res.status, key).toBe(200);
-      expect(await res.json()).toEqual({ object: "template", id });
+      const again = await call(fullKey, "POST", `/templates/${key}/publish`);
+      expect(again.status, key).toBe(200);
+      expect(await again.json()).toEqual({
+        object: "template",
+        id,
+        version: 1,
+        created: false,
+        tags: [],
+      });
     }
-    expect((await getTemplate(id)).body).toEqual(before.body);
+    expect((await getTemplate(id)).body).toEqual(published.body);
     expect((await call(otherTeamKey, "POST", `/templates/${id}/publish`)).status).toBe(404);
     expect((await call(fullKey, "POST", `/templates/${crypto.randomUUID()}/publish`)).status).toBe(
       404,
     );
+  });
+
+  it("marks the template as having unpublished changes after an edit", async () => {
+    const id = await createTemplate({ name: "Edited", html: "<p>one</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+    await call(fullKey, "PATCH", `/templates/${id}`, { html: "<p>two</p>" });
+    expect((await getTemplate(id)).body).toMatchObject({
+      status: "published",
+      version: 1,
+      has_unpublished_versions: true,
+      html: "<p>two</p>",
+    });
+    const next = await call(fullKey, "POST", `/templates/${id}/publish`);
+    expect(await next.json()).toMatchObject({ version: 2, created: true });
+  });
+
+  it("sets tags in the same call and 422s a bad tag name or body", async () => {
+    const id = await createTemplate({ name: "Tagged", html: "<p>t</p>" });
+    const ok = await call(fullKey, "POST", `/templates/${id}/publish`, {
+      tags: ["production", "staging"],
+    });
+    expect(await ok.json()).toMatchObject({ version: 1, tags: ["production", "staging"] });
+    expect((await getTemplate(id)).body.tags).toEqual(["production", "staging"]);
+
+    for (const tags of [["has space"], ["123"], ["-x"], ["a".repeat(65)]]) {
+      const res = await call(fullKey, "POST", `/templates/${id}/publish`, { tags });
+      expect(res.status, tags[0]).toBe(422);
+      expect(await res.json()).toMatchObject({
+        name: "validation_error",
+        message: expect.stringMatching(/^tags?[.:]/),
+      });
+    }
+    const tooMany = await call(fullKey, "POST", `/templates/${id}/publish`, {
+      tags: ["a", "b", "c", "d", "e", "f"],
+    });
+    expect(tooMany.status).toBe(422);
+  });
+});
+
+describe("template versions", () => {
+  async function twoVersions() {
+    const id = await createTemplate({ name: "Versions", subject: "S1", html: "<p>one</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+    await call(fullKey, "PATCH", `/templates/${id}`, { subject: "S2", html: "<p>two</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+    return id;
+  }
+
+  it("lists versions newest first, without content, and reads one with its content", async () => {
+    const id = await twoVersions();
+    const list = await call(fullKey, "GET", `/templates/${id}/versions`);
+    expect(list.status).toBe(200);
+    const body = (await list.json()) as { object: string; data: Record<string, unknown>[] };
+    expect(body.object).toBe("list");
+    expect(body.data.map((v) => v.version)).toEqual([2, 1]);
+    expect(body.data[0]).toMatchObject({
+      object: "template_version",
+      template_id: id,
+      name: "Versions",
+      tags: [],
+    });
+    expect(body.data[0]).not.toHaveProperty("html");
+
+    const one = await call(fullKey, "GET", `/templates/${id}/versions/1`);
+    expect(await one.json()).toMatchObject({
+      object: "template_version",
+      version: 1,
+      subject: "S1",
+      html: "<p>one</p>",
+      text: null,
+      preview_text: null,
+    });
+    expect((await call(fullKey, "GET", `/templates/${id}/versions/9`)).status).toBe(404);
+    expect((await call(otherTeamKey, "GET", `/templates/${id}/versions`)).status).toBe(404);
+    expect((await call(otherTeamKey, "GET", `/templates/${id}/versions/1`)).status).toBe(404);
+  });
+
+  it("keeps a version unchanged when the draft is edited or the template renamed", async () => {
+    const id = await twoVersions();
+    await call(fullKey, "PATCH", `/templates/${id}`, { name: "Renamed", html: "<p>three</p>" });
+    const one = await call(fullKey, "GET", `/templates/${id}/versions/2`);
+    expect(await one.json()).toMatchObject({ name: "Versions", html: "<p>two</p>" });
+  });
+
+  it("refuses to delete a tagged version, then deletes it once untagged", async () => {
+    const id = await twoVersions();
+    await call(fullKey, "PUT", `/templates/${id}/tags/production`, { version: 1 });
+    const refused = await call(fullKey, "DELETE", `/templates/${id}/versions/1`);
+    expect(refused.status).toBe(409);
+    expect(await refused.json()).toMatchObject({
+      name: "template_version_tagged",
+      message: expect.stringMatching(/tag production/),
+    });
+    await call(fullKey, "DELETE", `/templates/${id}/tags/production`);
+    const gone = await call(fullKey, "DELETE", `/templates/${id}/versions/1`);
+    expect(gone.status).toBe(200);
+    expect(await gone.json()).toEqual({
+      object: "template_version",
+      version: 1,
+      deleted: true,
+    });
+    expect((await call(fullKey, "DELETE", `/templates/${id}/versions/1`)).status).toBe(404);
+  });
+
+  it("goes away with the template", async () => {
+    const id = await twoVersions();
+    await call(fullKey, "PUT", `/templates/${id}/tags/production`, { version: 2 });
+    expect((await call(fullKey, "DELETE", `/templates/${id}`)).status).toBe(200);
+    expect((await call(fullKey, "GET", `/templates/${id}/versions`)).status).toBe(404);
+  });
+});
+
+describe("template tags", () => {
+  it("sets, moves, lists and deletes a tag, and shows it on the template and its version", async () => {
+    const id = await createTemplate({ name: "Tags", html: "<p>one</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+    await call(fullKey, "PATCH", `/templates/${id}`, { html: "<p>two</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+
+    const set = await call(fullKey, "PUT", `/templates/${id}/tags/production`, { version: 1 });
+    expect(set.status).toBe(200);
+    expect(await set.json()).toMatchObject({
+      object: "template_tag",
+      name: "production",
+      version: 1,
+    });
+    expect((await getTemplate(id)).body.tags).toEqual(["production"]);
+
+    const moved = await call(fullKey, "PUT", `/templates/${id}/tags/production`, { version: 2 });
+    expect(await moved.json()).toMatchObject({ name: "production", version: 2 });
+
+    const list = await call(fullKey, "GET", `/templates/${id}/tags`);
+    expect(await list.json()).toMatchObject({
+      object: "list",
+      data: [{ name: "production", version: 2 }],
+    });
+    const version = await call(fullKey, "GET", `/templates/${id}/versions/2`);
+    expect(((await version.json()) as { tags: string[] }).tags).toEqual(["production"]);
+
+    const removed = await call(fullKey, "DELETE", `/templates/${id}/tags/production`);
+    expect(await removed.json()).toEqual({
+      object: "template_tag",
+      name: "production",
+      deleted: true,
+    });
+    expect((await call(fullKey, "DELETE", `/templates/${id}/tags/production`)).status).toBe(404);
+  });
+
+  it("404s a tag on a version that does not exist or another team's template, 422s a bad name", async () => {
+    const id = await createTemplate({ name: "Tag errors", html: "<p>x</p>" });
+    await call(fullKey, "POST", `/templates/${id}/publish`);
+    expect((await call(fullKey, "PUT", `/templates/${id}/tags/live`, { version: 7 })).status).toBe(
+      404,
+    );
+    expect(
+      (await call(otherTeamKey, "PUT", `/templates/${id}/tags/live`, { version: 1 })).status,
+    ).toBe(404);
+    const bad = await call(fullKey, "PUT", `/templates/${id}/tags/has%20space`, { version: 1 });
+    expect(bad.status).toBe(422);
+    const missingVersion = await call(fullKey, "PUT", `/templates/${id}/tags/live`, {});
+    expect(missingVersion.status).toBe(422);
   });
 });
 
@@ -425,6 +617,12 @@ describe("permission confinement", () => {
       ["DELETE", `/templates/${id}`, undefined],
       ["POST", `/templates/${id}/publish`, undefined],
       ["POST", `/templates/${id}/duplicate`, undefined],
+      ["GET", `/templates/${id}/versions`, undefined],
+      ["GET", `/templates/${id}/versions/1`, undefined],
+      ["DELETE", `/templates/${id}/versions/1`, undefined],
+      ["GET", `/templates/${id}/tags`, undefined],
+      ["PUT", `/templates/${id}/tags/production`, { version: 1 }],
+      ["DELETE", `/templates/${id}/tags/production`, undefined],
     ] as const) {
       const res = await call(sendKey, method, path, body);
       expect(res.status, `${method} ${path}`).toBe(403);

@@ -45,10 +45,21 @@ export interface Attachment {
   path?: string;
 }
 
+/** What a send or a broadcast names instead of `html` and `text`. */
+export interface TemplateRef {
+  /** Template id or alias. */
+  id: string;
+  /** A published version number. Name this or `tag`, or neither for the newest published version. */
+  version?: number;
+  /** A tag such as "production". */
+  tag?: string;
+}
+
 export interface SendEmailOptions {
   from: string;
   to: Recipients;
-  subject: string;
+  /** Required unless `template` is given. An explicit subject wins over the template's. */
+  subject?: string;
   html?: string;
   text?: string;
   cc?: Recipients;
@@ -62,8 +73,11 @@ export interface SendEmailOptions {
   attachments?: Attachment[];
   /** Extra message headers; transport headers are rejected by the API. */
   headers?: Record<string, string>;
-  /** Sent through as-is; Posta answers 422 until templates can be sent. */
-  template?: { id: string; variables?: Record<string, string | number> };
+  /**
+   * Send a published template version instead of `html` and `text`. `variables`
+   * fills the `{{{NAME}}}` merge fields. The draft is never sent.
+   */
+  template?: TemplateRef & { variables?: Record<string, string | number> };
 }
 
 export interface CreateEmailResponse {
@@ -436,9 +450,15 @@ export interface CreateBroadcastOptions {
   name?: string;
   segmentId?: string;
   from: string;
-  subject: string;
+  /** Required unless `template` is given. */
+  subject?: string;
   html?: string;
   text?: string;
+  /**
+   * Start from a published template version. Its content is copied in when the
+   * broadcast is created, and no link back is kept.
+   */
+  template?: TemplateRef;
   replyTo?: Recipients;
   /** Inbox preview (preheader) text. */
   previewText?: string;
@@ -814,9 +834,14 @@ export interface TemplateListItem {
   id: string;
   name: string;
   alias: string | null;
-  /** Always "published": every save is live. */
-  status: "published";
-  published_at: string;
+  /** "draft" until the first publish. */
+  status: "draft" | "published";
+  /** When the newest published version was made; null while a draft. */
+  published_at: string | null;
+  /** The newest published version; null while a draft. */
+  version: number | null;
+  /** Tags set on any version of the template. */
+  tags: string[];
   created_at: string;
   updated_at: string;
 }
@@ -827,10 +852,64 @@ export interface Template extends TemplateListItem {
   from: string | null;
   subject: string | null;
   reply_to: string | string[] | null;
+  preview_text: string | null;
   html: string;
   text: string | null;
   variables: unknown[];
-  has_unpublished_versions: false;
+  /** True while the draft differs from the newest published version. */
+  has_unpublished_versions: boolean;
+}
+
+export interface PublishTemplateOptions {
+  /** Tags to point at the version this publish makes, up to 5. */
+  tags?: string[];
+}
+
+export interface PublishTemplateResponse {
+  object: "template";
+  id: string;
+  version: number;
+  /** false when the draft already matched the newest version and nothing was made. */
+  created: boolean;
+  tags: string[];
+}
+
+export interface TemplateVersionListItem {
+  object: "template_version";
+  id: string;
+  template_id: string;
+  version: number;
+  name: string;
+  /** Tags pointing at this version. */
+  tags: string[];
+  created_at: string;
+}
+
+export interface TemplateVersion extends TemplateVersionListItem {
+  subject: string | null;
+  preview_text: string | null;
+  html: string;
+  text: string | null;
+}
+
+export interface RemoveTemplateVersionResponse {
+  object: "template_version";
+  version: number;
+  deleted: true;
+}
+
+export interface TemplateTag {
+  object: "template_tag";
+  name: string;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RemoveTemplateTagResponse {
+  object: "template_tag";
+  name: string;
+  deleted: true;
 }
 
 export interface RemoveTemplateResponse {

@@ -103,7 +103,8 @@ Posta::Batch.send([payload_a, payload_b], idempotency_key: "run-7", batch_valida
 The send payload accepts `from`, `to`, `subject`, `html`, `text`, `cc`, `bcc`, `reply_to`,
 `scheduled_at`, `tags: [{ name:, value: }]`, `topic_id`, `headers: { "X-..." => "..." }`,
 `attachments: [{ filename:, content: <base64>, content_type:, content_id:, path: }]` and
-`template` (passed through; the server currently answers 422 for it). `to`, `cc`, `bcc` and
+`template` (`{ id:, version: or tag:, variables: }`, a published template version instead of
+`html`/`text`; `subject` is optional with it). `to`, `cc`, `bcc` and
 `reply_to` accept either a string or an array. `Emails.create` is an alias of `Emails.send`
 (as is `Batch.create`), mirroring Resend. `Emails.update` also takes resend-ruby's single
 hash: `Emails.update(email_id: id, scheduled_at: ...)`.
@@ -298,7 +299,7 @@ tpl = Posta::Templates.create(name: "Welcome", html: "<p>Hi</p>", subject: "Welc
 Posta::Templates.get("welcome")
 Posta::Templates.list
 Posta::Templates.update("welcome", subject: nil, alias: nil) # nil clears subject/text/alias
-Posta::Templates.publish(tpl[:id])   # templates are always published; kept as a no-op for compatibility
+Posta::Templates.publish(tpl[:id])   # freezes the draft as the next version; sends use published versions
 Posta::Templates.duplicate(tpl[:id]) # returns the copy's id
 Posta::Templates.remove(tpl[:id])
 ```

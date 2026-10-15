@@ -69,9 +69,10 @@ type TemplateId struct {
 }
 
 // Template is returned by Get and is a List row (rows carry the metadata
-// fields only). Templates have no draft/publish cycle (every save is live),
-// so Status is always "published". From, ReplyTo and Variables read as "",
-// nil and empty until the API supports them.
+// fields only). Status is "draft" until the first publish. PublishedAt and
+// Version describe the newest published version and read as "" and 0 while a
+// draft. From, ReplyTo and Variables read as "", nil and empty until the API
+// supports them.
 type Template struct {
 	Object           string              `json:"object"`
 	Id               string              `json:"id"`
@@ -79,6 +80,8 @@ type Template struct {
 	Alias            string              `json:"alias"`
 	Status           string              `json:"status"`
 	PublishedAt      string              `json:"published_at"`
+	Version          int                 `json:"version"`
+	Tags             []string            `json:"tags"`
 	CreatedAt        string              `json:"created_at"`
 	UpdatedAt        string              `json:"updated_at"`
 	CurrentVersionId string              `json:"current_version_id"`
@@ -133,7 +136,7 @@ func (s *TemplatesService) Update(idOrAlias string, params *UpdateTemplateReques
 	})
 }
 
-// Publish is a no-op kept for resend-go compatibility: every save is already live.
+// Publish freezes the draft as the next numbered version; sends use published versions.
 func (s *TemplatesService) Publish(idOrAlias string) (*TemplateId, error) {
 	return doJSON[TemplateId](s.client, context.Background(), requestParams{
 		method: http.MethodPost, path: templatePath(idOrAlias) + "/publish",

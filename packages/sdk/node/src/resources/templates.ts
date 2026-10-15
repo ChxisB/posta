@@ -5,10 +5,17 @@ import type {
   CreateTemplateOptions,
   List,
   ListOptions,
+  PublishTemplateOptions,
+  PublishTemplateResponse,
   RemoveTemplateResponse,
+  RemoveTemplateTagResponse,
+  RemoveTemplateVersionResponse,
   Template,
   TemplateId,
   TemplateListItem,
+  TemplateTag,
+  TemplateVersion,
+  TemplateVersionListItem,
   UpdateTemplateOptions,
 } from "../types.js";
 
@@ -26,8 +33,9 @@ function toWire(o: CreateTemplateOptions | UpdateTemplateOptions) {
 }
 
 /**
- * Email templates. Every save is live, so `publish` is a no-op kept for
- * Resend compatibility. `id` arguments accept the template id or its alias.
+ * Email templates. A template is a working draft until `publish` freezes it as
+ * the next numbered version; sends and broadcasts name a version or a tag.
+ * `id` arguments accept the template id or its alias.
  */
 export class Templates {
   constructor(private readonly http: HttpClient) {}
@@ -63,11 +71,72 @@ export class Templates {
     });
   }
 
-  /** POST /templates/:idOrAlias/publish: no-op (templates are always live). */
-  publish(idOrAlias: string): Promise<Result<TemplateId>> {
+  /**
+   * POST /templates/:idOrAlias/publish: freezes the draft as the next version,
+   * or returns the newest one with `created: false` when nothing changed.
+   */
+  publish(
+    idOrAlias: string,
+    options: PublishTemplateOptions = {},
+  ): Promise<Result<PublishTemplateResponse>> {
     return this.http.request({
       method: "POST",
       path: `/templates/${encodeURIComponent(idOrAlias)}/publish`,
+      ...(options.tags ? { body: { tags: options.tags } } : {}),
+    });
+  }
+
+  /** GET /templates/:idOrAlias/versions: newest first, without content. */
+  listVersions(
+    idOrAlias: string,
+  ): Promise<Result<{ object: "list"; data: TemplateVersionListItem[] }>> {
+    return this.http.request({
+      method: "GET",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/versions`,
+    });
+  }
+
+  /** GET /templates/:idOrAlias/versions/:version: one version with its frozen content. */
+  getVersion(idOrAlias: string, version: number): Promise<Result<TemplateVersion>> {
+    return this.http.request({
+      method: "GET",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/versions/${version}`,
+    });
+  }
+
+  /** DELETE /templates/:idOrAlias/versions/:version: refused with 409 while a tag points at it. */
+  removeVersion(
+    idOrAlias: string,
+    version: number,
+  ): Promise<Result<RemoveTemplateVersionResponse>> {
+    return this.http.request({
+      method: "DELETE",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/versions/${version}`,
+    });
+  }
+
+  /** GET /templates/:idOrAlias/tags */
+  listTags(idOrAlias: string): Promise<Result<{ object: "list"; data: TemplateTag[] }>> {
+    return this.http.request({
+      method: "GET",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/tags`,
+    });
+  }
+
+  /** PUT /templates/:idOrAlias/tags/:name: creates the tag or moves it to `version`. */
+  setTag(idOrAlias: string, name: string, version: number): Promise<Result<TemplateTag>> {
+    return this.http.request({
+      method: "PUT",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/tags/${encodeURIComponent(name)}`,
+      body: { version },
+    });
+  }
+
+  /** DELETE /templates/:idOrAlias/tags/:name: the version it pointed at stays. */
+  removeTag(idOrAlias: string, name: string): Promise<Result<RemoveTemplateTagResponse>> {
+    return this.http.request({
+      method: "DELETE",
+      path: `/templates/${encodeURIComponent(idOrAlias)}/tags/${encodeURIComponent(name)}`,
     });
   }
 

@@ -195,7 +195,9 @@ outra configuração de segurança.
 | `list_broadcasts` | `broadcasts:read` | Lista transmissões com o status. |
 | `get_broadcast` | `broadcasts:read` | Busca uma transmissão. |
 | `list_templates` | `templates:read` | Lista templates de e-mail. |
-| `get_template` | `templates:read` | Busca um template por id ou alias, com assunto, html e texto. |
+| `get_template` | `templates:read` | Busca um template por id ou alias, com assunto, html e texto do rascunho. |
+| `list_template_versions` | `templates:read` | Lista as versões publicadas de um template e as tags de cada uma. |
+| `get_template_version` | `templates:read` | Busca uma versão publicada com o conteúdo congelado. |
 | `list_webhooks` | `webhooks:write` | Lista os webhooks (linhas de lista nunca trazem o segredo de assinatura). |
 | `get_webhook` | `webhooks:write` | Busca um webhook: URL, eventos e status. |
 | `list_api_keys` | `api-keys:write` | Lista as chaves de API ativas (nunca os tokens). |
@@ -231,8 +233,12 @@ outra configuração de segurança.
 | `send_broadcast` | `broadcasts:write` | Envia ou agenda um rascunho de transmissão. |
 | `cancel_broadcast` | `broadcasts:write` | Cancela uma transmissão na fila, agendada ou já saindo; e-mails já enviados não voltam. |
 | `delete_broadcast` | `broadcasts:write` | Exclui um rascunho de transmissão. |
-| `create_template` | `templates:write` | Cria um template de e-mail (ativo na hora). |
-| `update_template` | `templates:write` | Altera nome, assunto, html, texto ou alias de um template. |
+| `create_template` | `templates:write` | Cria um template de e-mail como rascunho. |
+| `update_template` | `templates:write` | Altera o rascunho de um template: nome, assunto, html, texto ou alias. |
+| `publish_template` | `templates:write` | Congela o rascunho como a próxima versão, com tags opcionais. |
+| `set_template_tag` | `templates:write` | Cria uma tag ou a move para outra versão publicada. |
+| `delete_template_tag` | `templates:write` | Exclui uma tag; a versão continua. |
+| `delete_template_version` | `templates:write` | Exclui uma versão publicada que nenhuma tag aponta. |
 | `delete_template` | `templates:write` | Exclui um template; as transmissões mantêm a própria cópia. |
 | `create_webhook` | `webhooks:write` | **admin** Cria um webhook. |
 | `update_webhook` | `webhooks:write` | **admin** Atualiza URL, eventos ou status de um webhook. |

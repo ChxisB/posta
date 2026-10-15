@@ -114,6 +114,8 @@ export interface SourceTemplate {
   html: string | null;
   text: string | null;
   variables: SourceTemplateVariable[];
+  /** Published in the source. Posta sends by template only from a published version, so these are published after the copy. */
+  published?: boolean | undefined;
 }
 
 export interface SourceWebhook {

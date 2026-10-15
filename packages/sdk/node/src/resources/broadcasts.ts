@@ -36,7 +36,12 @@ export class Broadcasts {
     return this.http.request({
       method: "POST",
       path: "/broadcasts",
-      body: { ...toWire(payload), send: payload.send, scheduled_at: payload.scheduledAt },
+      body: {
+        ...toWire(payload),
+        template: payload.template,
+        send: payload.send,
+        scheduled_at: payload.scheduledAt,
+      },
     });
   }
 

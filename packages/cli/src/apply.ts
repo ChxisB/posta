@@ -312,14 +312,24 @@ export async function applyPlan(input: ApplyInput): Promise<ApplyOutcome> {
     return result;
   });
 
-  await runRows("templates", (item) =>
-    item.action === "update"
-      ? target.updateTemplate(
-          item.targetId ?? "",
-          item.payload as { name: string; alias: string | null },
-        )
-      : target.createTemplate(item.payload as TemplatePayload),
-  );
+  await runRows("templates", async (item) => {
+    const result =
+      item.action === "update"
+        ? await target.updateTemplate(
+            item.targetId ?? "",
+            item.payload as { name: string; alias: string | null },
+          )
+        : await target.createTemplate(item.payload as TemplatePayload);
+    if (!result.ok) return result;
+    const source = snapshot.templates.find((t) => (t.alias ?? t.name) === item.key);
+    if (source?.published !== true) return result;
+    // A template published in the source stays sendable by id or alias.
+    const published = await target.publishTemplate(result.id);
+    if (!published.ok) {
+      failed("templates", item.key, `saved, but publishing failed: ${published.message}`);
+    }
+    return result;
+  });
 
   // Pass 1 result per address; enrichment leaves skipped/failed contacts alone.
   const pass1 = new Map<string, "created" | "updated" | "skipped" | "failed">();

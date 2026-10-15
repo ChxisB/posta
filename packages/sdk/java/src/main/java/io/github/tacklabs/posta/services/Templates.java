@@ -63,7 +63,7 @@ public final class Templates {
         new TypeReference<DeletedResponse>() {});
   }
 
-  /** POST /templates/{idOrAlias}/publish: a no-op acknowledgement: every save is already live. */
+  /** POST /templates/{idOrAlias}/publish: freezes the draft as the next numbered version. */
   public Id publish(String idOrAlias) throws PostaException {
     return http.request(
         "POST", "/templates/" + enc(idOrAlias) + "/publish", null, null, null,

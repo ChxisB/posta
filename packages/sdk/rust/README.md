@@ -513,7 +513,7 @@ ms.templates.update("welcome", &UpdateTemplateOptions {
     alias: Some(None),                                     // null clears
     ..Default::default()
 }).await?;
-ms.templates.publish(&created.id).await?;                  // no-op kept for Resend compatibility
+ms.templates.publish(&created.id).await?;                  // freezes the draft as the next version
 ms.templates.duplicate(&created.id).await?;
 ms.templates.delete(&created.id).await?;
 ```
@@ -569,8 +569,10 @@ Resource and method names match: `emails`, `batch`, `contacts`, `topics`,
   `contacts.create_batch`, `contacts.batch_get`, `contacts.batch_remove`,
   `contacts.preferences_link`,
   `webhooks.rotate`, `deliverability`, `usage`, `emails.get_insights`.
-- **Templates** are always published; `publish` is a no-op kept for
-  compatibility, and `from`/`reply_to`/`variables` are rejected with 422.
+- **Templates** are drafts until `publish` freezes them as a numbered version,
+  which is what sends use. `from`/`reply_to`/`variables` on a template are
+  rejected with 422. Versions and tags have no wrapper here yet: use the REST
+  API, the CLI, MCP or the Node SDK.
 - **Nullable clears**: `Option<Option<T>>` fields (`Some(None)`) send JSON
   `null`; `UpdateBroadcastOptions::clear_topic_id` does the same for
   `topic_id`.

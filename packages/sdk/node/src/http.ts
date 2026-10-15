@@ -41,7 +41,7 @@ export interface BatchRequestOptions extends RequestOptions {
 }
 
 interface DoRequest {
-  method: "GET" | "POST" | "PATCH" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   body?: unknown;
   query?: Record<string, string | number | undefined> | undefined;
