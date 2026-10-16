@@ -21,9 +21,9 @@ export async function GET(
     title: page.data.title,
     description: page.data.description,
     site: "Posta Docs",
-    // The brand violet for the rules, the lifted violet (--po-accent-text on
-    // dark) for the site name: the card's ground is fumadocs' own near-black.
-    primaryColor: "#7046e8",
+    // The card's ground is fumadocs' own near-black, so both take the dark
+    // accent (Glow, --po-accent-text on dark).
+    primaryColor: "#a98bff",
     primaryTextColor: "#a98bff",
   });
 }

@@ -15,7 +15,7 @@ export const MOBILE_PREVIEW_WIDTH = 375;
  * panel (--po-panel), the light one is white.
  */
 export function emailFrameBackground(scheme: EmailScheme): string {
-  return scheme === "dark" ? "#111115" : "#ffffff";
+  return scheme === "dark" ? "#12151d" : "#ffffff";
 }
 
 /*

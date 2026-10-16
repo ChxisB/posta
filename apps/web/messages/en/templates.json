@@ -213,7 +213,7 @@
       "buttonText": "Button text"
     },
     "picker": "{colour}, colour picker",
-    "hexInvalid": "Use a hex colour, such as #7046e8.",
+    "hexInvalid": "Use a hex colour, such as #6538d6.",
     "font": "Font",
     "corners": "Corners",
     "corner": {

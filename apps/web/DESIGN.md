@@ -18,7 +18,7 @@ brand moments, not to the interface.
 | --- | --- | --- |
 | `--po-brand-coral` | #ff6a3d | gradient start |
 | `--po-brand-rose` | #e8458b | gradient middle |
-| `--po-brand-violet` | #7046e8 | gradient end, and the accent fill |
+| `--po-brand-violet` | #7046e8 | gradient end |
 
 `--po-brand-gradient` is Coral → Rose → Violet at 135°.
 
@@ -33,11 +33,11 @@ colour is the flat violet below.
 
 1. **One accent, spent once per view.** The primary button, the live status
    dot or the lit digit. If two things are lit, one is wrong. Fills are flat
-   violet (`--po-accent`, white text, `--po-on-accent`) in both themes. Violet
-   used as text, a line or a mark is `--po-accent-text`: the same violet on the
-   light ground, a lighter tint on dark so it reads there. `--po-steel` is the
-   accent text's earlier name, kept as an alias; new code uses
-   `--po-accent-text`.
+   (`--po-accent`, with `--po-on-accent` on it): Violet `#6538d6` with white on
+   light, Glow `#a98bff` with Ink on dark, because white on Glow is 2.7:1.
+   Violet used as text, a line or a mark is `--po-accent-text`, the same
+   colour as the fill in both themes. `--po-steel` is the accent text's
+   earlier name, kept as an alias; new code uses `--po-accent-text`.
 2. **Separation by tone and 1px `--po-line` lines.** No coloured card fills and
    no elevation scale. The one lift is `--po-shadow-card`, a soft edge-lit
    shadow on cards, modals and menus, much gentler on light than on dark. The
@@ -59,25 +59,29 @@ followed. Both blocks live in `tokens/colors.css`, and light redefines every
 token dark declares. Any element carrying `data-theme` applies that set
 inside itself, which is how a preview frame shows the other scheme.
 
-The neutrals are cool and close to grey so the violet carries the brand. The
-Brand Book (v1, October 2026) now gives final ink and slate values, and they
-differ from the ones below; `KNOWN_BOOK_GAPS` in
-`src/test-support/brand-rules.ts` lists each value still to bring across.
+The product tokens below are the Brand Book's (v1, October 2026, Colour,
+"Product tokens"); `test/brand-rules.test.ts` fails if one drifts, and
+`KNOWN_BOOK_GAPS` in `src/test-support/brand-rules.ts` lists what is still
+to bring across. `--po-ground`, `--po-inset` and `--po-line-strong` are not
+in the book; each is one step off the book's neighbour.
 
 | Token | Dark | Light | Role |
 | --- | --- | --- | --- |
-| `--po-void` | #09090b | #f8f8fa | page ground |
-| `--po-panel` | #111115 | #ffffff | sidebar, cards, modals |
-| `--po-panel-raised` | #18181d | #f1f1f5 | hover rows, active nav pill, table header |
-| `--po-inset` | #1d1d23 | #f5f5f8 | inputs, code blocks, chips |
-| `--po-line` | #26262d | #e5e5eb | every border and divider |
-| `--po-bone` | #f4f4f6 | #16161d | primary text |
-| `--po-muted` | #9b9ba6 | #62626e | secondary text, labels |
-| `--po-accent` | #7046e8 | #7046e8 | primary button and checked-control fill |
-| `--po-accent-text` | #a98bff | #7046e8 | links, the lit digit, the focus ring |
+| `--po-void` | #0a0c10 | #fafafa | page ground |
+| `--po-panel` | #12151d | #ffffff | sidebar, cards, modals |
+| `--po-panel-raised` | #161a24 | #f4f5f7 | hover rows, active nav pill, table header |
+| `--po-inset` | #1b2029 | #f7f8fa | inputs, code blocks, chips |
+| `--po-line` | #232836 | #e3e5e9 | every border and divider |
+| `--po-line-soft` | #1b2029 | #eef0f3 | dividers inside a card, between rows |
+| `--po-bone` | #e6e9f0 | #16181d | primary text |
+| `--po-muted` | #9aa2b5 | #4d5158 | secondary text, labels |
+| `--po-faint` | #767f92 | #6b7078 | placeholders, hints, disabled |
+| `--po-accent` | #a98bff | #6538d6 | primary button and checked-control fill |
+| `--po-on-accent` | #0a0c10 | #ffffff | text on an accent fill |
+| `--po-accent-text` | #a98bff | #6538d6 | links, the lit digit, the focus ring |
 
-`--po-faint` is for disabled and decorative use only and is under 3:1 by
-design; never use it for copy.
+`--po-faint` holds 4.5:1 on the grounds, so it can carry placeholders and
+hints; it is still the quietest text, not body copy.
 
 **Contrast.** Every text pair holds 4.5:1 and every non-text control 3:1 in both
 themes. `src/test-support/contrast.ts` lists the pairs the UI draws and
@@ -170,8 +174,9 @@ brand test checks the mark's path data and the gradient's stops.
 - **The gradient is for the logo and the app icon only.** In the interface the
   accent is the flat violet above. The gradient lives in the SVG files, so no
   stylesheet or component names it.
-- Open: the book names `#6538D6` as its violet, and the interface accent is
-  `#7046E8` (the gradient's end). They are not unified yet.
+- The interface accent is the book's Violet `#6538D6` (Glow `#A98BFF` on
+  dark). `#7046E8` is the gradient's end and lives only in the logo files and
+  `--po-brand-violet`.
 
 ## Voice: plain, numeric, engineer to engineer
 

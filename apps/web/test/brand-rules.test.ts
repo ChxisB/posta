@@ -134,7 +134,7 @@ describe("colours outside the tokens", () => {
     expect(strayHexes("a.css", "color: #ff00aa; border: 1px solid #000000", TOKEN_HEXES)).toEqual([
       "#ff00aa",
     ]);
-    expect(strayHexes("a.css", "color: #f4f4f6; mask: #ffffff", TOKEN_HEXES)).toEqual([]);
+    expect(strayHexes("a.css", "color: #e6e9f0; mask: #ffffff", TOKEN_HEXES)).toEqual([]);
     // An 8-digit colour is a colour too, and a numeric character reference is not.
     expect(strayHexes("a.css", "box-shadow: 0 0 #ff00aa80", TOKEN_HEXES)).toEqual(["#ff00aa80"]);
     expect(strayHexes("a.html", "&#128512; and &#x1f600;", TOKEN_HEXES)).toEqual([]);
@@ -367,8 +367,8 @@ describe("DESIGN.md", () => {
   const byToken = (token: string) => rows.filter((row) => row.token === token);
 
   it("reads a token table", () => {
-    expect(designRows("| `--po-bone` | #f4f4f6 | #16161d |\n| plain | row |\n")).toEqual([
-      { token: "bone", cells: ["#f4f4f6", "#16161d"] },
+    expect(designRows("| `--po-bone` | #e6e9f0 | #16181d |\n| plain | row |\n")).toEqual([
+      { token: "bone", cells: ["#e6e9f0", "#16181d"] },
     ]);
   });
 
@@ -492,8 +492,8 @@ describe("system email", () => {
     expect(email.text).toBe(resolve(tokens, "bone"));
     expect(email.muted).toBe(resolve(tokens, "muted"));
     expect(email.link).toBe(resolve(tokens, "accent-text"));
-    expect(email.button).toBe(resolve(THEMES.dark, "accent"));
-    expect(email.onButton).toBe(resolve(THEMES.dark, "on-accent"));
+    expect(email.button).toBe(resolve(tokens, "accent"));
+    expect(email.onButton).toBe(resolve(tokens, "on-accent"));
   });
 
   it.each(THEME_LIST)("reads at 4.5:1 or better in %s", (theme) => {

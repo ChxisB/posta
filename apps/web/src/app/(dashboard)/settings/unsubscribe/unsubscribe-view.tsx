@@ -257,7 +257,7 @@ export function UnsubscribeView() {
               id="unsub-bg"
               label={t("colorBackground")}
               value={form.backgroundColor}
-              fallback="#09090b"
+              fallback="#0a0c10"
               disabled={disabled}
               onChange={(backgroundColor) => set({ backgroundColor })}
             />
@@ -265,7 +265,7 @@ export function UnsubscribeView() {
               id="unsub-text"
               label={t("colorText")}
               value={form.textColor}
-              fallback="#f4f4f6"
+              fallback="#e6e9f0"
               disabled={disabled}
               onChange={(textColor) => set({ textColor })}
             />
@@ -273,7 +273,7 @@ export function UnsubscribeView() {
               id="unsub-accent"
               label={t("colorAccent")}
               value={form.accentColor}
-              fallback="#7046e8"
+              fallback="#6538d6"
               disabled={disabled}
               onChange={(accentColor) => set({ accentColor })}
             />

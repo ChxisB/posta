@@ -15,39 +15,39 @@
   --font-sans:
     "Geist Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
-  --color-fd-background: #f8f8fa;
-  --color-fd-foreground: #16161d;
+  --color-fd-background: #fafafa;
+  --color-fd-foreground: #16181d;
   --color-fd-card: #ffffff;
-  --color-fd-card-foreground: #16161d;
+  --color-fd-card-foreground: #16181d;
   --color-fd-popover: #ffffff;
-  --color-fd-popover-foreground: #16161d;
-  --color-fd-border: #e5e5eb;
-  --color-fd-primary: #7046e8;
+  --color-fd-popover-foreground: #16181d;
+  --color-fd-border: #e3e5e9;
+  --color-fd-primary: #6538d6;
   --color-fd-primary-foreground: #ffffff;
-  --color-fd-secondary: #f1f1f5;
-  --color-fd-secondary-foreground: #16161d;
-  --color-fd-muted: #f3f3f6;
-  --color-fd-muted-foreground: #62626e;
-  --color-fd-accent: #f1f1f5;
-  --color-fd-accent-foreground: #16161d;
-  --color-fd-ring: #7046e8;
+  --color-fd-secondary: #f4f5f7;
+  --color-fd-secondary-foreground: #16181d;
+  --color-fd-muted: #f4f5f7;
+  --color-fd-muted-foreground: #4d5158;
+  --color-fd-accent: #f4f5f7;
+  --color-fd-accent-foreground: #16181d;
+  --color-fd-ring: #6538d6;
 }
 .dark {
-  --color-fd-background: #09090b;
-  --color-fd-foreground: #f4f4f6;
-  --color-fd-card: #111115;
-  --color-fd-card-foreground: #f4f4f6;
-  --color-fd-popover: #111115;
-  --color-fd-popover-foreground: #f4f4f6;
-  --color-fd-border: #26262d;
+  --color-fd-background: #0a0c10;
+  --color-fd-foreground: #e6e9f0;
+  --color-fd-card: #12151d;
+  --color-fd-card-foreground: #e6e9f0;
+  --color-fd-popover: #12151d;
+  --color-fd-popover-foreground: #e6e9f0;
+  --color-fd-border: #232836;
   --color-fd-primary: #a98bff;
-  --color-fd-primary-foreground: #09090b;
-  --color-fd-secondary: #18181d;
-  --color-fd-secondary-foreground: #f4f4f6;
-  --color-fd-muted: #18181d;
-  --color-fd-muted-foreground: #9b9ba6;
-  --color-fd-accent: #1d1d23;
-  --color-fd-accent-foreground: #f4f4f6;
+  --color-fd-primary-foreground: #0a0c10;
+  --color-fd-secondary: #161a24;
+  --color-fd-secondary-foreground: #e6e9f0;
+  --color-fd-muted: #161a24;
+  --color-fd-muted-foreground: #9aa2b5;
+  --color-fd-accent: #1b2029;
+  --color-fd-accent-foreground: #e6e9f0;
   --color-fd-ring: #a98bff;
 }
 

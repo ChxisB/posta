@@ -150,22 +150,22 @@ export function fillTemplate(template: string, values: Record<string, string>): 
  */
 export const EMAIL_COLOURS = {
   light: {
-    page: "#f8f8fa",
+    page: "#fafafa",
     card: "#ffffff",
-    text: "#16161d",
-    muted: "#62626e",
-    link: "#7046e8",
-    button: "#7046e8",
+    text: "#16181d",
+    muted: "#4d5158",
+    link: "#6538d6",
+    button: "#6538d6",
     onButton: "#ffffff",
   },
   dark: {
-    page: "#09090b",
-    card: "#111115",
-    text: "#f4f4f6",
-    muted: "#9b9ba6",
+    page: "#0a0c10",
+    card: "#12151d",
+    text: "#e6e9f0",
+    muted: "#9aa2b5",
     link: "#a98bff",
-    button: "#7046e8",
-    onButton: "#ffffff",
+    button: "#a98bff",
+    onButton: "#0a0c10",
   },
 } as const;
 

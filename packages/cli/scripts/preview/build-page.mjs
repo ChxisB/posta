@@ -69,25 +69,25 @@ const page = `<title>Migrate CLI Before and After</title>
 <style>
   :root {
     color-scheme: dark;
-    --void: #09090b; --panel: #111115; --panel-2: #18181d; --line: #26262d; --line-2: #33333c;
-    --bone: #f4f4f6; --ink-2: #9b9ba6; --steel: #9b9ba6; --accent: #a98bff;
+    --void: #0a0c10; --panel: #12151d; --panel-2: #161a24; --line: #232836; --line-2: #2f3546;
+    --bone: #e6e9f0; --ink-2: #9aa2b5; --steel: #9aa2b5; --accent: #a98bff;
     --ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --term-bg: #111115; --term-bar: #09090b; --term-line: #26262d; --term-line-2: #33333c;
-    --term-fg: #f4f4f6; --term-dim: #9b9ba6; --term-bright: #ffffff;
+    --term-bg: #12151d; --term-bar: #0a0c10; --term-line: #232836; --term-line-2: #2f3546;
+    --term-fg: #e6e9f0; --term-dim: #9aa2b5; --term-bright: #ffffff;
     --t-green: #5fce8b; --t-yellow: #d9ae5f; --t-red: #e07f76; --t-cyan: #8fb3d9; --t-magenta: #e88bc0; --t-blue: #7ea6db;
   }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
       color-scheme: light;
-      --void: #f8f8fa; --panel: #ffffff; --panel-2: #f1f1f5; --line: #e5e5eb; --line-2: #d3d3dc;
-      --bone: #16161d; --ink-2: #62626e; --steel: #62626e; --accent: #7046e8;
+      --void: #fafafa; --panel: #ffffff; --panel-2: #f4f5f7; --line: #e3e5e9; --line-2: #cdd1d8;
+      --bone: #16181d; --ink-2: #4d5158; --steel: #4d5158; --accent: #6538d6;
     }
   }
   :root[data-theme="light"] {
     color-scheme: light;
-    --void: #f8f8fa; --panel: #ffffff; --panel-2: #f1f1f5; --line: #e5e5eb; --line-2: #d3d3dc;
-    --bone: #16161d; --ink-2: #62626e; --steel: #62626e; --accent: #7046e8;
+    --void: #fafafa; --panel: #ffffff; --panel-2: #f4f5f7; --line: #e3e5e9; --line-2: #cdd1d8;
+    --bone: #16181d; --ink-2: #4d5158; --steel: #4d5158; --accent: #6538d6;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--void); color: var(--bone); font-family: var(--ui); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }

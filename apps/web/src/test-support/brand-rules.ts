@@ -167,31 +167,10 @@ export const BOOK_TOKENS: Record<string, Record<Theme, string>> = {
  * Where the product's colours and fonts still differ from the Brand Book, as
  * "token.theme" or "font-sans" / "font-mono". Exact, like KNOWN_MISSING_ASSETS:
  * a value that is brought across has to leave this list, and a new difference
- * fails. The neutrals were provisional until the book arrived; the accent is
- * still the gradient's violet (#7046e8) where the book's is #6538d6.
+ * fails. Only the mono face is left: the app sets JetBrains Mono where the
+ * book sets Geist Mono.
  */
-export const KNOWN_BOOK_GAPS = [
-  "accent-text.light",
-  "accent.dark",
-  "accent.light",
-  "bone.dark",
-  "bone.light",
-  "faint.dark",
-  "faint.light",
-  "font-mono",
-  "line-soft.dark",
-  "line-soft.light",
-  "line.dark",
-  "line.light",
-  "muted.dark",
-  "muted.light",
-  "on-accent.dark",
-  "panel-raised.dark",
-  "panel-raised.light",
-  "panel.dark",
-  "void.dark",
-  "void.light",
-];
+export const KNOWN_BOOK_GAPS = ["font-mono"];
 
 /**
  * The book's tokens whose value is not the book's, as "token.theme". `read`
