@@ -415,6 +415,12 @@ export const env = createEnv({
     // internet-reachable dashboard from handing strangers the SES account.
     ALLOW_SIGNUP: boolFromString,
 
+    // One stack per region: "region=url" pairs, e.g.
+    // "eu-west-2=https://eu.example.com,us-east-1=https://us.example.com".
+    // Set on every stack (own region included) to offer the choice at
+    // sign-up; read through regionStacks().
+    REGION_STACKS: z.string().optional(),
+
     // Cloud-only switch for branded tracking subdomains (a customer CNAMEs
     // track.theirdomain.com at this app). Read through
     // trackingSubdomainsSupported(), which leaves self-host unconditionally on.
@@ -518,6 +524,23 @@ export function servedRegions(e: Env = env): string[] {
     ? (raw as string[])
     : parseCommaList(typeof raw === "string" ? raw : undefined);
   return listed ?? [e.AWS_REGION || AWS_REGION_DEFAULT];
+}
+
+/**
+ * The stacks offered at sign-up, from REGION_STACKS ("region=url" pairs); empty
+ * when unset. Each URL is cut down to its origin. Throws on a malformed pair so
+ * a typo refuses the boot instead of sending people to a dead link.
+ */
+export function regionStacks(e: Env = env): { region: string; url: string }[] {
+  const raw = e.REGION_STACKS as unknown;
+  return (typeof raw === "string" ? (parseCommaList(raw) ?? []) : []).map((pair) => {
+    const [region = "", target = ""] = pair.split("=", 2).map((s) => s.trim());
+    const url = URL.canParse(target) ? new URL(target) : null;
+    if (!region || !url || !/^https?:$/.test(url.protocol)) {
+      throw new Error(`REGION_STACKS entry "${pair}" must look like region=https://host`);
+    }
+    return { region, url: url.origin };
+  });
 }
 
 /** Whether teams get their own SES tenant: explicit SES_TENANTS wins, else the cloud default. */
@@ -838,6 +861,12 @@ export function assertEnvConsistency(e: Env): void {
   // Image reading from a region with no geographic profile would fail every
   // read: abuseVisionConfig throws for it, which refuses the boot here.
   abuseVisionConfig(e);
+  // The picker marks this stack by its own region; a list without it would
+  // offer a choice with nothing selected.
+  const stacks = regionStacks(e);
+  if (stacks.length > 0 && !stacks.some((s) => s.region === servedRegions(e)[0])) {
+    throw new Error(`REGION_STACKS must list this stack's own region, ${servedRegions(e)[0]}`);
+  }
   if (e.IS_CLOUD) {
     for (const key of [
       "KMS_KEY_ID",

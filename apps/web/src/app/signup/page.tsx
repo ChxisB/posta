@@ -1,4 +1,4 @@
-import { env, signupOpen } from "@posta/config";
+import { env, regionStacks, servedRegions, signupOpen } from "@posta/config";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -11,9 +11,11 @@ import { enabledSocialProviders, hasSession } from "@/server/auth";
 export default async function SignupPage() {
   // An authenticated visitor has no business on the auth screens.
   if (await hasSession()) redirect("/");
+  const own = servedRegions()[0];
   return (
     <AuthForm
       mode="signup"
+      regions={regionStacks().map((s) => ({ ...s, current: s.region === own }))}
       providers={enabledSocialProviders()}
       legal={{ termsUrl: env.TERMS_URL ?? null, privacyUrl: env.PRIVACY_URL ?? null }}
       turnstileSiteKey={env.TURNSTILE_SITE_KEY ?? null}

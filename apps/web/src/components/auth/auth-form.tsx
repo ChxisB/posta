@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+import { regionFlag, regionName } from "@/app/(dashboard)/domains/regions";
+import { Select } from "@/components/select";
 import { captchaHeaders, useTurnstile } from "@/components/turnstile";
 import { authClient } from "@/lib/auth-client";
 import { typedEmail } from "@/lib/email-input";
@@ -51,10 +53,13 @@ export function AuthForm({
   forgotPassword = false,
   turnstileSiteKey = null,
   productUpdates = false,
+  regions = [],
 }: {
   mode: "login" | "signup";
   providers: SocialProviderFlags;
   legal: LegalLinks;
+  /** Signup only: the stacks to choose between (REGION_STACKS); a pick elsewhere continues on that stack's sign-up. */
+  regions?: { region: string; url: string; current: boolean }[];
   /** Login only: render the "Forgot password?" link (instance can send the reset email). */
   forgotPassword?: boolean;
   /** Set when the instance verifies a Turnstile token on the email form. */
@@ -66,6 +71,7 @@ export function AuthForm({
   const tSocial = useTranslations("auth.social");
   const tLegal = useTranslations("auth.legal");
   const tCommon = useTranslations("common");
+  const tRegions = useTranslations("domains");
   const params = useSearchParams();
   // An invited user carries ?next=/invite/...: signup sends them to accept
   // the invite rather than /onboarding (which would create a new team).
@@ -284,6 +290,26 @@ export function AuthForm({
         ) : null}
         {anySocial ? <div className={styles.divider}>{tSocial("or")}</div> : null}
         <form onSubmit={onSubmit} className={styles.form}>
+          {/* An invite belongs to the stack that issued it, so an invited visitor is not offered another. */}
+          {mode === "signup" && regions.length > 1 && !nextParam ? (
+            <div className={`po-field ${styles.field}`}>
+              <label htmlFor="region">{t("region")}</label>
+              <Select
+                id="region"
+                ariaLabel={t("region")}
+                value={regions.find((r) => r.current)?.region ?? ""}
+                options={regions.map((r) => ({
+                  value: r.region,
+                  label: `${regionFlag(r.region)} ${regionName(r.region, tRegions)}`.trim(),
+                }))}
+                onChange={(value) => {
+                  const stack = regions.find((r) => r.region === value);
+                  if (stack && !stack.current) window.location.assign(`${stack.url}/signup`);
+                }}
+              />
+              <p className={styles.notice}>{t("regionHint")}</p>
+            </div>
+          ) : null}
           {mode === "signup" ? (
             <div className={`po-field ${styles.field}`}>
               <label htmlFor="name">{t("name")}</label>
