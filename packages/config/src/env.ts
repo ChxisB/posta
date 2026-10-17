@@ -1,0 +1,888 @@
+import { createEnv } from "@t3-oss/env-core";
+import { z } from "zod";
+import { DNS_DOMAIN, SITE_DOMAIN } from "./site.js";
+
+const boolFromString = z
+  .enum(["true", "false", "1", "0"])
+  .default("false")
+  .transform((v) => v === "true" || v === "1");
+
+/**
+ * Comma-separated ARNs → non-empty array, or undefined. Values like "," or
+ * whitespace must yield undefined, not []: a truthy empty allowlist would
+ * mount the SNS endpoint yet 403 every delivery, including the
+ * SubscriptionConfirmation needed to ever receive events.
+ */
+export function parseSnsTopicArns(value: string | undefined): string[] | undefined {
+  return parseCommaList(value);
+}
+
+/** Comma-separated list → trimmed non-empty entries, or undefined when none. */
+export function parseCommaList(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const items = value
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  return items.length > 0 ? items : undefined;
+}
+
+// Built-in defaults, exported for the settings screen's "effective value"
+// display: the env proxy is raw process.env under SKIP_ENV_VALIDATION, so
+// consumers needing the default without zod's parsing read these.
+export const SES_MAX_SEND_RATE_DEFAULT = 14;
+/** Percent of each region's SES 24-hour quota kept for transactional mail; broadcasts get the rest. */
+export const SES_TRANSACTIONAL_RESERVE_DEFAULT = 30;
+export const SES_TRANSACTIONAL_RESERVE_MIN = 5;
+export const SES_TRANSACTIONAL_RESERVE_MAX = 90;
+export const AWS_REGION_DEFAULT = "us-east-1";
+export const EMAIL_RETENTION_DAYS_DEFAULT = 30;
+export const OPEN_PREFETCH_WINDOW_SECONDS_DEFAULT = 10;
+export const INVITES_PER_TEAM_PER_DAY_DEFAULT = 50;
+
+/** Break-glass content access in the console; "off" is the default everywhere. */
+export const CONTENT_REVEAL_MODES = ["off", "on"] as const;
+export type ContentRevealMode = (typeof CONTENT_REVEAL_MODES)[number];
+
+/** Where the optional content-monitor judge runs; "off" is the default everywhere. */
+export const ABUSE_JUDGE_PROVIDERS = ["off", "typesafe"] as const;
+export type AbuseJudgeProvider = (typeof ABUSE_JUDGE_PROVIDERS)[number];
+export const ABUSE_JUDGE_BASE_URL_DEFAULT = "https://api.typesafe.ai";
+export const ABUSE_JUDGE_MODEL_DEFAULT = "jev-1.13.0";
+export const ABUSE_JUDGE_TIMEOUT_MS_DEFAULT = 20_000;
+
+/** Who reads the text in an email's images for the judge; "off" is the default everywhere. */
+export const ABUSE_VISION_PROVIDERS = ["off", "bedrock"] as const;
+export type AbuseVisionProvider = (typeof ABUSE_VISION_PROVIDERS)[number];
+/** Claude Haiku 5.5's foundation model id on Amazon Bedrock. */
+export const ABUSE_VISION_MODEL = "anthropic.claude-haiku-5-5";
+export const ABUSE_VISION_REGION_DEFAULT = "us-east-1";
+/**
+ * The regions Haiku 5.5 is called from, by the prefix of the geographic
+ * inference profile that serves each: Bedrock offers the model there only
+ * through cross-region profiles, and a geographic one reads images only in
+ * its geography's regions. The global profile, which may read them
+ * anywhere, is never used.
+ */
+const ABUSE_VISION_GEOGRAPHIES: Record<"us" | "eu" | "au" | "jp", string[]> = {
+  us: ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1", "ca-west-1"],
+  eu: [
+    "eu-central-1",
+    "eu-central-2",
+    "eu-north-1",
+    "eu-south-1",
+    "eu-south-2",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+  ],
+  au: ["ap-southeast-2", "ap-southeast-4"],
+  jp: ["ap-northeast-1", "ap-northeast-3"],
+};
+
+/** The profile a region calls Haiku 5.5 through (us.anthropic.claude-haiku-5-5), or null. */
+export function abuseVisionProfile(region: string): string | null {
+  const geo = Object.entries(ABUSE_VISION_GEOGRAPHIES).find(([, regions]) =>
+    regions.includes(region),
+  );
+  return geo ? `${geo[0]}.${ABUSE_VISION_MODEL}` : null;
+}
+
+const SENTRY_ENVIRONMENT_DEFAULT = "production";
+/** POSTA_REVISION outside an image built with a GIT_SHA. */
+const REVISION_UNKNOWN = "unknown";
+
+const emailAddress = z.email();
+
+/**
+ * Parse a mail From value (`Name <user@domain>` or a bare address) into its
+ * display name and address. Null when the address part is not a valid email,
+ * so boot validation can reject a typo instead of failing on the first send.
+ */
+export function parseEmailFrom(value: string): { name: string | null; address: string } | null {
+  const match = /^([^<>]*)<([^<>\s]+)>$/.exec(value.trim());
+  const name = match?.[1]?.trim().replace(/^"(.*)"$/, "$1") || null;
+  const address = match ? (match[2] ?? "") : value.trim();
+  if (!emailAddress.safeParse(address).success) return null;
+  return { name, address };
+}
+
+// Canonical base64 only: Buffer.from silently skips foreign characters, so a
+// mangled key could pass a length check yet decode differently elsewhere,
+// which would make previously encrypted bodies unrecoverable.
+const canonicalBase64Key = z.string().refine(
+  (v) => {
+    const decoded = Buffer.from(v, "base64");
+    return decoded.length === 32 && decoded.toString("base64") === v;
+  },
+  { message: "must be 32 bytes of canonical base64 (`openssl rand -base64 32`)" },
+);
+
+/**
+ * Process environment, validated at import so every process (web, api,
+ * worker, smtp) crashes at boot on misconfiguration instead of at first use.
+ * Tests set SKIP_ENV_VALIDATION=1 to construct partial environments.
+ *
+ * IS_CLOUD is the single seam between the hosted SaaS and self-host:
+ * cloud-only variables stay optional per-field and are enforced by the
+ * cross-field rules below, so a self-host boot never demands Stripe/KMS
+ * configuration.
+ */
+export const env = createEnv({
+  server: {
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3001),
+    // Git SHA baked into the image (Dockerfile ARG GIT_SHA); reported by the
+    // API's /health so a running deployment can be matched to a commit.
+    POSTA_REVISION: z.string().default(REVISION_UNKNOWN),
+    API_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(600),
+    DATABASE_URL: z.url(),
+
+    IS_CLOUD: boolFromString,
+
+    // Reverse proxies whose X-Forwarded-For / CF-Connecting-IP headers are
+    // trusted for the client IP (comma-separated IPs). Anything else is a
+    // spoofable header, so the socket address wins.
+    TRUSTED_PROXIES: z
+      .string()
+      .default("127.0.0.1,::1")
+      .transform((v) => parseCommaList(v) ?? []),
+
+    // Webhook SSRF escape hatch: allow http:// and private/loopback targets
+    // for local development. Never enable on an internet-reachable instance.
+    WEBHOOK_ALLOW_LOCALHOST: boolFromString,
+
+    // SMTP relay (PROCESS=smtp) listen port.
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(2587),
+    // Public hostname self-hosters point their app's SMTP client at. Defaults
+    // to the APP_BASE_URL host; set when the relay is reachable elsewhere.
+    SMTP_PUBLIC_HOST: z.string().optional(),
+    // STARTTLS certificate for the SMTP relay. Both set → STARTTLS is
+    // offered and required before AUTH; unset → AUTH stays disabled unless
+    // the private-network escape hatch below is explicitly enabled.
+    SMTP_TLS_CERT_PATH: z.string().optional(),
+    SMTP_TLS_KEY_PATH: z.string().optional(),
+    // Explicit escape hatch for a private, trusted network. False by default
+    // because AUTH PLAIN/LOGIN exposes the API key without TLS.
+    SMTP_ALLOW_INSECURE_AUTH: boolFromString,
+
+    // Envelope-encryption KEK for email bodies at rest, and the HKDF root of
+    // the tracking/unsubscribe token keys. Always required: cloud wraps new
+    // DEKs with KMS but still derives tokens (and reads pre-KMS rows) from it.
+    MASTER_ENCRYPTION_KEY: canonicalBase64Key,
+    // Cloud only: KMS key (ARN or key id) that wraps per-email DEKs instead
+    // of the env KEK. Rows sealed under the env KEK stay readable through
+    // the composite keyring.
+    KMS_KEY_ID: z.string().optional(),
+
+    // BYO-SES for self-host; cloud uses the platform account. AWS_REGION is
+    // the KMS and SQS client region and the one-region alias of AWS_REGIONS;
+    // read the SES regions through servedRegions(), never from either directly.
+    AWS_REGION: z.string().default(AWS_REGION_DEFAULT),
+    // SES regions this deployment sends from, comma-separated; the first is
+    // the default (platform mail, sends with no domain row). Absent → the
+    // one region in AWS_REGION.
+    AWS_REGIONS: z.string().optional().transform(parseCommaList),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
+
+    // SNS topics allowed to deliver SES events (comma-separated ARNs).
+    // Unset disables the ingestion endpoint entirely: signature checks
+    // without a topic allowlist would accept any AWS account's topic.
+    SNS_TOPIC_ARNS: z.string().optional().transform(parseSnsTopicArns),
+
+    // SQS queue the worker long-polls for SES events when SNS has no public
+    // https endpoint to push to. Requires SNS_TOPIC_ARNS, the same allowlist
+    // authenticates messages read from the queue.
+    SQS_QUEUE_URL: z.url().optional(),
+
+    // SES configuration set whose event destination feeds the SNS topic
+    // (SELF_HOSTING checklist). Used for sends whenever a domain has no
+    // per-domain set recorded; without it SES publishes no events.
+    SES_CONFIGURATION_SET: z.string().optional(),
+
+    // One SES tenant per team (reputation + suppression isolation at SES).
+    // Unset follows IS_CLOUD; see sesTenantsEnabled().
+    SES_TENANTS: z.enum(["true", "false", "1", "0"]).optional(),
+
+    // Messages/second ceiling for THE ONE worker process: the buckets are
+    // in-memory, so running N worker replicas multiplies the real SES rate
+    // by N. Until the bucket is shared (Postgres-backed), scale the worker
+    // vertically only, or divide this value by the replica count. Each
+    // region runs at the lower of its own SES MaxSendRate and this, so a
+    // sandbox region paces itself at 1/s without lowering it. 14/s is SES's
+    // standard production default. Bootstrap value only: the
+    // instance_settings row overrides it.
+    SES_MAX_SEND_RATE: z.coerce.number().positive().default(SES_MAX_SEND_RATE_DEFAULT),
+    // Share of every served region's rolling 24-hour SES quota that
+    // broadcasts never touch, as a percent. Transactional mail may use all
+    // of it and borrow beyond it; broadcasts get the rest and are paced over
+    // days past it. One value for every region. Bootstrap value only: the
+    // instance_settings row (Console → Regions) overrides it.
+    SES_TRANSACTIONAL_RESERVE: z.coerce
+      .number()
+      .int()
+      .min(SES_TRANSACTIONAL_RESERVE_MIN)
+      .max(SES_TRANSACTIONAL_RESERVE_MAX)
+      .default(SES_TRANSACTIONAL_RESERVE_DEFAULT),
+    // Concurrent send lanes in the worker. A lane spends most of a send
+    // waiting on SES, so about 1.2 lanes per message/second of send rate
+    // keeps the bucket full; the default matches the standard 14/s account.
+    SEND_CONCURRENCY: z.coerce.number().int().min(1).default(16),
+    // Worker processes sharing one SES account. Each divides the send rate
+    // by this number, since the bucket lives in process memory.
+    WORKER_REPLICAS: z.coerce.number().int().min(1).default(1),
+    // Parallel SQS long-poll loops. One loop is bounded by the round trip to
+    // the queue's region; four keep up with a 55/s burst from another region.
+    SQS_POLL_CONCURRENCY: z.coerce.number().int().min(1).default(4),
+    // Days webhook delivery rows (payload, response, attempts) stay readable
+    // in the dashboard before the retention purge deletes them.
+    WEBHOOK_DELIVERY_RETENTION_DAYS: z.coerce.number().int().min(1).default(30),
+
+    // Days email BODIES are kept; metadata and events are unaffected.
+    // Bootstrap value only: the instance_settings row overrides it.
+    EMAIL_RETENTION_DAYS: z.coerce.number().int().min(1).default(EMAIL_RETENTION_DAYS_DEFAULT),
+    // Whole email rows (recipients, subject, status, events) age out on this
+    // window; bodies leave earlier on EMAIL_RETENTION_DAYS. Thirty days is the
+    // industry norm (Resend keeps email data 30 days) and what the metadata
+    // tables are sized for; daily counters and broadcast results outlive it.
+    EMAIL_METADATA_RETENTION_DAYS: z.coerce.number().int().min(1).default(30),
+    // A tracking-image fetch within this many seconds of delivery (or before
+    // it) is recorded as prefetched, not opened: security gateways scan a
+    // message within seconds, while a person reading a push notification
+    // takes longer. 0 leaves only the user-agent rules.
+    OPEN_PREFETCH_WINDOW_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(OPEN_PREFETCH_WINDOW_SECONDS_DEFAULT),
+
+    // Optional content monitor: TypeSafe Jev judges a new team's mail, and
+    // any team's mail to a destination it has never used, before SES takes
+    // it, and a sample of the rest after. Off by default; with it off nothing
+    // waits on it.
+    // ABUSE_JUDGE=typesafe needs ABUSE_JUDGE_API_KEY. Sampling rates and
+    // thresholds are instance settings (console → Trust & safety →
+    // Monitoring settings); the MONITOR_* values below are their bootstrap
+    // defaults.
+    ABUSE_JUDGE: z.enum(ABUSE_JUDGE_PROVIDERS).default("off"),
+    ABUSE_JUDGE_MODEL: z.string().optional(),
+    ABUSE_JUDGE_BASE_URL: z.url().default(ABUSE_JUDGE_BASE_URL_DEFAULT),
+    ABUSE_JUDGE_API_KEY: z.string().optional(),
+    ABUSE_JUDGE_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(1000)
+      .default(ABUSE_JUDGE_TIMEOUT_MS_DEFAULT),
+    // Optional image reading for the judge: Claude Haiku 5.5 on Amazon
+    // Bedrock writes down the text and brands in an email's images and in
+    // attachment pages that are images, with the worker's AWS credentials,
+    // called from ABUSE_VISION_REGION through its geography's inference
+    // profile (abuseVisionProfile), so images are read within that
+    // geography. Off by default; refusing program files, holding risky files
+    // and reading PDFs, Office files and QR codes all work without it.
+    ABUSE_VISION: z.enum(ABUSE_VISION_PROVIDERS).default("off"),
+    ABUSE_VISION_REGION: z
+      .string()
+      .regex(/^[a-z]{2}(?:-[a-z]+)+-\d+$/, "must be an AWS region like us-east-1")
+      .default(ABUSE_VISION_REGION_DEFAULT),
+    // Break-glass: with this on, an operator can read the subject and
+    // rendered text of a flagged team's messages for a recorded security
+    // reason, for 30 minutes, disclosed to the team after 7 days. The cloud
+    // keeps it off until its terms and privacy notice say so.
+    CONTENT_REVEAL: z.enum(CONTENT_REVEAL_MODES).default("off"),
+    MONITOR_FIRST_SENDS: z.coerce.number().int().min(0).optional(),
+    MONITOR_FIRST_HOURS: z.coerce.number().int().min(0).optional(),
+    MONITOR_RAMP_SENDS: z.coerce.number().int().min(0).optional(),
+    MONITOR_RAMP_RATE: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_RAMP_DAYS: z.coerce.number().int().min(0).optional(),
+    MONITOR_PROBATION_RATE: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_ESTABLISHED_RATE: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_TRUSTED_RATE: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_BROADCAST_COPIES: z.coerce.number().int().min(0).optional(),
+    MONITOR_BROADCAST_COPIES_NEW: z.coerce.number().int().min(0).optional(),
+    MONITOR_ANOMALY_MULTIPLIER: z.coerce.number().min(1).optional(),
+    MONITOR_TEAM_DAILY_CAP: z.coerce.number().int().min(0).optional(),
+    MONITOR_INSTANCE_DAILY_CAP: z.coerce.number().int().min(0).optional(),
+    MONITOR_FLAG_RISK: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_ALERT_RISK: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_PAUSE_RISK: z.coerce.number().min(0).max(1).optional(),
+    MONITOR_AUTO_PAUSE: z.enum(["true", "false", "1", "0"]).optional(),
+    MONITOR_FLAG_SCORE: z.coerce.number().int().min(0).max(100).optional(),
+    MONITOR_AUTO_HOLD: z.enum(["true", "false", "1", "0"]).optional(),
+    MONITOR_HOLD_SCORE: z.coerce.number().int().min(0).max(100).optional(),
+    MONITOR_HOLD_REPEAT_COUNT: z.coerce.number().int().min(0).optional(),
+    MONITOR_HOLD_REPEAT_SCORE: z.coerce.number().int().min(0).max(100).optional(),
+    // New-domain warm-up: a daily cap per sending domain by registration age
+    // (unset follows IS_CLOUD). Instance settings in the same console page
+    // override these, like the MONITOR_* values above.
+    WARMUP_ENABLED: z.enum(["true", "false", "1", "0"]).optional(),
+    WARMUP_CAP_FIRST_DAY: z.coerce.number().int().min(0).optional(),
+    WARMUP_CAP_FIRST_WEEK: z.coerce.number().int().min(0).optional(),
+    WARMUP_CAP_FIRST_MONTH: z.coerce.number().int().min(0).optional(),
+
+    // Sign-up, invitations and email changes refuse addresses on the
+    // disposable-email-domains list (sub.mailinator.com counts as mailinator.com);
+    // existing accounts keep working. The app ships the list and the worker
+    // refreshes it daily while this is on. Unset follows IS_CLOUD; read
+    // through disposableEmailsBlocked().
+    BLOCK_DISPOSABLE_EMAILS: z.enum(["true", "false", "1", "0"]).optional(),
+
+    // Network and country of the IPs the console shows, from DB-IP's free
+    // databases: the worker downloads them monthly and every lookup stays on
+    // this instance. Unset follows IS_CLOUD; read through
+    // ipGeolocationEnabled().
+    IP_GEOLOCATION: z.enum(["true", "false", "1", "0"]).optional(),
+
+    // Read-only support view: the instance operator may open a team's
+    // dashboard as its owner sees it, for 30 minutes, with a reason and a
+    // ticket reference, under a banner, recorded at once in both audit logs
+    // (the owner is not mailed). Off by default; read through
+    // supportViewEnabled().
+    SUPPORT_VIEW: z.enum(["off", "on"]).default("off"),
+
+    // Optional error tracking through a Sentry SDK. Unset DSN: the SDK is
+    // never loaded. SENTRY_DSN serves web, api and worker; SENTRY_BROWSER_DSN
+    // turns on the dashboard's browser reporting, which reaches it through
+    // this app's own origin. Read through errorTrackingConfig().
+    SENTRY_DSN: z.url().optional(),
+    SENTRY_BROWSER_DSN: z.url().optional(),
+    SENTRY_ENVIRONMENT: z.string().default(SENTRY_ENVIRONMENT_DEFAULT),
+    // Share of requests traced; 0 sends errors only.
+    SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0),
+
+    // Public base URL of this deployment; SNS subscriptions and hosted
+    // unsubscribe pages are derived from it.
+    APP_BASE_URL: z.url().optional(),
+    // Public base URL the hosted unsubscribe pages and their links use when
+    // they live on their own host (e.g. https://unsubscribe.example.com):
+    // the origin recipients' browsers and security scanners hit stays apart
+    // from the dashboard's cookies and reputation. Unset: APP_BASE_URL.
+    UNSUBSCRIBE_BASE_URL: z.url().optional(),
+
+    // Public origin of the API, when a reverse proxy serves it somewhere other
+    // than port 3001 of the dashboard host (the compose default the derivation
+    // in @posta/core assumes). Only what the app PRINTS and what MCP
+    // tokens are bound to; the listen port stays PORT.
+    PUBLIC_API_URL: z.url().optional(),
+
+    // Legal pages linked from the auth screen's consent line. Both optional;
+    // the line renders only the links that are set, and disappears entirely
+    // when neither is.
+    TERMS_URL: z.url().optional(),
+    PRIVACY_URL: z.url().optional(),
+
+    // Sender for system emails (password reset), as `Name <user@domain>` or a
+    // bare address; its domain must be a verified identity in this instance's
+    // SES account. Unset disables password recovery entirely.
+    AUTH_EMAIL_FROM: z.string().optional(),
+
+    // Shared first-email sender for the onboarding flow, as `Name <user@domain>`
+    // or a bare address on a domain verified in this instance's SES account.
+    // Any team may send from it (but only to its own members' inboxes) so
+    // the onboarding snippet runs before a domain is verified. Unset hides the
+    // "Send email" button and the snippet asks for the team's own domain.
+    ONBOARDING_EMAIL_FROM: z.string().optional(),
+
+    // OpenAI's plugin portal verifies ownership of the MCP host by fetching
+    // this token from /.well-known/openai-apps-challenge. Unset → 404.
+    OPENAI_APPS_CHALLENGE_TOKEN: z.string().optional(),
+
+    // Cloudflare Turnstile, both keys or neither: sign-in, sign-up, password
+    // reset and the onboarding send verify a token when set. Unset, every
+    // form works as before with no challenge.
+    TURNSTILE_SITE_KEY: z.string().optional(),
+    TURNSTILE_SECRET_KEY: z.string().optional(),
+
+    // Sender for account notifications (quota and deliverability alerts to
+    // team owners) and team invitation emails, same forms as AUTH_EMAIL_FROM,
+    // which it falls back to.
+    NOTIFICATIONS_EMAIL_FROM: z.string().optional(),
+    // Invitations one team, and one member across all their teams, may
+    // create in a rolling day. Read through invitesPerTeamPerDay().
+    INVITES_PER_TEAM_PER_DAY: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .default(INVITES_PER_TEAM_PER_DAY_DEFAULT),
+
+    // Dashboard session signing secret (`openssl rand -base64 32`).
+    // Required only by the web process, which asserts it at boot.
+    BETTER_AUTH_SECRET: z.string().min(32).optional(),
+
+    // Self-host signup policy: the FIRST user may always register; after
+    // that, registration requires this to be explicitly enabled. Keeps an
+    // internet-reachable dashboard from handing strangers the SES account.
+    ALLOW_SIGNUP: boolFromString,
+
+    // One stack per region: "region=url" pairs, e.g.
+    // "eu-west-2=https://eu.example.com,us-east-1=https://us.example.com".
+    // Set on every stack (own region included) to offer the choice at
+    // sign-up; read through regionStacks().
+    REGION_STACKS: z.string().optional(),
+
+    // Cloud-only switch for branded tracking subdomains (a customer CNAMEs
+    // track.theirdomain.com at this app). Read through
+    // trackingSubdomainsSupported(), which leaves self-host unconditionally on.
+    ALLOW_TRACKING_SUBDOMAINS: boolFromString,
+
+    // Host a customer's branded tracking subdomain CNAMEs at. Set to a
+    // dedicated tracking edge (e.g. track.posta-dns.example, a small box
+    // that terminates TLS per customer hostname and proxies /t/* here) when
+    // this app itself cannot hold a certificate for customer hostnames, as on
+    // a multi-tenant cloud behind a CDN. Unset: the CNAME targets this app's
+    // own host, which only works where it can serve those hostnames directly.
+    TRACKING_EDGE_HOST: z.string().optional(),
+    // Shared secret the tracking edge sends when asking whether a hostname is
+    // a configured tracking subdomain (gates on-demand certificate issuance).
+    TRACKING_ASK_SECRET: z.string().optional(),
+
+    // Inbound mail. Receiving exists on this instance only when this names
+    // the MX host customers point their MX records at (the cloud's is
+    // mx.posta-dns.example); unset, every receiving surface is hidden and
+    // the internal MX endpoints answer 404. Read through receivingMxHost().
+    RECEIVING_MX_HOST: z.string().optional(),
+    // Bearer secret the MX (PROCESS=mx) sends to the internal MX endpoints.
+    // Required whenever RECEIVING_MX_HOST is set, at least 32 characters.
+    MX_INGEST_SECRET: z.string().optional(),
+    // Agent inboxes on a shared domain: customers get addresses on per-team
+    // subdomains of it with no DNS of their own. Its own registrable domain,
+    // with a wildcard MX at RECEIVING_MX_HOST. Read through sharedInboxDomain().
+    SHARED_INBOX_DOMAIN: z.string().optional(),
+    // clamd over TCP (host[:port], 3310 by default) scanning received mail
+    // for viruses; unset, nothing is scanned. Read through clamavHost().
+    CLAMAV_HOST: z.string().optional(),
+
+    // Social login for the dashboard. A provider's sign-in button appears
+    // only when BOTH its client id and secret are set.
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
+
+    // Cloud-only (billing). STRIPE_PORTAL_CONFIG selects a customer-portal
+    // configuration; unset uses the Stripe account's default one.
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+    STRIPE_PORTAL_CONFIG: z.string().optional(),
+
+    // S3-compatible object storage (Cloudflare R2 first-class). ONE credential
+    // set shared by every S3-backed feature; each feature is enabled by its
+    // bucket variable below. "auto" is R2's region; other S3-compatibles set a
+    // real one when the endpoint needs it.
+    S3_ENDPOINT: z.url().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_REGION: z.string().default("auto"),
+
+    // Team logo uploads. The bucket must serve objects publicly; they are
+    // addressed as S3_STORAGE_PUBLIC_URL/<key>. Unset hides the upload UI
+    // everywhere.
+    S3_STORAGE_BUCKET: z.string().optional(),
+    S3_STORAGE_PUBLIC_URL: z.url().optional(),
+
+    // Backup sidecar gate + tuning (scripts/backup). Only the sidecar's shell
+    // scripts consume these; they are declared here so the cross-field boot
+    // checks below can reject partial configuration for the whole stack.
+    S3_BACKUP_BUCKET: z.string().optional(),
+    S3_BACKUP_PREFIX: z.string().optional(),
+    BACKUP_CRON: z.string().optional(),
+    BACKUP_RETENTION_DAYS: z.string().optional(),
+  },
+  runtimeEnv: process.env,
+  emptyStringAsUndefined: true,
+  skipValidation: process.env.SKIP_ENV_VALIDATION === "1",
+});
+
+export type Env = typeof env;
+
+// Under SKIP_ENV_VALIDATION the env proxy carries raw process.env strings,
+// where the string "false" is truthy, so boolean flags are read through
+// this instead of tested for truthiness.
+function envFlag(value: unknown): boolean {
+  return value === true || value === "true" || value === "1";
+}
+
+/** The single seam between the hosted SaaS and self-host. */
+export function isCloudDeployment(e: Env = env): boolean {
+  return envFlag(e.IS_CLOUD);
+}
+
+/** Where the hosted unsubscribe pages live: their own host when configured, else the dashboard's. */
+export function unsubscribeBaseUrl(e: Env = env): string | undefined {
+  return e.UNSUBSCRIBE_BASE_URL ?? e.APP_BASE_URL;
+}
+
+/**
+ * The SES regions this deployment serves, the default first: AWS_REGIONS when
+ * set, else the one region in AWS_REGION. Under SKIP_ENV_VALIDATION the proxy
+ * carries the raw comma-separated string, so it is parsed here as well.
+ */
+export function servedRegions(e: Env = env): string[] {
+  const raw = e.AWS_REGIONS as unknown;
+  const listed = Array.isArray(raw)
+    ? (raw as string[])
+    : parseCommaList(typeof raw === "string" ? raw : undefined);
+  return listed ?? [e.AWS_REGION || AWS_REGION_DEFAULT];
+}
+
+/**
+ * The stacks offered at sign-up, from REGION_STACKS ("region=url" pairs); empty
+ * when unset. Each URL is cut down to its origin. Throws on a malformed pair so
+ * a typo refuses the boot instead of sending people to a dead link.
+ */
+export function regionStacks(e: Env = env): { region: string; url: string }[] {
+  const raw = e.REGION_STACKS as unknown;
+  return (typeof raw === "string" ? (parseCommaList(raw) ?? []) : []).map((pair) => {
+    const [region = "", target = ""] = pair.split("=", 2).map((s) => s.trim());
+    const url = URL.canParse(target) ? new URL(target) : null;
+    if (!region || !url || !/^https?:$/.test(url.protocol)) {
+      throw new Error(`REGION_STACKS entry "${pair}" must look like region=https://host`);
+    }
+    return { region, url: url.origin };
+  });
+}
+
+/** Whether teams get their own SES tenant: explicit SES_TENANTS wins, else the cloud default. */
+export function sesTenantsEnabled(e: Env = env): boolean {
+  const flag = e.SES_TENANTS as unknown;
+  if (flag === undefined || flag === "") return isCloudDeployment(e);
+  return envFlag(flag);
+}
+
+/** Whether disposable addresses are refused: explicit BLOCK_DISPOSABLE_EMAILS wins, else the cloud default. */
+export function disposableEmailsBlocked(e: Env = env): boolean {
+  const flag = e.BLOCK_DISPOSABLE_EMAILS as unknown;
+  if (flag === undefined || flag === "") return isCloudDeployment(e);
+  return envFlag(flag);
+}
+
+/** Whether IPs are looked up in the DB-IP databases: explicit IP_GEOLOCATION wins, else the cloud default. */
+export function ipGeolocationEnabled(e: Env = env): boolean {
+  const flag = e.IP_GEOLOCATION as unknown;
+  if (flag === undefined || flag === "") return isCloudDeployment(e);
+  return envFlag(flag);
+}
+
+/** The sender for account notifications; undefined when no system sender is configured. */
+export function notificationsEmailFrom(e: Env = env): string | undefined {
+  return e.NOTIFICATIONS_EMAIL_FROM ?? e.AUTH_EMAIL_FROM;
+}
+
+/** The daily invitation cap per team; under SKIP_ENV_VALIDATION the proxy carries the raw string. */
+export function invitesPerTeamPerDay(e: Env = env): number {
+  const value = Number(e.INVITES_PER_TEAM_PER_DAY);
+  return Number.isInteger(value) && value >= 1 ? value : INVITES_PER_TEAM_PER_DAY_DEFAULT;
+}
+
+/**
+ * The sender whose verified domain says which team holds the instance's
+ * account mail and its users as contacts: the auth sender, else the
+ * notifications one. Undefined when neither is configured.
+ */
+export function accountEmailFrom(e: Env = env): string | undefined {
+  return e.AUTH_EMAIL_FROM ?? e.NOTIFICATIONS_EMAIL_FROM;
+}
+
+/**
+ * Whether this process can deliver account mail: explicit SES keys, or the
+ * operator's explicit opt-in to the SDK default provider chain, plus the
+ * auth sender. AWS_DEFAULT_CHAIN is read raw: an opt-in flag outside the
+ * validated schema. Password recovery and email verification exist on
+ * exactly these terms, and so does requiring verified recipients anywhere.
+ */
+export function accountMailDeliverable(e: Env = env): boolean {
+  const chain = process.env.AWS_DEFAULT_CHAIN;
+  const reachable =
+    Boolean(e.AWS_ACCESS_KEY_ID && e.AWS_SECRET_ACCESS_KEY) || chain === "true" || chain === "1";
+  return reachable && Boolean(e.AUTH_EMAIL_FROM);
+}
+
+export interface AbuseJudgeConfig {
+  provider: Exclude<AbuseJudgeProvider, "off">;
+  model: string;
+  baseUrl: string;
+  apiKey: string | undefined;
+  timeoutMs: number;
+}
+
+/**
+ * The judge the worker builds, or null when the monitor is off. Read through
+ * a function so a process under SKIP_ENV_VALIDATION (raw strings) reads the
+ * same answer as a validated one.
+ */
+/**
+ * Whether the console may unwrap content, read as a function so a process
+ * under SKIP_ENV_VALIDATION (raw strings) reads the same answer as a
+ * validated one, as abuseJudgeConfig does for the judge.
+ */
+export function contentRevealOn(e: Env = env): boolean {
+  return ((e.CONTENT_REVEAL as unknown as string | undefined) || "off") === "on";
+}
+
+export function abuseJudgeConfig(e: Env = env): AbuseJudgeConfig | null {
+  const provider = (e.ABUSE_JUDGE as unknown as string | undefined) || "off";
+  if (provider === "off") return null;
+  const timeout = Number(e.ABUSE_JUDGE_TIMEOUT_MS);
+  return {
+    provider: provider as AbuseJudgeConfig["provider"],
+    model: e.ABUSE_JUDGE_MODEL || ABUSE_JUDGE_MODEL_DEFAULT,
+    baseUrl: e.ABUSE_JUDGE_BASE_URL || ABUSE_JUDGE_BASE_URL_DEFAULT,
+    apiKey: e.ABUSE_JUDGE_API_KEY,
+    timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : ABUSE_JUDGE_TIMEOUT_MS_DEFAULT,
+  };
+}
+
+export interface AbuseVisionConfig {
+  region: string;
+  /** The region's geographic inference profile id, what the reader calls. */
+  model: string;
+  accessKeyId: string | undefined;
+  secretAccessKey: string | undefined;
+}
+
+/**
+ * The image reader the worker builds, or null when it is off; raw-string safe
+ * as abuseJudgeConfig is. Throws for a region with no geographic profile.
+ */
+export function abuseVisionConfig(e: Env = env): AbuseVisionConfig | null {
+  if (((e.ABUSE_VISION as unknown as string | undefined) || "off") === "off") return null;
+  const region = e.ABUSE_VISION_REGION || ABUSE_VISION_REGION_DEFAULT;
+  const model = abuseVisionProfile(region);
+  if (!model) {
+    const regions = Object.values(ABUSE_VISION_GEOGRAPHIES).flat().join(", ");
+    throw new Error(
+      `ABUSE_VISION_REGION=${region} has no geographic inference profile for Claude Haiku 5.5 that image reading can use; use one of ${regions}`,
+    );
+  }
+  return {
+    region,
+    model,
+    accessKeyId: e.AWS_ACCESS_KEY_ID,
+    secretAccessKey: e.AWS_SECRET_ACCESS_KEY,
+  };
+}
+
+/** Whether the operator may open a team's dashboard read-only; raw-string safe under SKIP_ENV_VALIDATION. */
+export function supportViewEnabled(e: Env = env): boolean {
+  return (e.SUPPORT_VIEW as unknown) === "on";
+}
+
+export interface ErrorTrackingConfig {
+  dsn: string;
+  environment: string;
+  /** The image's git revision, the one the API's /health reports. */
+  release: string | undefined;
+  tracesSampleRate: number;
+}
+
+/**
+ * Error tracking for the server processes or for the dashboard's browser
+ * code; null when that side's DSN is unset, which leaves the SDK unloaded.
+ * Raw-string safe under SKIP_ENV_VALIDATION, as abuseJudgeConfig is.
+ */
+export function errorTrackingConfig(
+  side: "server" | "browser",
+  e: Env = env,
+): ErrorTrackingConfig | null {
+  const dsn = side === "server" ? e.SENTRY_DSN : e.SENTRY_BROWSER_DSN;
+  if (!dsn) return null;
+  const rate = Number(e.SENTRY_TRACES_SAMPLE_RATE);
+  const revision = e.POSTA_REVISION;
+  return {
+    dsn,
+    environment: e.SENTRY_ENVIRONMENT || SENTRY_ENVIRONMENT_DEFAULT,
+    release: revision && revision !== REVISION_UNKNOWN ? revision : undefined,
+    tracesSampleRate: Number.isFinite(rate) && rate > 0 ? rate : 0,
+  };
+}
+
+/**
+ * Whether strangers may register. Cloud is always open; a self-host is open
+ * only by explicit choice, and a closed one has nobody to market to: sign-ups
+ * become contacts only where this is true.
+ */
+export function signupOpen(e: Env = env): boolean {
+  return envFlag(e.ALLOW_SIGNUP);
+}
+
+/**
+ * Whether a domain's branded tracking subdomain (a customer CNAME pointing
+ * at this app) can actually be served here.
+ *
+ * Self-host: yes, unconditionally. The operator owns the reverse proxy and
+ * its certificates, so pointing another hostname at the app is theirs to
+ * arrange, and the domain screen already warns while the CNAME does not
+ * resolve.
+ *
+ * Cloud: only when the operator says so. A customer hostname arriving at a
+ * shared, CDN-fronted origin needs per-hostname certificate provisioning set
+ * up deliberately; without it the TLS handshake fails, and every tracked link
+ * that already shipped points somewhere recipients cannot reach.
+ */
+export function trackingSubdomainsSupported(e: Env = env): boolean {
+  if (!isCloudDeployment(e)) return true;
+  // A configured tracking edge is itself the "per-hostname certificates are
+  // handled" signal, so it enables branded subdomains on its own. The flag
+  // stays for the rarer cloud that serves customer hostnames on the app host
+  // directly, with no separate edge.
+  return envFlag(e.ALLOW_TRACKING_SUBDOMAINS) || Boolean(e.TRACKING_EDGE_HOST);
+}
+
+/**
+ * The host a branded tracking subdomain CNAMEs at: the dedicated tracking edge
+ * when one is configured, otherwise this app's own host (from `appBaseUrl`).
+ */
+export function trackingCnameTarget(appBaseUrl: string, e: Env = env): string {
+  return e.TRACKING_EDGE_HOST ?? new URL(appBaseUrl).host;
+}
+
+/** The host receiving domains point their MX record at; undefined when this instance does not receive mail. */
+export function receivingMxHost(e: Env = env): string | undefined {
+  return e.RECEIVING_MX_HOST || undefined;
+}
+
+/** Whether inbound mail exists on this instance at all. */
+export function receivingEnabled(e: Env = env): boolean {
+  return receivingMxHost(e) !== undefined;
+}
+
+/** The domain whose per-team subdomains hold shared inbox addresses; undefined hides it. */
+export function sharedInboxDomain(e: Env = env): string | undefined {
+  return e.SHARED_INBOX_DOMAIN || undefined;
+}
+
+/** Where clamd listens (host[:port]); undefined when received mail is not scanned. */
+export function clamavHost(e: Env = env): string | undefined {
+  return e.CLAMAV_HOST || undefined;
+}
+
+// The product domain (core's PLATFORM_DOMAIN) and the one holding the
+// cloud's MX and tracking hosts.
+const PLATFORM_DOMAINS = [SITE_DOMAIN, DNS_DOMAIN] as const;
+
+// Mirrors MX_INGEST_SECRET_MIN_LENGTH in packages/core/src/receiving/protocol.ts
+// (this package cannot import core).
+const MX_INGEST_SECRET_MIN_LENGTH = 32;
+
+const MX_HOST_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
+const S3_CREDENTIAL_KEYS = ["S3_ENDPOINT", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const;
+
+const S3_BUCKET_KEYS = ["S3_STORAGE_BUCKET", "S3_BACKUP_BUCKET"] as const;
+
+const BACKUP_TUNING_KEYS = ["S3_BACKUP_PREFIX", "BACKUP_CRON", "BACKUP_RETENTION_DAYS"] as const;
+
+/** Cross-field rules that per-field schemas cannot express. */
+export function assertEnvConsistency(e: Env): void {
+  if (Boolean(e.SMTP_TLS_CERT_PATH) !== Boolean(e.SMTP_TLS_KEY_PATH)) {
+    throw new Error("SMTP_TLS_CERT_PATH and SMTP_TLS_KEY_PATH must be set together");
+  }
+  if (e.AUTH_EMAIL_FROM && parseEmailFrom(e.AUTH_EMAIL_FROM) === null) {
+    throw new Error('AUTH_EMAIL_FROM must be "Name <user@domain>" or a bare email address');
+  }
+  if (e.ONBOARDING_EMAIL_FROM && parseEmailFrom(e.ONBOARDING_EMAIL_FROM) === null) {
+    throw new Error('ONBOARDING_EMAIL_FROM must be "Name <user@domain>" or a bare email address');
+  }
+  if (Boolean(e.TURNSTILE_SITE_KEY) !== Boolean(e.TURNSTILE_SECRET_KEY)) {
+    throw new Error("TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY must be set together");
+  }
+  if (e.NOTIFICATIONS_EMAIL_FROM && parseEmailFrom(e.NOTIFICATIONS_EMAIL_FROM) === null) {
+    throw new Error(
+      'NOTIFICATIONS_EMAIL_FROM must be "Name <user@domain>" or a bare email address',
+    );
+  }
+  // Half a keypair would silently fall back to the default provider chain
+  // everywhere AWS clients are built (SES, KMS): reject it instead. A fully
+  // absent pair stays valid: the chain (instance profile, SSO) is a real
+  // credential source that env vars cannot attest to.
+  if (Boolean(e.AWS_ACCESS_KEY_ID) !== Boolean(e.AWS_SECRET_ACCESS_KEY)) {
+    throw new Error("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set together");
+  }
+  // Partial S3 config is a misconfiguration, not "disabled": silently
+  // disabling a feature would make the missing variable invisible.
+  const credentialsSet = S3_CREDENTIAL_KEYS.filter((key) => e[key]);
+  if (credentialsSet.length > 0 && credentialsSet.length < S3_CREDENTIAL_KEYS.length) {
+    const missing = S3_CREDENTIAL_KEYS.filter((key) => !e[key]).join(", ");
+    throw new Error(`S3 credentials must be set together; missing: ${missing}`);
+  }
+  for (const bucket of S3_BUCKET_KEYS) {
+    if (e[bucket] && credentialsSet.length === 0) {
+      throw new Error(`${bucket} requires the S3 credentials (${S3_CREDENTIAL_KEYS.join(", ")})`);
+    }
+  }
+  if (Boolean(e.S3_STORAGE_BUCKET) !== Boolean(e.S3_STORAGE_PUBLIC_URL)) {
+    throw new Error("S3_STORAGE_BUCKET and S3_STORAGE_PUBLIC_URL must be set together");
+  }
+  for (const key of BACKUP_TUNING_KEYS) {
+    if (e[key] && !e.S3_BACKUP_BUCKET) {
+      throw new Error(`${key} requires S3_BACKUP_BUCKET`);
+    }
+  }
+  // Receiving half-configured would either publish an MX record whose mail
+  // the app then refuses, or leave a secret nothing uses: both are drift.
+  if (e.RECEIVING_MX_HOST && !MX_HOST_RE.test(e.RECEIVING_MX_HOST)) {
+    throw new Error("RECEIVING_MX_HOST must be a lowercase hostname such as mx.example.com");
+  }
+  if (Boolean(e.RECEIVING_MX_HOST) !== Boolean(e.MX_INGEST_SECRET)) {
+    throw new Error("RECEIVING_MX_HOST and MX_INGEST_SECRET must be set together");
+  }
+  if (e.MX_INGEST_SECRET && e.MX_INGEST_SECRET.length < MX_INGEST_SECRET_MIN_LENGTH) {
+    throw new Error(
+      `MX_INGEST_SECRET must be at least ${MX_INGEST_SECRET_MIN_LENGTH} characters (openssl rand -hex 32)`,
+    );
+  }
+  // Shared addresses go to any team that asks: under the platform's own
+  // domains their mail would ride the platform's reputation and read as its own.
+  if (e.SHARED_INBOX_DOMAIN) {
+    const shared = e.SHARED_INBOX_DOMAIN;
+    if (!MX_HOST_RE.test(shared)) {
+      throw new Error(
+        "SHARED_INBOX_DOMAIN must be a lowercase hostname such as agents.example.com",
+      );
+    }
+    if (!e.RECEIVING_MX_HOST) {
+      throw new Error("SHARED_INBOX_DOMAIN requires RECEIVING_MX_HOST");
+    }
+    if (
+      isCloudDeployment(e) &&
+      PLATFORM_DOMAINS.some((d) => shared === d || shared.endsWith(`.${d}`))
+    ) {
+      throw new Error(
+        `SHARED_INBOX_DOMAIN must be its own registrable domain, not under ${PLATFORM_DOMAINS.join(" or ")}`,
+      );
+    }
+  }
+  // A judge switched on without its key would fail every sample as
+  // "no credentials" forever, silently; refuse the boot instead.
+  if (e.ABUSE_JUDGE && e.ABUSE_JUDGE !== "off" && !e.ABUSE_JUDGE_API_KEY) {
+    throw new Error(`ABUSE_JUDGE=${e.ABUSE_JUDGE} requires ABUSE_JUDGE_API_KEY`);
+  }
+  // Image reading from a region with no geographic profile would fail every
+  // read: abuseVisionConfig throws for it, which refuses the boot here.
+  abuseVisionConfig(e);
+  // The picker marks this stack by its own region; a list without it would
+  // offer a choice with nothing selected.
+  const stacks = regionStacks(e);
+  if (stacks.length > 0 && !stacks.some((s) => s.region === servedRegions(e)[0])) {
+    throw new Error(`REGION_STACKS must list this stack's own region, ${servedRegions(e)[0]}`);
+  }
+  if (e.IS_CLOUD) {
+    for (const key of [
+      "KMS_KEY_ID",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "APP_BASE_URL",
+    ] as const) {
+      if (!e[key]) throw new Error(`IS_CLOUD=true requires ${key}`);
+    }
+  } else if (e.KMS_KEY_ID) {
+    // A self-host boot would silently ignore the KMS key and seal everything
+    // under the env KEK: almost certainly an IS_CLOUD line lost in env drift.
+    throw new Error("KMS_KEY_ID is set but IS_CLOUD is false");
+  }
+}
+
+if (process.env.SKIP_ENV_VALIDATION !== "1") {
+  assertEnvConsistency(env);
+}

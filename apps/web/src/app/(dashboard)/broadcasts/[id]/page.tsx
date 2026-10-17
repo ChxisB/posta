@@ -1,0 +1,422 @@
+"use client";
+
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
+import { Breakable } from "@/components/breakable";
+import { CopyChip } from "@/components/copy-chip";
+import { EmailContentPanel } from "@/components/email-content-panel";
+import { EmailsTable } from "@/components/emails-table";
+import { LoadError } from "@/components/load-error";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { Crumb, CrumbEnd, PageHeader } from "@/components/page-header";
+import { Skeleton, SkeletonBadge, SkeletonChip } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { StatBlock } from "@/components/stat-block";
+import { formatDayTime, formatUtcTimestamp, sendingDays } from "@/lib/format";
+import { useTRPC } from "@/lib/trpc";
+import { ListFooter } from "../../emails/list-parts";
+import { type BroadcastStatus, FinishCell, PacingSteps, SendingStatus } from "../parts";
+
+function Microlabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="po-microlabel" style={{ fontSize: 10.5 }}>
+      {children}
+    </div>
+  );
+}
+
+export default function BroadcastDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const t = useTranslations("broadcasts");
+  const locale = useLocale();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const nf = useMemo(() => new Intl.NumberFormat(locale), [locale]);
+  // Engagement is counted live from the email rows; once they age out the
+  // number is gone, not zero.
+  const engagement = (count: number | null) => (count == null ? "-" : nf.format(count));
+
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  const query = useQuery(trpc.broadcasts.get.queryOptions({ id }, { retry: false }));
+  const broadcast = query.data ?? null;
+  const status = broadcast?.status as BroadcastStatus | undefined;
+
+  const cancelMutation = useMutation(
+    trpc.broadcasts.cancel.mutationOptions({
+      onSuccess: () => {
+        setCancelOpen(false);
+        queryClient.invalidateQueries(trpc.broadcasts.pathFilter());
+      },
+    }),
+  );
+  const closeCancel = useCallback(() => setCancelOpen(false), []);
+  const confirmCancel = () => {
+    if (!cancelMutation.isPending) cancelMutation.mutate({ id });
+  };
+
+  if (query.isError) {
+    return (
+      <LoadError
+        error={query.error}
+        headline={t("detail.error")}
+        notFoundHeadline={t("detail.notFound")}
+        onRetry={() => query.refetch()}
+        backHref="/broadcasts"
+        backLabel={t("list.title")}
+      />
+    );
+  }
+
+  const title = broadcast ? (broadcast.name ?? broadcast.subject) : null;
+  // A send in progress: its rows so far, and the forecast for the last one.
+  const progress =
+    broadcast && status === "sending" && broadcast.sentCount !== null
+      ? {
+          sentCount: broadcast.sentCount,
+          parkedCount: broadcast.parkedCount,
+          recipients: broadcast.stats.total,
+          finishesAt: broadcast.finishesAt,
+        }
+      : null;
+  const finishesAt = progress?.finishesAt ?? null;
+  const waiting = progress ? Math.max(0, progress.recipients - (progress.sentCount ?? 0)) : 0;
+
+  return (
+    <>
+      {broadcast && status ? (
+        <PageHeader
+          breadcrumb={
+            <>
+              <Crumb href="/broadcasts" label={t("list.title")} />
+              <CrumbEnd label={t("detail.eyebrow")} />
+            </>
+          }
+          title={title ?? ""}
+          actions={
+            status === "draft" ? (
+              <Link className="po-btn po-btn-secondary" href={`/broadcasts/${id}/edit`}>
+                {t("detail.editDraft")}
+              </Link>
+            ) : status === "scheduled" || status === "sending" ? (
+              <button
+                type="button"
+                className="po-btn po-btn-destructive"
+                onClick={() => setCancelOpen(true)}
+              >
+                {t(status === "sending" ? "detail.stopRest" : "detail.cancelSend")}
+              </button>
+            ) : undefined
+          }
+        />
+      ) : (
+        // Mirrors the loaded PageHeader's boxes so nothing shifts on load.
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 16,
+            marginBottom: 28,
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", fontSize: 13, lineHeight: 1, marginBottom: 10 }}>
+              <Skeleton width={150} height="1lh" />
+            </div>
+            <h1
+              className="po-display"
+              style={{ fontSize: "var(--po-fs-h1)", fontWeight: 600, margin: 0, display: "flex" }}
+            >
+              <Skeleton width={220} height="1lh" />
+            </h1>
+          </div>
+        </div>
+      )}
+
+      <div
+        className="po-meta-grid"
+        style={{
+          display: "grid",
+          // Targeting and From get the room; a long From wraps at its address's
+          // break points inside its share instead of widening its column.
+          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr)",
+          gap: "22px 28px",
+          padding: "22px 0",
+          borderTop: "1px solid var(--po-line)",
+        }}
+      >
+        <div>
+          <Microlabel>{t("detail.status")}</Microlabel>
+          {broadcast && status ? (
+            <SendingStatus
+              status={status}
+              progress={progress}
+              planHold={broadcast.planHold?.resumesAt ?? null}
+              held={broadcast.held}
+              locale={locale}
+            />
+          ) : (
+            <div style={{ marginTop: 6 }}>
+              <SkeletonBadge width={74} />
+            </div>
+          )}
+        </div>
+        <div>
+          <Microlabel>{t("detail.targeting")}</Microlabel>
+          <div style={{ fontSize: 14, marginTop: 6 }}>
+            {broadcast ? (
+              (broadcast.segmentName ?? t("composer.segmentNone"))
+            ) : (
+              <span style={{ display: "flex" }}>
+                <Skeleton width={110} height="1lh" />
+              </span>
+            )}
+          </div>
+          {broadcast?.topicName ? (
+            <div style={{ fontSize: 12.5, color: "var(--po-muted)", marginTop: 4 }}>
+              {t("detail.topic")}: {broadcast.topicName}
+            </div>
+          ) : null}
+        </div>
+        <div>
+          <Microlabel>
+            {broadcast?.sentAt
+              ? t("detail.sent")
+              : finishesAt
+                ? t("detail.finishesAbout")
+                : t("detail.scheduled")}
+          </Microlabel>
+          {broadcast && finishesAt ? (
+            <FinishCell finishesAt={finishesAt} startedAt={broadcast.startedAt} locale={locale} />
+          ) : (
+            <div style={{ fontSize: 13, marginTop: 7 }}>
+              {broadcast ? (
+                (() => {
+                  const at = broadcast.sentAt ?? broadcast.scheduledAt;
+                  return at ? (
+                    <span title={formatUtcTimestamp(at)}>{formatDayTime(at, locale)}</span>
+                  ) : (
+                    <span style={{ color: "var(--po-faint)" }}>-</span>
+                  );
+                })()
+              ) : (
+                <span style={{ display: "flex" }}>
+                  <Skeleton width={140} height="1lh" />
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="po-meta-wide">
+          <Microlabel>{t("detail.from")}</Microlabel>
+          <div style={{ marginTop: 5 }}>
+            {broadcast ? (
+              <CopyChip value={broadcast.from} display={<Breakable text={broadcast.from} />} wrap />
+            ) : (
+              <SkeletonChip width={180} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {progress && broadcast && broadcast.releases.length > 0 ? (
+        <PacingBand sent={broadcast.sent} releases={broadcast.releases} locale={locale} />
+      ) : null}
+
+      <div
+        className="po-meta-grid po-stat-strip"
+        style={{
+          display: "grid",
+          // Seven stats wrap by content rather than crush at laptop widths; the
+          // narrow-screen rules still force two columns.
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 22,
+          padding: "20px 0",
+          borderTop: "1px solid var(--po-line)",
+          borderBottom: "1px solid var(--po-line)",
+          marginBottom: 26,
+        }}
+      >
+        {progress ? (
+          <StatBlock
+            label={t("detail.sentSoFar")}
+            value={nf.format(progress.sentCount ?? 0)}
+            hint={t("detail.ofTotal", { total: nf.format(progress.recipients) })}
+          />
+        ) : (
+          <StatBlock
+            label={t("detail.stats.recipients")}
+            value={broadcast ? nf.format(broadcast.stats.total) : null}
+          />
+        )}
+        <StatBlock
+          label={t("detail.stats.delivered")}
+          value={broadcast ? nf.format(broadcast.stats.delivered) : null}
+        />
+        <StatBlock
+          label={t("detail.stats.opened")}
+          value={broadcast ? engagement(broadcast.stats.opened) : null}
+          hint={
+            broadcast?.stats.prefetched
+              ? t("detail.stats.prefetched", { count: nf.format(broadcast.stats.prefetched) })
+              : undefined
+          }
+        />
+        <StatBlock
+          label={t("detail.stats.clicked")}
+          value={broadcast ? engagement(broadcast.stats.clicked) : null}
+        />
+        <StatBlock
+          label={t("detail.stats.bounced")}
+          value={broadcast ? nf.format(broadcast.stats.bounced) : null}
+        />
+        <StatBlock
+          label={t("detail.stats.complaints")}
+          value={broadcast ? nf.format(broadcast.stats.complained) : null}
+        />
+        <StatBlock
+          label={t("detail.stats.unsubscribed")}
+          value={broadcast ? engagement(broadcast.stats.unsubscribed) : null}
+        />
+      </div>
+
+      <div className="po-microlabel">{t("detail.content")}</div>
+      <div style={{ marginTop: 12 }}>
+        {broadcast ? (
+          <EmailContentPanel
+            email={{
+              id: broadcast.id,
+              subject: broadcast.subject,
+              html: broadcast.html,
+              text: broadcast.text,
+              insights: broadcast.insights,
+              hiddenBySupportView: broadcast.hiddenBySupportView,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              background: "var(--po-panel)",
+              border: "1px solid var(--po-line)",
+              borderRadius: 14,
+              padding: 28,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Skeleton width={560} height={480} radius={8} />
+          </div>
+        )}
+      </div>
+
+      <BroadcastEmails broadcastId={id} />
+
+      <Modal
+        open={cancelOpen}
+        onClose={closeCancel}
+        onConfirm={confirmCancel}
+        title={t(progress ? "detail.stopTitle" : "detail.cancelTitle")}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            confirmCancel();
+          }}
+        >
+          <p style={{ margin: "0 0 22px", color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
+            {progress
+              ? t("detail.stopBody", {
+                  waiting: nf.format(waiting),
+                  sent: nf.format(progress.sentCount ?? 0),
+                })
+              : t("detail.cancelBody", { name: title ?? "-" })}
+          </p>
+          <ModalFooter>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>
+              {t(progress ? "detail.keepSending" : "detail.keep")}{" "}
+              <span className="po-keycap">Esc</span>
+            </button>
+            <button
+              type="submit"
+              className="po-btn po-btn-destructive"
+              disabled={cancelMutation.isPending}
+            >
+              <BtnSpinner on={cancelMutation.isPending} />
+              {t(progress ? "detail.stopConfirm" : "detail.cancelConfirm")} <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      </Modal>
+    </>
+  );
+}
+
+/** The pacing rail under the meta row, for a send that spans days. */
+function PacingBand({
+  sent,
+  releases,
+  locale,
+}: {
+  sent: { at: Date; count: number }[];
+  releases: { at: Date; endsAt: Date; count: number }[];
+  locale: string;
+}) {
+  const t = useTranslations("broadcasts");
+  if (sendingDays(sent, releases, new Date()).length < 2) return null;
+  return (
+    <div className="po-pacing">
+      <div className="po-microlabel" style={{ fontSize: 10.5 }}>
+        {t("detail.pacing")}
+      </div>
+      <PacingSteps sent={sent} releases={releases} locale={locale} />
+      <p>{t("guard.reason")}</p>
+    </div>
+  );
+}
+
+/** The broadcast's own sends, the emails list scoped to it, newest first. */
+function BroadcastEmails({ broadcastId }: { broadcastId: string }) {
+  const t = useTranslations("broadcasts");
+  const emails = useTranslations("emails");
+  const locale = useLocale();
+  const trpc = useTRPC();
+  const nf = useMemo(() => new Intl.NumberFormat(locale), [locale]);
+  const query = useInfiniteQuery(
+    trpc.emails.list.infiniteQueryOptions(
+      { limit: 25, broadcastId },
+      { getNextPageParam: (page) => page.nextCursor },
+    ),
+  );
+  const items = query.data?.pages.flatMap((page) => page.items) ?? [];
+  const total = query.data?.pages[0]?.total ?? 0;
+  if (!query.isSuccess || items.length === 0) return null;
+  return (
+    <div style={{ marginTop: 26 }}>
+      <div className="po-microlabel" style={{ marginBottom: 12 }}>
+        {t("detail.emails")}
+      </div>
+      <EmailsTable rows={items} broadcastChip={false} />
+      <ListFooter
+        left={emails("list.pageOf", {
+          pages: query.data.pages.length,
+          total: nf.format(total),
+        })}
+        singlePage={!query.hasNextPage && query.data.pages.length === 1}
+        loadMore={
+          query.hasNextPage
+            ? {
+                label: emails("list.loadMore"),
+                onClick: () => query.fetchNextPage(),
+                loading: query.isFetchingNextPage,
+              }
+            : undefined
+        }
+      />
+    </div>
+  );
+}

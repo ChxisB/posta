@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/black.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-openapi/css/preset.css";
+
+/*
+ * Posta brand: the dashboard's palette (apps/web/src/styles/tokens/colors.css)
+ * mapped onto fumadocs' variables, in both themes. Primary (active links, the
+ * TOC marker, primary buttons) is the brand violet, lifted to a lighter tint
+ * on dark; everything else is the dashboard's cool neutrals. Geist is the
+ * sans, bundled through @fontsource in the root layout.
+ */
+:root {
+  /* Unlayered, so it wins over Tailwind's theme layer; preflight and font-sans read it. */
+  --font-sans:
+    "Geist Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --color-fd-background: #fafafa;
+  --color-fd-foreground: #16181d;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #16181d;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #16181d;
+  --color-fd-border: #e3e5e9;
+  --color-fd-primary: #6538d6;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f4f5f7;
+  --color-fd-secondary-foreground: #16181d;
+  --color-fd-muted: #f4f5f7;
+  --color-fd-muted-foreground: #4d5158;
+  --color-fd-accent: #f4f5f7;
+  --color-fd-accent-foreground: #16181d;
+  --color-fd-ring: #6538d6;
+}
+.dark {
+  --color-fd-background: #0a0c10;
+  --color-fd-foreground: #e6e9f0;
+  --color-fd-card: #12151d;
+  --color-fd-card-foreground: #e6e9f0;
+  --color-fd-popover: #12151d;
+  --color-fd-popover-foreground: #e6e9f0;
+  --color-fd-border: #232836;
+  --color-fd-primary: #a98bff;
+  --color-fd-primary-foreground: #0a0c10;
+  --color-fd-secondary: #161a24;
+  --color-fd-secondary-foreground: #e6e9f0;
+  --color-fd-muted: #161a24;
+  --color-fd-muted-foreground: #9aa2b5;
+  --color-fd-accent: #1b2029;
+  --color-fd-accent-foreground: #e6e9f0;
+  --color-fd-ring: #a98bff;
+}
+
+/* Code-block copy button: pop the check in, matching the dashboard/LP copy
+ * affordance (po-copy-pop / lp-copy-pop: keep the three in step). Fumadocs
+ * stamps data-checked on the button while the copied state shows. */
+button[data-checked] svg {
+  color: hsl(140, 35%, 62%);
+  animation: docs-copy-pop 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes docs-copy-pop {
+  from {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button[data-checked] svg {
+    animation: none;
+  }
+}
+
+/* The dashboard screenshots are dark on a dark page; a hairline keeps their
+   edge in both themes. */
+.prose img {
+  border: 1px solid var(--color-fd-border);
+}
+
+/* fumadocs-openapi's MethodLabel colors a method with a Tailwind text utility
+   (GET green, POST blue, PUT yellow, PATCH orange, DELETE red). Developers
+   read Postman's palette (POST yellow, PUT blue, PATCH purple) so the three
+   that differ are re-mapped by those utilities; an upgrade that renames them
+   only restores fumadocs' defaults. */
+span.font-mono.font-medium.text-blue-600 {
+  color: #ad7a03;
+}
+.dark span.font-mono.font-medium.text-blue-600 {
+  color: #ffe47e;
+}
+span.font-mono.font-medium.text-yellow-600 {
+  color: #0053b8;
+}
+.dark span.font-mono.font-medium.text-yellow-600 {
+  color: #74aef6;
+}
+span.font-mono.font-medium.text-orange-600 {
+  color: #623497;
+}
+.dark span.font-mono.font-medium.text-orange-600 {
+  color: #c0a8e1;
+}

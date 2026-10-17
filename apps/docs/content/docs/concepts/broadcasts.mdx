@@ -1,0 +1,120 @@
+---
+title: Broadcasts
+description: Compose, schedule, and send one email to many contacts.
+---
+
+A broadcast is one email sent to many contacts: all of them, a
+[segment](/concepts/segments), or a [topic](/concepts/topics). Compose in the
+dashboard's block editor (with per-contact merge fields) or create broadcasts
+via the API.
+
+![The Broadcasts page, listing sent, scheduled and draft broadcasts.](/screenshots/en/broadcasts.png)
+
+## Lifecycle
+
+```
+draft → scheduled → sending → sent
+              ↘ canceled
+```
+
+- Broadcasts are created as **drafts**. Only drafts can be edited or deleted.
+- `POST /broadcasts/{id}/send` schedules the send: immediately, or at a
+  `scheduled_at` timestamp.
+- A **queued** broadcast (scheduled, or already going out) can be canceled
+  with `POST /broadcasts/{id}/cancel`. Emails already sent are not recalled;
+  the response's `canceled_remaining` says how many were stopped, and
+  `sent_count` on a read says how many had gone out.
+- On the wire, `scheduled` and `sending` both read as `queued` (matching the
+  Resend SDK's status union); `canceled` is a Posta extension. A
+  broadcast reads `queued` with `sent_at` null until its last email has gone
+  out, however long that takes.
+
+## What the fan-out does
+
+Every recipient email goes through the same pipeline as a transactional send,
+plus broadcast-specific handling:
+
+- **Audience resolution**: globally unsubscribed contacts are always
+  excluded; segment filters and topic subscriptions are evaluated at send
+  time.
+- **Suppression checks**: addresses on the
+  [suppression list](/concepts/suppressions) are skipped.
+- **Merge fields**: per-contact values (name, custom properties) are
+  substituted into the template.
+- **Unsubscribe links**: RFC 8058 one-click `List-Unsubscribe` headers and a
+  hosted unsubscribe link are added to every message. To place the link in
+  the body yourself, write `{{{UNSUBSCRIBE_URL}}}`: it is replaced
+  per-recipient with their hosted unsubscribe URL.
+  `{{{RESEND_UNSUBSCRIBE_URL}}}` is a supported alias, so templates written
+  for Resend keep working unchanged (and roll back unchanged).
+
+Broadcast emails enter the send queue below transactional ones: a
+transactional email accepted while a broadcast is going out is sent ahead of
+the remaining recipients. Sends run on several lanes at once, paced by the
+instance's SES send rate.
+
+<Callout type="info">
+On a self-hosted instance, unsubscribe links are built from `APP_BASE_URL`,
+so broadcast sending is rejected until it is configured: see
+[Self-hosting](/self-hosting#environment-reference). On Cloud this is
+automatic.
+</Callout>
+
+## Pacing
+
+The platform sends a bounded number of emails a day. A broadcast that fits
+inside what is available goes out at once, at the sending rate. A larger one
+goes out in waves: the first wave now, the rest as capacity frees over the
+following days. Transactional email is never held behind a broadcast.
+
+The send tells you up front:
+
+```json
+{
+  "id": "8c1f0b8e-…",
+  "finishes_at": "2026-09-18T13:26:05Z",
+  "estimated": true,
+  "warning": {
+    "code": "paced",
+    "days": 3,
+    "message": "170,000 recipients exceed the broadcast capacity available now; sending is paced and finishes about 2026-09-18T13:30:00Z. Transactional email is unaffected."
+  }
+}
+```
+
+- `finishes_at` is the estimated instant the last email goes out; `null` when
+  no estimate is available. It is an estimate: other sends move it.
+- `warning` is present only when the send takes more than one wave:
+  `paced` when the audience exceeds the capacity available now,
+  `queued_behind` when other sends are ahead (the message says when this one
+  starts).
+- While a broadcast is going out, `GET /broadcasts/{id}` and the list carry a
+  live `finishes_at` and `sent_count`.
+- An audience that would need more than 24 days of capacity (the
+  platform's, or your plan's) is refused with `422 broadcast_too_large`
+  instead of accepted and left waiting. Split it into smaller segments or
+  contact support.
+
+## Guardrails
+
+- Only a **verified domain** of your team may appear in `from`.
+- If your trailing bounce or complaint rate has crossed the SES pause
+  threshold, new broadcast sends are blocked with a `403 sending_paused`
+  error: stopping the damage before SES pauses sending entirely.
+- If the platform's aggregate bounce or complaint rate in your sender's SES
+  region nears the line where SES acts on the account, broadcast sends in
+  that region are refused with
+  `403 broadcasts_paused` until the rate recovers. Transactional
+  email keeps flowing, and the pause clears on its own.
+
+See the [API reference](/api-reference) for all broadcast endpoints.
+
+## Recent changes
+
+- A broadcast with emails still waiting (for capacity, or for the plan's
+  cap to reset) reads `queued` with `sent_at` null until its last email has
+  gone out. It used to read `sent` as soon as every email was written.
+- An audience whose plan cap would need more than 24 days is refused with
+  `422 broadcast_too_large` instead of accepted and left waiting.
+- `POST /broadcasts/{id}/cancel` works on a broadcast that is already going
+  out; the response carries `canceled_remaining`.

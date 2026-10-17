@@ -1,0 +1,209 @@
+# Posta AWS setup as CloudFormation: same resources as the setup script
+# on /settings/ses: IAM policy + user + access key, SNS event topic, the SQS
+# events queue the worker polls, and the SESv2 configuration set with an SNS
+# event destination.
+#
+# Deploy:
+#   aws cloudformation deploy --template-file infra/posta-ses.cfn.yaml \
+#     --stack-name posta --capabilities CAPABILITY_NAMED_IAM \
+#     --parameter-overrides AppBaseUrl=https://your-host
+#
+# Then read the .env values from the stack outputs:
+#   aws cloudformation describe-stacks --stack-name posta \
+#     --query "Stacks[0].Outputs" --output table
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Posta sending resources: IAM user + minimal SES policy, SNS event
+  topic, SQS events queue, and SES configuration set. Outputs map 1:1 to .env
+  keys.
+
+Parameters:
+  AppBaseUrl:
+    Type: String
+    Default: ""
+    AllowedPattern: "^(https://.+)?$"
+    Description: >-
+      Public https base URL of the deployment (e.g. https://mail.example.com).
+      Optional: adds an https push subscription on top of the events queue the
+      worker polls either way.
+
+Conditions:
+  HasAppBaseUrl: {"Fn::Not": [{"Fn::Equals": [{Ref: AppBaseUrl}, ""]}]}
+
+Resources:
+  SendPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: posta-ses
+      # Every action the instance issues: mirrors SES_IAM_POLICY in
+      # packages/ses/src/setup-constants.ts (a test pins the two equal).
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - ses:CreateEmailIdentity
+              - ses:GetEmailIdentity
+              - ses:DeleteEmailIdentity
+              - ses:PutEmailIdentityMailFromAttributes
+              - ses:PutEmailIdentityDkimSigningAttributes
+            Resource: "arn:aws:ses:*:*:identity/*"
+          - Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+              - ses:GetAccount
+            Resource: "*"
+          # Per-team SES tenants (SES_TENANTS); suspending a team disables its
+          # tenant's sending. Tenant ARNs have no documented resource-level scope.
+          - Effect: Allow
+            Action:
+              - ses:CreateTenant
+              - ses:GetTenant
+              - ses:DeleteTenant
+              - ses:CreateTenantResourceAssociation
+              - ses:DeleteTenantResourceAssociation
+              - ses:UpdateReputationEntityCustomerManagedStatus
+            Resource: "*"
+          # SES's own complaint rate, which the region breaker judges, is a
+          # CloudWatch metric.
+          - Effect: Allow
+            Action:
+              - cloudwatch:GetMetricData
+            Resource: "*"
+
+  SendUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: posta
+      ManagedPolicyArns:
+        - {Ref: SendPolicy}
+
+  SendUserKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: {Ref: SendUser}
+
+  EventsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: posta-events
+
+  # SES cannot publish to the topic without this; the event destination below
+  # is rejected at creation time if the topic policy is missing.
+  EventsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - {Ref: EventsTopic}
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ses.amazonaws.com
+            Action: sns:Publish
+            Resource: {Ref: EventsTopic}
+            Condition:
+              StringEquals:
+                AWS:SourceAccount: {Ref: AWS::AccountId}
+
+  # The transport every deployment gets: the worker long-polls it, so events
+  # buffer through restarts and no inbound reachability is needed. Mirrors
+  # runEventsSetup in packages/ses/src/setup.ts.
+  EventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: posta-events
+
+  EventsQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - {Ref: EventsQueue}
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: {"Fn::GetAtt": [EventsQueue, Arn]}
+            Condition:
+              ArnEquals:
+                aws:SourceArn: {Ref: EventsTopic}
+          - Effect: Allow
+            Principal:
+              AWS: {"Fn::GetAtt": [SendUser, Arn]}
+            Action:
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Resource: {"Fn::GetAtt": [EventsQueue, Arn]}
+
+  # Same-account SNS→SQS needs no confirmation handshake.
+  EventsQueueSubscription:
+    Type: AWS::SNS::Subscription
+    DependsOn: EventsQueuePolicy
+    Properties:
+      TopicArn: {Ref: EventsTopic}
+      Protocol: sqs
+      Endpoint: {"Fn::GetAtt": [EventsQueue, Arn]}
+
+  # Optional lower-latency push on top of the queue (the app dedupes the two
+  # on the SNS MessageId). Pending until the app confirms it: automatic once
+  # it runs with SNS_TOPIC_ARNS set to this topic's ARN.
+  EventsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAppBaseUrl
+    Properties:
+      TopicArn: {Ref: EventsTopic}
+      Protocol: https
+      Endpoint: {"Fn::Sub": "${AppBaseUrl}/ses/events"}
+
+  ConfigurationSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: posta
+
+  EventDestination:
+    Type: AWS::SES::ConfigurationSetEventDestination
+    DependsOn: EventsTopicPolicy
+    Properties:
+      ConfigurationSetName: {Ref: ConfigurationSet}
+      EventDestination:
+        Name: posta-events
+        Enabled: true
+        # Mirrors SES_EVENT_TYPES in packages/ses/src/setup-constants.ts: no
+        # open/click (subscribing them makes SES rewrite links and inject its
+        # pixel; engagement is tracked app-layer) and no send (the worker
+        # records "sent" itself).
+        MatchingEventTypes:
+          - delivery
+          - deliveryDelay
+          - bounce
+          - complaint
+          - reject
+          - renderingFailure
+        SnsDestination:
+          TopicARN: {Ref: EventsTopic}
+
+Outputs:
+  AwsRegion:
+    Description: AWS_REGION
+    Value: {Ref: AWS::Region}
+  AwsAccessKeyId:
+    Description: AWS_ACCESS_KEY_ID
+    Value: {Ref: SendUserKey}
+  AwsSecretAccessKey:
+    Description: AWS_SECRET_ACCESS_KEY
+    Value: {"Fn::GetAtt": [SendUserKey, SecretAccessKey]}
+  SnsTopicArns:
+    Description: SNS_TOPIC_ARNS
+    Value: {Ref: EventsTopic}
+  SqsQueueUrl:
+    Description: SQS_QUEUE_URL
+    Value: {Ref: EventsQueue}
+  SesConfigurationSet:
+    Description: SES_CONFIGURATION_SET
+    Value: {Ref: ConfigurationSet}

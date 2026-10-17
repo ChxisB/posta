@@ -1,0 +1,166 @@
+import { expect, it } from "vitest";
+import {
+  assertEnvConsistency,
+  type Env,
+  invitesPerTeamPerDay,
+  notificationsEmailFrom,
+  sesTenantsEnabled,
+} from "../src/env.js";
+
+// Only the fields the cross-field rules read; the zod schema is not under test.
+function fakeEnv(overrides: Record<string, string | boolean>): Env {
+  return { IS_CLOUD: false, MASTER_ENCRYPTION_KEY: "key", ...overrides } as unknown as Env;
+}
+
+const CREDENTIALS = {
+  S3_ENDPOINT: "https://acc.r2.cloudflarestorage.com",
+  S3_ACCESS_KEY_ID: "key",
+  S3_SECRET_ACCESS_KEY: "secret",
+} as const;
+
+it("accepts no S3 config at all, and each feature fully configured", () => {
+  expect(() => assertEnvConsistency(fakeEnv({}))).not.toThrow();
+  expect(() => assertEnvConsistency(fakeEnv(CREDENTIALS))).not.toThrow();
+  expect(() =>
+    assertEnvConsistency(
+      fakeEnv({
+        ...CREDENTIALS,
+        S3_STORAGE_BUCKET: "uploads",
+        S3_STORAGE_PUBLIC_URL: "https://cdn.example.com",
+        S3_BACKUP_BUCKET: "backups",
+        S3_BACKUP_PREFIX: "dumps",
+        BACKUP_CRON: "0 3 * * *",
+        BACKUP_RETENTION_DAYS: "14",
+      }),
+    ),
+  ).not.toThrow();
+});
+
+it("rejects a partial credential set, naming the missing variables", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ S3_ENDPOINT: CREDENTIALS.S3_ENDPOINT }))).toThrow(
+    "S3 credentials must be set together; missing: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY",
+  );
+});
+
+it("rejects a bucket without the credential set", () => {
+  expect(() =>
+    assertEnvConsistency(
+      fakeEnv({ S3_STORAGE_BUCKET: "uploads", S3_STORAGE_PUBLIC_URL: "https://cdn.example.com" }),
+    ),
+  ).toThrow("S3_STORAGE_BUCKET requires the S3 credentials");
+  expect(() => assertEnvConsistency(fakeEnv({ S3_BACKUP_BUCKET: "backups" }))).toThrow(
+    "S3_BACKUP_BUCKET requires the S3 credentials",
+  );
+});
+
+it("rejects a storage bucket and public URL set without each other", () => {
+  expect(() =>
+    assertEnvConsistency(fakeEnv({ ...CREDENTIALS, S3_STORAGE_BUCKET: "uploads" })),
+  ).toThrow("S3_STORAGE_BUCKET and S3_STORAGE_PUBLIC_URL must be set together");
+  expect(() =>
+    assertEnvConsistency(
+      fakeEnv({ ...CREDENTIALS, S3_STORAGE_PUBLIC_URL: "https://cdn.example.com" }),
+    ),
+  ).toThrow("S3_STORAGE_BUCKET and S3_STORAGE_PUBLIC_URL must be set together");
+});
+
+it("rejects backup tuning without S3_BACKUP_BUCKET", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ BACKUP_CRON: "0 3 * * *" }))).toThrow(
+    "BACKUP_CRON requires S3_BACKUP_BUCKET",
+  );
+  expect(() => assertEnvConsistency(fakeEnv({ S3_BACKUP_PREFIX: "dumps" }))).toThrow(
+    "S3_BACKUP_PREFIX requires S3_BACKUP_BUCKET",
+  );
+  expect(() => assertEnvConsistency(fakeEnv({ BACKUP_RETENTION_DAYS: "14" }))).toThrow(
+    "BACKUP_RETENTION_DAYS requires S3_BACKUP_BUCKET",
+  );
+});
+
+it("rejects half an AWS keypair, accepts a full pair or none", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ AWS_ACCESS_KEY_ID: "AKIA123" }))).toThrow(
+    "AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set together",
+  );
+  expect(() => assertEnvConsistency(fakeEnv({ AWS_SECRET_ACCESS_KEY: "secret" }))).toThrow(
+    "AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must be set together",
+  );
+  expect(() =>
+    assertEnvConsistency(
+      fakeEnv({ AWS_ACCESS_KEY_ID: "AKIA123", AWS_SECRET_ACCESS_KEY: "secret" }),
+    ),
+  ).not.toThrow();
+});
+
+it("validates NOTIFICATIONS_EMAIL_FROM like AUTH_EMAIL_FROM and falls back to it", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ NOTIFICATIONS_EMAIL_FROM: "not-an-email" }))).toThrow(
+    "NOTIFICATIONS_EMAIL_FROM",
+  );
+  expect(notificationsEmailFrom(fakeEnv({ AUTH_EMAIL_FROM: "a@mail.example.com" }))).toBe(
+    "a@mail.example.com",
+  );
+  expect(
+    notificationsEmailFrom(
+      fakeEnv({ AUTH_EMAIL_FROM: "a@mail.example.com", NOTIFICATIONS_EMAIL_FROM: "n@x.dev" }),
+    ),
+  ).toBe("n@x.dev");
+});
+
+it("requires the Turnstile keys together", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ TURNSTILE_SITE_KEY: "0x4AAA" }))).toThrow(
+    "TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY",
+  );
+  expect(() => assertEnvConsistency(fakeEnv({ TURNSTILE_SECRET_KEY: "0x4AAA" }))).toThrow(
+    "TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY",
+  );
+  expect(() =>
+    assertEnvConsistency(fakeEnv({ TURNSTILE_SITE_KEY: "0x4AAA", TURNSTILE_SECRET_KEY: "0x4BBB" })),
+  ).not.toThrow();
+});
+
+it("caps a team at 50 invitations a day unless the setting names another whole number", () => {
+  expect(invitesPerTeamPerDay(fakeEnv({}))).toBe(50);
+  expect(invitesPerTeamPerDay(fakeEnv({ INVITES_PER_TEAM_PER_DAY: "7" }))).toBe(7);
+  expect(invitesPerTeamPerDay(fakeEnv({ INVITES_PER_TEAM_PER_DAY: "0" }))).toBe(50);
+  expect(invitesPerTeamPerDay(fakeEnv({ INVITES_PER_TEAM_PER_DAY: "many" }))).toBe(50);
+});
+
+it("rejects an AUTH_EMAIL_FROM that does not parse, accepts both valid forms", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "not-an-email" }))).toThrow(
+    "AUTH_EMAIL_FROM",
+  );
+  expect(() =>
+    assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "no-reply@mail.example.com" })),
+  ).not.toThrow();
+  expect(() =>
+    assertEnvConsistency(fakeEnv({ AUTH_EMAIL_FROM: "Posta <no-reply@mail.example.com>" })),
+  ).not.toThrow();
+});
+
+it("cloud mode requires the KMS key, both Stripe secrets, and APP_BASE_URL", () => {
+  const cloud = {
+    IS_CLOUD: true,
+    KMS_KEY_ID: "kms",
+    STRIPE_SECRET_KEY: "sk",
+    STRIPE_WEBHOOK_SECRET: "whsec",
+    APP_BASE_URL: "https://app.example.com",
+  };
+  expect(() => assertEnvConsistency(fakeEnv(cloud))).not.toThrow();
+  expect(() => assertEnvConsistency(fakeEnv({ ...cloud, STRIPE_WEBHOOK_SECRET: "" }))).toThrow(
+    "IS_CLOUD=true requires STRIPE_WEBHOOK_SECRET",
+  );
+});
+
+it("refuses a KMS key outside cloud mode", () => {
+  expect(() => assertEnvConsistency(fakeEnv({ KMS_KEY_ID: "kms" }))).toThrow(
+    "KMS_KEY_ID is set but IS_CLOUD is false",
+  );
+});
+
+it("sesTenantsEnabled follows IS_CLOUD unless SES_TENANTS says otherwise", () => {
+  expect(sesTenantsEnabled(fakeEnv({}))).toBe(false);
+  expect(sesTenantsEnabled(fakeEnv({ IS_CLOUD: true }))).toBe(true);
+  expect(sesTenantsEnabled(fakeEnv({ IS_CLOUD: true, SES_TENANTS: "false" }))).toBe(false);
+  expect(sesTenantsEnabled(fakeEnv({ SES_TENANTS: "true" }))).toBe(true);
+  // SKIP_ENV_VALIDATION leaves raw strings behind; "1" and "" must still read right.
+  expect(sesTenantsEnabled(fakeEnv({ SES_TENANTS: "1" }))).toBe(true);
+  expect(sesTenantsEnabled(fakeEnv({ IS_CLOUD: true, SES_TENANTS: "" }))).toBe(true);
+});

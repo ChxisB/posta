@@ -1,46 +1,24 @@
-# Bun
-node_modules/
+# Independent sibling repos staged locally inside this folder
+sdks/
+org/
 
-# Build output
-dist/
-.next/
-*.tsbuildinfo
+# Internal planning and design material: private, never committed.
+# Root-anchored: apps/docs is the public documentation site and IS tracked.
+/design/
+/docs/
 
-# Environment
-.env
-.env.*
-.env.local
-!.env.example
-
-# IDE
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
+# OS / editor
 .DS_Store
 
-# Data (SQLite files from running Posta)
-data/
-*.db
-*.db-wal
-*.db-shm
+# Dependencies & builds (for when code lands)
+node_modules/
+.pnpm-store/
+dist/
+build/
+.env
+.env.*
 
-# SQLite in-memory artifacts
-:memory:
-:memory:-shm
-:memory:-wal
-
-# Turbo
+# Turborepo cache, and the agent notes turbo writes at the root on every run
 .turbo/
-
-# AI tools
-.opencode/
-.claude/
-
-# Logs
-*.log
-.mcp.json
-.agentsroom/handoff-transcript-*.txt
-.agentsroom/handoff-summary-*.md
+/AGENTS.md
+!.env.example

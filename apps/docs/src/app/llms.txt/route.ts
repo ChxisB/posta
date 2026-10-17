@@ -1,0 +1,36 @@
+import { i18n } from "@/lib/i18n";
+import { absoluteUrl } from "@/lib/site";
+import { source } from "@/lib/source";
+
+export const revalidate = false;
+
+export function GET(): Response {
+  // Serves the default locale (English) only; another language's pages would
+  // be reached through their locale-prefixed .md URLs (/<locale>/<page>.md).
+  const lines = source.getPages(i18n.defaultLanguage).map((page) => {
+    const md = page.url === "/" ? "/index.md" : `${page.url}.md`;
+    const description = page.data.description ? `: ${page.data.description}` : "";
+    return `- [${page.data.title}](${absoluteUrl(md)})${description}`;
+  });
+
+  const body = [
+    "# Posta Docs",
+    "",
+    "> Posta is an open-source, Resend-compatible email platform, hosted at posta.example (API: api.posta.example) or self-hosted on your own AWS SES.",
+    "",
+    "Every page is available as raw markdown by appending `.md` to its URL.",
+    `The full documentation in one file: ${absoluteUrl("/llms-full.txt")}`,
+    `The API's OpenAPI 3.1 spec (generated from code): ${absoluteUrl("/openapi.json")}`,
+    `Moving an account from Resend: \`npx @tack-labs/posta-cli migrate --from resend\` (read-only against Resend; reference at ${absoluteUrl("/cli.md")}).`,
+    `A complete agent prompt for that migration, from inventory to cutover: ${absoluteUrl("/prompts/migrate-from-resend.md")}`,
+    "",
+    "## Pages",
+    "",
+    ...lines,
+    "",
+  ].join("\n");
+
+  return new Response(body, {
+    headers: { "Content-Type": "text/markdown; charset=utf-8" },
+  });
+}

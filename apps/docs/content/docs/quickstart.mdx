@@ -1,0 +1,169 @@
+---
+title: Quickstart
+description: Get Posta and send your first email in a few minutes.
+---
+
+Posta runs the same on [Posta Cloud](https://posta.example) and
+on your own infrastructure: same dashboard, same API, same SDKs. Pick your
+deployment below; the tabs remember your choice across the docs.
+
+## 1. Get Posta
+
+<DeploymentTabs>
+<DeploymentTab deployment="cloud">
+
+Sign up at [posta.example](https://posta.example). That's it: no
+infrastructure, no AWS account. The dashboard is at
+[posta.example](https://posta.example) and the API at
+`api.posta.example`.
+
+</DeploymentTab>
+<DeploymentTab deployment="self-hosted">
+
+You need Docker (with Compose), Node 18+, and an AWS account with SES access.
+New AWS accounts start in the SES sandbox, which can only send to verified
+recipients: [request production access](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html)
+to send to anyone.
+
+One command, in an empty directory, no clone needed:
+
+```sh
+mkdir posta && cd posta
+npx @tack-labs/posta-setup
+```
+
+The wizard detects what is already in the directory and offers each step:
+create `.env` with generated secrets, provision the AWS resources (IAM user +
+policy, SNS event topic, SQS events queue, SES configuration set, plus a push
+subscription when your deployment has a public HTTPS URL), then download the compose file and
+start the prebuilt image with `docker compose up -d`. Every step is skippable
+and safe to re-run; `--dry-run` prints the full plan and touches nothing.
+
+When it finishes: dashboard at `http://localhost:3000`, API at
+`http://localhost:3001`. The first user to register becomes the initial
+account: after that, signup is closed unless you opt in. Prefer doing it by
+hand, or ready for production? See [Self-hosting](/self-hosting).
+
+</DeploymentTab>
+</DeploymentTabs>
+
+## 2. Verify a sending domain
+
+Posta only sends from domains you have verified.
+
+1. In the dashboard, go to **Domains** and add a domain you control
+   (e.g. `acme.dev`).
+2. Add the DNS records it shows you (a DKIM TXT record plus MAIL FROM
+   records) at your DNS provider.
+3. Click **Verify DNS records**. Posta also resolves the records live,
+   so you can see immediately which ones are still missing.
+
+![The Domains page in the Posta dashboard: two verified sending domains and one still waiting for its DNS records.](/screenshots/en/domains.png)
+
+## 3. Create an API key
+
+Go to **API keys** and create one. The `po_` token is shown once: copy it
+now. Keys can be scoped to full access or sending-only, and optionally pinned
+to a single domain.
+
+![The API keys page, listing each key with its permission, the domain it is pinned to and when it was last used.](/screenshots/en/api-keys.png)
+
+## 4. Send an email
+
+Your API base URL:
+
+<DeploymentTabs>
+<DeploymentTab deployment="cloud">
+
+`https://api.posta.example`
+
+</DeploymentTab>
+<DeploymentTab deployment="self-hosted">
+
+Your instance's API origin: `http://localhost:3001` on a local compose
+setup, or the hostname your reverse proxy serves the API on (`PUBLIC_API_URL`,
+e.g. `https://api.acme.dev`). The examples below use the Cloud URL; swap in
+yours.
+
+</DeploymentTab>
+</DeploymentTabs>
+
+With curl:
+
+```sh
+curl -X POST https://api.posta.example/emails \
+  -H "Authorization: Bearer po_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "Acme <onboarding@acme.dev>",
+    "to": ["success@simulator.amazonses.com"],
+    "subject": "Hello from Posta",
+    "html": "<strong>It works!</strong>"
+  }'
+```
+
+Or with the Node SDK (`npm install @tack-labs/posta`):
+
+```ts
+import { Posta } from "@tack-labs/posta";
+
+const ms = new Posta("po_...", { baseUrl: "https://api.posta.example" });
+
+const { data, error } = await ms.emails.send({
+  from: "Acme <onboarding@acme.dev>",
+  to: "success@simulator.amazonses.com",
+  subject: "Hello from Posta",
+  html: "<strong>It works!</strong>",
+});
+
+if (error) console.error(error.name, error.message);
+else console.log("sent", data.id);
+```
+
+Both return `{ "id": "..." }`. Watch the email move from `queued` to
+`delivered` on the **Emails** page.
+
+![The Emails page, listing each send with its delivery status.](/screenshots/en/emails.png)
+
+<Callout type="info">
+On a self-hosted instance, delivery events (delivered, bounced, complained)
+require the SES event pipeline the setup wizard configures: see
+[Self-hosting → SES events](/self-hosting#ses-events-bounces-complaints-deliveries).
+On Cloud they flow automatically.
+</Callout>
+
+Already on Resend? Point the official Resend SDK at Posta instead: set
+`RESEND_BASE_URL` to your base URL and use your `po_` key. The wire format is
+identical.
+
+## Testing
+
+- To test end to end without emailing anyone, send to
+  `success@simulator.amazonses.com`, as the examples above do: SES simulates
+  the delivery, and the email shows as `delivered`, with the `email.sent` and
+  `email.delivered` webhooks (no opens or clicks: nobody reads it). Labels
+  work too: `success+signup@simulator.amazonses.com`.
+- SES doesn't count simulator mail toward its own sending quota or bounce and
+  complaint rates, but on Cloud each send still counts toward your plan's
+  quota like any other email. On a self-hosted instance, the simulator works
+  even while your AWS account is in the SES sandbox, and AWS still bills each
+  message.
+- The simulator's `bounce@`, `complaint@` and `suppressionlist@` addresses
+  produce bounces and complaints that Posta treats as real: the address
+  goes on your team's [suppression list](/concepts/suppressions) and counts
+  toward your bounce or complaint rate, which can pause sending. Use them by
+  hand, not in automated test runs. Each address is suppressed after its first
+  use, so add a label for a fresh one: `bounce+2@simulator.amazonses.com`.
+- Addresses at `example.com`, or under `.test` or `.invalid`, can't receive
+  mail: SES retries them for hours (the email shows `delivery_delayed`) before
+  it bounces them, and on Cloud each one still counts toward your plan's
+  quota.
+
+## Next steps
+
+- [Concepts](/concepts/contacts) for contacts, segments, topics, and
+  broadcasts.
+- [SDKs](/sdks) for the nine official client libraries.
+- [API reference](/api-reference) for every endpoint.
+- [Self-hosting](/self-hosting) for production deployment, the environment
+  reference, and the SMTP relay.

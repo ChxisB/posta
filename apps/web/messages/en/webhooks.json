@@ -1,0 +1,201 @@
+{
+  "addWebhook": "Add webhook",
+  "empty": {
+    "headline": "No webhooks yet.",
+    "body": "Add an endpoint to receive email events."
+  },
+  "table": {
+    "url": "URL",
+    "events": "Events",
+    "status": "Status",
+    "successRate": "Success rate",
+    "created": "Created",
+    "menu": "Webhook actions"
+  },
+  "allEvents": "All",
+  "optInHint": "Not included in All",
+  "inboxOptIn": "Inbox events go only to endpoints that pick them.",
+  "onlyInboxes": "Only these inboxes",
+  "eventsCount": "{count, plural, one {# event} other {# events}}",
+  "loadMore": "Load more",
+  "pageOf": "Page 1 to {pages} of {total} webhooks",
+  "pageSize": "{count} items",
+  "eventGroup": {
+    "delivery": "Delivery",
+    "engagement": "Engagement",
+    "problems": "Problems",
+    "account": "Account",
+    "audience": "Audience",
+    "receiving": "Receiving",
+    "inboxes": "Inboxes"
+  },
+  "eventLabel": {
+    "email": {
+      "sent": "Email sent",
+      "delivered": "Email delivered",
+      "delivery_delayed": "Delivery delayed",
+      "opened": "Email opened",
+      "clicked": "Link clicked",
+      "prefetched": "Email prefetched",
+      "received": "Email received",
+      "bounced": "Email bounced",
+      "complained": "Marked as spam"
+    },
+    "deliverability": {
+      "warning": "Deliverability at risk",
+      "paused": "Sending paused"
+    },
+    "quota": {
+      "warning": "Daily quota at 80%",
+      "reached": "Daily quota reached",
+      "paused": "Daily quota ceiling: sends queued"
+    },
+    "contact": {
+      "created": "Contact created",
+      "updated": "Contact updated",
+      "deleted": "Contact deleted",
+      "unsubscribed": "Contact unsubscribed",
+      "resubscribed": "Contact resubscribed",
+      "topic_opt_in": "Topic opt-in",
+      "topic_opt_out": "Topic opt-out"
+    },
+    "suppression": {
+      "added": "Address suppressed",
+      "removed": "Suppression removed"
+    },
+    "inbox": {
+      "created": "Inbox created",
+      "updated": "Inbox updated",
+      "deleted": "Inbox deleted",
+      "expired": "Inbox expired",
+      "thread": {
+        "created": "New thread",
+        "folder": {
+          "updated": "Thread moved"
+        },
+        "labels": {
+          "updated": "Thread labels changed"
+        }
+      },
+      "email": {
+        "received": "Email received in an inbox",
+        "sent": "Email sent from an inbox",
+        "quarantined": "Email quarantined"
+      },
+      "draft": {
+        "created": "Draft created",
+        "updated": "Draft updated",
+        "sent": "Draft sent",
+        "deleted": "Draft deleted"
+      }
+    }
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "auto_disabled": "Auto-disabled"
+  },
+  "queue": {
+    "queued": "{count} queued",
+    "oldest": "oldest",
+    "next": "next attempt",
+    "stale": "{count} deliveries are waiting; the oldest has been due for {age}. The receiver is slow or failing.",
+    "autoDisabled": "Disabled automatically after repeated failures. Fix the receiver, then enable it again; events in the meantime are not replayed."
+  },
+  "enable": "Enable",
+  "disable": "Disable",
+  "delete": "Delete",
+  "edit": "Edit",
+  "rotateSecret": "Rotate secret",
+  "create": {
+    "title": "Add webhook",
+    "url": "Endpoint URL",
+    "urlPlaceholder": "https://example.com/webhooks/posta",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "Production events",
+    "events": "Events",
+    "allEvents": "All events",
+    "selectPrompt": "Select events to listen for",
+    "searchEvents": "Search events…",
+    "noEvents": "No matching events.",
+    "submit": "Add webhook"
+  },
+  "reveal": {
+    "title": "Webhook created",
+    "secretLabel": "Signing secret",
+    "warning": "This signing secret is shown once. Store it now.",
+    "done": "Done"
+  },
+  "editDialog": {
+    "title": "Edit webhook",
+    "submit": "Save changes"
+  },
+  "rotate": {
+    "title": "Rotate signing secret",
+    "body": "A new secret is minted now. For the overlap you choose, deliveries to <code>{url}</code> carry two signatures, so the receiver keeps verifying with the old secret until you switch it. After that only the new secret signs.",
+    "overlap": "Overlap",
+    "overlapHours": "{count, plural, =0 {No overlap} one {# hour} other {# hours}}",
+    "confirm": "Rotate secret",
+    "revealTitle": "Secret rotated",
+    "previousUntil": "The previous secret also signs until {date}.",
+    "previousDropped": "The previous secret stopped signing."
+  },
+  "deleteConfirm": {
+    "title": "Delete webhook",
+    "body": "Deliveries to <code>{url}</code> stop immediately. Delivery history is removed.",
+    "confirm": "Delete webhook"
+  },
+  "disableConfirm": {
+    "title": "Disable webhook",
+    "body": "Deliveries to {url} stop until it is enabled again.",
+    "confirm": "Disable webhook"
+  },
+  "detail": {
+    "eyebrow": "Webhook",
+    "sendTest": "Send test event",
+    "testQueued": "Test event queued.",
+    "testRateLimited": "Too many test events: try again in a minute.",
+    "testFailed": "Couldn't send the test event.",
+    "moreActions": "Webhook actions",
+    "url": "URL",
+    "description": "Description",
+    "signingSecret": "Signing secret",
+    "events": "Events",
+    "status": "Status",
+    "created": "Created",
+    "error": "Could not load this webhook.",
+    "retry": "Retry",
+    "deliveries": "Deliveries",
+    "noDeliveries": "No deliveries yet.",
+    "deliveriesError": "Could not load deliveries.",
+    "payload": "Payload",
+    "response": "Response",
+    "messageId": "Message ID",
+    "noResponse": "No response recorded.",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "{from} to {to}",
+    "notFound": "Webhook not found.",
+    "previousSecret": "The previous secret also signs until {date}"
+  },
+  "deliveryTable": {
+    "event": "Event",
+    "status": "Status",
+    "response": "Response",
+    "attempts": "Attempts",
+    "time": "Time",
+    "toggle": "Toggle delivery details"
+  },
+  "deliveryStatus": {
+    "pending": "Pending",
+    "success": "Success",
+    "failed": "Failed",
+    "exhausted": "Exhausted"
+  },
+  "apiSheet": {
+    "title": "Webhooks API",
+    "list": "List webhooks",
+    "create": "Create webhook",
+    "update": "Update webhook"
+  }
+}

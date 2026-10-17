@@ -1,0 +1,14 @@
+/* Design-system entry. Geist (the UI sans) and JetBrains Mono (data) load
+   via @fontsource imports in the root layout (both OFL), never from a CDN. */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/motion.css";
+@import "./tokens/base.css";
+@import "./components.css";
+
+/* Text selection: a light bone wash only; text keeps its own color, so body
+   copy and highlighted code tokens stay legible in both themes. */
+::selection {
+  background: color-mix(in srgb, var(--po-bone) 30%, transparent);
+}

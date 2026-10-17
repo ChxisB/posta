@@ -1,0 +1,17 @@
+# Prebuilt-image variant: skips the local build and pulls the published
+# image instead. Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
+# :edge tracks main; pin a version tag for production.
+services:
+  posta:
+    image: ghcr.io/chxisb/posta:edge
+    build: !reset null
+  smtp:
+    image: ghcr.io/chxisb/posta:edge
+    build: !reset null
+  docs:
+    image: ghcr.io/chxisb/posta:edge
+    build: !reset null
+  mx:
+    image: ghcr.io/chxisb/posta:edge
+    build: !reset null

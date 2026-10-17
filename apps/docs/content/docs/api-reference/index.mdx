@@ -1,0 +1,311 @@
+---
+title: API reference
+description: The Posta HTTP API. Resend wire-compatible, generated from the server code.
+---
+
+The endpoint pages under this section are generated from the API's own route
+definitions at build time, so they always reflect the code. The raw spec is at
+[/openapi.json](/openapi.json) (OpenAPI 3.1).
+
+## Base URL
+
+<DeploymentTabs>
+<DeploymentTab deployment="cloud">
+
+`https://api.posta.example`
+
+</DeploymentTab>
+<DeploymentTab deployment="self-hosted">
+
+Your instance's API origin: `http://localhost:3001` on a local compose
+setup, or wherever you exposed port 3001 (e.g. `https://api.acme.dev`). See
+[Self-hosting](/self-hosting).
+
+</DeploymentTab>
+</DeploymentTabs>
+
+## Authentication
+
+Every endpoint requires an API key created in the dashboard, except the SES
+event ingestion webhook and the signed download links of
+[received mail](/concepts/receiving#downloads):
+
+```
+Authorization: Bearer po_...
+```
+
+Keys have a permission level: **full access** keys can use every endpoint,
+**sending only** keys are confined to `/emails*` (anything else returns
+`403 restricted_api_key`), and even there, `GET /emails`, `GET /emails/{id}`
+and `DELETE /emails/{id}` need full access, since reads return stored bodies
+and the team's whole archive, and so does every `/emails/receiving` endpoint.
+A key can additionally be scoped to a single domain, restricting which `from`
+addresses it may send and which received mail it reads.
+
+A full-access key can instead be scoped to one [inbox](/concepts/inboxes)
+(`inbox_id`): it reads and works that inbox only, sends only from its
+address, and gets `403 restricted_api_key` on every other route, key creation
+included. See
+[Inbox-scoped API keys](/concepts/inboxes#inbox-scoped-api-keys).
+
+A key created with `POST /api-keys` is never broader than the key that
+created it. A domain-scoped key creates keys scoped to its own domain: an
+omitted or null `domain_id` inherits that domain, and any other domain returns
+`403 restricted_api_key`.
+
+## Resend compatibility
+
+Request and response shapes match Resend's API, so official Resend SDKs work
+against Posta by pointing their base URL at it. CI runs the official
+`resend` npm package against every endpoint as a conformance gate. The few
+remaining deltas are deliberate and loud:
+
+- Attachments take inline base64 `content` only: a remote `path` URL is
+  rejected with `422` (never fetched). An attachment with a `content_id` is
+  an inline image the HTML references as `cid:<content_id>`, and may leave
+  `filename` out or null. Attachments can total up to 10 MiB per email
+  (Resend allows 40 MB), and the whole email must fit SES's 40 MB as it goes
+  out; a larger one is refused with `422`. Program files are refused too; see
+  [Attachments](#attachments).
+- Receiving is supported (beta): `GET /emails/receiving`,
+  `GET /emails/receiving/{id}` with `html_format`, the attachment endpoints,
+  signed one-hour download links, the `email.received` webhook, and
+  `capabilities.receiving` with a `Receiving` record on domains, so
+  `resend.emails.receiving.*`, `forward()` included, works unchanged. A
+  domain's `capabilities.sending` is always `enabled` (asking to disable it
+  is a `422`). Receiving needs a verified domain, so `POST /domains` with
+  `capabilities.receiving: "enabled"` is a `422`: verify the domain, then
+  enable it with `PATCH /domains/{id}`. `GET /emails/receiving` without
+  `limit` returns 20 emails rather than all of them, and HTML whose inline
+  images would take it past 40 MB (Resend: 100 MB) is served with its `cid:`
+  references (`html_format: "cid"`). Unlike Resend, a receiving domain takes
+  mail only at its inboxes' addresses unless its catch-all is on
+  (`receiving_catch_all`, a paid feature on Cloud); other addresses are
+  refused during the SMTP session. Received mail gains extension fields
+  (`screening`, `spam_verdict`, `virus_verdict`, `extracted_text`,
+  `extracted` and more), `text` comes without invisible characters, and
+  infected mail is held, with its downloads answering `410 email_blocked`.
+  Posta adds long-polling (`?wait=`), server-side
+  `POST /emails/receiving/{id}/reply` and `/forward`, and
+  `DELETE /emails/receiving/{id}`. See [Receiving](/concepts/receiving).
+- Inboxes are supported (beta): the 26 endpoints of Resend's Inboxes
+  preview, under `/inboxes`, with the same paths and shapes, so
+  `resend.inboxes.*` from `resend@6.32.1-preview-inboxes.6` works.
+  Creating an inbox or a draft answers the whole object; `kind` defaults to
+  `agent`; the hosted-agent settings answer an empty agent on `GET` and
+  `422` on `PATCH`; thread search reads subjects, senders and recipients
+  only; and a reply, forward or draft send that the inbox's rules hold
+  answers `202` with the draft instead of `200` with the email. Extensions
+  are extra fields and endpoints only, never new values in Resend's enums.
+  See [Inboxes → Resend compatibility](/concepts/inboxes#resend-compatibility).
+- Contacts are team-global: audience endpoints are served as aliases of
+  segments, and contact endpoints work with or without an audience id (see
+  [Contacts](/concepts/contacts)).
+- `POST /domains` takes an optional `region`, which must be one of the SES
+  regions the deployment serves (the values its request schema lists, the
+  first being the default) and is rejected with `422` otherwise. A domain
+  has one region: to move it, delete it and add it again.
+- Broadcasts support `canceled`, a status outside Resend's union, and
+  broadcast sends, `POST /emails` and `POST /emails/batch` can return
+  `403 sending_paused` when your bounce or complaint rate crosses the SES
+  enforcement thresholds, and broadcast sends also while the team's sending
+  is paused pending review. Broadcast sends alone can also return
+  `403 broadcasts_paused` while the platform's aggregate rate in the sender's
+  SES region is recovering; it is per region, leaves transactional email
+  untouched, and clears on its own.
+- A broadcast send answers with `finishes_at` (the estimated instant the last
+  email goes out, or `null`), `estimated: true` and, when the audience exceeds
+  the capacity available now, a `warning` (`paced` or `queued_behind`, with
+  `days` and a message). Broadcast reads carry `sent_count` and a live
+  `finishes_at`; a cancel answers with `canceled_remaining`. An audience that
+  needs more than 24 days of capacity is refused with
+  `422 broadcast_too_large`. See [Broadcasts](/concepts/broadcasts#pacing).
+- `POST /emails` and `POST /emails/batch` return `429 daily_quota_exceeded`
+  on a daily plan (Free, Starter) when the day's sending quota is spent and
+  the queued backlog is full (retry after the UTC day rolls over) and
+  `429 monthly_quota_exceeded` on a monthly plan (Pro, Scale) at its included
+  volume with overage off; turn on overage in Billing or wait for the period
+  to renew (the message names the date). A batch is accepted or refused
+  whole. On any plan, a domain still in its
+  [new domain warm-up](/concepts/domains#new-domain-warm-up) answers the same
+  `429 daily_quota_exceeded`, with a message naming the warm-up, once a lot
+  of mail is already waiting.
+- `POST /contacts`, `POST /contacts/batch` and the audience alias return
+  `403 plan_limit_reached` when a new contact would take the team past its
+  plan's contact cap (1,000 on Free; paid plans are unlimited). Existing
+  contacts still update; in a batch only the new ones fail.
+- `GET /usage` exists (Resend has no usage endpoint): the effective plan, its
+  limits (`emails_per_day` on daily plans, `emails_per_month` on monthly ones,
+  `domains`, `contacts`, `inboxes`), today's accepted count and, on a monthly plan, a `period` object:
+  `emails_sent`, `included`, `overage_enabled`, `overage_usd_per_1k`,
+  `starts_at`, `ends_at`. Self-hosted instances report `cloud: false` with
+  null plan, limits and period.
+- `DELETE /emails/{id}` exists (Resend has no email deletion).
+- Custom `headers` are allowlisted: any `X-*` name (except `X-SES-*` and
+  `X-Posta-*`) plus `In-Reply-To`, `References`, `Importance`,
+  `Priority`, `Comments`, `Keywords`, `Organization`, and the one-click
+  unsubscribe pair. `List-Unsubscribe` (one or more `<https://…>` or
+  `<mailto:…>` targets) with `List-Unsubscribe-Post`
+  (`List-Unsubscribe=One-Click`); anything else is a `422`. The two must come
+  together, and `List-Unsubscribe` needs an `https` target. On a send with a
+  `topic_id`, a pair you supply replaces the generated one: one-click requests
+  then reach your endpoint, Posta records no opt-out for them, and an
+  `{{{UNSUBSCRIBE_URL}}}` placeholder in the body still resolves to
+  Posta's page.
+- A send whose every `to` recipient is on the suppression list or opted out of
+  the `topic_id` is refused with `422 all_recipients_suppressed` (message
+  `All recipients are suppressed`); recipients dropped from a send that still
+  has someone left are simply omitted. Unsubscribe-origin entries count only
+  when the send has a `topic_id`; bounce, complaint and manual entries always.
+- `to`, `cc` and `bcc` together cannot exceed 50 recipients, and each address
+  must be a single mailbox: a display name containing `@` is rejected, and
+  accepted addresses read back in canonical `Name <user@host>` form.
+- The instance's onboarding sender (`ONBOARDING_EMAIL_FROM`;
+  `hello@mail.posta.example` on the cloud) carries only Posta's own
+  onboarding email: as `from` on `POST /emails`, `POST /emails/batch` or a
+  broadcast send it is refused with `422 reserved_sender`, in any letter case
+  and with any display name. Send from a domain you
+  [verified](/concepts/domains) instead.
+- Tag names starting with `posta_`, in any letter case, are
+  Posta's own: a `tags` entry with one on `POST /emails` or
+  `POST /emails/batch` is refused with `422 validation_error`.
+- Anything unsupported is rejected with `422` rather than silently dropped
+  (e.g. `tls` on domain update).
+
+## Attachments
+
+Some files are refused for every team, with `422 validation_error` and a
+message that names the file and the reason:
+
+- A type SES or Gmail refuses. The last extension counts, in any letter case
+  and without trailing dots or spaces, and so does the one inside a
+  compressed file (`invoice.exe.gz` counts as `.exe`):
+
+  ```
+  ade adp apk app appx appxbundle asp bas bat cab cer chm cmd com cpl crt
+  csh der diagcab diagcfg diagpkg dll dmg ex ex_ exe fxp gadget hlp hta img
+  inf ins iso isp its jar jnlp js jse ksh lib lnk mad maf mag mam maq mar
+  mas mat mau mav maw mda mdb mde mdt mdw mdz mjs msc msh msh1 msh1xml msh2
+  msh2xml mshxml msi msix msixbundle msp mst nsh ops pcd pif plg prf prg ps1
+  ps1xml ps2 ps2xml psc1 psc2 reg scf scr sct shb shs sys tmp url vb vbe vbs
+  vhd vps vsmacros vss vst vsw vxd ws wsc wsf wsh xll xnk
+  ```
+
+- A program under any name: a Windows, Linux or macOS executable, or a
+  Windows shortcut.
+- A ZIP, Office files included, holding a file with one of those extensions.
+- A `content_type` that names a program:
+
+  ```
+  application/x-msdownload application/x-msdos-program application/x-dosexec
+  application/x-ms-dos-executable
+  application/vnd.microsoft.portable-executable application/x-executable
+  application/x-elf application/x-mach-binary application/x-msi
+  application/x-ms-installer application/x-ms-shortcut
+  application/x-mswinurl application/hta application/x-bat application/x-csh
+  application/javascript application/x-javascript text/javascript
+  application/ecmascript text/ecmascript text/vbscript
+  application/java-archive application/x-java-archive
+  application/x-java-jnlp-file application/vnd.android.package-archive
+  application/x-apple-diskimage application/x-iso9660-image
+  application/vnd.ms-cab-compressed application/x-msaccess
+  application/vnd.ms-htmlhelp
+  ```
+
+- A file name with a character that changes text direction (U+202A to
+  U+202E, U+2066 to U+2069, U+200E, U+200F, U+061C), such as the
+  right-to-left override that makes `.exe` display as `.pdf`. Other
+  invisible characters, like the joiners Persian names and emoji use, are
+  accepted.
+
+While a team is new (inside its first 1,000 sends or 72 hours, or under
+10,000 sends within 7 days of its first), an email carrying any of these is
+accepted but waits for review before it is sent:
+
+- Web pages and SVG images (`htm html shtml xhtml xht mht mhtml svg svgz`),
+  by name, `content_type` or content.
+- Archives (`zip zipx rar 7z gz tgz bz2 tbz tbz2 xz txz tar zst lz lzh lha
+  arj ace z cpio`), and archive content under any name.
+- `vhdx` disk images; macro-enabled Office files (`docm dotm xlsm xltm xlam
+  xlsb pptm potm ppam ppsm sldm`) and any Office file with a VBA project;
+  OneNote (`one onepkg`), `rtf`, and attached emails (`eml msg`).
+- A file whose name and content disagree, such as a `.pdf` that is really a
+  ZIP or a web page.
+- A PDF that needs a password to open, or that carries scripts, launch
+  actions, embedded files or XFA forms; encrypted archive entries, and
+  archives inside archives.
+- A file that can't be read: damaged, longer than 50 pages, or larger than
+  50 megapixels.
+
+Older teams send the same files without waiting; their emails are screened
+more often.
+
+## Errors
+
+Errors use Resend's format:
+
+```json
+{ "statusCode": 422, "name": "validation_error", "message": "..." }
+```
+
+A body that isn't valid JSON answers `400 invalid_parameter`, and a body sent
+with a `Content-Type` other than `application/json` answers `415`.
+
+Besides Resend's names, [received mail](/concepts/receiving) and
+[inboxes](/concepts/inboxes) answer these:
+
+| Status, name | When |
+| --- | --- |
+| `403 restricted_api_key` | An inbox-scoped key outside its inbox, or sending from another address; `include_quarantined` from an inbox-scoped key or the MCP server. |
+| `403 inbox_send_policy` | An inbox's rules refuse a send: a shared-domain address starting a conversation, or a send from an agent inbox's address on `POST /emails`, `POST /emails/batch` or the SMTP relay that the rules would hold. The message lists the reasons. |
+| `429 inbox_send_cap_reached` | The inbox's daily send cap is used; `retry-after` counts to midnight UTC. |
+| `403 approval_required` | An agent sending a draft that waits for approval. |
+| `403 email_quarantined` | An agent reading, replying to or forwarding held mail, or any forward of infected mail. |
+| `410 email_blocked` | A download of infected mail. |
+| `429 too_many_waits` | Too many long-polls at once from one team; `retry-after: 1`. |
+| `403 validation_error` | The plan's inbox limit, with Resend's message. |
+| `403 plan_limit_reached` | Catch-all on the Free plan. |
+| `404 not_found` | An unknown inbox, thread, label, draft or pagination cursor, with Resend's messages (`Inbox not found.`). |
+
+## Idempotency
+
+`POST /emails` and `POST /emails/batch` accept an `Idempotency-Key` header,
+and so do the sends of received mail and inboxes: inbox replies, forwards and
+draft sends, and `POST /emails/receiving/{id}/reply` and `/forward`.
+Retrying with the same key and payload returns the original response instead
+of sending again; the same key with a different payload returns `409`. A send
+that was held for approval answers the retry with the same draft, as `202`.
+
+## Pagination
+
+List endpoints accept `limit` (1 to 100, default 20) plus `after` / `before`
+cursors carrying an item id from a previous page. Responses include
+`has_more`. Lists run oldest first, except where Resend orders them
+otherwise, and there `after` pages toward the end of that order:
+
+| List | Order |
+| --- | --- |
+| `GET /emails/receiving` | Newest first: `after` pages toward older mail. |
+| `GET /inboxes` | Newest first. |
+| `GET /inboxes/{id}/threads` and `/threads/search` | Latest activity first. |
+| `GET /inboxes/{id}/threads/{thread_id}/emails` | Oldest first: `after` pages toward newer emails. |
+| `GET /inboxes/{id}/drafts` | Most recently updated first. |
+| `GET /inboxes/{id}/labels` | Oldest first, all at once, without `has_more`. |
+| `GET /inboxes/{id}/quarantine` | Newest first. |
+
+The attachments of a received email come back all at once unless you pass
+`limit`. Under `/inboxes`, a cursor that names no item of the list answers
+`404`, as on Resend.
+
+## Signed download links
+
+Received mail carries download links instead of inline bytes:
+`raw.download_url` on `GET /emails/receiving/{id}`, and `download_url` on
+each attachment the attachment endpoints return. They are plain `GET` URLs
+on the API origin, `/receiving/raw/{email_id}` and
+`/receiving/attachments/{email_id}/{attachment_id}`, with `expires` (Unix
+seconds) and `signature` in the query. They need no API key, work for one
+hour (`expires_at`) for one email and attachment of one team, and answer
+`403` once expired or altered; ask the API again for fresh ones. A message
+carrying a virus answers `410 email_blocked` instead, for good. See
+[Receiving → Downloads](/concepts/receiving#downloads).

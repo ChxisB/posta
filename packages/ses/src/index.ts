@@ -1,0 +1,119 @@
+export {
+  createSesAccountClient,
+  getAccountOverview,
+  type SesAccountClient,
+  type SesAccountOverview,
+} from "./account.js";
+export {
+  ACCOUNT_CACHE_MS,
+  createRegionAccountCache,
+  type RegionAccount,
+  type RegionAccountCache,
+  type RegionAccountDeps,
+  regionAccountWithin,
+} from "./account-cache.js";
+export { type DmarcLookup, type DmarcPolicy, lookupDmarc, parseDmarcRecord } from "./dmarc.js";
+export {
+  checkDnsRecords,
+  checkDnsRecordsDetailed,
+  type DnsCheckRecord,
+  type DnsResolver,
+  type LiveDnsCheck,
+  nodeDnsResolver,
+} from "./dns-check.js";
+export {
+  applyDomainConfiguration,
+  type DomainConfiguration,
+  domainConfigurationSetName,
+  ensureDomainConfigurationSet,
+  type SesConfigClient,
+  type TlsMode,
+} from "./domain-config.js";
+export {
+  createDomainIdentity,
+  createSesv2Client,
+  DKIM_SELECTOR,
+  type DkimVerificationStatus,
+  type DnsRecord,
+  type DnsRecordGroup,
+  type DomainVerification,
+  deleteDomainIdentity,
+  dnsRecordsForDomain,
+  generateDkimKeyPair,
+  getDomainVerification,
+  type MailFromVerificationStatus,
+  SES_REGIONS,
+  type SesIdentityClient,
+  type SesRegion,
+} from "./domain-identity.js";
+export {
+  computeDomainVerification,
+  type DnsChecklistRow,
+  type DomainVerificationResult,
+  dnsChecklist,
+  type LiveDnsRow,
+  verificationDbPatch,
+} from "./domain-verification.js";
+export { createKeyringFromEnv, type KeyringEnv } from "./kms.js";
+export {
+  createQuotaRequestClient,
+  type QuotaRequestClient,
+  type QuotaRequestResult,
+  requestSesDailyQuota,
+  SES_DAILY_QUOTA_CODE,
+} from "./quotas.js";
+export { checkReceivingMx, RECEIVING_MX_PRIORITY, receivingDnsRecord } from "./receiving-dns.js";
+export {
+  createSesReputationClient,
+  getSesComplaintRate,
+  type SesReputationClient,
+} from "./reputation.js";
+export {
+  createSesSendClient,
+  type SesSendClient,
+  type SimpleEmail,
+  sendSimpleEmail,
+} from "./send.js";
+export {
+  type ParsedSesEvent,
+  parseSesEvent,
+  type SesEventType,
+} from "./ses-events.js";
+export {
+  httpsOrigin,
+  runSetup,
+  runTeardown,
+  SES_EVENT_TYPES,
+  SES_IAM_POLICY,
+  SES_IAM_POLICY_JSON,
+  SETUP_NAMES,
+  type SetupClients,
+  type SetupResult,
+  setupEnvEntries,
+  setupPlan,
+  snsTopicPolicy,
+  teardownPlan,
+  upsertEnv,
+} from "./setup.js";
+export {
+  type CertFetcher,
+  canonicalString,
+  createCachingCertFetcher,
+  isAllowedCertUrl,
+  isAllowedSnsUrl,
+  type SnsMessage,
+  snsMessageSchema,
+  type VerifyOptions,
+  type VerifyResult,
+  verifySnsMessage,
+} from "./sns-verify.js";
+export {
+  associateTenantResources,
+  deleteTenant,
+  disassociateIdentity,
+  ensureTenant,
+  provisionDomainTenant,
+  type SesTenantClient,
+  setTenantSendingStatus,
+  type TenantCommand,
+} from "./tenants.js";

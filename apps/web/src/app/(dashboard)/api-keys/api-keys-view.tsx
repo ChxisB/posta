@@ -1,0 +1,518 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { ResourceApiButton } from "@/components/api-sheet";
+import { CopyChip } from "@/components/copy-chip";
+import { EmptyState } from "@/components/empty-state";
+import { ExportCsvLink } from "@/components/export-csv-link";
+import { PlusGlyph } from "@/components/icons/nav-icons";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { PageHeader } from "@/components/page-header";
+import { PopoverMenu } from "@/components/popover-menu";
+import { RelativeTime } from "@/components/relative-time";
+import { Select } from "@/components/select";
+import { Skeleton } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { NavTile, TONE_COLOR } from "@/components/status-tile";
+import { Table } from "@/components/table";
+import { Tooltip } from "@/components/tooltip";
+import { maskApiKey } from "@/lib/format";
+import { useTRPC } from "@/lib/trpc";
+import { useTeamRole } from "@/lib/use-team-role";
+import { ListFooter } from "../emails/list-parts";
+
+/** Mirrors the loaded table: name, masked mono token, two relative times, menu column. */
+function KeysSkeleton() {
+  const t = useTranslations("api-keys");
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <th>{t("table.name")}</th>
+          <th>{t("table.token")}</th>
+          <th>{t("table.lastUsed")}</th>
+          <th>{t("table.created")}</th>
+          <th className="right" aria-label={t("table.menu")} />
+        </tr>
+      </thead>
+      <tbody>
+        {[110, 80].map((width) => (
+          <tr key={width}>
+            <td>
+              <Skeleton width={width} height={13} />
+            </td>
+            <td>
+              <Skeleton width={176} height={13} />
+            </td>
+            <td>
+              <Skeleton width={72} />
+            </td>
+            <td>
+              <Skeleton width={72} />
+            </td>
+            <td className="right">
+              {/* Loaded rows hold PopoverMenu's 28px bare trigger here: the
+                  row's tallest cell content, so the stand-in keeps 28px. */}
+              <Skeleton width={28} height={28} radius={8} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+export function ApiKeysView() {
+  const t = useTranslations("api-keys");
+  const common = useTranslations("common");
+  const nav = useTranslations("nav");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const role = useTeamRole();
+  const canExport = role === "owner" || role === "admin";
+
+  const listQuery = useQuery(trpc.apiKeys.list.queryOptions());
+  const keys = listQuery.data;
+
+  const domainsQuery = useQuery(trpc.domains.list.queryOptions());
+  const verifiedDomains = (domainsQuery.data ?? []).filter((d) => d.status === "verified");
+  const receiving = useQuery(trpc.system.features.queryOptions()).data?.receiving === true;
+  const inboxesQuery = useQuery(
+    trpc.inboxes.list.queryOptions({ limit: 100 }, { enabled: receiving && canExport }),
+  );
+  const inboxes = inboxesQuery.data?.items ?? [];
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [permission, setPermission] = useState<"full_access" | "sending_access">("full_access");
+  // "" = any verified domain; otherwise a domain id the key is scoped to.
+  const [domainId, setDomainId] = useState("");
+  // "" = not restricted; otherwise the one inbox the key reads and sends from.
+  const [inboxId, setInboxId] = useState("");
+  const [revealedToken, setRevealedToken] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<{ id: string; name: string } | null>(null);
+  const [renameTarget, setRenameTarget] = useState<{ id: string; name: string } | null>(null);
+  const [renameName, setRenameName] = useState("");
+
+  const invalidateList = () =>
+    queryClient.invalidateQueries({ queryKey: trpc.apiKeys.list.queryKey() });
+
+  const createMutation = useMutation(
+    trpc.apiKeys.create.mutationOptions({
+      onSuccess: (data) => {
+        setRevealedToken(data.token);
+        invalidateList();
+      },
+    }),
+  );
+  const revokeMutation = useMutation(
+    trpc.apiKeys.revoke.mutationOptions({
+      onSuccess: () => {
+        setRevokeTarget(null);
+        invalidateList();
+      },
+    }),
+  );
+  const renameMutation = useMutation(
+    trpc.apiKeys.rename.mutationOptions({
+      onSuccess: () => {
+        setRenameTarget(null);
+        invalidateList();
+      },
+    }),
+  );
+
+  // Stable identities: Modal's focus effect depends on onClose, and a fresh
+  // arrow per render would re-run it on every keystroke, stealing focus from
+  // the form inputs.
+  const { reset: resetCreate } = createMutation;
+  const closeCreate = useCallback(() => {
+    setCreateOpen(false);
+    setRevealedToken(null);
+    setName("");
+    setPermission("full_access");
+    setDomainId("");
+    setInboxId("");
+    resetCreate();
+  }, [resetCreate]);
+  const closeRevoke = useCallback(() => setRevokeTarget(null), []);
+  const closeRename = useCallback(() => setRenameTarget(null), []);
+
+  // Shared by the form submit and Modal's ⌘↵ onConfirm: one guard for both.
+  const confirmCreate = () => {
+    if (revealedToken) {
+      closeCreate();
+      return;
+    }
+    if (name.trim().length === 0 || createMutation.isPending) return;
+    createMutation.mutate({
+      name,
+      permission,
+      domainId: domainId || null,
+      ...(inboxId ? { inboxId } : {}),
+    });
+  };
+  const confirmRevoke = () => {
+    if (!revokeTarget || revokeMutation.isPending) return;
+    revokeMutation.mutate({ id: revokeTarget.id });
+  };
+  const confirmRename = () => {
+    if (!renameTarget || renameMutation.isPending) return;
+    const name = renameName.trim();
+    if (name.length === 0) return;
+    if (name === renameTarget.name) {
+      closeRename();
+      return;
+    }
+    renameMutation.mutate({ id: renameTarget.id, name });
+  };
+  const createError = createMutation.error;
+
+  return (
+    <>
+      <PageHeader
+        title={nav("apiKeys")}
+        actions={
+          <>
+            {canExport ? <ExportCsvLink href="/export/api-keys" /> : null}
+            <button
+              type="button"
+              className="po-btn po-btn-primary"
+              onClick={() => setCreateOpen(true)}
+            >
+              <PlusGlyph size={14} />
+              {t("createKey")}
+            </button>
+          </>
+        }
+        menu={<ResourceApiButton resource="apiKeys" />}
+      />
+
+      {listQuery.isPending ? <KeysSkeleton /> : null}
+
+      {keys && keys.length === 0 ? (
+        <EmptyState
+          area="api-keys"
+          headline={t("empty.headline")}
+          body={t("empty.body")}
+          cta={
+            <button
+              type="button"
+              className="po-btn po-btn-primary"
+              onClick={() => setCreateOpen(true)}
+            >
+              <PlusGlyph />
+              {t("createKey")}
+            </button>
+          }
+        />
+      ) : null}
+
+      {keys && keys.length > 0 ? (
+        <>
+          <Table>
+            <thead>
+              <tr>
+                <th>{t("table.name")}</th>
+                <th>{t("table.token")}</th>
+                <th>{t("table.lastUsed")}</th>
+                <th>{t("table.created")}</th>
+                <th className="right" aria-label={t("table.menu")} />
+              </tr>
+            </thead>
+            <tbody>
+              {keys.map((key) => (
+                <tr key={key.id}>
+                  <td>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+                    >
+                      {/* The tile never wraps away from the name; the badges may. */}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <NavTile name="api-keys" color={TONE_COLOR.neutral} />
+                        {key.name}
+                      </span>
+                      <span
+                        className={`po-badge po-badge-${
+                          key.permission === "sending_access" ? "info" : "neutral"
+                        }`}
+                      >
+                        {t(key.permission === "sending_access" ? "scope.sending" : "scope.full")}
+                      </span>
+                      {key.domainName ? (
+                        <span
+                          className="po-badge po-badge-neutral po-badge-clip"
+                          title={key.domainName}
+                        >
+                          {key.domainName}
+                        </span>
+                      ) : null}
+                      {key.inboxAddress ? (
+                        <span
+                          className="po-badge po-badge-info po-badge-clip"
+                          title={key.inboxAddress}
+                        >
+                          {key.inboxAddress}
+                        </span>
+                      ) : null}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="po-mono">{maskApiKey(key.tokenPrefix, key.last4)}</span>
+                  </td>
+                  <td>
+                    {key.lastUsedAt ? <RelativeTime date={key.lastUsedAt} /> : t("neverUsed")}
+                  </td>
+                  <td>
+                    <RelativeTime date={key.createdAt} />
+                  </td>
+                  <td className="right">
+                    <PopoverMenu
+                      ariaLabel={t("table.menu")}
+                      items={[
+                        {
+                          label: t("rename"),
+                          onSelect: () => {
+                            setRenameName(key.name);
+                            setRenameTarget({ id: key.id, name: key.name });
+                          },
+                        },
+                        null,
+                        {
+                          label: t("revoke"),
+                          danger: true,
+                          onSelect: () => setRevokeTarget({ id: key.id, name: key.name }),
+                        },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <ListFooter left={t("pageOf", { pages: 1, total: keys.length })} singlePage />
+        </>
+      ) : null}
+
+      <Modal
+        open={createOpen}
+        onClose={closeCreate}
+        onConfirm={confirmCreate}
+        title={revealedToken ? t("reveal.title") : t("create.title")}
+      >
+        {revealedToken ? (
+          <form
+            style={{ display: "grid", gap: 12, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmCreate();
+            }}
+          >
+            {/* Grid children stretch; the chip should hug the token. */}
+            <div style={{ justifySelf: "start", maxWidth: "100%" }}>
+              <CopyChip value={revealedToken} />
+            </div>
+            <p style={{ margin: 0, color: "var(--po-warn)", fontSize: "var(--po-fs-label)" }}>
+              {t("reveal.warning")}
+            </p>
+            <ModalFooter>
+              <button type="submit" className="po-btn po-btn-primary">
+                {t("reveal.done")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        ) : (
+          <form
+            style={{ display: "grid", gap: 14, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmCreate();
+            }}
+          >
+            <div className="po-field">
+              <label htmlFor="api-key-name">{t("create.name")}</label>
+              <input
+                id="api-key-name"
+                className="po-input"
+                style={{ width: "100%" }}
+                value={name}
+                disabled={createMutation.isPending}
+                placeholder={t("create.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
+            <div className="po-field">
+              <div className="po-label-row">
+                <label htmlFor="api-key-permission">{t("create.permission")}</label>
+                <Tooltip text={t("create.permissionTooltip")} />
+              </div>
+              <Select
+                id="api-key-permission"
+                width="100%"
+                value={permission}
+                disabled={createMutation.isPending || inboxId !== ""}
+                onChange={(value) =>
+                  setPermission(value === "sending_access" ? "sending_access" : "full_access")
+                }
+                ariaLabel={t("create.permission")}
+                options={[
+                  { value: "full_access", label: t("create.permFull") },
+                  { value: "sending_access", label: t("create.permSending") },
+                ]}
+              />
+            </div>
+            <div className="po-field">
+              <label htmlFor="api-key-domain">{t("create.domain")}</label>
+              <Select
+                id="api-key-domain"
+                width="100%"
+                value={domainId}
+                disabled={createMutation.isPending || inboxId !== ""}
+                onChange={setDomainId}
+                ariaLabel={t("create.domain")}
+                options={[
+                  { value: "", label: t("create.domainAny") },
+                  ...verifiedDomains.map((d) => ({ value: d.id, label: d.name })),
+                ]}
+              />
+            </div>
+            {inboxes.length > 0 ? (
+              <div className="po-field">
+                <div className="po-label-row">
+                  <label htmlFor="api-key-inbox">{t("create.restrictInbox")}</label>
+                  <Tooltip text={t("create.restrictInboxHint")} />
+                </div>
+                <Select
+                  id="api-key-inbox"
+                  width="100%"
+                  value={inboxId}
+                  disabled={createMutation.isPending}
+                  onChange={(value) => {
+                    setInboxId(value);
+                    // An inbox key is a full-access key bound to no domain.
+                    if (value) {
+                      setPermission("full_access");
+                      setDomainId("");
+                    }
+                  }}
+                  ariaLabel={t("create.restrictInbox")}
+                  options={[
+                    { value: "", label: t("create.inboxAny") },
+                    ...inboxes.map((inbox) => ({ value: inbox.id, label: inbox.email_address })),
+                  ]}
+                />
+              </div>
+            ) : null}
+            {createError ? (
+              <div
+                className="po-field-error"
+                style={{
+                  margin: 0,
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {createError.message}
+              </div>
+            ) : null}
+            <ModalFooter>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeCreate}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
+              </button>
+              <button
+                type="submit"
+                className="po-btn po-btn-primary"
+                disabled={name.trim().length === 0 || createMutation.isPending}
+              >
+                <BtnSpinner on={createMutation.isPending} />
+                {t("create.submit")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        )}
+      </Modal>
+
+      <Modal
+        open={revokeTarget !== null}
+        onClose={closeRevoke}
+        onConfirm={confirmRevoke}
+        title={t("revokeConfirm.title")}
+      >
+        {revokeTarget ? (
+          <form
+            style={{ display: "grid", gap: 14, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmRevoke();
+            }}
+          >
+            <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
+              {t("revokeConfirm.body", { name: revokeTarget.name })}
+            </p>
+            <ModalFooter>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeRevoke}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
+              </button>
+              <button
+                type="submit"
+                className="po-btn po-btn-destructive"
+                disabled={revokeMutation.isPending}
+              >
+                <BtnSpinner on={revokeMutation.isPending} />
+                {t("revokeConfirm.confirm")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        ) : null}
+      </Modal>
+
+      <Modal
+        open={renameTarget !== null}
+        onClose={closeRename}
+        onConfirm={confirmRename}
+        title={t("renameDialog.title")}
+      >
+        {renameTarget ? (
+          <form
+            style={{ display: "grid", gap: 14, marginTop: 12 }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmRename();
+            }}
+          >
+            <div className="po-field">
+              <label htmlFor="api-key-rename">{t("renameDialog.name")}</label>
+              <input
+                id="api-key-rename"
+                className="po-input"
+                style={{ width: "100%" }}
+                value={renameName}
+                maxLength={80}
+                disabled={renameMutation.isPending}
+                onChange={(event) => setRenameName(event.target.value)}
+              />
+            </div>
+            <ModalFooter>
+              <button type="button" className="po-btn po-btn-secondary" onClick={closeRename}>
+                {common("cancel")} <span className="po-keycap">Esc</span>
+              </button>
+              <button
+                type="submit"
+                className="po-btn po-btn-primary"
+                disabled={renameMutation.isPending || renameName.trim().length === 0}
+              >
+                <BtnSpinner on={renameMutation.isPending} />
+                {t("renameDialog.submit")} <ConfirmKeycap />
+              </button>
+            </ModalFooter>
+          </form>
+        ) : null}
+      </Modal>
+    </>
+  );
+}

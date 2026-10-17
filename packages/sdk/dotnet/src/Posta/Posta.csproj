@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <PackageId>Posta</PackageId>
+    <Version>0.8.0</Version>
+    <Authors>Tack Labs</Authors>
+    <Description>Official .NET SDK for Posta: a self-hostable, Resend-wire-compatible email API. Emails, batches, contacts, contact properties, topics, broadcasts, segments, suppressions, domains, webhooks, API keys, templates and usage.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ChxisB/posta/tree/main/packages/sdk/dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ChxisB/posta</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>email;posta;resend;transactional-email;broadcasts;ses</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

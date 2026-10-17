@@ -1,38 +1,39 @@
 ---
 name: 🐛 Bug report
-about: Create a report to help us improve Posta and fix issues.
+about: Report something in Posta that doesn't work as it should.
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-## Describe the bug
+## What happened
 
-A clear and concise description of what the bug is.
+A clear description of the bug.
 
-## To Reproduce
+## How to reproduce it
 
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Click on '...'
+3. See the error
 
-## Expected behaviour
+For an API bug, include the request (method, path and body) and the response, with the API key removed.
 
-A clear and concise description of what you expected to happen.
+## What you expected
+
+What you expected to happen instead.
 
 ## Screenshots
 
-If applicable, add screenshots to help explain your problem.
+If they help explain the problem.
 
-## Environment details 
+## Your setup
 
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
- - Type [e.g. desktop, mobile etc...]
+- Posta version or image tag (e.g. `ghcr.io/chxisb/posta:1.2.0`, `:edge`, or a commit)
+- How you run it (Docker Compose, from source, other)
+- SDK or CLI and its version, if the bug is there
+- Browser, if the bug is in the dashboard
 
-## Additional information/context
+## Anything else
 
-Add any other context about the problem here. It is particularily useful to include log extracts (after removing private information). 
+Log extracts are especially useful (`docker compose logs posta`). Remove keys, passwords, email addresses and message content first.

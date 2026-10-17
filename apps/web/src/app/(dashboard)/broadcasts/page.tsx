@@ -1,0 +1,418 @@
+"use client";
+
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
+import { ResourceApiButton } from "@/components/api-sheet";
+import { EmptyState } from "@/components/empty-state";
+import { PlusGlyph } from "@/components/icons/nav-icons";
+import { Modal } from "@/components/modal";
+import { ConfirmKeycap, ModalFooter } from "@/components/modal-footer";
+import { PageHeader } from "@/components/page-header";
+import { PopoverMenu } from "@/components/popover-menu";
+import { RelativeTime } from "@/components/relative-time";
+import { Skeleton, SkeletonBadge } from "@/components/skeleton";
+import { BtnSpinner } from "@/components/spinner";
+import { NavTile, TONE_COLOR } from "@/components/status-tile";
+import { Table } from "@/components/table";
+import { Tooltip } from "@/components/tooltip";
+import { Truncated } from "@/components/truncated";
+import { formatFinishAbout, roundUpToQuarterHour } from "@/lib/format";
+import { useTRPC } from "@/lib/trpc";
+import { ListFooter, StateCard } from "../emails/list-parts";
+import { type BroadcastStatus, PacingSteps, PILL_VARIANT, StatusPill } from "./parts";
+
+// Fixed layout keeps the percentage column shares; the min width makes the
+// wrapper scroll on narrow screens instead of squeezing nowrap cells together.
+// 880px keeps the name about 180px once the date column takes its fixed
+// width (components.css, .po-col-date) below 1200px.
+const TABLE_STYLE: React.CSSProperties = { tableLayout: "fixed", minWidth: 880 };
+
+function BroadcastsHead() {
+  const t = useTranslations("broadcasts");
+  return (
+    <thead>
+      <tr>
+        <th className="po-col-lead" style={{ width: "30%" }}>
+          {t("list.name")}
+        </th>
+        <th style={{ width: "13%" }}>{t("list.status")}</th>
+        <th style={{ width: "20%" }}>{t("list.targeting")}</th>
+        <th className="right" style={{ width: "13%" }}>
+          {t("list.recipients")}
+        </th>
+        <th className="right po-col-date">{t("list.created")}</th>
+        <th className="right" style={{ width: 44 }} />
+      </tr>
+    </thead>
+  );
+}
+
+/** Mirrors the loaded broadcasts table: name, pill, audience, digits, time, trigger. */
+function BroadcastsSkeleton() {
+  const widths = ["58%", "42%", "66%", "50%", "38%"];
+  return (
+    <Table style={TABLE_STYLE}>
+      <BroadcastsHead />
+      <tbody>
+        {widths.map((width, row) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows, position is identity
+          <tr key={row}>
+            <td>
+              <Skeleton width={width} height={13} />
+            </td>
+            <td>
+              <SkeletonBadge width={74} />
+            </td>
+            <td>
+              <Skeleton width={widths[widths.length - 1 - row] ?? "50%"} />
+            </td>
+            <td className="right">
+              <Skeleton width={36} />
+            </td>
+            <td className="right">
+              <Skeleton width={48} />
+            </td>
+            <td className="right" style={{ width: 40 }}>
+              <Skeleton width={28} height={28} radius={8} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function NewBroadcastButton() {
+  const t = useTranslations("broadcasts");
+  return (
+    <Link className="po-btn po-btn-primary" href="/broadcasts/new">
+      <PlusGlyph size={14} />
+      {t("list.new")}
+    </Link>
+  );
+}
+
+export default function BroadcastsPage() {
+  const t = useTranslations("broadcasts");
+  const tTemplates = useTranslations("templates");
+  const common = useTranslations("common");
+  const locale = useLocale();
+  const trpc = useTRPC();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const nf = useMemo(() => new Intl.NumberFormat(locale), [locale]);
+
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  // `stop` carries the counts of a send in progress: the dialog then reads
+  // "Stop the rest" instead of "Cancel send".
+  const [cancelTarget, setCancelTarget] = useState<{
+    id: string;
+    name: string;
+    stop: { sent: number; waiting: number } | null;
+  } | null>(null);
+
+  const query = useInfiniteQuery(
+    trpc.broadcasts.list.infiniteQueryOptions(
+      { limit: 40 },
+      { getNextPageParam: (page) => page.nextCursor },
+    ),
+  );
+  const items = query.data?.pages.flatMap((page) => page.items) ?? [];
+
+  const invalidate = () => queryClient.invalidateQueries(trpc.broadcasts.pathFilter());
+  const deleteMutation = useMutation(
+    trpc.broadcasts.delete.mutationOptions({
+      onSuccess: () => {
+        setDeleteTarget(null);
+        invalidate();
+      },
+    }),
+  );
+  const cancelMutation = useMutation(
+    trpc.broadcasts.cancel.mutationOptions({
+      onSuccess: () => {
+        setCancelTarget(null);
+        invalidate();
+      },
+    }),
+  );
+
+  // Stable identities: Modal's focus effect depends on onClose.
+  const closeDelete = useCallback(() => setDeleteTarget(null), []);
+  const closeCancel = useCallback(() => setCancelTarget(null), []);
+
+  const confirmDelete = () => {
+    if (deleteTarget && !deleteMutation.isPending) {
+      deleteMutation.mutate({ id: deleteTarget.id });
+    }
+  };
+  const confirmCancel = () => {
+    if (cancelTarget && !cancelMutation.isPending) {
+      cancelMutation.mutate({ id: cancelTarget.id });
+    }
+  };
+
+  return (
+    <>
+      <PageHeader
+        title={t("list.title")}
+        actions={<NewBroadcastButton />}
+        menu={<ResourceApiButton resource="broadcasts" />}
+      />
+
+      {query.isPending ? (
+        <BroadcastsSkeleton />
+      ) : query.isError ? (
+        <StateCard
+          tone="error"
+          headline={t("list.loadError")}
+          actionLabel={t("list.retry")}
+          onAction={() => query.refetch()}
+        />
+      ) : items.length === 0 ? (
+        <EmptyState
+          area="broadcasts"
+          headline={t("list.empty")}
+          body={t("list.emptyHint")}
+          cta={<NewBroadcastButton />}
+        />
+      ) : (
+        <>
+          {/* Fixed layout: the name column keeps its share and the name truncates in it. */}
+          <Table style={TABLE_STYLE}>
+            <BroadcastsHead />
+            <tbody>
+              {items.map((row) => {
+                const status = row.status as BroadcastStatus;
+                const label = row.name ?? row.subject;
+                const href =
+                  status === "draft" ? `/broadcasts/${row.id}/edit` : `/broadcasts/${row.id}`;
+                return (
+                  <tr key={row.id} className="hoverable" onClick={() => router.push(href)}>
+                    <td>
+                      <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <NavTile name="broadcasts" color={TONE_COLOR[PILL_VARIANT[status]]} />
+                        <Link
+                          href={href}
+                          style={{ color: "var(--po-bone)", minWidth: 0 }}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <Truncated text={label} />
+                        </Link>
+                        {row.htmlAuthored ? (
+                          <Tooltip inline text={tTemplates("list.htmlChipHint")}>
+                            <span
+                              className="po-chip"
+                              style={{ fontSize: 10.5, padding: "1px 7px" }}
+                            >
+                              HTML
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                      </span>
+                    </td>
+                    <td>
+                      {row.held ? (
+                        <Tooltip inline text={t("held.body")}>
+                          <StatusPill status={status} hold={t("held.label")} />
+                        </Tooltip>
+                      ) : status === "sending" && row.sentCount !== null ? (
+                        <Tooltip
+                          inline
+                          text={
+                            <>
+                              <div>
+                                {row.finishesAt
+                                  ? t("list.finishTip", {
+                                      time: formatFinishAbout(
+                                        roundUpToQuarterHour(row.finishesAt),
+                                        locale,
+                                      ),
+                                    })
+                                  : null}
+                              </div>
+                              <PacingSteps
+                                sent={row.sent}
+                                releases={row.releases}
+                                locale={locale}
+                                compact
+                              />
+                              {t("list.progressTip", {
+                                sent: nf.format(row.sentCount),
+                                waiting: nf.format(Math.max(0, row.recipients - row.sentCount)),
+                              })}
+                            </>
+                          }
+                        >
+                          <StatusPill status={status} />
+                        </Tooltip>
+                      ) : (
+                        <StatusPill status={status} />
+                      )}
+                    </td>
+                    <td className="po-cell-clip">{row.segmentName ?? t("composer.segmentNone")}</td>
+                    <td className="right po-digits">
+                      {status === "sending" && row.sentCount !== null ? (
+                        <>
+                          {nf.format(row.sentCount)}
+                          <span style={{ color: "var(--po-faint)" }}>
+                            {" / "}
+                            {nf.format(row.recipients)}
+                          </span>
+                        </>
+                      ) : row.recipients > 0 ? (
+                        nf.format(row.recipients)
+                      ) : (
+                        <span style={{ color: "var(--po-faint)" }}>-</span>
+                      )}
+                    </td>
+                    <td className="right" style={{ color: "var(--po-muted)" }}>
+                      <RelativeTime date={row.createdAt} />
+                    </td>
+                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: mouse-only guard so a menu click does not also trigger the row navigation; keyboard users reach the menu button directly */}
+                    <td
+                      className="right"
+                      style={{ width: 40 }}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {/* The row itself opens the broadcast; a menu with only "View" would repeat it. */}
+                      {status === "draft" || status === "scheduled" || status === "sending" ? (
+                        <PopoverMenu
+                          ariaLabel={t("list.menu")}
+                          items={
+                            status === "draft"
+                              ? [
+                                  {
+                                    label: t("list.edit"),
+                                    onSelect: () => router.push(`/broadcasts/${row.id}/edit`),
+                                  },
+                                  null,
+                                  {
+                                    label: t("list.delete"),
+                                    danger: true,
+                                    onSelect: () => setDeleteTarget({ id: row.id, name: label }),
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: t("list.view"),
+                                    onSelect: () => router.push(`/broadcasts/${row.id}`),
+                                  },
+                                  null,
+                                  {
+                                    label: t(
+                                      status === "sending" ? "list.stopRest" : "list.cancel",
+                                    ),
+                                    danger: true,
+                                    onSelect: () =>
+                                      setCancelTarget({
+                                        id: row.id,
+                                        name: label,
+                                        stop:
+                                          status === "sending" && row.sentCount !== null
+                                            ? {
+                                                sent: row.sentCount,
+                                                waiting: Math.max(
+                                                  0,
+                                                  row.recipients - row.sentCount,
+                                                ),
+                                              }
+                                            : null,
+                                      }),
+                                  },
+                                ]
+                          }
+                        />
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+          {query.hasNextPage ? (
+            <ListFooter
+              loadMore={{
+                label: t("list.loadMore"),
+                onClick: () => query.fetchNextPage(),
+                loading: query.isFetchingNextPage,
+              }}
+            />
+          ) : null}
+        </>
+      )}
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={closeDelete}
+        onConfirm={confirmDelete}
+        title={t("list.deleteTitle")}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            confirmDelete();
+          }}
+        >
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
+            {t("list.deleteBody", { name: deleteTarget?.name ?? "-" })}
+          </p>
+          <ModalFooter>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeDelete}>
+              {common("cancel")} <span className="po-keycap">Esc</span>
+            </button>
+            <button
+              type="submit"
+              className="po-btn po-btn-destructive"
+              disabled={deleteMutation.isPending}
+            >
+              <BtnSpinner on={deleteMutation.isPending} />
+              {t("list.deleteConfirm")} <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      <Modal
+        open={cancelTarget !== null}
+        onClose={closeCancel}
+        onConfirm={confirmCancel}
+        title={t(cancelTarget?.stop ? "detail.stopTitle" : "detail.cancelTitle")}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            confirmCancel();
+          }}
+        >
+          <p style={{ margin: 0, color: "var(--po-muted)", fontSize: "var(--po-fs-ui)" }}>
+            {cancelTarget?.stop
+              ? t("detail.stopBody", {
+                  waiting: nf.format(cancelTarget.stop.waiting),
+                  sent: nf.format(cancelTarget.stop.sent),
+                })
+              : t("detail.cancelBody", { name: cancelTarget?.name ?? "-" })}
+          </p>
+          <ModalFooter>
+            <button type="button" className="po-btn po-btn-secondary" onClick={closeCancel}>
+              {t(cancelTarget?.stop ? "detail.keepSending" : "detail.keep")}{" "}
+              <span className="po-keycap">Esc</span>
+            </button>
+            <button
+              type="submit"
+              className="po-btn po-btn-destructive"
+              disabled={cancelMutation.isPending}
+            >
+              <BtnSpinner on={cancelMutation.isPending} />
+              {t(cancelTarget?.stop ? "detail.stopConfirm" : "detail.cancelConfirm")}{" "}
+              <ConfirmKeycap />
+            </button>
+          </ModalFooter>
+        </form>
+      </Modal>
+    </>
+  );
+}

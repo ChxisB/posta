@@ -1,0 +1,328 @@
+"use client";
+
+import { Editor, type EditorProps } from "@maily-to/core";
+import {
+  DEFAULT_RENDER_VARIABLE_FUNCTION,
+  getSlashCommandSuggestions,
+  getVariableSuggestions,
+  PlaceholderExtension,
+  SlashCommandExtension,
+  type Variable,
+  VariableExtension,
+} from "@maily-to/core/extensions";
+import "@maily-to/core/style.css";
+import "./maily-theme.css";
+import { useTranslations } from "next-intl";
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isMailyDoc, type MailyDoc } from "@/lib/email-doc";
+import { themeOf, withoutTheme, withTheme } from "@/lib/email-theme";
+import { MERGE_FIELDS_I18N_NS, type MergeFieldOption, makeMergeToken } from "@/lib/merge-fields";
+import { isModEnter } from "@/lib/save-shortcut";
+import { runBlockAction } from "./block-actions";
+import { BlockHandle } from "./block-handle-view";
+import { EDITOR_BLOCKS } from "./blocks";
+import { VariableIcon } from "./icons";
+import { blockShortcutFor, currentKeyPlatform } from "./shortcuts";
+import { EditorToolbar, type TiptapEditor } from "./toolbar";
+import { createVariableNodeView } from "./variable-node-view";
+import { usePickerFields } from "./variable-picker";
+import { makeVariableSuggestionsPopover } from "./variable-suggestions";
+
+/**
+ * Maily-backed email editor (Tiptap). Formatting rides on our own toolbar (the
+ * built-in menu bar is disabled) so it themes with the app and carries the
+ * Insert-variable control; merge fields serialize to our worker token grammar
+ * server-side (see lib/email-render.ts), so the html here is only the last-known
+ * value: send html is re-rendered on save. A stored document that is not Maily
+ * JSON (a pre-Maily template) imports through `contentHtml`, so it still edits
+ * in place with no raw-html tab, but the lossy conversion is only emitted
+ * after the first real edit, so opening and saving untouched preserves the
+ * stored html byte-for-byte.
+ *
+ * The slash menu and empty-state placeholder are rebuilt from Maily's blocks
+ * with our i18n strings (Maily ships hardcoded English; passing same-name
+ * extensions replaces its defaults). The in-content variable pill is ours too:
+ * themed, centered, and without Maily's required-⚠, which its default pill
+ * shows for every variable lacking a fallback.
+ *
+ * Prop shape mirrors the previous editor so the pages are untouched.
+ */
+export interface MailyEditorValue {
+  document: unknown | null;
+  html: string;
+}
+
+export interface MailyEditorChange {
+  /**
+   * The Maily/Tiptap document; send html is re-rendered from it on save. It
+   * carries the email's theme (lib/email-theme.ts) when the value did: Tiptap
+   * does not know the key, so the editor takes it off the seed and puts it back
+   * on every change, from the latest `value.document` the page passed.
+   */
+  document: unknown;
+  /**
+   * The editor's reading of the value it mounted with (Tiptap fills in default
+   * attributes), not an edit: a page whose baseline is that value adopts it.
+   */
+  seeded: boolean;
+}
+
+export interface MailyEditorProps {
+  value: MailyEditorValue;
+  onChange: (value: MailyEditorChange) => void;
+  mergeFields: MergeFieldOption[];
+  /**
+   * Hands the page the Tiptap editor once it exists, and null when it goes
+   * (the preview tab unmounts it), so the page can act on it from outside:
+   * the preflight strip selects the node an issue is about.
+   */
+  onEditor?: ((editor: TiptapEditor | null) => void) | undefined;
+  /**
+   * Explicit html→blocks conversion: when the seed is raw html, emit Tiptap's
+   * parse of it on create instead of waiting for the first edit. Only set
+   * after the user chose to convert: see the seed emit rule below.
+   */
+  convertHtml?: boolean;
+}
+
+type MailyContent = NonNullable<EditorProps["contentJson"]>;
+
+/** Node types that render their own inner placeholder (or none at all). */
+const NO_PLACEHOLDER_NODES = new Set([
+  "columns",
+  "column",
+  "section",
+  "repeat",
+  "show",
+  "blockquote",
+  "htmlCodeBlock",
+]);
+
+/** A key pressed in the email's own text, not in a field inside it (the variable popover's input). */
+function isEmailTarget(target: EventTarget): boolean {
+  return (
+    target instanceof Element &&
+    target.closest(".ProseMirror") !== null &&
+    target.closest("input, textarea, select") === null
+  );
+}
+
+function emptyMailyDoc(): MailyDoc {
+  return { type: "doc", content: [{ type: "paragraph" }] };
+}
+
+export function MailyEditor({
+  value,
+  onChange,
+  mergeFields,
+  onEditor,
+  convertHtml = false,
+}: MailyEditorProps) {
+  const t = useTranslations("block-editor");
+  const tf = useTranslations(MERGE_FIELDS_I18N_NS);
+
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
+  // Bumped on every editor transaction so the toolbar's active/can() states
+  // track the selection. The Maily <Editor> keeps stable props, so it never
+  // re-initialises from these re-renders.
+  const [, setTick] = useState(0);
+
+  const initialDoc = isMailyDoc(value.document) ? withoutTheme(value.document) : null;
+  const seed = useRef<{ contentJson?: MailyContent; contentHtml?: string }>(
+    initialDoc
+      ? { contentJson: initialDoc as MailyContent }
+      : value.html.trim()
+        ? { contentHtml: value.html }
+        : { contentJson: emptyMailyDoc() as MailyContent },
+  );
+  const liveDoc = useRef<MailyDoc>(initialDoc ?? emptyMailyDoc());
+  // The page owns the theme and changes it from outside the editor (the theme
+  // panel), so it is read from each render's value, like the callbacks below.
+  const themeRef = useRef(themeOf(value.document));
+  themeRef.current = themeOf(value.document);
+
+  // Refs so the emit path is a stable callback. Maily re-inits if onUpdate's
+  // identity changes.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const onEditorRef = useRef(onEditor);
+  onEditorRef.current = onEditor;
+  useEffect(
+    () => () => {
+      onEditorRef.current?.(null);
+    },
+    [],
+  );
+
+  const emit = useCallback((seeded: boolean) => {
+    onChangeRef.current({ document: withTheme(liveDoc.current, themeRef.current), seeded });
+  }, []);
+
+  // Restrict variables to the merge-field list; a *function* source never
+  // appends the free-typed query, so no id can break MERGE_NAME_RE.
+  const variables = useMemo<Variable[]>(
+    () =>
+      mergeFields.map((f) => ({
+        name: f.name,
+        label: f.labelKey ? tf(f.labelKey) : f.name,
+      })),
+    [mergeFields, tf],
+  );
+  // The '@' suggestion closure is captured when the Tiptap editor is created
+  // (Maily's useEditor never re-applies extensions), so it must read the list
+  // through a ref or async-loaded contact-property fields would never appear.
+  const variablesRef = useRef(variables);
+  variablesRef.current = variables;
+
+  // Our in-content pill: themed, vertically centered, labelled with the human
+  // name and carrying the raw token in the tooltip. Maily's default pill is
+  // skipped for content variables only: the bubble/button variants keep it.
+  const renderVariable = useCallback<typeof DEFAULT_RENDER_VARIABLE_FUNCTION>((opts) => {
+    if (opts.from !== "content-variable") return DEFAULT_RENDER_VARIABLE_FUNCTION(opts);
+    const { variable, fallback } = opts;
+    return (
+      <span
+        className="po-maily-varpill"
+        title={makeMergeToken(variable.name, fallback || undefined)}
+      >
+        <VariableIcon size={11} />
+        {variable.label || variable.name}
+      </span>
+    );
+  }, []);
+
+  const extensions = useMemo(
+    () => [
+      // Extended with our own node view: the in-content pill and its edit
+      // popover become ours (translated Variable/Default labels, aligned rows)
+      // instead of Maily's hardcoded-English VariableView. The '@' popover is
+      // likewise ours via variableSuggestionsPopover: same ref contract
+      // ({moveUp, moveDown, select}) that Maily's VariableList drives.
+      VariableExtension.extend({
+        addNodeView() {
+          return createVariableNodeView({
+            variable: t("varpop.variable"),
+            fallback: t("varpop.fallback"),
+            fallbackPlaceholder: t("varpop.fallbackPlaceholder"),
+          }) as never;
+        },
+      }).configure({
+        variables: ({ query }) =>
+          variablesRef.current.filter((v) => v.name.toLowerCase().startsWith(query.toLowerCase())),
+        suggestion: getVariableSuggestions(),
+        renderVariable,
+        variableSuggestionsPopover: makeVariableSuggestionsPopover({
+          header: t("suggest.header"),
+          navigate: t("suggest.navigate"),
+          empty: t("suggest.empty"),
+        }),
+      }),
+      // Same-name extensions replace Maily's defaults, that is how the slash
+      // menu and placeholder become localizable at all.
+      SlashCommandExtension.configure({
+        suggestion: getSlashCommandSuggestions([
+          {
+            title: t("slash.group"),
+            commands: EDITOR_BLOCKS.map(({ block, key }) => ({
+              ...block,
+              title: t(`slash.${key}.title`),
+              description: t(`slash.${key}.desc`),
+            })),
+          },
+        ]),
+      }),
+      PlaceholderExtension.configure({
+        placeholder: ({ node }) => {
+          if (node.type.name === "heading") {
+            return t("ph.heading", { level: node.attrs.level as number });
+          }
+          return NO_PLACEHOLDER_NODES.has(node.type.name) ? "" : t("ph.body");
+        },
+        includeChildren: true,
+      }),
+    ],
+    [renderVariable, t],
+  );
+
+  const fields = usePickerFields(mergeFields);
+
+  const config = useMemo(
+    () => ({
+      hasMenuBar: false,
+      // Maily's block handle lets a block be dropped inside a quote, a list or a
+      // column and has an English-only menu: ours (block-handle-view.tsx) replaces it.
+      hideContextMenu: true,
+      immediatelyRender: false,
+      wrapClassName: "po-maily-wrap",
+      contentClassName: "po-maily-content",
+      bodyClassName: "po-maily-body",
+      spellCheck: true,
+    }),
+    [],
+  );
+
+  // A contentHtml seed means a pre-Maily raw-HTML document, and Tiptap's parse
+  // of it is lossy. Emitting it from onCreate would hand the parent a converted
+  // document with zero user action: an untouched open-then-save would then
+  // silently rewrite the stored html. So the conversion is only emitted from
+  // onUpdate, i.e. after a deliberate edit; until then the stored html stands.
+  // `convertHtml` is that deliberate action taken up front, so it emits.
+  const emitOnCreate = seed.current.contentHtml === undefined || convertHtml;
+
+  const onCreate = useCallback(
+    (ed: TiptapEditor) => {
+      liveDoc.current = ed.getJSON() as MailyDoc;
+      setEditor(ed);
+      onEditorRef.current?.(ed);
+      ed.on("transaction", () => setTick((n) => n + 1));
+      if (emitOnCreate) emit(true);
+    },
+    [emit, emitOnCreate],
+  );
+  const onUpdate = useCallback(
+    (ed: TiptapEditor) => {
+      liveDoc.current = ed.getJSON() as MailyDoc;
+      emit(false);
+    },
+    [emit],
+  );
+
+  const onSurfaceKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isModEnter(event)) {
+      event.preventDefault();
+      return;
+    }
+    if (!editor || !isEmailTarget(event.target)) return;
+    const id = blockShortcutFor(event.nativeEvent, currentKeyPlatform());
+    if (id && runBlockAction(editor, id)) event.preventDefault();
+  };
+
+  return (
+    <div className="po-maily">
+      <EditorToolbar editor={editor} fields={fields} />
+      {/* The surface sees every key in the email before ProseMirror does, and
+          ProseMirror skips a key whose default is already prevented. That is
+          how two things are kept off Tiptap's own keymaps:
+          - ⌘↵ belongs to the page (the template editor saves and closes on it),
+            not to Tiptap, which would insert a line break (HardBreak binds
+            Mod-Enter) that gets saved. Shift+↵ still breaks the line.
+          - The block shortcuts (move, duplicate, delete, paragraph after) are
+            ours, matched from shortcuts.ts; Tiptap has no binding for them. */}
+      <div className="po-maily-surface" onKeyDownCapture={onSurfaceKeyDown}>
+        {/* Spread the seed so only the one set key (contentJson OR contentHtml)
+            is passed: exactOptionalPropertyTypes rejects an explicit undefined. */}
+        <Editor
+          {...seed.current}
+          extensions={extensions}
+          config={config}
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+        />
+        <BlockHandle editor={editor} />
+      </div>
+    </div>
+  );
+}
+
+export default MailyEditor;

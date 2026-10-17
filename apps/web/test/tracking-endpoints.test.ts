@@ -1,0 +1,795 @@
+import { deriveTrackingKey, makeClickToken, makeOpenToken } from "@posta/core";
+import { type Db, schema } from "@posta/db";
+import {
+  createTeam,
+  createTestDb,
+  createWebhookEndpoint,
+  legacyClickToken,
+} from "@posta/test-utils";
+import { and, eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import en from "../messages/en/common.json";
+
+// A known 32-byte master key so the endpoints derive the same tracking key we
+// sign tokens with here. Set before the route modules read env.
+const KEY_B64 = "dOdpMPArQsV3KWv5I+kizDihKLus3uMLev4DODaFnOQ=";
+process.env.MASTER_ENCRYPTION_KEY = KEY_B64;
+const secretKey = deriveTrackingKey(Buffer.from(KEY_B64, "base64"));
+
+// getDb() inside the route handlers must hit the per-test PGlite db.
+const h = vi.hoisted(() => ({ db: undefined as unknown as Db }));
+vi.mock("@posta/db", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@posta/db")>();
+  return { ...actual, getDb: () => h.db };
+});
+// Delivery rows are asserted on directly; nothing here drains them.
+vi.mock("@/server/queue", () => ({ enqueueWebhookDeliveries: async () => {} }));
+
+const { GET: clickGet } = await import("@/app/t/c/[token]/route");
+const { GET: openGet } = await import("@/app/t/o/[token]/route");
+
+let db: Db;
+let close: () => Promise<void>;
+
+beforeEach(async () => {
+  ({ db, close } = await createTestDb());
+  h.db = db;
+});
+
+afterEach(async () => {
+  await close();
+  vi.restoreAllMocks();
+});
+
+async function seedEmail(): Promise<{ emailId: string; teamId: string }> {
+  const teamId = await createTeam(db);
+  const [email] = await db
+    .insert(schema.emails)
+    .values({ teamId, from: "sender@example.com", to: ["rcpt@example.com"], subject: "Hi" })
+    .returning({ id: schema.emails.id });
+  return { emailId: email?.id ?? "", teamId };
+}
+
+/** The click token the worker mints for a seeded email: its id, its team, the url. */
+async function clickToken(emailId: string, url: string, key = secretKey): Promise<string> {
+  const [email] = await db
+    .select({ teamId: schema.emails.teamId })
+    .from(schema.emails)
+    .where(eq(schema.emails.id, emailId));
+  return makeClickToken({ emailId, teamId: email?.teamId ?? "", url, secretKey: key });
+}
+
+// A phone's mail client: what a person's fetch looks like.
+const IPHONE =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
+
+function req(token: string, headers: Record<string, string> = { "user-agent": IPHONE }) {
+  return [
+    new Request(`https://links.example.com/t/x/${token}`, { headers }),
+    { params: Promise.resolve({ token }) },
+  ] as const;
+}
+
+type EngagementType = "opened" | "clicked" | "prefetched";
+
+async function counts(emailId: string, teamId: string, type: EngagementType) {
+  const events = await db
+    .select({ id: schema.emailEvents.id })
+    .from(schema.emailEvents)
+    .where(and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, type)));
+  const [counter] = await db
+    .select()
+    .from(schema.usageCounters)
+    .where(eq(schema.usageCounters.teamId, teamId));
+  return { events: events.length, counter: counter?.[type] ?? 0 };
+}
+
+/** Push every existing event of this type past the 60s damping window. */
+async function backdateEvents(
+  emailId: string,
+  type: (typeof schema.emailEventTypeEnum.enumValues)[number],
+  ageMs: number,
+) {
+  await db
+    .update(schema.emailEvents)
+    .set({ occurredAt: new Date(Date.now() - ageMs) })
+    .where(and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, type)));
+}
+
+describe("click endpoint /t/c", () => {
+  it("records a unique click and 302s to the signed url", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const url = "https://shop.example.com/product?id=9";
+    const token = await clickToken(emailId, url);
+
+    const res = await clickGet(...req(token));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+
+    // The event carries the signed destination and the fetcher in Resend's
+    // click shape.
+    const [event] = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "clicked")));
+    expect(event?.data).toMatchObject({
+      click: { link: url, userAgent: IPHONE, timestamp: expect.stringMatching(/Z$/) },
+    });
+
+    // A second click within the damping window is dropped entirely.
+    const res2 = await clickGet(...req(token));
+    expect(res2.status).toBe(302);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("records a repeat click after the damping window without advancing the counter", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = await clickToken(emailId, "https://shop.example.com/");
+
+    await clickGet(...req(token));
+    await backdateEvents(emailId, "clicked", 120_000);
+    await clickGet(...req(token));
+
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 2, counter: 1 });
+  });
+
+  it("a person who clicks a second link within a minute has both clicks recorded, counted once", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await clickGet(...req(await clickToken(emailId, "https://shop.example.com/a")));
+    // Seconds later: past the burst window, inside the damping one.
+    await backdateEvents(emailId, "clicked", 5_000);
+    await clickGet(...req(await clickToken(emailId, "https://shop.example.com/b")));
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 2, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("a desktop Chrome reporting a build number no browser sends is a prefetch, on the pixel and on a link", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const spoofed = {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.7444.163 Safari/537.36",
+    };
+    await db
+      .insert(schema.emailEvents)
+      .values({ emailId, type: "delivered", occurredAt: new Date(Date.now() - 45_000) });
+    await openGet(...req(makeOpenToken({ emailId, secretKey }), spoofed));
+    const url = "https://shop.example.com/";
+    const res = await clickGet(...req(await clickToken(emailId, url), spoofed));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    // Two prefetch rows (the pixel, the link), one email prefetched.
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 2, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    const rows = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(
+        and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "prefetched")),
+      )
+      .orderBy(schema.emailEvents.occurredAt);
+    expect(
+      rows.map((r) => r.data as { open?: { reason?: string }; click?: { reason?: string } }),
+    ).toEqual([
+      { open: expect.objectContaining({ reason: "spoofed_ua" }) },
+      { click: expect.objectContaining({ reason: "spoofed_ua", link: url }) },
+    ]);
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    expect(row?.status).toBe("queued");
+    // The person on a current Chrome, later, is a click.
+    await clickGet(
+      ...req(await clickToken(emailId, url), {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+      }),
+    );
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("a click on a message with no open yet records the open too, marked as inferred", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = await clickToken(emailId, "https://shop.example.com/");
+    await clickGet(...req(token));
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    const rows = await db
+      .select({
+        type: schema.emailEvents.type,
+        occurredAt: schema.emailEvents.occurredAt,
+        data: schema.emailEvents.data,
+      })
+      .from(schema.emailEvents)
+      .where(eq(schema.emailEvents.emailId, emailId))
+      .orderBy(schema.emailEvents.occurredAt);
+    expect(rows.map((r) => r.type)).toEqual(["opened", "clicked"]);
+    expect(rows[0]?.data).toMatchObject({ open: { reason: "click", userAgent: IPHONE } });
+    // A second click adds no second open.
+    await backdateEvents(emailId, "clicked", 120_000);
+    await clickGet(...req(token));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("a click after a real open adds no open", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await openGet(...req(makeOpenToken({ emailId, secretKey })));
+    await clickGet(...req(await clickToken(emailId, "https://x.example.com/")));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    const [open] = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "opened")));
+    expect((open?.data as { open?: { reason?: string } })?.open?.reason).toBeUndefined();
+  });
+
+  it("a link a security scanner follows is a prefetch, not a click, and still redirects", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const url = "https://shop.example.com/";
+    const token = await clickToken(emailId, url);
+    const res = await clickGet(...req(token, { "user-agent": "Barracuda Sentinel (EE)" }));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 1, counter: 1 });
+    const [event] = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(
+        and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "prefetched")),
+      );
+    expect(event?.data).toMatchObject({ click: { link: url, reason: "scanner" } });
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    expect(row?.status).toBe("queued");
+  });
+
+  it("Apple Mail's prefetch followed by the reader's click yields the open and the click", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await openGet(...req(makeOpenToken({ emailId, secretKey }), { "user-agent": "Mozilla/5.0" }));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    await clickGet(...req(await clickToken(emailId, "https://x.example.com/")));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("promotes the email status to clicked", async () => {
+    const { emailId } = await seedEmail();
+    const token = await clickToken(emailId, "https://x.example.com/");
+    await clickGet(...req(token));
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    expect(row?.status).toBe("clicked");
+  });
+
+  it("404s a tampered token instead of redirecting off-site", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = await clickToken(emailId, "https://safe.example.com/");
+    // Flip a payload character: the mac no longer matches, so nothing is signed.
+    const tampered = `${token.slice(0, -3)}AAA`;
+
+    const res = await clickGet(...req(tampered));
+    expect(res.status).toBe(404);
+    expect(res.headers.get("location")).toBeNull();
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+  });
+
+  it("404s a token signed with a foreign key (no open redirect)", async () => {
+    const { emailId } = await seedEmail();
+    const foreign = deriveTrackingKey(Buffer.from("A".repeat(32), "utf8"));
+    const token = await clickToken(emailId, "https://evil.example.com/", foreign);
+    const res = await clickGet(...req(token));
+    expect(res.status).toBe(404);
+    expect(res.headers.get("location")).toBeNull();
+  });
+});
+
+describe("a click on mail whose sender no longer vouches for it", () => {
+  const url = "https://shop.example.com/sale?id=9";
+
+  async function suspend(
+    teamId: string,
+    reason: (typeof schema.suspensionReasonEnum.enumValues)[number],
+  ) {
+    await db
+      .update(schema.teams)
+      .set({ suspendedAt: new Date(), suspensionReason: reason })
+      .where(eq(schema.teams.id, teamId));
+  }
+
+  it.each(["phishing", "review", "manual", "reputation"] as const)(
+    "a team suspended for %s shows the disabled page, never the destination, and the click still records",
+    async (reason) => {
+      const { emailId, teamId } = await seedEmail();
+      await suspend(teamId, reason);
+      const res = await clickGet(...req(await clickToken(emailId, url)));
+      expect(res.status).toBe(410);
+      expect(res.headers.get("location")).toBeNull();
+      expect(res.headers.get("content-type")).toBe("text/html; charset=utf-8");
+      const page = await res.text();
+      expect(page).toContain(en.trackedLink.disabledTitle);
+      expect(page).not.toContain("shop.example.com");
+      expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+    },
+  );
+
+  it("a team suspended for an unpaid invoice keeps its links", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await suspend(teamId, "non_payment");
+    const res = await clickGet(...req(await clickToken(emailId, url)));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+  });
+
+  it("a token minted before the team was signed answers to the team on its email row", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = legacyClickToken({ emailId, url, secretKey });
+    expect((await clickGet(...req(token))).headers.get("location")).toBe(url);
+    await suspend(teamId, "phishing");
+    expect((await clickGet(...req(token))).status).toBe(410);
+  });
+
+  it("after the email row ages out, the signed team still decides; an old token names none, so the reader confirms", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const signed = await clickToken(emailId, url);
+    const legacy = legacyClickToken({ emailId, url, secretKey });
+    await db.delete(schema.emails).where(eq(schema.emails.id, emailId));
+
+    const followed = await clickGet(...req(signed));
+    expect(followed.status).toBe(302);
+    expect(followed.headers.get("location")).toBe(url);
+
+    const asked = await clickGet(...req(legacy));
+    expect(asked.status).toBe(200);
+    expect(asked.headers.get("location")).toBeNull();
+    const page = await asked.text();
+    expect(page).toContain(en.trackedLink.confirmTitle);
+    expect(page).toContain("<strong>shop.example.com</strong>");
+    expect(page).toContain('href="https://shop.example.com/sale?id=9"');
+
+    await suspend(teamId, "phishing");
+    expect((await clickGet(...req(signed))).status).toBe(410);
+  });
+
+  it("a deleted team's links ask the reader to confirm the destination", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = await clickToken(emailId, url);
+    await db.delete(schema.teams).where(eq(schema.teams.id, teamId));
+    const res = await clickGet(...req(token));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+    expect(await res.text()).toContain('href="https://shop.example.com/sale?id=9"');
+  });
+
+  it("escapes the destination it names: a host may hold a quote", async () => {
+    const { emailId } = await seedEmail();
+    const token = legacyClickToken({ emailId, url: `https://a"b.example/it's?c=1&d=2`, secretKey });
+    await db.delete(schema.emails).where(eq(schema.emails.id, emailId));
+    const page = await (await clickGet(...req(token))).text();
+    expect(page).toContain("<strong>a&quot;b.example</strong>");
+    expect(page).toContain('href="https://a&quot;b.example/it&#39;s?c=1&amp;d=2"');
+    expect(page).not.toContain('a"b');
+  });
+
+  it("reads in English whatever language the reader asks for", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = await clickToken(emailId, url);
+    await suspend(teamId, "manual");
+    const res = await clickGet(
+      ...req(token, { "user-agent": IPHONE, "accept-language": "pt-BR,pt;q=0.9,en;q=0.8" }),
+    );
+    const page = await res.text();
+    expect(page).toContain('<html lang="en">');
+    expect(page).toContain(en.trackedLink.disabledTitle);
+  });
+});
+
+describe("a click on a branded tracking host", () => {
+  const url = "https://shop.example.com/sale?id=9";
+  const onHost = (token: string, host: string) =>
+    clickGet(...req(token, { "user-agent": IPHONE, "x-tracking-host": host }));
+
+  it("redirects only for the team holding the host's domain, and records nothing for another", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const other = await createTeam(db, "bank");
+    const domain = { region: "us-east-1", trackingSubdomain: "links" };
+    await db.insert(schema.domains).values([
+      { ...domain, teamId, name: "shop.example", status: "verified" },
+      { ...domain, teamId: other, name: "bank.example", status: "verified" },
+      // A claim on the same name that never verified holds nothing.
+      { ...domain, teamId, name: "bank.example", status: "pending" },
+    ]);
+
+    for (const token of [
+      await clickToken(emailId, url),
+      legacyClickToken({ emailId, url, secretKey }),
+    ]) {
+      for (const host of ["Links.Bank.example", "links.bank.example."]) {
+        const borrowed = await onHost(token, host);
+        expect(borrowed.status, host).toBe(404);
+        expect(borrowed.headers.get("location")).toBeNull();
+      }
+    }
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+
+    const token = await clickToken(emailId, url);
+    for (const host of ["links.shop.example", "links.unclaimed.example"]) {
+      const res = await onHost(token, host);
+      expect(res.status, host).toBe(302);
+      expect(res.headers.get("location")).toBe(url);
+    }
+  });
+});
+
+describe("a click on the cloud, where a team's links ship only on its branded host", () => {
+  const url = "https://shop.example.com/sale?id=9";
+  // "" rather than "false": under SKIP_ENV_VALIDATION the env proxy carries
+  // raw strings, where "false" would be truthy.
+  const cloud = (on: boolean) => vi.stubEnv("IS_CLOUD", on ? "true" : "");
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("the dashboard host refuses a token that names its team, and records nothing", async () => {
+    cloud(true);
+    const { emailId, teamId } = await seedEmail();
+    const res = await clickGet(...req(await clickToken(emailId, url)));
+    expect(res.status).toBe(404);
+    expect(res.headers.get("location")).toBeNull();
+    for (const type of ["clicked", "opened", "prefetched"] as const) {
+      expect(await counts(emailId, teamId, type), type).toEqual({ events: 0, counter: 0 });
+    }
+  });
+
+  it("the team's branded host, through the tracking edge, still redirects", async () => {
+    cloud(true);
+    const { emailId, teamId } = await seedEmail();
+    await db.insert(schema.domains).values({
+      teamId,
+      name: "shop.example",
+      region: "us-east-1",
+      status: "verified",
+      trackingSubdomain: "links",
+    });
+    const res = await clickGet(
+      ...req(await clickToken(emailId, url), {
+        "user-agent": IPHONE,
+        "x-tracking-host": "links.shop.example",
+      }),
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("a token from before links named their team still answers on the dashboard host", async () => {
+    cloud(true);
+    const { emailId, teamId } = await seedEmail();
+    const token = legacyClickToken({ emailId, url, secretKey });
+    const res = await clickGet(...req(token));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+    // Its team's standing still decides, read through the email row.
+    await db
+      .update(schema.teams)
+      .set({ suspendedAt: new Date(), suspensionReason: "phishing" })
+      .where(eq(schema.teams.id, teamId));
+    expect((await clickGet(...req(token))).status).toBe(410);
+  });
+
+  it("self-host is unchanged: the app's own host redirects a token that names its team", async () => {
+    cloud(false);
+    const { emailId, teamId } = await seedEmail();
+    const res = await clickGet(...req(await clickToken(emailId, url)));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe(url);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+  });
+});
+
+describe("click bursts", () => {
+  const DESKTOP =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36";
+  const human = { "user-agent": DESKTOP };
+  const link = (name: string) => `https://shop.example.com/${name}`;
+  const click = async (emailId: string, name: string, headers = human) =>
+    clickGet(...req(await clickToken(emailId, link(name)), headers));
+
+  // The clock stands still so a burst's hits share one instant, however
+  // long each request takes here; time moves only when a test says so.
+  // Half past noon UTC keeps every stamp, the inferred open a millisecond
+  // before its click included, inside one usage-counter day and hour.
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date().setUTCHours(12, 30, 0, 0), toFake: ["Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  const advance = (ms: number) => vi.setSystemTime(Date.now() + ms);
+
+  async function seedDelivered(emailId: string, agoMs = 40_000) {
+    await db
+      .insert(schema.emailEvents)
+      .values({ emailId, type: "delivered", occurredAt: new Date(Date.now() - agoMs) });
+  }
+  async function status(emailId: string) {
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    return row?.status;
+  }
+  async function reasons(emailId: string) {
+    const rows = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(
+        and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "prefetched")),
+      )
+      .orderBy(schema.emailEvents.occurredAt);
+    return rows.map((row) => (row.data as { click?: { reason?: string } }).click?.reason);
+  }
+  async function deliveriesOf(endpointId: string) {
+    return db
+      .select({
+        eventType: schema.webhookDeliveries.eventType,
+        payload: schema.webhookDeliveries.payload,
+      })
+      .from(schema.webhookDeliveries)
+      .where(eq(schema.webhookDeliveries.endpointId, endpointId))
+      .orderBy(schema.webhookDeliveries.createdAt);
+  }
+
+  it("every link hit at once is a machine's: no click, no open, one prefetch, status untouched", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    for (const name of ["a", "b", "c", "d"]) {
+      const res = await click(emailId, name);
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toBe(link(name));
+    }
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 4, counter: 1 });
+    expect(await reasons(emailId)).toEqual(["burst", "burst", "burst", "burst"]);
+    expect(await status(emailId)).toBe("delivered");
+  });
+
+  it("a click promoted before its burst was visible is taken back: row, inferred open, counters, status, pending deliveries", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    const everything = await createWebhookEndpoint(db, teamId, null);
+    const optIn = await createWebhookEndpoint(db, teamId, ["email.prefetched"]);
+
+    await click(emailId, "a");
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    expect(await status(emailId)).toBe("clicked");
+    expect((await deliveriesOf(everything)).map((d) => d.eventType).sort()).toEqual([
+      "email.clicked",
+      "email.opened",
+    ]);
+    const clickedAt = new Date().toISOString();
+
+    advance(10);
+    await click(emailId, "b");
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 2, counter: 1 });
+    expect(await reasons(emailId)).toEqual(["burst", "burst"]);
+    expect(await status(emailId)).toBe("delivered");
+    // The unposted click and open never leave; the retraction reaches only
+    // endpoints that opted into prefetches, stamped with the click's own time.
+    expect(await deliveriesOf(everything)).toEqual([]);
+    const retractions = await deliveriesOf(optIn);
+    expect(retractions.map((d) => d.eventType)).toEqual(["email.prefetched", "email.prefetched"]);
+    expect(
+      retractions.map((d) => (d.payload as { data: { click: { link: string } } }).data.click.link),
+    ).toEqual([link("a"), link("b")]);
+    expect(retractions[0]?.payload).toMatchObject({
+      created_at: clickedAt,
+      data: { click: { reason: "burst", timestamp: clickedAt } },
+    });
+    const [hour] = await db
+      .select()
+      .from(schema.usageCountersHourly)
+      .where(eq(schema.usageCountersHourly.teamId, teamId));
+    expect(hour).toMatchObject({ clicked: 0, opened: 0, prefetched: 1 });
+  });
+
+  it("a delivery a drain pass already holds is left to post", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    const everything = await createWebhookEndpoint(db, teamId, null);
+    await click(emailId, "a");
+    // A lease pushes the due instant ahead of the clock, as claimDue does.
+    await db
+      .update(schema.webhookDeliveries)
+      .set({ nextAttemptAt: new Date(Date.now() + 60_000) })
+      .where(eq(schema.webhookDeliveries.eventType, "email.clicked"));
+    advance(10);
+    await click(emailId, "b");
+    expect((await deliveriesOf(everything)).map((d) => d.eventType)).toEqual(["email.clicked"]);
+  });
+
+  it("a second pass over the same links, inside the damping window, still folds its first hit", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    for (const name of ["a", "b", "c", "d"]) await click(emailId, name);
+    advance(30_000);
+    for (const name of ["a", "b", "c", "d"]) await click(emailId, name);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    // Four from the first pass, plus the second pass's first hit, folded;
+    // its other three were repeats inside the damping window.
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 5, counter: 1 });
+    expect(await status(emailId)).toBe("delivered");
+  });
+
+  it("a person's real open stands through a burst on the links", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId, 120_000);
+    await openGet(...req(makeOpenToken({ emailId, secretKey })));
+    await click(emailId, "a");
+    await click(emailId, "b");
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 2, counter: 1 });
+    expect(await status(emailId)).toBe("opened");
+  });
+
+  it("an earlier click by a person stands when a machine bursts later", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId, 120_000);
+    await click(emailId, "a");
+    advance(90_000);
+    await click(emailId, "b");
+    await click(emailId, "c");
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 2, counter: 1 });
+    expect(await reasons(emailId)).toEqual(["burst", "burst"]);
+    expect(await status(emailId)).toBe("clicked");
+  });
+
+  it("two links half a second apart are two clicks", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    await click(emailId, "a");
+    advance(500);
+    await click(emailId, "b");
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 2, counter: 1 });
+    expect(await status(emailId)).toBe("clicked");
+  });
+
+  it("a machine that also names itself keeps its own reason, and folds the clean hit before it", async () => {
+    const { emailId, teamId } = await seedEmail();
+    await seedDelivered(emailId);
+    await click(emailId, "a");
+    await click(emailId, "b", {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.7444.163 Safari/537.36",
+    });
+    expect(await reasons(emailId)).toEqual(["burst", "spoofed_ua"]);
+    expect(await counts(emailId, teamId, "clicked")).toEqual({ events: 0, counter: 0 });
+  });
+});
+
+describe("open endpoint /t/o", () => {
+  it("records a unique open and returns a 1x1 gif", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+
+    const res = await openGet(...req(token));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/gif");
+    expect(res.headers.get("cache-control")).toContain("no-store");
+    const body = Buffer.from(await res.arrayBuffer());
+    expect(body.subarray(0, 3).toString("ascii")).toBe("GIF");
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+
+    // A proxy refetch seconds later is damped: no second event, no counter move.
+    await openGet(...req(token));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+  });
+
+  it("records a repeat open after the damping window without advancing the counter", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+
+    await openGet(...req(token));
+    await backdateEvents(emailId, "opened", 120_000);
+    await openGet(...req(token));
+
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 2, counter: 1 });
+
+    // Immediately after the repeat, a third hit is inside the window again.
+    await openGet(...req(token));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 2, counter: 1 });
+  });
+
+  it("records Apple Mail Privacy Protection's fetch as prefetched: no status lift, no opened counter", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+
+    const res = await openGet(...req(token, { "user-agent": "Mozilla/5.0" }));
+    expect(res.status).toBe(200);
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    expect(row?.status).toBe("queued");
+    const [event] = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(
+        and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "prefetched")),
+      );
+    expect(event?.data).toMatchObject({ open: { reason: "apple_mpp", userAgent: "Mozilla/5.0" } });
+  });
+
+  it("marks a fetch seconds after delivery as prefetched, and the person who opens next still counts", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+    await db
+      .insert(schema.emailEvents)
+      .values({ emailId, type: "delivered", occurredAt: new Date(Date.now() - 3_000) });
+
+    await openGet(...req(token));
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+
+    // The same person, well past the window: an open in its own right, not
+    // damped by the prefetch a moment earlier.
+    await backdateEvents(emailId, "delivered", 120_000);
+    await openGet(...req(token));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 1, counter: 1 });
+    const [row] = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.id, emailId));
+    expect(row?.status).toBe("opened");
+  });
+
+  it("measures the window from the first delivery, not a later recipient's", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+    await db.insert(schema.emailEvents).values([
+      { emailId, type: "delivered", occurredAt: new Date(Date.now() - 300_000) },
+      { emailId, type: "delivered", occurredAt: new Date(Date.now() - 5_000) },
+    ]);
+
+    await openGet(...req(token));
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 1, counter: 1 });
+    expect(await counts(emailId, teamId, "prefetched")).toEqual({ events: 0, counter: 0 });
+  });
+
+  it("stores the fetcher's address and user agent on the open", async () => {
+    const { emailId } = await seedEmail();
+    const token = makeOpenToken({ emailId, secretKey });
+    await openGet(...req(token, { "user-agent": IPHONE, "x-forwarded-for": "203.0.113.9" }));
+    const [event] = await db
+      .select({ data: schema.emailEvents.data })
+      .from(schema.emailEvents)
+      .where(and(eq(schema.emailEvents.emailId, emailId), eq(schema.emailEvents.type, "opened")));
+    expect(event?.data).toMatchObject({ open: { ipAddress: "203.0.113.9", userAgent: IPHONE } });
+  });
+
+  it("returns the gif silently for an invalid token and records nothing", async () => {
+    const { emailId, teamId } = await seedEmail();
+    const res = await openGet(...req("not-a-real-token"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/gif");
+    expect(await counts(emailId, teamId, "opened")).toEqual({ events: 0, counter: 0 });
+  });
+});

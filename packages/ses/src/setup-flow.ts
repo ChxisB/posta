@@ -1,0 +1,348 @@
+// Pure, testable pieces of the end-to-end self-host wizard: directory state
+// detection, plan assembly, secret policy, and the compose-command choice.
+// I/O stays in setup-cli.ts; everything here takes injected readers/probes.
+import { randomBytes } from "node:crypto";
+import { setupPlan, unquoteEnvValue, upsertEnv } from "./setup.js";
+
+/** Compose file names `docker compose` picks up on its own, most common first. */
+export const COMPOSE_FILENAMES = [
+  "docker-compose.yml",
+  "docker-compose.yaml",
+  "compose.yml",
+  "compose.yaml",
+] as const;
+
+export const COMPOSE_DOWNLOAD_URL =
+  "https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml";
+
+/** .env keys the wizard offers to generate when missing or empty. */
+export const SECRET_KEYS = ["MASTER_ENCRYPTION_KEY", "BETTER_AUTH_SECRET"] as const;
+
+/**
+ * What boot demands on top of the self-host set once IS_CLOUD=true (mirrors
+ * assertEnvConsistency in packages/config; APP_BASE_URL is prompted anyway).
+ */
+export const CLOUD_REQUIRED_KEYS = [
+  "KMS_KEY_ID",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+] as const;
+
+export const DEFAULT_APP_BASE_URL = "http://localhost:3000";
+
+/** Dashboard origin: typed answer, then .env, then the process env, then the compose default. */
+export function resolveAppBaseUrl(
+  typed: string | null,
+  env: string | null,
+  processUrl: string | undefined,
+): string {
+  return typed || envValue(env, "APP_BASE_URL") || processUrl || DEFAULT_APP_BASE_URL;
+}
+
+/** An .env that already runs as the hosted cloud: re-runs then need no --cloud flag. */
+export function isCloudEnv(content: string | null): boolean {
+  const value = envValue(content, "IS_CLOUD");
+  return value === "true" || value === "1";
+}
+
+export interface DirState {
+  /** null = no .env in the directory. */
+  envContent: string | null;
+  /** First compose file name found, or null. */
+  composeFile: string | null;
+  composeContent: string | null;
+  /** Version label when docker compose answered, null when absent or unprobed. */
+  docker: string | null;
+  /** false when the probe was skipped (--dry-run spawns nothing). */
+  dockerProbed: boolean;
+}
+
+/**
+ * Reads the directory state through injected seams: `readFile` returns file
+ * content or null, `probeDocker` returns a version label or null; pass
+ * probeDocker as null to skip the probe entirely (--dry-run).
+ */
+export function detectDirState(
+  readFile: (name: string) => string | null,
+  probeDocker: (() => string | null) | null,
+): DirState {
+  const composeFile = COMPOSE_FILENAMES.find((name) => readFile(name) !== null) ?? null;
+  return {
+    envContent: readFile(".env"),
+    composeFile,
+    composeContent: composeFile === null ? null : readFile(composeFile),
+    docker: probeDocker === null ? null : probeDocker(),
+    dockerProbed: probeDocker !== null,
+  };
+}
+
+/** Deadpan one-line status block, e.g. "found .env · no compose file · docker compose v2.32". */
+export function stateSummary(state: DirState): string {
+  const docker = !state.dockerProbed
+    ? "docker not checked"
+    : state.docker === null
+      ? "docker not found"
+      : state.docker;
+  return [
+    state.envContent === null ? "no .env" : "found .env",
+    state.composeFile === null ? "no compose file" : `found ${state.composeFile}`,
+    docker,
+  ].join(" · ");
+}
+
+/**
+ * First value of `KEY=...` in dotenv content, tolerating the same variants as
+ * upsertEnv (whitespace, `export `, spaces around `=`). null = line absent;
+ * "" = present but empty.
+ */
+export function envValue(content: string | null, key: string): string | null {
+  if (content === null) return null;
+  for (const line of content.split("\n")) {
+    const match = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
+    if (match && match[1] === key) return unquoteEnvValue((match[2] ?? "").trim());
+  }
+  return null;
+}
+
+/** Comma-separated .env value → trimmed entries. */
+function envList(content: string | null, key: string): string[] {
+  return (envValue(content, key) ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+/** The SES regions an .env serves, read the way the app reads them: AWS_REGIONS, else AWS_REGION, else the built-in default. */
+export function servedRegionsInEnv(content: string | null): string[] {
+  const listed = envList(content, "AWS_REGIONS");
+  if (listed.length > 0) return listed;
+  return [envValue(content, "AWS_REGION") || "us-east-1"];
+}
+
+/**
+ * An install the wizard has already been through: the secrets are in place
+ * and AWS is at least partly set up. Such a run opens on a menu of things to
+ * do instead of walking every step again.
+ */
+export function setupDone(content: string | null): boolean {
+  return (
+    content !== null &&
+    missingSecrets(content).length === 0 &&
+    (Boolean(envValue(content, "AWS_ACCESS_KEY_ID")) ||
+      Boolean(envValue(content, "SNS_TOPIC_ARNS")))
+  );
+}
+
+export interface MenuOption {
+  value: string;
+  label: string;
+  hint?: string;
+}
+
+/** The menu a finished install opens on, shaped by what its .env already has. */
+export function menuOptions(content: string | null, cloud: boolean): MenuOption[] {
+  const keys = Boolean(envValue(content, "AWS_ACCESS_KEY_ID"));
+  const events = Boolean(envValue(content, "SNS_TOPIC_ARNS"));
+  const queue = Boolean(envValue(content, "SQS_QUEUE_URL"));
+  const options: MenuOption[] = [];
+  if (events && queue) {
+    options.push({
+      value: "region",
+      label: "Add an SES region",
+      hint: `served: ${servedRegionsInEnv(content).join(", ")}`,
+    });
+  }
+  options.push({
+    value: "aws",
+    label: "AWS resources",
+    hint:
+      events && queue
+        ? fullRerunOffered(content)
+          ? "re-run the AWS setup"
+          : "add a region, or skip"
+        : keys && !events
+          ? "add event ingestion (bounces, deliveries)"
+          : keys
+            ? "re-run the AWS setup"
+            : "IAM user + key, SNS events, SES configuration set",
+  });
+  options.push(
+    { value: "urls", label: "Base URLs", hint: "APP_BASE_URL, PUBLIC_API_URL" },
+    ...(cloud ? [{ value: "cloud", label: "Cloud values", hint: "KMS key, Stripe" }] : []),
+    { value: "storage", label: "Object storage & backups", hint: "S3-compatible buckets" },
+    { value: "social", label: "Social login", hint: "Google, GitHub" },
+    { value: "email", label: "Account email sender", hint: "AUTH_EMAIL_FROM" },
+    { value: "all", label: "Walk through every step" },
+    { value: "start", label: "Start the stack", hint: "docker compose up -d" },
+    { value: "exit", label: "Exit" },
+  );
+  return options;
+}
+
+/** Enter on a finished install must not provision AWS. */
+export function menuInitial(options: readonly MenuOption[]): string | undefined {
+  return options.find((o) => o.value === "exit")?.value ?? options[0]?.value;
+}
+
+/**
+ * Whether the AWS step may offer a full re-run: it recreates the events
+ * transport for one region and rewrites SNS_TOPIC_ARNS and the queue policy
+ * to that region's topic alone, which on a multi-region install would
+ * silently drop the other regions' events.
+ */
+export function fullRerunOffered(content: string | null): boolean {
+  return servedRegionsInEnv(content).length <= 1;
+}
+
+/**
+ * The .env entries that add a region to an existing install: the region
+ * joins AWS_REGIONS (seeded from the region already served when the list did
+ * not exist yet) and the topic joins SNS_TOPIC_ARNS. AWS_REGION and
+ * SQS_QUEUE_URL are left as they are.
+ */
+export function addRegionEnvEntries(
+  content: string | null,
+  region: string,
+  topicArn: string,
+): Record<string, string> {
+  return {
+    AWS_REGIONS: [...new Set([...servedRegionsInEnv(content), region])].join(","),
+    SNS_TOPIC_ARNS: [...new Set([...envList(content, "SNS_TOPIC_ARNS"), topicArn])].join(","),
+  };
+}
+
+/** The wizard-managed secrets that are missing or empty in the given .env content. */
+export function missingSecrets(content: string): string[] {
+  return SECRET_KEYS.filter((key) => !envValue(content, key));
+}
+
+/** Same shape the .env.example comments suggest: openssl rand -base64 32. */
+export function generateSecret(): string {
+  return randomBytes(32).toString("base64");
+}
+
+/**
+ * A fresh .env gets its own Postgres password instead of the compose default;
+ * the postgres service and DATABASE_URL both read it from the same file.
+ * base64url keeps the URL free of percent-encoding.
+ */
+export function freshDatabaseEntries(): Record<string, string> {
+  const password = randomBytes(24).toString("base64url");
+  return {
+    POSTGRES_PASSWORD: password,
+    DATABASE_URL: `postgres://posta:${password}@postgres:5432/posta`,
+  };
+}
+
+/** Printed when the operator defers a secret to generate it themselves. */
+export function secretLaterHint(key: string): string {
+  return `${key} left empty. Before starting, run: openssl rand -base64 32  and put it in .env`;
+}
+
+/**
+ * Yes/no answer with a caller-chosen empty-answer default: interactive
+ * terminals default each offer to yes, pipes default to no so scripted runs
+ * skip every step deterministically.
+ */
+export function confirmed(answer: string, defaultYes: boolean): boolean {
+  const trimmed = answer.trim();
+  if (trimmed === "") return defaultYes;
+  return /^y(es)?$/i.test(trimmed);
+}
+
+/**
+ * argv after `docker` that starts the stack: a compose file with a build key
+ * (repo clone) needs --build so code changes land; the deploy compose pulls.
+ */
+export function composeUpArgs(composeContent: string | null): string[] {
+  const build = composeContent !== null && /^\s*build\s*:/m.test(composeContent);
+  return build ? ["compose", "up", "--build", "-d"] : ["compose", "up", "-d"];
+}
+
+/**
+ * Turns an optional compose service on by editing COMPOSE_PROFILES, so the
+ * wizard step that configures a feature also starts its container; a
+ * profile already listed is left alone.
+ */
+export function withComposeProfile(content: string, profile: string): string {
+  const names = (envValue(content, "COMPOSE_PROFILES") ?? "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+  if (names.includes(profile)) return content;
+  return upsertEnv(content, { COMPOSE_PROFILES: [...names, profile].join(",") });
+}
+
+/**
+ * SES events are ingested by the api process, but the one public URL the
+ * setup knows is the dashboard origin, so SNS is subscribed there. A reverse
+ * proxy in front of the dashboard has to hand that single path to the api,
+ * or the confirmation POST 404s and no bounce or delivery ever arrives.
+ */
+export function sesEventsProxyHint(origin: string, apiPort = 3001): string {
+  return [
+    `SNS delivers SES events to ${origin}/ses/events, and the api process serves that path.`,
+    "A reverse proxy in front of the dashboard must route it to the api; nginx:",
+    "",
+    `    location = /ses/events { proxy_pass http://127.0.0.1:${apiPort}; }`,
+    "",
+    "Without that the subscription stays pending and no delivery or bounce event arrives.",
+  ].join("\n");
+}
+
+/** The full multi-step plan --dry-run prints; mirrors what the live run offers. */
+export function flowPlan(
+  state: DirState,
+  opts: { appBaseUrl: string; region: string; cloud?: boolean },
+): string[] {
+  const lines: string[] = [];
+  if (setupDone(state.envContent)) {
+    const items = menuOptions(state.envContent, opts.cloud ?? false)
+      .filter((o) => o.value !== "exit")
+      .map((o) => o.label)
+      .join(", ");
+    lines.push(
+      `menu: this install is set up; on a terminal the run opens on a menu (${items}); piped runs walk the steps below`,
+    );
+  }
+  lines.push(
+    state.envContent === null
+      ? "env: create .env from the built-in template (offered)"
+      : "env: keep the existing .env; setup only fills gaps",
+  );
+  const missing = state.envContent === null ? [...SECRET_KEYS] : missingSecrets(state.envContent);
+  lines.push(
+    missing.length === 0
+      ? `secrets: ${SECRET_KEYS.join(" and ")} already set`
+      : `secrets: offer to generate ${missing.join(" and ")}`,
+  );
+  lines.push(`env: APP_BASE_URL prompt (default ${opts.appBaseUrl})`);
+  lines.push(
+    "env: PUBLIC_API_URL prompt (optional; the API's own hostname behind a reverse proxy)",
+  );
+  if (opts.cloud) {
+    lines.push(
+      `cloud: IS_CLOUD=true; prompt for ${CLOUD_REQUIRED_KEYS.join(", ")} and STRIPE_PORTAL_CONFIG; offer the docs profile`,
+    );
+  }
+  if (
+    state.envContent !== null &&
+    envValue(state.envContent, "SNS_TOPIC_ARNS") &&
+    envValue(state.envContent, "SQS_QUEUE_URL")
+  ) {
+    lines.push(
+      `aws: already set up (${servedRegionsInEnv(state.envContent).join(", ")}); offer to add a region (its topic and configuration set, events into the existing queue, no new key)${fullRerunOffered(state.envContent) ? " or a full re-run" : ""}`,
+    );
+  } else {
+    for (const line of setupPlan({ region: opts.region, appBaseUrl: opts.appBaseUrl })) {
+      lines.push(`aws: ${line}`);
+    }
+  }
+  const upCommand = `docker ${composeUpArgs(state.composeContent).join(" ")}`;
+  lines.push(
+    state.composeFile === null
+      ? `launch: offer to download deploy/docker-compose.yml, then ${upCommand}`
+      : `launch: offer ${upCommand} (${state.composeFile})`,
+  );
+  return lines;
+}

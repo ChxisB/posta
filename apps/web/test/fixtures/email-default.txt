@@ -1,0 +1,20 @@
+Welcome aboard
+A smaller heading
+Hi {{{FIRST_NAME|there}}}, this is bold, italic and a link (https://example.com/docs).
+&#8202;&#8202;&#8202;&#8202;Open the dashboard&#8202;&#8202;&#8202;&#8202;&#8203; (https://example.com/start)
+
+&#8202;&#8202;&#8202;&#8202;Read the guide&#8202;&#8202;&#8202;&#8202;&#8203; (https://example.com/guide)
+
+&#8202;&#8202;&#8202;&#8202;Custom colours&#8202;&#8202;&#8202;&#8202;&#8203; (https://example.com/custom)
+
+First
+
+Second
+
+One
+
+Two
+
+A quoted line.
+
+Unsubscribe ({{{UNSUBSCRIBE_URL}}})

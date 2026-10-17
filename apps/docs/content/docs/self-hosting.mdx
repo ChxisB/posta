@@ -1,0 +1,1762 @@
+---
+title: Self-hosting
+description: Deploy Posta on your own infrastructure with Docker Compose and your own AWS SES account.
+---
+
+Self-hosted Posta sends through your own AWS SES account. A deployment
+is two containers: Postgres and one app container running the API (port
+3001), the worker, and the web dashboard (port 3000). An optional third
+container runs the SMTP relay (port 2587). (Prefer not to run
+infrastructure? [Posta Cloud](https://posta.example) is the same
+platform, hosted.)
+
+**Prerequisites:** Docker with Compose; an AWS account with SES access in your
+chosen region (sandbox accounts can only send to verified recipients;
+request production access to send to anyone); a sending domain you control.
+Domain verification (DKIM records) is done from the dashboard after boot.
+
+## Quickstart (no clone)
+
+One command, in an empty directory (Node 18+):
+
+```sh
+mkdir posta && cd posta
+npx @tack-labs/posta-setup
+```
+
+The wizard detects what is already there and offers each step: create `.env`
+from a built-in template with generated secrets, provision the AWS resources
+and the S3 buckets for uploads and backups (both below), download the
+standalone compose file, and `docker compose up -d`. Every step is skippable
+and safe to re-run; `--dry-run` prints the full plan and touches nothing. On an install that is already set up, a terminal run opens on a menu of next steps instead of walking every step again.
+
+The manual equivalent runs the same multi-arch prebuilt image:
+
+```sh
+mkdir posta && cd posta
+curl -O https://raw.githubusercontent.com/ChxisB/posta/main/deploy/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/ChxisB/posta/main/.env.example
+```
+
+Fill in `.env` (see the [environment reference](#environment-reference);
+everything else defaults to a working local setup), then:
+
+```sh
+docker compose up -d
+```
+
+Migrations run automatically on boot. Dashboard: `http://localhost:3000`.
+API: `http://localhost:3001`.
+
+## Upgrades
+
+```sh
+docker compose pull
+docker compose up -d
+```
+
+Migrations run on boot, so that is the whole upgrade for a small instance. The
+compose file runs
+`ghcr.io/chxisb/posta:latest`, the latest tagged release (`:1.2.3`
+and `:1.2` tags exist alongside it; `:edge` follows `main`, where every build
+passed the test suite first). To hold a version, set `POSTA_IMAGE`
+in `.env` to a version tag or an immutable digest
+(`ghcr.io/chxisb/posta@sha256:…`; `docker image ls --digests` shows
+what is running) and `docker compose up -d`. The previous pin put back is the
+rollback, with the caveat that schema migrations run forward only, so take a
+dump before a big jump ([Backups](#backups)); a rolled-back image may not
+start on a newer schema.
+
+The compose files create the Postgres user and database as `posta` (default
+password `posta`). Postgres applies those names only when its data volume is
+empty, so a volume first created under other names keeps them, and the app
+cannot sign in with the default `DATABASE_URL`. Start on a fresh volume
+(`docker compose down -v` deletes the old one with its data; take a dump first
+and restore it as in [Backups](#backups)), or point `DATABASE_URL` at the user
+and database that volume holds.
+
+Once tables are large (millions of emails or contacts), a migration that
+rewrites or indexes them takes minutes. Migrations run in one transaction and
+their locks block reads and writes on the tables they touch until it commits,
+so that wait is downtime whether it happens at boot or before the swap. Run
+it before the swap anyway, from a throwaway container, at a quiet hour: a
+migration that fails leaves the old container serving instead of a container
+that will not boot, and the boot-time pass then finds nothing pending:
+
+```sh
+docker compose pull && docker compose run --rm --no-deps posta migrate && docker compose up -d
+```
+
+Automatic upgrades, for a host that can only reach out (behind a CDN-only
+firewall, say): a cron line is enough, since `up -d` recreates a container
+only when its image changed.
+
+```sh
+( crontab -l 2>/dev/null; echo "*/5 * * * * cd /opt/posta && docker compose pull -q && docker compose up -d" ) | crontab -
+```
+
+## From source
+
+For contributors, or when you want to modify the code:
+
+```sh
+git clone https://github.com/ChxisB/posta.git
+cd posta
+cp .env.example .env   # fill it as in the quickstart
+docker compose up --build -d
+```
+
+The root `docker-compose.yml` builds the image locally from the `Dockerfile`.
+To run a clone against the published image instead:
+`docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up -d`.
+
+Without Docker (Node 24+, pnpm 11, local Postgres): `pnpm install`, point
+`DATABASE_URL` at your Postgres, `pnpm --filter @posta/db db:migrate`,
+then run `pnpm --filter @posta/api dev`,
+`pnpm --filter @posta/worker dev`, and
+`pnpm --filter @posta/web dev` in separate terminals.
+
+## Environment reference
+
+From `.env.example`. Only the two secrets are required; everything else has
+working local defaults. Billing (plans, Stripe) exists only on hosted
+deployments: see [Billing](/billing); a self-hosted instance has no plan limits.
+
+### Required
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Postgres connection string. The default matches the compose `postgres` service. |
+| `POSTGRES_PASSWORD` | Password of the compose `postgres` service (default `posta`); the setup wizard generates one and puts it in `DATABASE_URL` too. Keep both in sync. |
+| `MASTER_ENCRYPTION_KEY` | Encryption key for email bodies at rest. Generate with `openssl rand -base64 32`. Losing it makes stored bodies unrecoverable; changing it orphans old bodies. Back it up with the database. |
+| `BETTER_AUTH_SECRET` | Dashboard session signing secret. Generate with `openssl rand -base64 32`. |
+| `APP_BASE_URL` | Public base URL of the deployment: the origin browsers use to reach the dashboard (e.g. `https://mail.example.com`). Sign-in is only accepted from this origin; SNS subscriptions, unsubscribe links, and tracking links derive from it. It must match the exact scheme+host+port you open the dashboard on: including a custom `WEB_PORT`, or login and signup fail with an "invalid origin" error. Default `http://localhost:3000`. |
+| `PUBLIC_API_URL` | Public origin of the API when a reverse proxy serves it on its own hostname (e.g. `https://api.example.com`). It is what the dashboard prints as the API base and what MCP tokens are bound to; unset, the API is assumed at port 3001 of the dashboard host. |
+
+### AWS SES
+
+| Variable | Purpose |
+| --- | --- |
+| `AWS_REGION` | SES region (default `us-east-1`); also the KMS and SQS client region. |
+| `AWS_REGIONS` | Comma-separated SES regions this deployment sends from, the first being the default; unset, the one region in `AWS_REGION`. Each region needs its own SNS topic and configuration set: see [Adding a region](#adding-a-region). |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | IAM credentials with `ses:SendEmail` / `ses:SendRawEmail`. Omit to use the default AWS credential chain (instance profile, SSO, …). |
+| `SNS_TOPIC_ARNS` | Comma-separated SNS topic ARNs allowed to deliver SES events. Unset disables event ingestion entirely. |
+| `SQS_QUEUE_URL` | SQS queue the worker long-polls for SES events. Setup always creates it; keep it set even when SNS also pushes to `https://<your-host>/ses/events` (the app dedupes the two). |
+| `SES_CONFIGURATION_SET` | SES configuration set applied to sends that have no per-domain configuration set. Unset sends without one (and without delivery events). |
+| `SES_TENANTS` | One SES tenant per team, so SES tracks bounce/complaint reputation per customer and can pause one sender without the rest; suspending a team disables its tenant. Defaults to `IS_CLOUD`; needs the `ses:*Tenant*` and `ses:UpdateReputationEntityCustomerManagedStatus` IAM actions. |
+
+### Optional
+
+| Variable | Purpose |
+| --- | --- |
+| `POSTA_IMAGE` | Standalone deploy only: which image to run. The default `ghcr.io/chxisb/posta:latest` is the latest tagged release (`:edge` follows `main`), so `docker compose pull` is the upgrade. Set a version tag or an immutable `ghcr.io/chxisb/posta@sha256:…` digest to hold a version (`POSTA_BACKUP_IMAGE` pins the backup sidecar the same way). |
+| `ALLOW_SIGNUP` | The first user can always register; after that signup stays closed unless this is `true`. Keep `false` when the dashboard is reachable from the internet. |
+| `TRUSTED_PROXIES` | Reverse proxies whose forwarded-client-IP headers (`X-Forwarded-For`, `CF-Connecting-IP`) are believed, comma-separated IPs or CIDRs. Default `127.0.0.1,::1` covers a proxy on the same host; add your proxy's address when it runs elsewhere. See the [nginx section](#production-nginx--tls). |
+| `WEBHOOK_ALLOW_LOCALHOST` | Local development only: lets webhook endpoints (test fires included) target `http://` and loopback/private addresses on any port. Keep `false` on any internet-reachable instance. |
+| `COMPOSE_PROFILES` | Optional compose services, comma-separated: `smtp` (the relay; mount a STARTTLS keypair first), `mx` (the inbound MX; see [Receiving](#receiving-beta)) and `clamav` (virus scanning of received mail; see [Virus scanning](#virus-scanning)), and in the standalone file also `docs` (this documentation site) and `backup` (scheduled dumps). |
+| `PORT` | API port (default `3001`). Under compose this moves both the container's listen port and the published host port together. |
+| `UNSUBSCRIBE_BASE_URL` | Optional own host for the hosted unsubscribe pages (e.g. `https://unsubscribe.example.com`), pointed at the same web process. Unsubscribe links in mail and the page's redirects use it, and that host serves the unsubscribe flow only, so recipients and link scanners never reach the dashboard's origin, cookies or reputation. Unset: `APP_BASE_URL`. |
+| `WEB_PORT` | Host port the compose file publishes the dashboard on (the web process is always 3000 inside the container). Keep `APP_BASE_URL` in sync. |
+| `DOCS_PORT` | Host port the compose file publishes this documentation site on (the docs process is always 3002 inside the container). |
+| `SMTP_PORT` | SMTP relay listen port (default `2587`). |
+| `SMTP_TLS_CERT_PATH` / `SMTP_TLS_KEY_PATH` | STARTTLS keypair for the SMTP relay (PEM paths inside the container). Both set: STARTTLS is offered and required before AUTH. Without the pair the relay refuses to start (unless `SMTP_ALLOW_INSECURE_AUTH=true`). |
+| `SMTP_ALLOW_INSECURE_AUTH` | Explicit local/private-network escape hatch for plaintext SMTP AUTH. Keep `false`; never combine `true` with a public bind. |
+| `IS_CLOUD` | Leave `false`. `true` enables hosted-cloud behavior (KMS, Stripe billing). |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PORTAL_CONFIG` | Hosted cloud only; ignored when `IS_CLOUD=false`. Stripe API key, the signing secret of the webhook endpoint at `/api/billing/webhook`, and an optional customer-portal configuration id. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth credentials for "Continue with Google". The button appears only when both are set. Callback URL: `{APP_BASE_URL}/api/auth/callback/google`. |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Same, for GitHub. Callback URL: `{APP_BASE_URL}/api/auth/callback/github`. |
+| `AUTH_EMAIL_FROM` | Sender for the emails to a person about their own account (password reset, email verification, the welcome, a password-changed receipt, an app granted access, the console's one-time code), as `Name <user@domain>` or a bare address; its domain must be a verified identity in this instance's SES account. Password recovery and sign-up verification only exist when this is set and SES credentials are configured: leave unset to skip both. Verify its domain in a team under **Domains** and those emails are logged there, with new accounts as its contacts (see [Account mail](#account-mail-contacts-and-product-updates)). |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys, both or neither. When set, sign-in, sign-up, password reset and the onboarding "Send email" button verify a challenge token (invisible or managed widgets both work). Unset, every form runs without a captcha. |
+| `ONBOARDING_EMAIL_FROM` | Sender of the onboarding "Send email" button, as `Name <user@domain>` or a bare address on a domain verified in this SES account. It carries one fixed test email per team, to the team's owner (a verified address, where the instance verifies), and nothing else: a send from it through the API, SMTP, MCP, a broadcast or a dashboard test is refused (`422 reserved_sender` on the API), even for a team that verified its domain. Leave unset to hide the button. |
+| `NOTIFICATIONS_EMAIL_FROM` | Sender for the notices to team owners (quota, bounce/complaint rates, a domain verifying or losing its records, a new API key, a rotated webhook secret, a member joining, a broadcast that went out or is held, billing on the cloud) and for team invitation emails, same forms as `AUTH_EMAIL_FROM`, which it falls back to. With neither set, only the webhook events go out and invitations are link-only. Verify its domain in a team to log these emails there. |
+| `INVITES_PER_TEAM_PER_DAY` | Invitations one team, and one member across all their teams, may create in a rolling day, revoked ones and those of deleted teams included (default `50`). Past it, new invitations are refused until the day rolls over. |
+| `SENTRY_DSN` / `SENTRY_BROWSER_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_TRACES_SAMPLE_RATE` | Optional error tracking through the Sentry SDK; off while `SENTRY_DSN` is unset. See [Error tracking](#error-tracking-optional). |
+| `BLOCK_DISPOSABLE_EMAILS` | Refuse addresses on the [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) list (public domain) at sign-up, on invitations and on email changes; a subdomain counts as its parent. Existing accounts keep working, and the console tags them. Defaults to `IS_CLOUD`. See [Signup policy](#signup-policy). |
+| `IP_GEOLOCATION` | Network and country of the sign-up IPs the console shows, from DB-IP's free databases ([CC BY 4.0](https://db-ip.com/db/lite.php)), which the worker downloads from `download.db-ip.com` once a month; lookups stay on this instance. Defaults to `IS_CLOUD`. See [Console](#console). |
+
+### Worker sizing
+
+Defaults fit the 14/s send rate. Postgres runs with `max_connections=200` in
+the compose files; each process (api, worker, web) holds a pool of up to 24
+connections, so separate containers and worker replicas fit without tuning.
+
+| Variable | Purpose |
+| --- | --- |
+| `SEND_CONCURRENCY` | Parallel send lanes in the worker (default `16`): about 1.2 per message/second of SES send rate. |
+| `WORKER_REPLICAS` | Number of worker processes running (default `1`). The SES rate limiter is a per-process token bucket, so each worker divides the send rate by this to keep the account at its total. |
+| `SES_TRANSACTIONAL_RESERVE` | Percent of every region's rolling 24-hour SES quota that broadcasts never touch (default `30`, allowed `5` to `90`). Transactional mail may use all of it and borrow beyond it; a broadcast larger than the rest is paced over the following days. Bootstrap value only: Console → Regions overrides it at runtime. |
+| `SQS_POLL_CONCURRENCY` | Parallel SQS long-poll loops for SES events (default `4`). |
+| `WEBHOOK_DELIVERY_RETENTION_DAYS` | How long webhook delivery rows and payloads stay readable in the delivery log (default `30`); older ones are purged. |
+| `EMAIL_METADATA_RETENTION_DAYS` | Days whole email rows (recipients, subject, status, events) are kept (default `30`, the industry norm); bodies leave earlier on the dashboard's retention setting, and daily counters and broadcast results are kept regardless. Releases before v0.6.30 defaulted to `365`: set it explicitly before upgrading if that history must stay. |
+| `OPEN_PREFETCH_WINDOW_SECONDS` | A tracking-pixel fetch within this many seconds of delivery (or before it) is recorded as prefetched, not opened (default `10`); `0` keeps only the user-agent rules. See [open-rate accuracy](/concepts/domains#open-rate-accuracy). |
+
+### Object storage (uploads & backups)
+
+| Variable | Purpose |
+| --- | --- |
+| `S3_ENDPOINT` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | ONE S3-compatible credential set shared by team logo uploads and database backups (Cloudflare R2 works out of the box). Set all three together. |
+| `S3_REGION` / `S3_PROVIDER` | Defaults `auto` / `Cloudflare` suit R2. Other S3-compatibles set a real region if the endpoint needs one, and rclone's provider name (`AWS`, `Minio`, …) for the backup job. |
+| `S3_STORAGE_BUCKET` / `S3_STORAGE_PUBLIC_URL` | Public uploads bucket (team logos) and the public base URL it serves from. Set together; unset hides the upload UI everywhere. |
+| `S3_BACKUP_BUCKET` | PRIVATE bucket for scheduled database dumps, never the public uploads bucket. Unset disables the `backup` service. |
+| `S3_BACKUP_PREFIX` / `BACKUP_CRON` / `BACKUP_RETENTION_DAYS` | Backup tuning: object key prefix (default `backups`), daily dump schedule (`<minute> <hour> * * *`, UTC, default `0 3 * * *`; any other shape makes the service exit 1), days of dumps kept (default 14). |
+| `BACKUP_AGE_RECIPIENT` | age public key (`age1…`); set to encrypt dumps before upload. Restore with `age --decrypt -i <key file>` first. |
+
+### Inbound mail (receiving)
+
+See [Receiving](#receiving-beta). The app reads the first four; the MX process
+reads only the `MX_*` variables. The compose `mx` service sets
+`MX_INGEST_URL`, `MX_HOSTNAME` (from `RECEIVING_MX_HOST`) and the TLS paths
+itself, so set those only for an MX on another host.
+
+| Variable | Purpose |
+| --- | --- |
+| `RECEIVING_MX_HOST` | Hostname the MX process answers at (e.g. `mx.example.com`); receiving domains point their MX record at it. Unset, receiving doesn't exist on the instance: no dashboard tab or switch, no inboxes, every domain reports `capabilities.receiving: "disabled"`, and the internal MX endpoints answer `404`. |
+| `MX_INGEST_SECRET` | Bearer secret the MX presents to the API, at least 32 characters (`openssl rand -hex 32`). Set it together with `RECEIVING_MX_HOST`: the app refuses to boot with only one of the two. The MX process needs the same value. |
+| `SHARED_INBOX_DOMAIN` | Optional domain for inboxes that need no DNS: each team gets a subdomain of it (see [Shared inbox domain](#shared-inbox-domain)). Its wildcard MX must point at `RECEIVING_MX_HOST`, and an SES identity for it must exist in the default region. Needs `RECEIVING_MX_HOST`; unset hides the shared domain. |
+| `CLAMAV_HOST` | Optional clamd that scans every received message, as `host[:port]` (port `3310` by default), e.g. `clamav:3310` for the compose service (see [Virus scanning](#virus-scanning)). Unset, mail isn't scanned. |
+| `MX_INGEST_URL` | MX process: your API's origin plus `/internal/mx` (e.g. `https://api.example.com/internal/mx`). |
+| `MX_HOSTNAME` | MX process: the name in its greeting and EHLO, normally the same as `RECEIVING_MX_HOST`. |
+| `MX_PORT` | MX process: listen port (default `2525`). Publish host port 25 to it. |
+| `MX_TLS_CERT_PATH` / `MX_TLS_KEY_PATH` | MX process: PEM keypair for STARTTLS (paths inside the container), both or neither. STARTTLS is offered once the files exist, and a renewed certificate is picked up without a restart. |
+| `MX_MAX_CLIENTS` / `MX_MAX_CONNECTIONS_PER_IP` / `MX_CONNECTIONS_PER_IP_PER_MINUTE` | MX process: connection limits (defaults `200` at once, `10` at once per IP, `60` new per IP per minute). |
+| `MX_MAX_RECIPIENTS` | MX process: recipients accepted per SMTP transaction (default `50`, at most `100`); the sending server delivers the rest in another. |
+| `MX_SOCKET_TIMEOUT_MS` / `MX_SESSION_TIMEOUT_MS` | MX process: idle time before a connection is dropped (default `300000`) and the longest one session may last (default `600000`). |
+| `MX_MAX_BUFFERED_MB` | MX process: message megabytes all sessions together may hold in memory (default `512`, at least `64`); past it, senders get `452` and retry. |
+
+## AWS setup
+
+The AWS step of `npx @tack-labs/posta-setup` creates everything Posta needs
+in AWS: IAM policy + user + access key, the SNS event topic, the SQS events
+queue (`posta-events`) the worker long-polls, and the SES configuration
+set. An HTTPS `APP_BASE_URL` additionally gets events pushed to your host; the
+queue works without any public URL.
+
+Run it anywhere Node 18+ and your AWS admin credentials live: laptop or
+server; the Posta server never needs admin credentials. It verifies your
+AWS identity, shows the plan, creates everything, and writes the `AWS_*` lines
+into the `.env` in the current directory (no `.env` there → it prints them to
+paste where Posta runs). `--dry-run` prints the full plan and exits.
+
+`npx @tack-labs/posta-setup teardown` deletes everything the setup created,
+including all access keys of the `posta` IAM user, so a running server
+stops sending. Re-running setup is safe, but each run mints a new access key;
+delete stale ones in the IAM console.
+
+No Node on the server? The same CLI ships inside the image: run it from the
+deploy directory, which it reads and writes as `/work` (the wizard writes
+nothing outside it, so run it as yourself and the `.env` it creates is yours,
+mode 600):
+
+```sh
+docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms -v ~/.aws:/home/ms/.aws:ro -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup
+```
+
+Prefer not to run a CLI? The dashboard's **Settings → SES** page offers a
+CloudFormation quick-create link and a pre-filled shell script that create the
+same resources.
+
+## Adding a region
+
+One deployment can send through several SES regions. A domain lives in one
+region, the one picked when it is added (to move it, delete it and add it
+again); identities, the 24-hour quota, the send rate and the sandbox status
+are all per region; every region's events land in the one SQS queue, because
+SNS delivers across regions.
+
+Run the wizard's `add-region` command where the `.env` lives: the deploy
+directory, or on the server through the image with short-lived admin
+credentials in the environment (nothing is stored):
+
+```sh
+npx @tack-labs/posta-setup add-region us-east-1
+# or, on the server, from the deploy directory:
+docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/home/ms \
+  -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+  -v "$PWD":/work -w /work ghcr.io/chxisb/posta:latest setup add-region us-east-1
+```
+
+`npx @tack-labs/posta-setup add-region` needs `@tack-labs/posta-setup` 0.9.0 or
+later; the image already carries it. Without a terminal (stdin piped), the
+region argument is required and the confirmation needs an explicit `yes`
+line: the command refuses to guess a region, and an empty answer means no.
+
+The interactive wizard offers the same step as **Add a region** at its AWS
+step. Run anywhere else, without a `.env`, the command asks for the install's
+`SQS_QUEUE_URL`, `SNS_TOPIC_ARNS`, `AWS_REGIONS`, and optional `APP_BASE_URL`
+(empty: queue only), then confirms before creating anything and prints the two
+lines instead of writing them.
+
+It keeps the IAM user, policy and access key (no new key), creates in the new
+region the SNS topic, the SES configuration set with its event destination and
+the bounce-only suppression setting, subscribes the topic to the existing
+queue, and appends to `.env`:
+
+```sh
+AWS_REGIONS=sa-east-1,us-east-1   # the first entry stays the default region
+SNS_TOPIC_ARNS=<first topic ARN>,<new topic ARN>
+```
+
+`AWS_REGION` and `SQS_QUEUE_URL` are left as they are. Restart the stack
+(`docker compose up -d`): the region then appears in the add-domain form and on
+Settings → SES, marked **Sandbox** until AWS grants production access there;
+request it per region, as for the first one. While one region has production
+access, a sandbox region is listed but not selectable in the form; a sandbox
+region paces its own sends at its 1/s and holds only its own domains when its
+24-hour quota is spent.
+
+Pricing: since 2026-07-21 an SES account × region with no prior sending starts
+on the Essentials plan ($0.16 per 1,000 messages instead of the à la carte
+$0.10). After provisioning, the wizard reads the region's plan and, on
+Essentials, asks whether to cancel it; nothing Posta uses needs a plan,
+and a defaulted plan's cancellation takes effect immediately. By hand:
+`aws sesv2 put-account-pricing-attributes --plan NONE --region <region>`.
+
+Manual equivalent: in the new region, the SNS topic, the configuration set and
+the suppression setting exactly as in [SES events](#ses-events-bounces-complaints-deliveries); a `sqs`
+subscription of that topic to the existing queue's ARN, and the queue's policy
+extended so `sqs:SendMessage` is allowed from the new topic ARN as well; then
+the two `.env` lines above and a restart.
+
+## SES events (bounces, complaints, deliveries)
+
+The setup CLI always configures this: an SQS queue (`posta-events`) that
+the worker long-polls, its URL in `.env` as `SQS_QUEUE_URL`. The queue buffers
+events through restarts and needs no inbound reachability, so it is the
+transport every deployment gets; a public HTTPS `APP_BASE_URL` additionally
+gets an SNS subscription pushing to your host, and the app dedupes the two.
+`SNS_TOPIC_ARNS` gates ingestion either way: events are only accepted from
+topics on that allowlist. Keep `SQS_QUEUE_URL` set even after switching to an
+https `APP_BASE_URL`: clearing it leaves events piling up in the queue.
+
+Manual equivalent: an SNS standard topic (same region as SES) subscribed to
+`https://<your-host>/ses/events` (or to an SQS queue whose policy lets the
+topic send and whose URL is in `.env` as `SQS_QUEUE_URL`), its ARN in `.env`
+as `SNS_TOPIC_ARNS`; an SES configuration set with an event destination
+pointing at the topic (event types: Delivery, Delivery Delay, Bounce,
+Complaint, Reject, Rendering Failure; do NOT subscribe Open or Click, which
+makes SES rewrite every link and inject its own pixel while Posta tracks
+engagement itself), its name in `.env` as `SES_CONFIGURATION_SET`. Restart
+after setting them. Without `SES_CONFIGURATION_SET`, sends go out without a
+configuration set and emit no events.
+
+The wizard also sets SES's account-level suppression list to bounces only.
+That list is per region and shared by every team on the instance: a
+hard-bounced mailbox is dead for everyone, so SES may stop it account-wide,
+but a spam report is about one sender's mail. Posta suppresses it for
+that team alone, and left on the SES list it would also block an unrelated
+team's receipt or a password reset to the same person. If you provisioned
+by hand or with the CloudFormation template, set it yourself in the SES
+console (Suppression list → Account-level settings) or with
+`aws sesv2 put-account-suppression-attributes --suppressed-reasons BOUNCE`.
+
+The HTTPS SNS subscription confirms itself once the app runs with
+`SNS_TOPIC_ARNS` set; if it stays pending, use "Request confirmation" on it in
+the SNS console. Same-account SQS subscriptions need no confirmation.
+
+The subscription endpoint is `{APP_BASE_URL}/ses/events`, but the API process
+serves that path, not the dashboard: a reverse proxy in front of the dashboard
+hostname must route that one path to the API (the [nginx
+section](#production-nginx--tls) does), or the confirmation POST lands on the
+dashboard, 404s, and the subscription stays pending with every bounce and
+delivery lost.
+
+## SES tenants (per-team reputation)
+
+With `SES_TENANTS=true` (the default on Cloud) every team gets its own SES
+tenant, named by the team id, in each region it has a domain in. A domain's
+identity and the shared `SES_CONFIGURATION_SET` are associated with the
+tenant when the domain is created, and every send from it names the tenant, so
+SES keeps bounce and complaint metrics (and its own sending pause) per
+customer instead of per account. Domains that predate the flag, or whose
+association failed, are picked up by the hourly `tenants.sync` job.
+Suspending a team from the console sets its tenant's sending status to
+`DISABLED` in every region the team has a domain in, and reinstating sets it
+back to `ENABLED` (never `REINSTATED`, so SES's own reputation findings still
+apply). A failed AWS call never holds the suspension back: the console warns,
+the audit log records it, and the worker retries with backoff. The IAM
+policy the wizard and the CloudFormation template install includes the
+`ses:CreateTenant`, `ses:GetTenant`, `ses:DeleteTenant`,
+`ses:CreateTenantResourceAssociation`, `ses:DeleteTenantResourceAssociation`
+and `ses:UpdateReputationEntityCustomerManagedStatus` actions; an existing
+deployment re-runs the wizard (or updates the `posta-ses` policy)
+before turning the flag on.
+
+To update the policy in place, publish the JSON the SES settings page shows as a
+new default version:
+
+```bash
+aws iam create-policy-version --policy-arn arn:aws:iam::<account-id>:policy/posta-ses \
+  --policy-document file://posta-ses.json --set-as-default
+```
+
+## SMTP relay
+
+A drop-in SMTP relay for software that speaks SMTP instead of HTTP: legacy
+apps, CMS plugins, anything with an "SMTP settings" form. Messages go through
+the same accept pipeline as `POST /emails`: same domain verification,
+suppression checks, request logging, and delivery events. While the team's
+sending is paused for its bounce or complaint rate, the relay answers
+`451 4.7.1` after DATA, so the client keeps the message and retries; a
+suspended team gets `550`.
+
+Connection details:
+
+- **Host:** wherever the `smtp` service is reachable (the compose files
+  publish it on the Docker host).
+- **Port:** `2587` (`SMTP_PORT` to change).
+- **Username:** `posta` (fixed).
+- **Password:** a `po_` API key from the dashboard.
+- **Encryption:** STARTTLS is offered (and required before AUTH) when
+  `SMTP_TLS_CERT_PATH` and `SMTP_TLS_KEY_PATH` point at a PEM keypair. Without
+  one, the relay refuses to start unless `SMTP_ALLOW_INSECURE_AUTH=true` is explicitly
+  enabled for a trusted private network.
+
+### STARTTLS with your existing certificates
+
+Before exposing the relay to the internet, give it a certificate, otherwise
+SMTP AUTH sends the API key in plaintext. Any PEM keypair works, and if you
+followed the nginx guide above you already have one: reuse the Let's Encrypt
+certificate certbot issued for your domain. Mount it into the `smtp` container
+with a `docker-compose.override.yml`:
+
+```yaml
+services:
+  smtp:
+    volumes:
+      - /etc/letsencrypt/live/mail.example.com:/certs:ro
+```
+
+and point the env at it in `.env`:
+
+```sh
+SMTP_TLS_CERT_PATH=/certs/fullchain.pem
+SMTP_TLS_KEY_PATH=/certs/privkey.pem
+```
+
+With both set, STARTTLS is required before AUTH: credentials never cross the
+wire unencrypted. Mount the `live/<domain>` directory (a symlink certbot keeps
+current), not a copy of the files, so a renewal lands at the same path, and
+restart the relay after each renewal, since it reads the keypair when it
+starts (certbot:
+`--deploy-hook 'docker compose -f /opt/posta/docker-compose.yml restart smtp'`).
+A wildcard or any other CA-issued PEM works the same way.
+
+Nodemailer example:
+
+```js
+import nodemailer from "nodemailer";
+
+const transport = nodemailer.createTransport({
+  host: "localhost",
+  port: 2587,
+  auth: { user: "posta", pass: "po_..." },
+});
+
+await transport.sendMail({
+  from: "you@yourdomain.com",
+  to: "success@simulator.amazonses.com",
+  subject: "Hello",
+  html: "<p>Sent over SMTP.</p>",
+});
+```
+
+The `smtp` service is defined in both compose files behind the `smtp`
+profile, so it stays off until asked for: once the keypair is mounted, add
+`smtp` to `COMPOSE_PROFILES` in `.env` (comma-separated with any others) and
+`docker compose up -d`.
+
+## Receiving (beta)
+
+[Receiving](/concepts/receiving) needs one more process: the MX, which
+answers SMTP on port 25 for your teams' receiving domains and hands every
+message to the API over HTTP. It holds no database and no keys, only its
+`MX_*` variables, so it can run beside the app or on a small separate box
+with port 25 open, which is how Posta Cloud runs it. It never relays
+mail, offers no AUTH and never sends a bounce: it refuses during the SMTP
+session instead.
+
+1. **Name it.** Point an A record such as `mx.example.com` at the public IPv4
+   address of the host that will run the MX, and make sure inbound TCP port
+   25 reaches it; some providers block port 25 until asked. Add no AAAA
+   record: port 25 is published on IPv4 only, because over IPv6 Docker's
+   proxy would replace each sender's address with its own, which breaks SPF
+   and the per-address limits.
+2. **Turn receiving on in the app.** Set `RECEIVING_MX_HOST=mx.example.com`
+   and `MX_INGEST_SECRET` (`openssl rand -hex 32`) in `.env`, then
+   `docker compose up -d`. Domains can now turn receiving on, and their
+   Receiving record points at `mx.example.com`.
+3. **Give it a certificate.** The `mx` service reaches the API on the
+   compose network, greets as `RECEIVING_MX_HOST`, and offers STARTTLS with
+   the keypair in `mx-tls/` next to `docker-compose.yml`. A certbot deploy
+   hook copies it there, owned `root:1000` with mode `0640`; the compose file
+   adds the container's non-root user to group 1000 so it can read the files
+   without making them world-readable. With the
+   [nginx setup](#production-nginx--tls) on port 80 (or `--standalone`
+   instead of `--nginx` when port 80 is free):
+
+   ```sh
+   sudo install -d -m 0750 -o root -g 1000 /opt/posta/mx-tls
+   sudo certbot certonly --nginx -d mx.example.com --deploy-hook \
+     'install -m 0640 -o root -g 1000 "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" /opt/posta/mx-tls/'
+   ```
+
+   certbot runs the hook after every renewal, and the MX picks up the new
+   files within five minutes, without a restart. Without a certificate, mail
+   still arrives, unencrypted.
+4. **Start it.** Add `mx` to `COMPOSE_PROFILES` and run
+   `docker compose up -d`: the `mx` service runs `PROCESS=mx` and publishes
+   host port 25 to its port 2525.
+
+From another machine, `nc mx.example.com 25` should answer with a `220`
+greeting naming `mx.example.com`. Then turn receiving on for a verified
+domain, switch on its catch-all or create an inbox on it, publish its MX
+record and send it a message.
+
+To run the MX on another host, use
+[`deploy/mx`](https://github.com/ChxisB/posta/tree/main/deploy/mx)
+from the repository with `MX_INGEST_URL` (your API's origin plus
+`/internal/mx`), `MX_HOSTNAME` and the same `MX_INGEST_SECRET`. Its
+deliveries then reach the API through your reverse proxy: a message can be
+40 MB, so the proxy's request size limit for the API has to allow that (the
+[nginx example](#production-nginx--tls) allows 60 MB), and its envelope
+travels in one request header of up to about 13 KB, past nginx's default
+8 KB (the example raises it to 16 KB). The internal MX
+endpoints answer `404` unless `RECEIVING_MX_HOST` is set, and refuse any
+request without the secret.
+
+When a release changes what the MX sends the app, such as the detailed
+authentication results the MX records for each message, upgrade the app
+first and a separate MX after. Either order keeps mail flowing: an older app
+ignores the new details, and a newer app accepts mail without them. The
+compose `mx` service runs the app's own image, so it moves with the app.
+
+**Settings → Receiving** shows the operator what the instance receives: the
+MX host, the last message, today's count, virus scanning and the shared
+inbox domain.
+
+### Shared inbox domain
+
+Optional. With a shared domain, teams create [inboxes](/concepts/inboxes#shared-domain)
+that need no DNS of their own: every team gets a subdomain, such as
+`acme.agents.example`, and each inbox a random address on it. Those addresses
+expire within 30 days, reply only inside their own threads and send to 50
+recipients a day at most.
+
+Use a domain of its own, not a subdomain of one your teams send from: the
+mail customers' agents send from it, and any abuse of it, then stays off your
+main domain's reputation. Once it is set, no team can add it, or any name
+under it, as a sending domain.
+
+1. **DNS.** At the domain's DNS provider, a wildcard MX record covers every
+   team's subdomain, so new teams need no DNS change:
+
+   | Type | Name | Value |
+   | --- | --- | --- |
+   | MX | `*.agents.example` | `mx.example.com` (your `RECEIVING_MX_HOST`), priority `10` |
+   | TXT | `_dmarc.agents.example` | `v=DMARC1; p=reject` |
+
+2. **SES identity.** Verify `agents.example` as a domain identity with Easy
+   DKIM, and publish its three DKIM records, in the instance's default SES
+   region: the first of `AWS_REGIONS`, or `AWS_REGION`. Mail from shared
+   addresses carries no team domain, so it goes out from that region and its
+   default configuration set. A verified domain identity lets SES send from
+   any subdomain of it without verifying each one
+   ([AWS: Creating and verifying identities](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html)).
+3. **Turn it on.** Set `SHARED_INBOX_DOMAIN=agents.example` in `.env` and run
+   `docker compose up -d`. The app refuses to boot when the value isn't a
+   lowercase hostname, or when `RECEIVING_MX_HOST` is unset.
+4. **Check.** `dig +short MX test.agents.example` prints your MX host. Create
+   an inbox with **Random address** in the dashboard, send it a message, and
+   reply from the inbox to a mailbox you own: the reply's headers should show
+   DKIM passing for `agents.example` and DMARC passing.
+
+### Virus scanning
+
+Optional. With `CLAMAV_HOST` set, every received message is scanned by
+ClamAV's clamd before it is stored: infected mail is held and its downloads
+are blocked for good (see
+[Receiving](/concepts/receiving#spam-virus-and-trust)). Both compose files
+carry a `clamav` service:
+
+1. Add `clamav` to `COMPOSE_PROFILES` and set `CLAMAV_HOST=clamav:3310` in
+   `.env`.
+2. `docker compose up -d`.
+
+The service runs ClamAV's official Debian image, `clamav/clamav-debian:1.4`,
+published for amd64 and arm64 (the Alpine-based `clamav/clamav` image is
+amd64 only). It keeps its signatures up to date by itself in the `clamav-db`
+volume. clamd listens on port 3310 inside the compose network only: its
+protocol has no authentication or encryption, so never publish the port.
+Give the host room: clamd keeps its signatures in memory, over 1 GiB and
+about twice that for a moment while it reloads them each day, and ClamAV
+recommends 4 GiB of RAM for it. After each start it takes up to a minute to
+load them.
+
+A clamd elsewhere works too, on a private network:
+`CLAMAV_HOST=scanner.internal:3310`. Messages are streamed to it with clamd's
+`INSTREAM` command, so its `StreamMaxLength` must be at least 40 MB.
+
+When clamd can't answer (stopped, still loading, slower than 30 seconds),
+mail is delivered with `virus_verdict: "processing_failed"` and a warning,
+and the failure goes to [error tracking](#error-tracking-optional): a
+scanner outage never holds mail back.
+
+### Screening agent inboxes
+
+Agent inboxes [screen](/concepts/agent-safety#prompt-injection-screening)
+mail from outside senders for prompt injection with the
+[content monitoring](#content-monitoring-optional) judge: with
+`ABUSE_JUDGE=typesafe` screening runs, and with the judge off inboxes decide
+by their rules alone. It counts apart from content monitoring, under the same
+`MONITOR_TEAM_DAILY_CAP` and `MONITOR_INSTANCE_DAILY_CAP` values, plus 200
+messages per inbox per day; past any of them, mail that needs screening is
+quarantined rather than delivered unscreened. Its verdicts never touch a
+team's risk or hold its sending.
+
+Each screened message sends TypeSafe the sender and its authentication
+results, the subject and visible text with codes masked and addresses cut to
+their domain, the hidden text that was removed, the links' text and domains
+(never fetched) and the attachment names. That is third parties' mail to your
+users: list it in your privacy notice before turning the judge on.
+
+## Documentation site
+
+The image can also serve this documentation site: a `docs` compose service
+runs with `PROCESS=docs` and publishes port `3002` (host side tunable via
+`DOCS_PORT`). It needs no database and is entirely optional; in the standalone
+file it sits behind the `docs` profile (`COMPOSE_PROFILES=docs`).
+
+## Production: nginx + TLS
+
+The recommended production shape: nginx on the host terminates TLS and proxies
+one hostname per service, and the compose ports bind to loopback so nginx is
+the only way in. The API needs its own hostname (or an exposed port): its
+routes (`/emails`, `/domains`, …) share paths with dashboard pages, so the two
+cannot split one hostname by path. Set `PUBLIC_API_URL` to that hostname: it
+is what the dashboard prints as the API base and what MCP tokens are bound to;
+unset, the API is assumed at port 3001 of the dashboard host.
+
+`/etc/nginx/conf.d/posta.conf`:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ""      close;
+}
+
+# Dashboard.
+server {
+    listen 80;
+    server_name mail.example.com;
+
+    # The broadcast editor posts full HTML bodies through the dashboard.
+    client_max_body_size 25m;
+
+    # SES events: SNS is subscribed at {APP_BASE_URL}/ses/events, and the API
+    # process serves that path, not the dashboard.
+    location = /ses/events {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+
+# API.
+server {
+    listen 80;
+    server_name api.example.com;
+
+    # The largest request is an inbound message of up to 40 MiB the MX
+    # delivers to /internal/mx; the API holds everything else to 25 MiB. 60m
+    # covers it without unbounded uploads.
+    client_max_body_size 60m;
+    # The MX sends a delivery's envelope in one header of up to about 13 KB,
+    # over nginx's default 8k line; a 400 there defers that mail until the
+    # sender gives up.
+    large_client_header_buffers 4 16k;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Docs (optional).
+server {
+    listen 80;
+    server_name docs.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+```
+
+TLS and the http→https redirect in one line: certbot rewrites the blocks
+above to listen on 443 with Let's Encrypt certificates, adds the redirect, and
+installs automatic renewal:
+
+```sh
+sudo certbot --nginx --redirect -d mail.example.com -d api.example.com -d docs.example.com
+```
+
+Then set `APP_BASE_URL=https://mail.example.com` and
+`PUBLIC_API_URL=https://api.example.com` in `.env` and restart. `APP_BASE_URL`
+must be the **exact public https origin of the dashboard**: any other value
+makes login and signup fail with an "invalid origin" error. Forward `Host` and
+`X-Forwarded-Host` to the dashboard and docs upstreams as above, so any
+absolute URL either app derives from the request names the public hostname
+rather than `localhost`.
+
+Client addresses (sign-in rate limits, audit entries) come from
+`X-Forwarded-For`, and only proxies listed in `TRUSTED_PROXIES` (comma-separated
+IPs or CIDRs; default `127.0.0.1,::1`, which covers nginx on the same host)
+are believed. With `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`
+each hop appends itself, and the chain is walked right-to-left past every
+trusted proxy, so the first untrusted address is the client. Add your proxy's
+address when it runs on another host, and a CDN's ranges when one sits in
+front of nginx; headers from any other source are ignored and the socket
+address is used instead.
+
+The compose files bind every application port to loopback by default
+(`WEB_BIND_ADDRESS`, `API_BIND_ADDRESS`, `DOCS_BIND_ADDRESS`,
+`SMTP_BIND_ADDRESS`, all `127.0.0.1`), so only a local reverse proxy reaches
+them. Docker publishes ports by editing iptables directly, so do not rely on a
+host firewall to compensate for a public bind: set a `*_BIND_ADDRESS` to
+`0.0.0.0` only for a service that must be reachable directly.
+
+The SMTP relay (`:2587`) is TCP, not HTTP: an `http` server block cannot
+proxy it. Either publish it directly (`SMTP_BIND_ADDRESS=0.0.0.0` and open the
+firewall), or keep it on loopback and pass the TCP stream through nginx's
+stream module: bytes pass through untouched, so STARTTLS still terminates in
+the relay via `SMTP_TLS_CERT_PATH`/`SMTP_TLS_KEY_PATH`:
+
+```nginx
+# /etc/nginx/nginx.conf, top level, outside the http {} block
+stream {
+    server {
+        listen 2587;
+        proxy_pass 127.0.0.1:2587;
+    }
+}
+```
+
+Firewall: allow 80 and 443, plus 2587 only if the SMTP relay is used from
+outside; everything else closed:
+
+```sh
+sudo ufw default deny incoming
+sudo ufw allow 80,443/tcp
+sudo ufw allow 2587/tcp   # only if the SMTP relay is exposed
+sudo ufw enable
+```
+
+## Object storage (team logos)
+
+Optional. With an S3-compatible bucket configured, team admins can upload a
+team logo in the dashboard; it also brands hosted unsubscribe pages when
+Posta branding is hidden. ONE `S3_*` credential set is shared with the
+backup job below: each feature is then enabled by its own bucket variable.
+
+The storage step of `npx @tack-labs/posta-setup` prompts for the endpoint and
+keys, creates (or adopts) both buckets, `posta-storage` and
+`posta-backups` by default, and writes the `S3_*` lines to `.env`.
+The one thing it cannot do over the S3 API is make the uploads bucket serve
+objects publicly: on R2, enable public access on the bucket (or attach a
+custom domain), then set that URL; uploads are addressed as
+`${S3_STORAGE_PUBLIC_URL}/<key>`:
+
+```sh
+S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+S3_STORAGE_BUCKET=posta-storage
+S3_STORAGE_PUBLIC_URL=https://<public-bucket-url-or-custom-domain>
+```
+
+Keep the two buckets separate: R2 public access is bucket-wide, so a database
+dump in the public uploads bucket would be world-readable.
+
+## Backups
+
+The `backup` compose service takes a scheduled `pg_dump` of Postgres and
+uploads it to any S3-compatible bucket via rclone. Cloudflare R2 works out of
+the box. It is off by default: without `S3_BACKUP_BUCKET` the container prints
+`backups disabled; set S3_BACKUP_BUCKET to enable` and exits 0, harmless.
+
+Enable it by setting the shared S3 credentials and a backup bucket in `.env`
+(the setup wizard's storage step creates the bucket and writes these lines).
+The bucket must exist before the first dump and must stay private: dumps
+contain the whole database, and R2 public access is bucket-wide, so never
+reuse the public uploads bucket. For R2 the defaults `S3_PROVIDER=Cloudflare`
+and `S3_REGION=auto` are already right:
+
+```sh
+S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+S3_BACKUP_BUCKET=posta-backups
+```
+
+Then add `backup` to `COMPOSE_PROFILES` in `.env` and `docker compose up -d`:
+the service dumps once immediately, and after that daily on `BACKUP_CRON`
+(default `0 3 * * *`, UTC). That first dump is skipped when the bucket already
+holds one from the last 26 hours, so restarts and upgrades don't take another:
+a dump holds a lock on every table until it ends, and the app's migrations
+would wait behind it. Only the daily form `<minute> <hour> * * *` is
+honoured: the sidecar runs unprivileged as `postgres` with every capability
+dropped, so the schedule is a sleep loop rather than crond, and any other
+shape makes the service exit 1. Each dump is `pg_dump -Fc`
+(compressed custom format, named `posta-YYYYMMDD-HHMMSS.dump`), its
+uploaded size is verified against the bucket before anything else happens, and
+dumps older than `BACKUP_RETENTION_DAYS` (default 14) are pruned.
+`S3_BACKUP_PREFIX` (default `backups`) sets the object key prefix. Other
+S3-compatible stores work by setting `S3_PROVIDER` to rclone's provider
+name (`AWS`, `Minio`, …) and a real region if the endpoint needs one.
+
+Set `BACKUP_AGE_RECIPIENT` to an [age](https://age-encryption.org) public key
+(`age1…`) to encrypt each dump before upload (`.dump.age`); the bucket then
+never holds a readable copy of the database. Keep the matching private key
+with `MASTER_ENCRYPTION_KEY`, and restore with `age --decrypt -i <key file>`
+before `pg_restore`.
+
+The dumps contain email bodies encrypted with `MASTER_ENCRYPTION_KEY`: back
+that key up separately, or restored bodies are unrecoverable.
+
+The standalone `deploy/docker-compose.yml` runs the published
+`ghcr.io/chxisb/posta-backup` image (`POSTA_BACKUP_IMAGE` pins it, the way
+`POSTA_IMAGE` pins the app); a repository clone builds it from
+`scripts/backup`. Restores use the same container either way.
+
+For a one-off dump (before a big upgrade, say), run one cycle by hand; it
+dumps even when the bucket already holds a recent one:
+
+```sh
+docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup
+```
+
+### Restore
+
+Stop the app first so nothing writes mid-restore:
+
+```sh
+docker compose stop posta smtp
+# list the bucket, pick a dump
+docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
+  sh -c 'rclone lsl ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}"'
+# download it and restore over the current database
+docker compose run --rm --entrypoint /usr/local/bin/backup.sh backup \
+  sh -c 'rclone copyto ":s3:$S3_BACKUP_BUCKET/${S3_BACKUP_PREFIX:-backups}/posta-YYYYMMDD-HHMMSS.dump" /tmp/restore.dump \
+    && pg_restore --clean --if-exists -d "$DATABASE_URL" /tmp/restore.dump'
+docker compose start posta smtp
+```
+
+## Signup policy
+
+The first user to register becomes the initial account: no configuration
+needed. After that, registration is closed: anyone with an account can create
+API keys that send through your SES account, so signup stays off unless you
+opt in with `ALLOW_SIGNUP=true`. Keep port 3000 off the public internet unless
+you have opened signup deliberately.
+
+With `BLOCK_DISPOSABLE_EMAILS=true` (the default on the cloud), addresses on
+the [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains)
+list are refused at sign-up, on invitations and on email changes, and a
+subdomain counts as its parent (`sub.mailinator.com` is `mailinator.com`). Accounts
+that already use one keep working; the console's team dialog tags them. The
+app ships a copy of the list, and while the block is on the worker downloads
+a fresh one from `raw.githubusercontent.com` each day, keeping the last good
+copy when a download fails. A day's list that grows or shrinks by more than a
+fifth is not applied either: the worker logs it and keeps its copy. Whatever
+the list says, a consumer mailbox provider (Gmail, Outlook, Yahoo, iCloud,
+Proton, UOL, BOL, Terra and the like) and a public suffix (`com.br`,
+`github.io`) are never refused.
+
+## Account mail, contacts and product updates
+
+Posta's own emails go out from `AUTH_EMAIL_FROM` and
+`NOTIFICATIONS_EMAIL_FROM`. To a person, about their account: password
+resets, email verification, a welcome once the address is theirs, a receipt
+when a password reset goes through, and one when an MCP app is granted
+access; sent from the request itself. To a team's owners: team invitations,
+the quota and deliverability notices, a domain that verified or lost a
+record (a domain SES gave up on says to add it again), a new API key (also
+to whoever created it), a rotated webhook secret with the old secret's
+deadline, a member who joined, a broadcast that went out (or is waiting for
+its quota, or held while its region is paused) and, on the cloud, a
+plan activated, moved or ended, a scheduled cancellation with a reminder
+three days out, and a failed charge. A broadcast report is sent by the
+worker as the broadcast finishes and the billing notices by the Stripe
+webhook itself (only the cancellation reminder and a plan lapsing at its
+period end come from the worker); every other owner notice comes from the
+notification sweep, so it arrives within ten minutes of the change. Each is
+written in the reader's own language, which sign-up records and the
+dashboard's language switcher changes; an account older than that reads the
+language of its contact in the team that holds the sender's domain (the row
+sign-up enrolls, below), else English. Each owner chooses which of these
+notices they get under **Settings → Notifications**; mail about a person's
+own account and the security receipts are always sent.
+
+What a customer typed (a team, person, domain, key or broadcast name, a
+webhook URL, an address) never appears in a subject. In the body it prints as
+text no mail client turns into a link: line breaks and invisible or
+direction-changing characters are dropped (the joiners and selectors inside
+an emoji or a Persian or Indic word stay), it stops at 64 characters, and a
+hair space follows each `.`, `@`, `:` and `\`, so `acme.dev` still reads as
+acme.dev without becoming one. A run of seven or more digits keeps its first
+four, so no mail app offers to call it, unless the run is exactly one date
+(`09/10/2026`, `2026-10-09`) or one span of up to ten years (`2025-2026`),
+which prints as typed. Team and display names with a link scheme, an `@`, a
+line break or any other invisible character, a run of eight or more digits
+(such a date or span of years aside), or longer than 64 characters, are refused
+when set; a name stored earlier stays as it is. A team name that matches a
+brand phishers often imitate (`PayPal`, `Itaú`, `Correios` and others,
+look-alike spellings such as `PayPa1` included) is allowed, and opens a `brand`
+flag on Trust & safety when the team is created or renamed.
+
+Verification, password-reset and invitation emails can reach whatever address
+someone typed, so they greet nobody by name. An invitation names the inviter by
+their verified address, or no inviter when the address is unverified, and names
+the team only once the content monitor has it past the new tier; until then it
+says "a team" (without `ABUSE_JUDGE`, every team stays new). A team may hold
+one pending invitation per address, a resend waits two minutes, and the team,
+and each member across all their teams, creates at most
+`INVITES_PER_TEAM_PER_DAY` invitations a day (default 50, revoked ones and
+those of deleted teams included). However many accounts and teams ask, one
+address gets at most 5 verification and invitation emails a clock hour and 10 a
+UTC day; past that nothing more is sent to it until the hour or the day turns,
+and the invitation dialog says the email could not be sent and shows the link.
+
+Verify the sender's
+domain under **Domains** in a team, and from then on those emails are logged
+and measured in that team like any other: they appear in its Emails list with
+a `posta_system` tag, count in its Metrics, and its Suppressions fill in
+from their bounces. Their body is purged the moment SES accepts the message,
+since a reset link is a live credential, and their links are never rewritten
+for click tracking. Until a team holds the domain they are sent straight
+through SES and leave no trace, as before.
+
+That team is the instance's own, and an operator can mark it as such: on the
+`system` plan it is never capped or billed, its badge reads System and the
+Billing tab shows a notice instead of plans. On a self-hosted instance plans
+carry no limits, but the mark does more than label the team: the content
+monitor never holds it, the new-domain warm-up never caps its domains, a
+pause for its bounce or complaint rate refuses its new sends but never holds
+mail it already queued, and its contacts are the list a suspension
+unsubscribes a team's members from. Account mail is exempt from that pause
+whatever its team's plan: the pause neither refuses nor holds what the
+instance's own account-mail path sends, the only path that can tag an email
+`posta_system`.
+
+The same team is the audience for product updates. On an instance with
+`ALLOW_SIGNUP=true`, every new account becomes a contact there with a
+`source: signup` property (name, address, sign-up date and dashboard
+locale) once its address is verified; a social sign-in arrives verified, a
+password sign-up counts when the emailed link is opened. The sign-up screen
+says so, and deleting the account deletes the contact and scrubs the address
+from that team's history. A closed instance enrolls nobody. To enroll
+accounts that existed before the domain was verified, run once (accounts
+that never verified enroll on their own at their next sign-in):
+
+```sql
+insert into contacts (team_id, email, first_name, last_name, properties)
+select '<team id>', email,
+       split_part(name, ' ', 1),
+       nullif(substr(name, length(split_part(name, ' ', 1)) + 2), ''),
+       jsonb_build_object('source', 'backfill', 'signed_up_at', to_char(created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+from "user"
+where email_verified
+on conflict do nothing;
+```
+
+Sends to these contacts follow the usual rules: create a topic (say,
+"Product updates") so an unsubscribe applies to it and never to account
+mail, and send broadcasts from the team's verified domain.
+
+Email verification is on whenever `AUTH_EMAIL_FROM` is set and SES
+credentials are configured: the same condition as password recovery. A
+password sign-up gets no session until the emailed link is opened; accounts
+from before verify at their next sign-in. Where the instance verifies, the
+onboarding email only goes to an owner who did.
+
+On an instance upgrading to this release, domains already verified and
+day-old audit rows are marked as told, but a domain that is demoted at the
+moment of the upgrade is reported as lost on the first sweep.
+
+Nothing on a self-hosted instance contacts posta.example on its own. The
+setup wizard offers, once and interactively, to subscribe the operator's
+address to Posta release notes; that is the wizard on your machine
+posting your answer, and a confirmation link is sent before anything is
+stored. When it cannot reach posta.example it prints the page instead,
+[app.posta.example/updates?source=self-host](https://app.posta.example/updates?source=self-host), and **Settings →
+Instance** links to the same page; the `source` tags you as a self-hoster
+either way.
+
+## Console
+
+`/console` is the operator's view of the whole deployment: an overview
+(sends, deliverability, teams, contacts, domains, queue, a table of the SES
+regions with each one's quota, broadcasts, account status, queue, bounce and
+complaint rates and cost, and the health probes with their history), a Regions page, a Teams page with operator actions
+(change plan or type, daily send ceiling, pause broadcasts, suspend and
+reinstate), a Trust & safety page built on the guardrail, the account score,
+the stored content insights (never email bodies) and, when the optional
+content monitor is on, the model's sampled verdicts, and an instance-wide
+audit log.
+
+Only the instance operator (the first registered user) can open it; everyone
+else gets a 404, and nothing in the app links to it. On a self-hosted
+instance, **Settings → SES** shows the operator an "Instance console" card
+with an "Open console" button; the direct URL `https://<your-host>/console`
+works too. Every number comes from Postgres or a free SESv2 `GetAccount`
+read per region, except SES's own complaint rate: the worker reads it from
+CloudWatch (`cloudwatch:GetMetricData`, one metric per region every 15
+minutes, a few cents a month). A `posta-ses` policy from before that
+permission leaves the rate unread, and the regional pause then estimates it
+from the instance's own count, leaving out mail to providers that never
+report complaints to SES, such as Gmail, and judges the estimate on the same
+0.4% line as SES's own rate. To add it, re-run the setup (which also mints a
+new access key) or
+[update the policy in place](#ses-tenants-per-team-reputation). The
+per-region cost is a local estimate.
+
+A suspended team keeps its data and its keys authenticate, but every send
+answers `403 team_suspended` (SMTP `550`; under a review hold, mail through
+the API or SMTP is accepted and parked, and only broadcast sends answer,
+`403 sending_paused`); a broadcast pause holds
+broadcasts while transactional mail flows; a daily ceiling caps the team's
+day under its plan. Owners are emailed about each action (except a phishing
+suspension or a review hold), and every action lands in the audit log with
+its reason.
+
+While a team is suspended, the only mail about it that still reaches its
+owners is the suspension and reinstatement notices, billing mail and the
+security receipts (a new API key, a rotated webhook secret, a member who
+joined). Its domain, webhook, broadcast, quota and deliverability notices
+stop, and so does any other notice about the team. Under a phishing
+suspension or a review hold nothing about the team goes out, billing
+included (Stripe still sends its own receipts). Mail about a person's own
+account, such as a password reset or an email verification, and mail to the
+operator, such as the content monitor's alerts about the team, still go out.
+
+A suspension for any reason but a review hold or non-payment also
+unsubscribes every member of the team from the instance's own contact list
+(the contacts of the team on the `system` plan, where product announcements
+go), even a member who also belongs to a team in good standing. It is the
+dashboard's unsubscribe, and each contact's timeline says why; no webhook
+fires. A review hold that becomes a phishing suspension unsubscribes them
+then. Reinstating the team does not subscribe them again: only their own
+opt-in does. Only a team on the `system` plan counts as that list: if the
+team that holds the sender's domain is not on it, a suspension unsubscribes
+nobody. On upgrading to this release, the members of teams already
+suspended for one of those reasons are unsubscribed once, except a contact
+that changed after its team's suspension, such as one who opted in again.
+
+Nobody on a suspended team can delete it, remove its domains (the API
+answers `403 team_suspended` there too) or invite anyone, and a member of a team
+suspended for phishing or held for review cannot create new teams. Under
+those two reasons each of these refusals is one neutral line that never says
+suspended ("This isn't available for this team right now. Contact support if
+you need help."; the API's domain delete answers `403 forbidden`), and the
+team's own audit log shows the suspension without the operator's note.
+
+A team's own audit log never lists trust & safety flags (opened, cleared or
+reopened) or the content monitor's actions (its broadcast pause, the resume
+and a sampling override), which stay in the console. It shows a broadcast
+pause the owner was not emailed about without its reason or note, and every
+operator action as Posta, never the operator's name or email.
+
+Every sign-up's IP and browser are kept in a record only the console reads,
+apart from the login sessions, which expire. It outlives the account: the
+hourly retention sweep deletes it 90 days after the account is deleted, or
+12 months after when the account was in a team suspended for phishing,
+manual or reputation reasons and not reinstated. A team's dialog lists each member's sign-up
+IP, the IP of their latest session and the other accounts seen on those
+IPs, deleted ones included, with the suspended ones marked. With
+`IP_GEOLOCATION` on (the default on the cloud), the worker keeps DB-IP's
+free country and ASN databases, downloaded once a month from
+`download.db-ip.com` (a failed download keeps the last good copy), and the
+dialog adds each sign-up IP's network and country, looked up locally.
+
+A team suspended for phishing leaves its fingerprints behind, kept after
+the team: its people's email addresses (Gmail's dots and any `+tag`
+ignored) and the IPs they signed up from, its verified domains, its card on
+the cloud, and from its latest stored mail the sender names, subjects (cut
+to 256 characters), link domains, phone numbers and a hash of the visible
+text. An IP of a shared egress network, where one address stands for
+crowds (Cloudflare WARP, iCloud Private Relay, Vivo, Claro and TIM), is
+left out, by the ASN database `IP_GEOLOCATION` keeps. A new team is
+compared with them when it is created, adds a domain, first pays and
+sends. A match opens a `linked` flag on the trust & safety list and mails
+the operator which kinds of evidence matched; the team's dialog and review
+page show the values. Nothing the team can see changes until it sends: then,
+with the automatic hold on, the match holds it for review and its mail is
+parked without a word, when the evidence from one suspended team includes an
+email address or a card, or two kinds. An IP, a domain or one kind of
+content alone never holds a team, and a team held once, or released from any
+review hold, is not held again. Only teams still suspended for phishing
+count: a reinstatement deletes a team's fingerprints, and the retention
+sweep deletes them 12 months after the suspension, IPs after 90 days. IPs,
+addresses, phone numbers (their last nine digits, read only beside a `+`, a
+0800 or 0300 number, a Brazilian `(11) 9xxxx-xxxx` or a word such as "tel"
+or "WhatsApp"), cards and text hashes must be equal. Sender names match when one's distinctive words,
+at least two, are all in the other, which has at most one more; subjects
+when their word sets, four words or more with numbers left out, overlap by
+75%; domain names when one's words, at least two of four letters or more
+and not the words every hostname uses ("mail", "secure"…), are all in the
+other and fill 80% of it, so `vexto-cadeaux.example` meets
+`cadeaux-vexto.example`.
+
+## Content monitoring (optional)
+
+Off by default. With a judge configured, TypeSafe Jev scores mail 0 to 100
+and every verdict is folded into a per-team risk the operator sees on Trust
+& safety.
+
+**Judged before SES.** A team's mail in its first window (its first 1,000
+sends and 72 hours, counted from its first send) is judged before SES takes
+it: the email waits in the queue, the send lane moves on, and the verdict,
+first in the judge's queue, sends it on in about half a second. A New-tier
+team's broadcast writes no copy until its own HTML has a verdict, and its
+first rendered copy waits for its own. One team uses at most two of the
+judge's four lanes, and a screened email gets a 5 s timeout and one retry.
+When the judge still cannot answer, mail from a sending domain under 7 days
+old, or of unknown age, waits: the judge is tried again every 2 minutes, 3
+times, then the email is parked for the operator, who hears of it through
+the judge-health notice; any other mail is sent and judged afterwards. No
+daily cap lets mail that waits on a verdict through unjudged: the caps count
+and stop only draws made after sending. A team with 20 screenings waiting on
+the judge has its next mail wait its turn. The rest of accepted mail is
+drawn after SES has taken it, at its tier's rate. Account mail and the
+onboarding email are never judged.
+
+A judge failure of any kind (feature off, missing credentials, throttling,
+timeout, upstream error, unparseable answer, body already purged by
+retention) records the sample as unjudged and changes nothing else. The
+deterministic content checks (the insights, the guardrail, the account
+score) run on every send whether or not the judge is on. Self-hosters can
+leave it off.
+
+**What it does.** It opens the `monitor` flag on Trust & safety when a team's
+risk crosses the flag line, emails the operator once a day per team past the
+alert line, and, for a team in the New tier only (inside its first 1,000
+sends or 72 hours, or under 10,000 sends within 7 days), pauses broadcasts
+when the risk passes the pause line and a sampled message scored 90 or more
+within a day, or at once when a broadcast's own HTML or a rendered copy
+draws a phishing-type verdict from 80 (transactional mail keeps flowing; the
+team sees "paused pending review"; the operator resumes from the review
+page). The pause policy is a setting and can be switched off.
+
+**The review hold.** When one sampled message of a New-tier team is judged
+abuse at the hold score (90 by default) as credential phishing, brand
+impersonation or payment redirection, or with an impersonation or
+secret-harvesting finding, or at the repeat score (80) while the team's
+sending domain was registered under 7 days before, or is of unknown age, the
+team is suspended at once
+with the reason `review`: mail it sends through the API (`POST /emails` and
+`/emails/batch`, which MCP uses too) or SMTP is accepted as any send is and
+parked (`park_reason = 'review'`), queued mail and broadcasts park, a new
+broadcast is refused with `403 sending_paused`, and with `SES_TENANTS` on its
+SES tenant is disabled. A run of lower verdicts holds the team too: by
+default the fifth such verdict from 80 within any seven days while the team
+is New. A link to
+another domain counts toward neither rule on its own: legitimate mail often
+links elsewhere. The operator is emailed at once, with the rule that held the
+team; the owner is not. The dashboard shows a neutral "Sending is paused
+pending review" notice, while the API and SMTP answer as for any accepted
+send, so a sender is never told it was caught. The team stays on Trust &
+safety with its flag open until the operator decides on its review page:
+**Release hold** reinstates it, the parked mail goes out, a broadcast pause
+the monitor applied before the hold is lifted as **Resume broadcasts** lifts
+it (a pause the operator set by hand stays), and the monitor flag the hold
+kept open is cleared in the operator's name (the automatic check does not
+reopen it while the same trigger holds); **Suspend for phishing** turns the
+hold into a phishing suspension, and what the hold parked stays parked:
+`quota.drain` never releases a suspended team's mail. While the team is held, its later verdicts
+still move its risk and alert the operator as for any other team, but apply
+no pause, so a release leaves no monitor pause behind. A team is held once, by either
+rule: after a release its later verdicts only alert, so the released mail,
+judged again on its way out, neither holds it a second time nor pauses its
+broadcasts. A team already
+suspended keeps its suspension, and Probation, Established and Trusted teams
+are never held: they stay alert-only. The system team is exempt: the monitor
+never samples it. A message judged before SES that holds the team waits with
+the rest of its mail; one judged after sending had already gone out, and the
+hold stops what follows. In the first window, a message judged phishing-type
+from 80 that holds nothing waits 2 minutes before it is sent: a burst
+reaches the repeat count within them. `MONITOR_AUTO_HOLD=false` switches the
+hold off, and the screening before SES with it.
+
+**New destinations, at every tier.** A message is also judged before SES,
+whatever the team's tier (Trusted included), when it carries a destination
+the team has not cleared: the owner domain of a link a mail client would
+follow (an anchor, an image-map area, a form action, an SVG link or a URL in
+the text, read as a browser reads it and through up to three redirect
+wrappers; a free host's `x.pages.dev` counts on its own) or of its Reply-To,
+less the team's verified domains. A link that cannot be read counts as a
+destination too. A verdict under 70 that names nothing phishing-type clears
+the message's destinations for the team, when it carried 5 new ones at most;
+so does releasing mail parked for a new destination, or waiting after a
+verdict, while releasing mail parked for its media or a failing judge clears
+none. A link shortener, or a link that cannot be read, is never cleared. For 7
+days after a destination clears, every email to it is judged after it is sent,
+and a phishing-type verdict from 80 on one takes the clearance back: mail to
+it is judged before SES again, no verdict clears it again (an operator's
+release does), and the operator is mailed at most once a day per team. A
+message with more than 20 new destinations is not judged: it waits for the
+operator. A broadcast is judged before its fan-out when its own HTML carries a
+new destination, and a rendered copy when a contact field put one there; mail
+that links only to the team's own domains never waits for this. When a new
+destination draws a phishing-type verdict from 80, its link domains'
+registration dates are looked up, in a cache every team shares: 3 per verdict,
+the rest in the background, and a failed lookup is not repeated for an hour (a
+free host's names and shorteners are not dated, and a date no registry has is
+not young). An age not known yet, because its lookup failed, ran past 10
+seconds or waits its turn, counts as young. For a New-tier team, such a
+verdict on a link domain registered under 7 days ago holds the team, and one
+of an age not known makes its mail wait 2 minutes. Past New, the mail is
+parked for the review list on a phishing-type verdict from 90, or from 80 with
+a link domain under 7 days old or of an age not known, and the operator is
+mailed at most once a day per team; a team past New is never held
+automatically. These samples count against no daily cap; a team has 200 of
+them a day, past which its mail with a new destination waits for the next UTC
+day.
+
+**The review list.** Trust & safety lists every unsent email screening
+stopped, grouped by team: parked behind a review hold, waiting out its 2
+minutes, parked for a new destination or for its images or files, or parked
+after the judge kept failing. **Release** sends an email
+without screening it again (`quota.drain` charges it as any parked mail);
+**Cancel** means it never goes out. **Release all** and **Cancel all** ask
+first, with the count, and take only mail held before the list was loaded.
+A held team's mail is released with its hold, and a suspension for anything
+else cancels it, so no later reinstatement sends it. The team's review page also lists its held unsent emails among the
+flagged ones, so a content access can name them. What screening read from a
+held email opens in a **Media** panel, under a content access (see Content
+access below).
+
+**Turning it on** in the instance's `.env`, read by the worker and the app
+(a restart applies it):
+
+```bash
+ABUSE_JUDGE=typesafe
+ABUSE_JUDGE_API_KEY=...
+# Optional; jev-1.13.0 is the default.
+ABUSE_JUDGE_MODEL=jev-1.13.0
+ABUSE_JUDGE_TIMEOUT_MS=20000
+```
+
+A missing API key fails the boot. The default model is a pinned version, not
+the `jev-latest` alias, because the score thresholds are calibrated against
+one version's answers: move to a newer version deliberately, after checking
+its scores. Each sample records the versioned model id that answered.
+`ABUSE_JUDGE_BASE_URL` (default `https://api.typesafe.ai`) points the judge
+at another endpoint serving the same API; it posts to `<base>/v1/systemone`.
+The questions Jev answers ship in `packages/core/src/abuse-judge/questions.ts`.
+
+**Where the samples go.** Every sampled message is sent to TypeSafe, a
+sub-processor that hosts its service in the United States. Per its published
+terms, its data processing agreement keeps personal data for as long as
+necessary for the purpose of the processing; its customer agreement gives it
+a perpetual licence to use submitted data for fraud and abuse monitoring,
+telemetry and legal compliance; zero data retention is offered only on
+enterprise plans; submitted data is not used to train its models. Its DPA
+offers the EU standard contractual clauses and the UK Addendum as transfer
+mechanisms, and no Brazilian (ANPD) clauses. Before turning the judge on,
+accept TypeSafe's [data processing agreement](https://typesafe.ai/legal/data-processing),
+list TypeSafe as a sub-processor, and describe it in the instance's privacy
+notice (see also its [customer agreement](https://typesafe.ai/legal/mca) and
+[privacy policy](https://typesafe.ai/legal/privacy-policy)).
+
+**Exactly what Jev sees**, built in memory per call and never stored by
+Posta: the team's name, verified domains (plus each one's registrable
+domain, the form links are shown in, where the suffix is unambiguous), days since its first send
+and plan; the `From` and `Reply-To` headers as sent; the `Subject`; the
+message as a reader sees it, read from the HTML part (or the plain-text part
+when the HTML is missing or blank): the rendered visible text (its first
+4,000 and last 2,000 characters when it is longer), without what an inline
+style, a `<style>` rule or the `hidden` attribute hides and without text set
+at 1px or less, transparent, or in its background's colour; the text hidden
+that way, in a section of its own (up to 1,000 characters), apart from the
+inbox preview line it opens with (up to 200); the plain-text part when fewer
+than 80% of its words appear in the visible text (up to 1,500 characters); a
+table of every link a mail client would follow (anchors, image-map areas,
+form actions, SVG links and the URLs in the text), each with its anchor text
+and the registrable domain it lands on, read as a browser reads it and
+through up to three redirect wrappers such as Google's `/url?q=`, and links
+to domains the team has never sent to, links that cannot be read and other
+links off its verified domains listed first (up to 30 rows); a line flagging a message that shows under 100 characters of
+text beside an image, an attachment or a QR code drawn with characters or
+table cells; the number of images it shows (`<img>`, CSS backgrounds,
+Outlook's VML, SVG); the attachment names and content types; and the count of
+hidden characters (zero-width, bidirectional and Unicode tag characters among
+them). Every part of the message (the subject, each body section, the anchor
+texts and the attachment names) is redacted first by the same pass the
+content access below uses (links cut to their domain and a short path stub;
+credential-shaped strings, 4-to-8-digit codes in the 40 characters after
+words like *code*, *OTP*, *senha* or *token*, and CPF and CNPJ numbers whose
+check digits are valid, masked); on top of that, email addresses in them keep
+only their domain. Whitespace in every field, line breaks included, collapses
+to one space. Other personal data written in these fields (names, phone
+numbers, postal addresses) is not removed: nothing detects it reliably. Never
+a recipient address or
+header, never the raw HTML, never the images or files themselves. A judged sample
+keeps its score, verdict, categories, reason codes, language, model version,
+latency and error class; the review page shows those and never a subject or
+a body. Sample rows are pruned after 90 days.
+
+**Images and attachments.** Screening opens what an email carries, inside
+the worker: the text and links of PDF (up to 50 pages), Word, Excel,
+PowerPoint, OpenDocument, calendar, HTML and SVG attachments, and the QR
+codes in images, in a PDF's first pages and in images inside Office files.
+A Pix code, in a QR code or pasted as text, shows as its payee, city,
+amount and kind of key, never the key. Jev then also sees up to 4,000
+characters of text from attachments, up to 20 more link rows (QR codes,
+links inside files, Pix codes), and each attachment's real type, size, page
+count and flags. Program files are refused at the API for every team, and
+a new team's email carrying a risky file waits for review (see
+[Attachments](/api-reference#attachments)). None of this leaves the
+instance: parsing runs on two worker threads, with 4 seconds per email.
+
+For a New-tier team, an email that carries a file, or whose message rides in
+images, files or a QR code drawn with characters (under 100 characters of
+readable text), is judged before SES, and its body images are read too. A
+file the policy flags, refuses or cannot open parks it at once; after the
+verdict, so does a QR code the image reader saw that no decoder read, or
+images the reader declined. Images Bedrock refuses (HTTP 400) park any
+team's unsent email, keep no preview, and the operator is mailed at most
+once a day per team. When a body image cannot be fetched or Bedrock does not
+answer, a New-tier team's mail from a sending domain under 7 days old waits
+as for a judge outage; other mail is judged without those images, and Jev is
+told what was not read. Links in files and QR codes count as destinations at
+every tier. Past New, a sampled email has its body images read when its
+readable text is under 100 characters, and such an email, like one with
+files, counts as an anomaly in the draw.
+
+**Image reading (optional).** Off by default. With it on, Claude Haiku 5.5
+on Amazon Bedrock writes down the text and the brands shown in an email's
+images and in attachment pages that are images, and Jev receives that text
+(up to 3,000 characters) with the rest. The worker sends the images to
+Bedrock in `ABUSE_VISION_REGION` (default `us-east-1`) with its AWS
+credentials. Bedrock serves the model there only through cross-region
+inference profiles, and the worker uses the one for that region's
+geography: from `us-east-1`, `us.anthropic.claude-haiku-5-5`, which reads
+them in N. Virginia, Ohio or Oregon. The global profile, which may read
+them anywhere, is never used.
+Bedrock keeps no copy, except that AWS may keep an image its automated
+checks flag as child sexual abuse material, in the region that read it.
+Off, an email is judged without its image text and the judge is told so.
+Refusing program files, holding risky files and reading PDFs, Office files
+and QR codes all work without Bedrock.
+
+`ABUSE_VISION_REGION` must be a region with such a profile; with image
+reading on, any other region stops the instance from starting: `us-east-1`,
+`us-east-2`, `us-west-1`, `us-west-2`, `ca-central-1` and `ca-west-1` (US
+profile; from Canada, images may be read in the US too), `eu-central-1`,
+`eu-central-2`, `eu-north-1`, `eu-south-1`, `eu-south-2`, `eu-west-1`,
+`eu-west-2` and `eu-west-3` (EU profile; from London or Zurich, images may
+be read in the EU too), `ap-southeast-2` and `ap-southeast-4` (Australia),
+`ap-northeast-1` and `ap-northeast-3` (Japan). To turn it on:
+
+1. Accept Claude Haiku 5.5 in Amazon Bedrock in that region: on the
+   console's model access page, or with
+   `aws bedrock list-foundation-model-agreement-offers --model-id anthropic.claude-haiku-5-5`
+   and then
+   `aws bedrock create-foundation-model-agreement --model-id anthropic.claude-haiku-5-5 --offer-token <token>`.
+2. Give the worker's AWS credentials these two statements, with your region
+   and account id. The second lists the model in each region the profile
+   may send images to: from `us-east-1`, `us-east-2` or `us-west-2`, the
+   three below. From another region, list them with
+   `aws bedrock get-inference-profile --region <region> --inference-profile-identifier <geo>.anthropic.claude-haiku-5-5 --query 'models[].modelArn'`,
+   where `<geo>` is `us`, `eu`, `au` or `jp`, and use that prefix in both
+   statements. A service control policy that blocks any of these regions
+   makes reads fail unless it exempts this profile with the
+   `bedrock:InferenceProfileArn` condition key (see AWS's "Geographic
+   cross-Region inference").
+
+   ```json
+   [
+     {
+       "Effect": "Allow",
+       "Action": "bedrock:InvokeModel",
+       "Resource": "arn:aws:bedrock:<region>:<account-id>:inference-profile/us.anthropic.claude-haiku-5-5"
+     },
+     {
+       "Effect": "Allow",
+       "Action": "bedrock:InvokeModel",
+       "Resource": [
+         "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-5-5",
+         "arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-haiku-5-5",
+         "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-haiku-5-5"
+       ],
+       "Condition": {
+         "StringEquals": {
+           "bedrock:InferenceProfileArn": "arn:aws:bedrock:<region>:<account-id>:inference-profile/us.anthropic.claude-haiku-5-5"
+         }
+       }
+     }
+   ]
+   ```
+
+   If the worker's credentials were given `bedrock-mantle:CreateInference`
+   for image reading, replace it with these two statements: until then
+   Bedrock denies every read (HTTP 403), and mail is handled as when Bedrock
+   does not answer. Check step 3 too: that quota is separate from the one
+   image reading used before. If `ABUSE_VISION_REGION` is not one of the
+   regions above (São Paulo, `sa-east-1`, has no such profile), set one of
+   them or `ABUSE_VISION=off` before upgrading, or the instance will not
+   start.
+3. In Service Quotas, check Amazon Bedrock's "Cross-region model inference
+   tokens per minute for Anthropic Claude Haiku 5.5" in that region. AWS's
+   default is 10,000,000, but some accounts start at 0, and then no read
+   gets through: request an increase, which must ask for more than
+   10,000,000.
+4. Set `ABUSE_VISION=bedrock` (and `ABUSE_VISION_REGION` for another
+   region) and restart. Add Amazon Bedrock to the instance's privacy notice
+   first.
+
+**Sampling.** After each accepted message a keyed draw decides whether it is
+judged. Every value below is edited in the console under Trust & safety →
+Monitoring settings, or set as its `MONITOR_*` environment variable until it
+is; the console wins.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `MONITOR_FIRST_SENDS` | 1000 | A team's first N accepted messages are judged in full |
+| `MONITOR_FIRST_HOURS` | 72 | Everything in the first H hours after a team's first send is judged in full |
+| `MONITOR_RAMP_SENDS` | 10000 | Up to this lifetime count the ramp rate applies |
+| `MONITOR_RAMP_RATE` | 0.25 | The ramp rate; the ramp ends at the count above or on the day below, whichever comes first |
+| `MONITOR_RAMP_DAYS` | 7 | |
+| `MONITOR_PROBATION_RATE` | 0.05 | The ramp's end to day 30 |
+| `MONITOR_ESTABLISHED_RATE` | 0.02 | Day 30 onward |
+| `MONITOR_TRUSTED_RATE` | 0.005 | 120 days, 50,000 sends and no flag in 90 days |
+| `MONITOR_BROADCAST_COPIES` | 3 | Rendered copies judged per broadcast (plus the broadcast's own HTML), established and trusted teams |
+| `MONITOR_BROADCAST_COPIES_NEW` | 10 | The same for new, ramp and probation teams |
+| `MONITOR_ANOMALY_MULTIPLIER` | 20 | One anomaly (a failing link-domain, shortener or phishing-pattern check, under 100 characters of text carried by images or files, an attachment) multiplies the rate; two force the sample |
+| `MONITOR_TEAM_DAILY_CAP` | 600 | Draws after sending per team per UTC day; past it they stop silently. Mail judged before SES neither counts nor is capped |
+| `MONITOR_INSTANCE_DAILY_CAP` | 50000 | Instance-wide draws after sending; past it tier sampling stops, first sends and anomalies continue |
+| `MONITOR_FLAG_RISK` | 0.5 | The team gets the `monitor` flag and samples four times as much |
+| `MONITOR_ALERT_RISK` | 0.7 | The operator is emailed, once per team per day |
+| `MONITOR_PAUSE_RISK` | 0.85 | New teams only: broadcasts pause, with a verdict of 90 or more in the last day |
+| `MONITOR_AUTO_PAUSE` | true | Whether the pause policy applies |
+| `MONITOR_FLAG_SCORE` | 70 | A sample counts as flagged in the console from this score |
+| `MONITOR_HOLD_SCORE` | 90 | New teams only: a phishing-type verdict from this score holds the team for review |
+| `MONITOR_HOLD_REPEAT_COUNT` | 5 | New teams only: this many phishing-type verdicts from the score below, within seven days of the team's first send, also hold it for review; 0 turns this off |
+| `MONITOR_HOLD_REPEAT_SCORE` | 80 | The score from which a phishing-type verdict counts toward the count above |
+| `MONITOR_AUTO_HOLD` | true | Whether the review hold applies |
+
+The risk is a decayed mean of the verdicts (half-life 7 days) with a prior
+that starts new teams higher. The Overview's Monitoring card charts the
+hourly sample count, and the operator is emailed, at most once every six
+hours, when more than 20% of an hour's samples (at least 20 of them) went
+unjudged, or as soon as TypeSafe rejects the API key.
+
+## New-domain warm-up (optional)
+
+Off by default on a self-hosted instance and on by default with `IS_CLOUD`.
+With it on, a sending domain gets a daily cap by the age of its registrable
+domain (the ICANN part of the Public Suffix List: `acme.com.br` for
+`mail.acme.com.br`), counted per UTC day across every team sending from it:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `WARMUP_ENABLED` | `false` (`true` with `IS_CLOUD`) | Whether the warm-up applies |
+| `WARMUP_CAP_FIRST_DAY` | 100 | Emails a day while the domain is under 24 hours old |
+| `WARMUP_CAP_FIRST_WEEK` | 300 | From day 1 to day 7, and for a domain of unknown age while its team is new or on probation |
+| `WARMUP_CAP_FIRST_MONTH` | 2000 | From day 7 to day 30; from day 30 only the plan applies |
+
+Each value is edited in the console under Trust & safety → Monitoring
+settings, or set as its environment variable until it is; the console wins.
+The effective cap is the lower of the plan's and the warm-up's, and buying a
+plan never lifts it. A team's warming domains (verified, under a cap and not
+trusted) also share one daily limit, the highest of their caps, counted per
+team and UTC day: a second fresh domain never adds volume, and each domain
+stays within its own cap. Mail over either parks as `queued_quota` (with
+`park_reason = 'warmup'`) and the 15-minute `quota.drain` releases it, oldest
+first, as both allow; the API answers `429 daily_quota_exceeded` with a warm-up
+message (SMTP `452`) only when the team's parked backlog is full (three days of
+its plan's volume, or of the domain's cap where that is more). A domain moves
+up one step early once its sends since the last step are clean: at least 50
+delivered (mail to the SES simulator never counts), the first a day old, hard
+bounces under 2% of the sends delivered or hard-bounced, complaints under 0.1%
+of the delivered ones and no phishing-type verdict from the content monitor
+(checked by the 15-minute `safety.flags` job). An operator can trust a team, or
+one domain, on its Trust & safety review page, which lifts the warm-up and is
+audited.
+
+**The age lookup** runs in the worker's `domain.age` job, never on the send
+path: when a domain is added, when it verifies, and from the 15-minute
+`domains.reverify` sweep for any domain never looked up (rows from before the
+upgrade included). It tries, in order:
+
+1. RDAP from the server [IANA's bootstrap](https://data.iana.org/rdap/dns.json)
+   names for the TLD (refreshed daily), or a fixed server for `.io` and `.me`
+   (`rdap.identitydigital.services`), `.co` (`rdap.registry.co`) and `.us`
+   (`rdap.nic.us`), which the bootstrap does not list. The date is the latest
+   of the domain's registration, re-registration and transfer events, so a
+   name caught again after it lapsed, or bought and moved, dates from then.
+2. WHOIS on TCP port 43 at the server `whois.iana.org` refers the TLD to.
+3. The first certificate issued for the name in Certificate Transparency
+   ([crt.sh](https://crt.sh), at most one request every 12 seconds).
+
+A name under a suffix of the list's private part, such as `shop.eu.org` from
+a free subdomain service, is its own domain for the warm-up: it is dated by
+step 3 alone, since no registry sold it, and counts apart from the service's
+other names.
+
+Otherwise the age is unknown: `.de`, `.eu` and `.ch`, for instance, publish
+no creation date. Requests carry the User-Agent
+`Posta-domain-age/1.0 (+https://posta.example)`, a `429` is honoured
+until its `Retry-After`, and a failed lookup retries with backoff before the
+domain is recorded as unknown. The worker therefore needs outbound HTTPS to
+`data.iana.org`, the registries' RDAP servers and `crt.sh`, and outbound TCP
+43, while the warm-up or the content monitor's review hold (a judge set and
+`MONITOR_AUTO_HOLD` on) is on; with both off no lookup is made. The date, its
+source (`rdap`, `whois`, `ct` or `unknown`) and the time of the check are
+stored on the domain row; a certificate's date never replaces a registry's
+found on an earlier check.
+
+## Content access (break-glass)
+
+Off by default. With it on, an authorised operator can read the subject and
+the rendered visible text of specific messages of a flagged team, and what
+screening read from the images and attachments of mail it held, for a
+security reason they name and justify before anything is decrypted, for at
+most 30 minutes. It is the break-glass path for the cases the stored
+metadata cannot settle: the insights know a link points at a shortener, not
+whether the text around it is a bank lure or a newsletter.
+
+**What an operator can see.** The subject, and the rendered visible text of
+the HTML with hidden elements stripped (or the plain-text part when there is
+no HTML), cut at 20,000 characters and redacted on the way out: every link,
+written with a scheme or as a bare `www.` host, is reduced to its scheme, its registrable domain and at most 24 characters
+of path, with the query and the fragment dropped entirely, so a one-time
+link cannot be followed; anything shaped like a
+credential (a JWT, 32 or more hex characters, 40 or more of base64, one of
+this instance's own `po_` API keys) is masked, as is a 4-to-8-digit run
+in the 40 characters after a word like *code*, *código*, *OTP*, *PIN*, *token*,
+*senha*, *password* or *verification*, and any CPF or CNPJ number whose check
+digits are valid.
+Never the raw HTML, the recipient addresses, the headers, the attachment
+files or the click-tracking targets, and the view offers no copy or download.
+A body retention has already purged cannot be revealed by anyone.
+
+**The media panel.** An email screening held over its images or files, and
+any other held email it kept a read of, gets a **Media** action on the
+review list. Under the same grant it shows why the email waits; the text
+read from its images (transcribed) and attachments (extracted); the links
+found in them, each with its registrable domain and that domain's age when
+screening has already dated it; each file's name, type, size, pages and
+flags; and up to four previews. Every one of those strings, file names
+included, goes through the redaction above. The previews are small JPEGs
+the worker redrew from what it read, at most 600 px a side: they reach the
+page only as JPEG `data:` images, anything else is dropped, and an original
+file, an SVG or HTML is never shown or served. What the panel shows is
+sealed with the email and purged with its body. **Release all N with the
+same media** sends every held email of the team whose images and files screening
+read exactly as this one's (a blast's copies), as **Release** does, with the
+same audit row.
+
+**For how long.** A grant lasts 30 minutes from the moment it is made and is
+never extended; a later look is a new grant, with a new reason and a new
+audit row. Every view is counted on the grant.
+
+**What is logged.** The grant row (`content_access_grants`) keeps the
+operator, the reason, the justification they wrote, the scope, the message
+ids, the view count and the times. Nothing prunes those rows: they are the
+inventory of who read what. An instance audit row (`content.revealed`) is
+written before anything decrypts, with the grant id, the reason and the
+number of messages, never the justification's text and never any content.
+A grant's first look at a media panel writes a second `content.revealed`
+row, whose fields name what screening read from the images and attachments,
+and stamps the grant (`media_viewed_at`).
+
+**What the team sees, and when.** Seven days later a daily job adds a
+`content.accessed` row to the team's own audit log (dated at the access,
+not at the disclosure) with the reason, how many messages and which fields
+were read: `subject, rendered text`, followed by
+`what screening read from its images and attachments` only when the grant
+opened a media panel. Nobody is emailed about an access, then or later. A
+team suspended for phishing never gets the row; the grant records that the
+disclosure step ran, so it is not retried nightly. A team held for review
+gets it once the hold ends: after a release the next daily run writes it,
+and if the hold becomes a phishing suspension it is withheld for good.
+
+**Turning it on** in the instance's `.env`, read by the worker and the app
+(a restart applies it):
+
+```bash
+CONTENT_REVEAL=on
+```
+
+Off, the console's buttons render disabled with a tooltip naming the
+variable and every content procedure refuses. Reading other people's messages
+is lawful only as a narrow, recorded, disclosed security measure: say so in
+the instance's terms and privacy notice before turning it on.
+
+## Support view (optional)
+
+Off by default; `SUPPORT_VIEW=on` turns it on. From the console's Teams
+list, "View as owner" opens a team's dashboard as its owner sees it,
+read-only, for 30 minutes, after the operator names a reason (support
+ticket, billing dispute, other) and the ticket reference. Every reason is a
+request the customer made; an operator checking an abuse report works from
+the console's own Trust & safety pages instead, and from the content reveal
+when the message text itself is needed. No view starts on a team suspended
+for phishing or held for review. The session rides on the operator's own
+login; no session is ever minted for the owner.
+
+**What the operator sees.** The dashboard under a banner ("Support view of
+&lt;team&gt; · read-only · ends in mm:ss"): emails and their events (a
+clicked link shows only its origin, since its path and query can carry a
+token), contacts, domains, broadcasts, templates, API key names, webhook
+endpoints, settings and usage.
+
+**What stays hidden.** The content of sent mail: email bodies (the detail
+says "Email content is hidden in support view"); the body and preheader of a
+broadcast that has started going out, is sent, or was canceled mid-send;
+every template body, since a template's text is copied into the broadcasts
+sent from it and nothing records which; API log request and response bodies;
+CSV exports (the export route answers 403); and every secret, so API keys,
+webhook signing secrets and SMTP credentials are never returned. A draft or
+scheduled broadcast stays readable, since nothing of it has reached anyone. Every change is refused:
+the server answers `FORBIDDEN` to any mutation while the view is live,
+whatever the screen shows.
+
+**How long.** 30 minutes, enforced on every request. One live view per
+operator: starting another, from the console or from under a view, ends the
+live one first exactly as End session does, which is how a view left open in
+a closed tab ends. The operator ends it from the banner, the owner from
+Settings → Support access, and expiry ends it on the next request.
+
+**Starting one.** The dialog emails a 6-digit code to the operator's own
+address, from `AUTH_EMAIL_FROM`. It works once, for 10 minutes; five wrong
+tries void it, a new code replaces the old one, and one operator is sent at
+most five an hour. Only a hash keyed by `BETTER_AUTH_SECRET` is stored. A
+code that checks out covers that browser session's starts for 15 minutes, so
+opening several views takes one code; signing out ends it. When the instance
+cannot send the code (no `AUTH_EMAIL_FROM` or no SES credentials) or its
+email fails, whether the send itself or, when a team holds the sender's
+domain, the queued email later (refused, failed, bounced, or held back from
+SES), the dialog says so and for 10 minutes a sign-in from the last 15
+minutes stands in for the code. Either way a stolen long-lived session cannot
+open a view.
+
+**What is logged.** `support.view_started` and `support.view_ended`, in the
+instance audit and, at once, in the team's own Settings → Audit log: who,
+the reason, the reference, how it ended, the minutes, and how many distinct
+procedures were read. The record keeps a count per procedure name and never
+anything a procedure returned.
+
+**What the owner sees.** No email. The session is in the team's Settings →
+Audit log at once, and the Support access card under Settings shows it while
+it is live, with an "End session" button. Both name Posta, never the
+operator: no name, email or user id reaches the team.
+
+```sh
+SUPPORT_VIEW=on
+```
+
+## Error tracking (optional)
+
+Off by default. With a DSN set, the web, api and worker processes report
+their errors through the Sentry SDK to your Sentry project. Without one
+the SDK is never loaded, on the server or in the browser. A restart applies
+any change.
+
+| Variable | Purpose |
+| --- | --- |
+| `SENTRY_DSN` | DSN for the web, api and worker processes. Unset: error tracking is off. |
+| `SENTRY_BROWSER_DSN` | Also reports the dashboard's browser errors, to the same project or another. The page gets it at runtime and posts through this app's own origin. |
+| `SENTRY_ENVIRONMENT` | Environment name on every event (default `production`). |
+| `SENTRY_TRACES_SAMPLE_RATE` | Share of requests traced, `0` to `1` (default `0`: errors only). |
+
+Create a project for the instance (and, for the dashboard's browser
+errors, a second one, or reuse the first), copy its DSN, set it in `.env`
+and run `docker compose up -d`:
+
+```sh
+SENTRY_DSN=https://<key>@<host>/<project-id>
+SENTRY_BROWSER_DSN=https://<key>@<host>/<project-id>
+SENTRY_ENVIRONMENT=production
+```
+
+By default nothing but errors is sent (no sessions, traces, replays,
+profiles or client reports). A trace rate above `0` also sends that share
+of request traces, scrubbed like the errors; trace headers are never added
+to outgoing requests, so customers' webhook endpoints never see them. A
+tracker run by a third party is a sub-processor: name it in the instance's
+privacy notice before pointing an instance at it. One you host yourself is
+not.
+
+**What is reported.** Server errors in the dashboard through Next.js's
+`onRequestError` hook, server component render failures included (the
+browser only sees those as React's minified error #441 and a digest, which
+the event carries too); tRPC procedures failing with `INTERNAL_SERVER_ERROR`,
+never an answer a procedure chose such as `UNAUTHORIZED` or `NOT_FOUND`; the
+API's unhandled errors (its 500 `internal_server_error` answer); every
+worker job, dead-letter or cron handler that throws; unhandled rejections
+and uncaught exceptions in all three processes; and, with
+`SENTRY_BROWSER_DSN`, uncaught errors in the dashboard's pages. Events are
+tagged with `process`, `team_id` where there is one, and the route pattern,
+tRPC procedure or queue; the release is the image's git revision, as the
+API's `/health` reports it.
+
+**What is never sent.** No request body, query string, cookie, or header
+other than the user agent; no user and no IP address; no local variables;
+no tRPC input or job payload. In every message and breadcrumb, email
+addresses keep only their domain (`••••••@example.com`), `po_` API keys are
+masked, and URL paths lose every segment that could be a token or an
+address. Server events name the route pattern (`/invite/[token]`), never
+the request's path. Browser reports reach the tracker through
+`/api/client-errors` on the dashboard's own origin, so a visitor's IP
+address never does.
+
+**Source maps (optional).** An image built with a `SENTRY_AUTH_TOKEN`
+secret uploads the dashboard's browser source maps (matched by debug id)
+and deletes them from the image. For a self-hosted tracker, add
+`--build-arg SENTRY_URL=https://<host>/`. Without the secret the build is
+unchanged.
+
+```sh
+docker build --secret id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
+  --build-arg SENTRY_ORG=<org-slug> \
+  --build-arg SENTRY_PROJECT=<project-slug> -t posta .
+```
+
+## Operations
+
+- Send rate and email retention are managed in the dashboard: **Settings →
+  Instance** (owner/admin). Defaults are 14/s and 30 days until changed there;
+  the worker picks up a rate change within a minute, retention on the next
+  purge run.
+- Worker sizing: `SEND_CONCURRENCY` lanes (default 16, about 1.2 per message/second of SES rate) and `WORKER_REPLICAS` (default 1). The SES rate limiter lives in each worker process, so every worker divides the account's rate by `WORKER_REPLICAS`; set it to the number of worker containers you run.
+- To run processes in separate containers, set `PROCESS` to `api`, `worker`,
+  `web`, `smtp`, `mx`, or `docs` per container (default `all` = api + worker + web).
+  Upgrade them in the same `up -d`: the Metrics chart counts only what
+  upgraded processes write, so a writer left on an older image during the
+  swap is missing from that day's chart (the daily usage figures are
+  unaffected).
+- Email bodies are gzipped, then encrypted at rest with `MASTER_ENCRYPTION_KEY`,
+  and purged after the retention window. Back up the key with the database.

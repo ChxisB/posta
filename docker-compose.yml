@@ -1,61 +1,178 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    # Three app pools plus the queue's own would exceed the 100 default; unused slots cost nothing.
+    # No parallel query: a queue fetch must never go parallel, a two-core box gains nothing from it,
+    # and a bad plan then costs one core instead of all of them.
+    command: ["postgres", "-c", "max_connections=200", "-c", "max_parallel_workers_per_gather=0"]
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: posta_main
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: posta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-posta}
+      POSTGRES_DB: posta
     volumes:
-      - posta-postgres:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d posta_main"]
+      test: ["CMD-SHELL", "pg_isready -U posta -d posta"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   posta:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+    build: .
+    env_file: .env
+    environment:
+      PROCESS: all
+    ports:
+      # Host ports are .env-tunable. WEB_PORT remaps only the host side (the
+      # web process is fixed at 3000 inside the container); PORT is also the
+      # api's own listen port via env_file, so both sides move together.
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3000}:3000" # web dashboard
+      - "${API_BIND_ADDRESS:-127.0.0.1}:${PORT:-3001}:${PORT:-3001}" # api
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "5001:5001"   # HTTP API
-      - "3000:3000"   # Dashboard
-      - "25:25"       # SMTP
-    volumes:
-      - ./config/posta:/app/config/posta:ro
-    environment:
-      - POSTA_MAIN_DB_URL=postgresql://postgres:postgres@postgres:5432/posta_main
-      - POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@postgres:5432/posta_main
-      - PORT=5001
-      - SMTP_PORT=25
-      - SMTP_BIND_ADDRESS=0.0.0.0
-      - POSTA_WEB_HOSTNAME=${POSTA_WEB_HOSTNAME:-localhost}
-      - POSTA_SMTP_HOSTNAME=${POSTA_SMTP_HOSTNAME:-localhost}
-      - POSTA_MX_RECORDS=${POSTA_MX_RECORDS:-}
-      - POSTA_DELIVERY_PROVIDER=${POSTA_DELIVERY_PROVIDER:-ses}
-      - AWS_REGION=${AWS_REGION:-us-east-1}
-      - AWS_REGIONS=${AWS_REGIONS:-}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
-      - SES_CONFIGURATION_SET=${SES_CONFIGURATION_SET:-posta}
-      - SNS_TOPIC_ARNS=${SNS_TOPIC_ARNS:-}
-      - SQS_QUEUE_URL=${SQS_QUEUE_URL:-}
-      - SES_MAX_SEND_RATE=${SES_MAX_SEND_RATE:-14}
-      - SES_MAIL_FROM_SUBDOMAIN=${SES_MAIL_FROM_SUBDOMAIN:-bounce}
-      - POSTA_CONFIG_FILE_PATH=/app/config/posta/posta.yml
-      - POSTA_LOG_LEVEL=info
-      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
-      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
     restart: unless-stopped
+    # Above the supervisor's 35 s child-exit budget (scripts/start.mjs).
+    stop_grace_period: 45s
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/apps/web/.next/cache
+      - /app/apps/docs/.next/cache
+      - /app/apps/docs/.source
+
+  smtp:
+    build: .
+    env_file: .env
+    environment:
+      PROCESS: smtp
+    ports:
+      # SMTP_PORT is also the relay's listen port via env_file, so both sides
+      # of the mapping move together.
+      - "${SMTP_BIND_ADDRESS:-127.0.0.1}:${SMTP_PORT:-2587}:${SMTP_PORT:-2587}" # smtp relay
+    # Opt-in (COMPOSE_PROFILES=smtp): without a mounted STARTTLS keypair the
+    # relay refuses to start, and an always-on service would restart-loop
+    # from the first boot.
+    profiles: ["smtp"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/apps/web/.next/cache
+      - /app/apps/docs/.next/cache
+      - /app/apps/docs/.source
+
+  mx:
+    build: .
+    # Its own variables only, not env_file: the MX faces the internet and has
+    # no use for the app's keys.
+    environment:
+      PROCESS: mx
+      MX_INGEST_URL: "http://posta:${PORT:-3001}/internal/mx"
+      MX_INGEST_SECRET: "${MX_INGEST_SECRET:-}"
+      MX_HOSTNAME: "${MX_HOSTNAME:-${RECEIVING_MX_HOST:-}}"
+      MX_TLS_CERT_PATH: /tls/fullchain.pem
+      MX_TLS_KEY_PATH: /tls/privkey.pem
+    ports:
+      # Public by design: other mail servers deliver here. IPv4 only: over
+      # IPv6, Docker's proxy would replace each client's address with its own.
+      - "0.0.0.0:25:2525"
+    volumes:
+      # A certbot deploy hook copies the keypair here; STARTTLS follows it.
+      - ./mx-tls:/tls:ro
+    # The keypair is root:1000 0640 on the host; this group lets the image's
+    # non-root user read it.
+    group_add: ["1000"]
+    # Opt-in (COMPOSE_PROFILES=mx): port 25 is public, and the app must have
+    # RECEIVING_MX_HOST set for the MX to have anything to accept.
+    profiles: ["mx"]
+    restart: unless-stopped
+    # Above the supervisor's 35 s child-exit budget (scripts/start.mjs).
+    stop_grace_period: 45s
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  clamav:
+    # ClamAV's Debian build: the Alpine-based clamav/clamav image is published
+    # for amd64 only, and this stack also runs on arm64.
+    image: clamav/clamav-debian:1.4
+    # Opt-in (COMPOSE_PROFILES=clamav, plus CLAMAV_HOST=clamav:3310 in .env):
+    # clamd keeps its signatures in memory; ClamAV recommends 4 GiB of RAM. No
+    # host port: clamd's protocol has neither authentication nor encryption.
+    profiles: ["clamav"]
+    volumes:
+      # Without it, every restart downloads the whole signature set again.
+      - clamav-db:/var/lib/clamav
+    restart: unless-stopped
+    # No cap_drop or read_only here: the image's entrypoint chowns the
+    # database and creates /run/clamav as root before dropping to its own user.
+    security_opt:
+      - no-new-privileges:true
+
+  backup:
+    # Optional scheduled pg_dump to S3-compatible storage. Stays disabled (the
+    # container prints one line and exits 0, and restart "no" leaves it
+    # stopped) until S3_BACKUP_BUCKET and the S3_* credentials are set in .env.
+    build: scripts/backup
+    env_file: .env
+    restart: "no"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    volumes:
+      # pg_dump stages the dump on disk before upload; a volume rather than
+      # tmpfs so a large database does not land in RAM.
+      - backup-scratch:/tmp
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  docs:
+    build: .
+    env_file: .env
+    environment:
+      PROCESS: docs
+    ports:
+      # DOCS_PORT remaps only the host side (the docs process is fixed at
+      # 3002 inside the container). No database dependency: the docs site is
+      # static content.
+      - "${DOCS_BIND_ADDRESS:-127.0.0.1}:${DOCS_PORT:-3002}:3002" # documentation site
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/apps/web/.next/cache
+      - /app/apps/docs/.next/cache
+      - /app/apps/docs/.source
 
 volumes:
-  posta-postgres:
+  pgdata:
+  backup-scratch:
+  clamav-db:

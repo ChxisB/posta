@@ -1,0 +1,20 @@
+/* Posta spacing (4px base) + radii. */
+:root {
+  --po-sp-1: 4px;
+  --po-sp-2: 8px;
+  --po-sp-3: 12px;
+  --po-sp-4: 16px;
+  --po-sp-5: 20px;
+  --po-sp-6: 24px;
+  --po-sp-8: 32px;
+  --po-sp-10: 40px;
+  --po-sp-12: 48px;
+  --po-sp-16: 64px;
+  --po-sidebar-w: 300px;
+  --po-r-chip: 6px; /* badges, keycaps, tag chips */
+  --po-r-input: 10px; /* inputs, buttons, selects */
+  --po-r-card: 16px; /* cards, tables, code panels (rounded-2xl) */
+  --po-r-tile: 8px; /* hero icon tiles, empty-state panels (rounded-lg) */
+  --po-r-modal: 22px; /* modals, popovers, drawers */
+  --po-r-pill: 999px;
+}

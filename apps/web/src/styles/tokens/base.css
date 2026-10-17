@@ -1,0 +1,59 @@
+/* Base surface + canonical helper classes. */
+/* iOS Safari scales up text it judges small for its block (text autosizing):
+   in a list that scrolls sideways, a row with a long value would render at
+   nearly twice the size of the rows around it. Safari reads only the prefixed
+   property, and the build's autoprefixer drops a prefixed copy that sits
+   beside the unprefixed one, so the prefixed one stands alone. */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+.po-root,
+body.po {
+  /* margin reset lives here because the canvas sets it at page level:
+     without it the browser's default 8px floats the whole shell off the
+     viewport edges. */
+  margin: 0;
+  background: var(--po-void);
+  color: var(--po-bone);
+  font-family: var(--po-font-sans);
+  font-size: var(--po-fs-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+/* Display type: the app sans at heading weight, headings ≥20px only */
+.po-display {
+  font-family: var(--po-font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+/* Every number that counts: tabular grotesque, weight 800. */
+.po-digits {
+  font-family: var(--po-font-sans);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+/* Data is data: monospace */
+.po-mono {
+  font-family: var(--po-font-mono);
+  font-size: 0.93em;
+}
+/* Uppercase metadata micro-label */
+.po-microlabel {
+  font-size: var(--po-fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--po-muted);
+}
+/* Links: accent text with a dotted underline. Table rows, nav, crumbs and
+   buttons set their own colour (components.css). */
+a {
+  color: var(--po-accent-text);
+  text-decoration: underline dotted color-mix(in srgb, var(--po-accent-text) 55%, transparent);
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration-color: var(--po-accent-text);
+}

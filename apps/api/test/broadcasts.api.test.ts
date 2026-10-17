@@ -1,0 +1,1025 @@
+import { randomBytes } from "node:crypto";
+import { EnvKeyring, generateApiKey, utcDay } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTeam, createTestDb } from "@posta/test-utils";
+import { and, eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createApi } from "../src/app.js";
+
+let db: Db;
+let close: () => Promise<void>;
+let app: ReturnType<typeof createApi>;
+let tokenA: string;
+let tokenB: string;
+let teamA: string;
+
+const json = async (res: Response) =>
+  (await res.json()) as { id: string; data?: unknown[] } & Record<string, unknown>;
+
+async function call(token: string, method: string, path: string, body?: unknown) {
+  return app.request(path, {
+    method,
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...(body !== undefined ? { "content-type": "application/json" } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+}
+
+const draftBody = () => ({
+  from: "Acme <hi@acme.dev>",
+  subject: "hello",
+  html: "<p>hi</p>",
+});
+
+// A fresh team with its own key, verified domain, and one draft broadcast,
+// isolated so seeding its usage_counters can't affect the shared team-A
+// happy-path tests.
+async function makeSendableTeam(slug: string) {
+  const teamId = await createTeam(db, slug);
+  const key = generateApiKey();
+  await db.insert(schema.apiKeys).values({
+    teamId,
+    name: slug,
+    tokenPrefix: key.tokenPrefix,
+    keyHash: key.keyHash,
+    last4: key.last4,
+  });
+  await db.insert(schema.domains).values({
+    teamId,
+    name: "acme.dev",
+    region: "us-east-1",
+    status: "verified",
+    verifiedAt: new Date(),
+  });
+  const [bc] = await db
+    .insert(schema.broadcasts)
+    .values({ teamId, from: "Acme <hi@acme.dev>", subject: "s", html: "<p>hi</p>" })
+    .returning({ id: schema.broadcasts.id });
+  if (!bc) throw new Error("broadcast insert failed");
+  return { teamId, token: key.token, broadcastId: bc.id };
+}
+
+beforeAll(async () => {
+  ({ db, close } = await createTestDb());
+  for (const [slug, setToken] of [
+    ["bc-team-a", (t: string) => (tokenA = t)],
+    ["bc-team-b", (t: string) => (tokenB = t)],
+  ] as const) {
+    const teamId = await createTeam(db, slug);
+    if (slug === "bc-team-a") teamA = teamId;
+    const key = generateApiKey();
+    setToken(key.token);
+    await db.insert(schema.apiKeys).values({
+      teamId,
+      name: slug,
+      tokenPrefix: key.tokenPrefix,
+      keyHash: key.keyHash,
+      last4: key.last4,
+    });
+  }
+  await db.insert(schema.domains).values({
+    teamId: teamA,
+    name: "acme.dev",
+    region: "us-east-1",
+    status: "verified",
+    verifiedAt: new Date(),
+  });
+  app = createApi({
+    db,
+    keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+    isCloud: true,
+    enqueueEmailSend: async () => {},
+    enqueueBroadcastSend: async () => {},
+    appBaseUrl: "https://app.example.test",
+  });
+});
+
+afterAll(async () => {
+  await close();
+});
+
+describe("broadcasts API", () => {
+  let broadcastId: string;
+
+  it("requires an API key", async () => {
+    const res = await app.request("/broadcasts");
+    expect(res.status).toBe(401);
+  });
+
+  it("creates a draft broadcast", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", draftBody());
+    expect(res.status).toBe(200);
+    broadcastId = (await json(res)).id;
+    expect(broadcastId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("422s a create without html or text", async () => {
+    const { html: _html, ...noBody } = draftBody();
+    expect((await call(tokenA, "POST", "/broadcasts", noBody)).status).toBe(422);
+  });
+
+  it("422s a create with an unknown segment_id", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      ...draftBody(),
+      segment_id: crypto.randomUUID(),
+    });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({ name: "validation_error" });
+  });
+
+  it("round-trips preview_text through create, GET, and PATCH; null when unset", async () => {
+    const unset = await call(tokenA, "GET", `/broadcasts/${broadcastId}`);
+    expect(await unset.json()).toMatchObject({ preview_text: null });
+
+    const created = await call(tokenA, "POST", "/broadcasts", {
+      ...draftBody(),
+      preview_text: "peek",
+    });
+    expect(created.status).toBe(200);
+    const id = (await json(created)).id;
+    expect(await (await call(tokenA, "GET", `/broadcasts/${id}`)).json()).toMatchObject({
+      preview_text: "peek",
+    });
+
+    const patched = await call(tokenA, "PATCH", `/broadcasts/${id}`, { preview_text: "peek 2" });
+    expect(patched.status).toBe(200);
+    expect(await (await call(tokenA, "GET", `/broadcasts/${id}`)).json()).toMatchObject({
+      preview_text: "peek 2",
+    });
+  });
+
+  it("send 422s when the sender domain is not verified for the team", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      ...draftBody(),
+      from: "Other <hi@other.dev>",
+    });
+    const id = (await json(res)).id;
+    const sent = await call(tokenA, "POST", `/broadcasts/${id}/send`, {});
+    expect(sent.status).toBe(422);
+    expect(await sent.json()).toMatchObject({ statusCode: 422, name: "validation_error" });
+  });
+
+  it("send 422s from a domain that exists but is not fully verified (pending status)", async () => {
+    // The row exists for the team, but strict verification left it 'pending';
+    // the send gate must refuse it exactly like an unknown domain.
+    await db.insert(schema.domains).values({
+      teamId: teamA,
+      name: "pending.dev",
+      region: "us-east-1",
+      status: "pending",
+    });
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      ...draftBody(),
+      from: "Pending <hi@pending.dev>",
+    });
+    const id = (await json(res)).id;
+    const sent = await call(tokenA, "POST", `/broadcasts/${id}/send`, {});
+    expect(sent.status).toBe(422);
+    expect(await sent.json()).toMatchObject({ statusCode: 422, name: "validation_error" });
+  });
+
+  it("cancel of a draft is a 400 with a RESEND_ERROR_CODE_KEY name", async () => {
+    const res = await call(tokenA, "POST", `/broadcasts/${broadcastId}/cancel`);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ name: "invalid_parameter" });
+  });
+
+  it("rejects a multi-mailbox From on create and update", async () => {
+    const spoof = "Acme <evil@evil.test> <ok@acme.dev>";
+    const created = await call(tokenA, "POST", "/broadcasts", { ...draftBody(), from: spoof });
+    expect(created.status).toBe(422);
+    expect(await created.json()).toMatchObject({ name: "validation_error" });
+
+    const updated = await call(tokenA, "PATCH", `/broadcasts/${broadcastId}`, { from: spoof });
+    expect(updated.status).toBe(422);
+  });
+
+  it("send rejects a stored multi-mailbox From (pre-validation rows)", async () => {
+    // Bypasses request validation the way a legacy row would.
+    const [row] = await db
+      .insert(schema.broadcasts)
+      .values({
+        teamId: teamA,
+        from: "Acme <evil@evil.test> <ok@acme.dev>",
+        subject: "s",
+        html: "<p>hi</p>",
+      })
+      .returning({ id: schema.broadcasts.id });
+    const sent = await call(tokenA, "POST", `/broadcasts/${row?.id}/send`, {});
+    expect(sent.status).toBe(422);
+    expect(await sent.json()).toMatchObject({
+      name: "validation_error",
+      message: expect.stringContaining("from must be a single address"),
+    });
+  });
+
+  it("send 422s when APP_BASE_URL is not configured", async () => {
+    const bare = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async () => {},
+    });
+    const created = await call(tokenA, "POST", "/broadcasts", draftBody());
+    const id = (await json(created)).id;
+    const sent = await bare.request(`/broadcasts/${id}/send`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${tokenA}`, "content-type": "application/json" },
+      body: "{}",
+    });
+    expect(sent.status).toBe(422);
+    expect(await sent.json()).toMatchObject({
+      name: "validation_error",
+      message: expect.stringContaining("APP_BASE_URL"),
+    });
+  });
+
+  it("honors limit and has_more on the list", async () => {
+    const res = await call(tokenA, "GET", "/broadcasts?limit=1");
+    expect(res.status).toBe(200);
+    const body = (await json(res)) as unknown as { data: unknown[]; has_more: boolean };
+    expect(body.data).toHaveLength(1);
+    expect(body.has_more).toBe(true);
+  });
+
+  it("isolates tenants: team B cannot see or touch team A broadcasts", async () => {
+    const list = await call(tokenB, "GET", "/broadcasts");
+    expect((await json(list)).data).toEqual([]);
+
+    for (const [method, path, body] of [
+      ["GET", `/broadcasts/${broadcastId}`, undefined],
+      ["PATCH", `/broadcasts/${broadcastId}`, { subject: "stolen" }],
+      ["DELETE", `/broadcasts/${broadcastId}`, undefined],
+      ["POST", `/broadcasts/${broadcastId}/send`, {}],
+      ["POST", `/broadcasts/${broadcastId}/cancel`, undefined],
+    ] as const) {
+      const res = await call(tokenB, method, path, body);
+      expect(res.status, `${method} ${path}`).toBe(404);
+    }
+
+    // Team A's draft is untouched.
+    const still = await call(tokenA, "GET", `/broadcasts/${broadcastId}`);
+    expect(await still.json()).toMatchObject({ status: "draft", subject: "hello" });
+  });
+
+  it("draft update cannot move the broadcast to a foreign segment", async () => {
+    const [foreign] = await db
+      .insert(schema.segments)
+      .values({
+        teamId: await createTeam(db, "bc-team-c"),
+        name: "foreign",
+        filter: { match: "any", conditions: [] },
+      })
+      .returning({ id: schema.segments.id });
+    const res = await call(tokenA, "PATCH", `/broadcasts/${broadcastId}`, {
+      segment_id: foreign?.id,
+    });
+    expect(res.status).toBe(422);
+  });
+
+  it("send → queued on the wire; update and delete then 400; cancel → canceled", async () => {
+    const sent = await call(tokenA, "POST", `/broadcasts/${broadcastId}/send`, {});
+    expect(sent.status).toBe(200);
+    const got = await call(tokenA, "GET", `/broadcasts/${broadcastId}`);
+    // Internally scheduled; the SDK's status union has no 'scheduled'.
+    expect(await got.json()).toMatchObject({ status: "queued" });
+
+    expect(
+      (await call(tokenA, "PATCH", `/broadcasts/${broadcastId}`, { subject: "late" })).status,
+    ).toBe(400);
+    expect((await call(tokenA, "DELETE", `/broadcasts/${broadcastId}`)).status).toBe(400);
+
+    const canceled = await call(tokenA, "POST", `/broadcasts/${broadcastId}/cancel`);
+    expect(canceled.status).toBe(200);
+    const after = await call(tokenA, "GET", `/broadcasts/${broadcastId}`);
+    expect(await after.json()).toMatchObject({ status: "canceled" });
+  });
+});
+
+describe("broadcasts API deliverability guardrail", () => {
+  let enqueued: string[];
+  let guarded: ReturnType<typeof createApi>;
+
+  const sendGuarded = (token: string, id: string) =>
+    guarded.request(`/broadcasts/${id}/send`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: "{}",
+    });
+
+  beforeAll(() => {
+    enqueued = [];
+    guarded = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async (id) => {
+        enqueued.push(id);
+      },
+      appBaseUrl: "https://app.example.test",
+    });
+  });
+
+  it("403s sending_paused when past the complaint pause line, leaving the draft unsent", async () => {
+    const { teamId, token, broadcastId } = await makeSendableTeam("bc-paused");
+    // Over the floor (1000) and over the 0.1% complaint pause line.
+    await db.insert(schema.usageCounters).values({
+      teamId,
+      day: utcDay(),
+      sent: 2000,
+      complained: 5,
+    });
+
+    const res = await sendGuarded(token, broadcastId);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ statusCode: 403, name: "sending_paused" });
+
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(eq(schema.broadcasts.id, broadcastId));
+    expect(row?.status).toBe("draft");
+    expect(enqueued).not.toContain(broadcastId);
+  });
+
+  it("sends normally at volume over the floor but under the warn line", async () => {
+    const { teamId, token, broadcastId } = await makeSendableTeam("bc-healthy");
+    // Over the floor, but 0.05% bounce / 0% complaint: below both warn lines.
+    await db.insert(schema.usageCounters).values({
+      teamId,
+      day: utcDay(),
+      sent: 2000,
+      bounced: 1,
+    });
+
+    const res = await sendGuarded(token, broadcastId);
+    expect(res.status).toBe(200);
+    expect(enqueued).toContain(broadcastId);
+  });
+});
+
+describe("broadcasts API platform breaker", () => {
+  let enqueued: string[];
+  let held: ReturnType<typeof createApi>;
+  const call = (token: string, path: string, body: unknown) =>
+    held.request(path, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+  beforeAll(async () => {
+    enqueued = [];
+    held = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async (id) => {
+        enqueued.push(id);
+      },
+      appBaseUrl: "https://app.example.test",
+    });
+    await db.insert(schema.regionBreakers).values({
+      region: "us-east-1",
+      paused: true,
+      reason: {
+        metric: "complaint",
+        rate: 0.0009,
+        limit: 0.001,
+        windowHours: 24,
+        sent: 5000,
+        events: 5,
+      },
+      pausedAt: new Date(),
+    });
+  });
+  afterAll(async () => {
+    await db.delete(schema.regionBreakers);
+  });
+
+  it("403s broadcasts_paused in a held region, leaving the draft; transactional /emails still flows", async () => {
+    const { token, broadcastId } = await makeSendableTeam("bc-region-held");
+    const res = await call(token, `/broadcasts/${broadcastId}/send`, {});
+    expect(res.status).toBe(403);
+    const refusal = {
+      statusCode: 403,
+      name: "broadcasts_paused",
+      message:
+        "Broadcasts can't be sent right now. Sending resumes automatically; try again later. Transactional email is unaffected.",
+    };
+    // Send-on-create and a later schedule meet the same answer.
+    const created = await call(token, "/broadcasts", {
+      ...draftBody(),
+      send: true,
+      scheduled_at: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+    expect(created.status).toBe(403);
+    for (const body of [await res.json(), await created.json()]) {
+      expect(body).toEqual(refusal);
+      expect(JSON.stringify(body)).not.toMatch(
+        /platform|\bSES\b|review|\brates?\b|complaint|bounce|us-east-1|operator|%/i,
+      );
+    }
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(eq(schema.broadcasts.id, broadcastId));
+    expect(row?.status).toBe("draft");
+    expect(enqueued).toEqual([]);
+
+    const email = await call(token, "/emails", {
+      from: "Acme <hi@acme.dev>",
+      to: ["someone@example.com"],
+      subject: "receipt",
+      html: "<p>thanks</p>",
+    });
+    expect(email.status).toBe(200);
+  });
+});
+
+describe("broadcasts send-on-create", () => {
+  let enq: { id: string; startAfter: Date | undefined }[];
+  let sendApp: ReturnType<typeof createApi>;
+
+  const post = (token: string, body: unknown, viaApp?: ReturnType<typeof createApi>) =>
+    (viaApp ?? sendApp).request("/broadcasts", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+  const statusOf = async (id: string) =>
+    (
+      await db
+        .select({ status: schema.broadcasts.status, scheduledAt: schema.broadcasts.scheduledAt })
+        .from(schema.broadcasts)
+        .where(eq(schema.broadcasts.id, id))
+    )[0];
+
+  beforeAll(() => {
+    enq = [];
+    sendApp = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async (id, opts) => {
+        enq.push({ id, startAfter: opts?.startAfter });
+      },
+      appBaseUrl: "https://app.example.test",
+    });
+  });
+
+  it("send: true creates and schedules in one call", async () => {
+    const res = await post(tokenA, { ...draftBody(), send: true });
+    expect(res.status).toBe(200);
+    const { id } = (await res.json()) as { id: string };
+    expect((await statusOf(id))?.status).toBe("scheduled");
+    expect(enq.map((e) => e.id)).toContain(id);
+  });
+
+  it("send: true with scheduled_at schedules at that time", async () => {
+    const at = new Date(Date.now() + 60 * 60 * 1000);
+    const res = await post(tokenA, {
+      ...draftBody(),
+      send: true,
+      scheduled_at: at.toISOString(),
+    });
+    expect(res.status).toBe(200);
+    const { id } = (await res.json()) as { id: string };
+    const row = await statusOf(id);
+    expect(row?.status).toBe("scheduled");
+    expect(row?.scheduledAt?.getTime()).toBe(at.getTime());
+    expect(enq.find((e) => e.id === id)?.startAfter?.getTime()).toBe(at.getTime());
+  });
+
+  it("422s scheduled_at without send: true", async () => {
+    const res = await post(tokenA, {
+      ...draftBody(),
+      scheduled_at: new Date(Date.now() + 60_000).toISOString(),
+    });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({ name: "validation_error" });
+  });
+
+  it("send: true with a relative scheduled_at resolves it against now", async () => {
+    const before = Date.now();
+    const res = await post(tokenA, { ...draftBody(), send: true, scheduled_at: "in 2 days" });
+    expect(res.status).toBe(200);
+    const { id } = (await res.json()) as { id: string };
+    const row = await statusOf(id);
+    expect(row?.status).toBe("scheduled");
+    const at = row?.scheduledAt?.getTime() ?? 0;
+    expect(at).toBeGreaterThanOrEqual(before + 2 * 86_400_000);
+    expect(at).toBeLessThanOrEqual(Date.now() + 2 * 86_400_000);
+  });
+
+  it("422s a scheduled_at more than 30 days out or unparseable", async () => {
+    for (const scheduled_at of [
+      new Date(Date.now() + 31 * 24 * 60 * 60 * 1000).toISOString(),
+      "in 2 weeks",
+      "tomorrow",
+    ]) {
+      const res = await post(tokenA, { ...draftBody(), send: true, scheduled_at });
+      expect(res.status, scheduled_at).toBe(422);
+    }
+  });
+
+  it("422s when APP_BASE_URL is not configured, keeping the draft", async () => {
+    const bare = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async () => {},
+    });
+    const res = await post(tokenA, { ...draftBody(), subject: "no-base-url", send: true }, bare);
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({
+      name: "validation_error",
+      message: expect.stringContaining("APP_BASE_URL"),
+    });
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(
+        and(eq(schema.broadcasts.teamId, teamA), eq(schema.broadcasts.subject, "no-base-url")),
+      );
+    expect(row?.status).toBe("draft");
+  });
+
+  it("403s sending_paused, keeping the draft unsent", async () => {
+    const { teamId, token } = await makeSendableTeam("bc-create-paused");
+    await db.insert(schema.usageCounters).values({
+      teamId,
+      day: utcDay(),
+      sent: 2000,
+      complained: 5,
+    });
+    const res = await post(token, { ...draftBody(), subject: "paused-create", send: true });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ statusCode: 403, name: "sending_paused" });
+    const [row] = await db
+      .select({ id: schema.broadcasts.id, status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(
+        and(eq(schema.broadcasts.teamId, teamId), eq(schema.broadcasts.subject, "paused-create")),
+      );
+    expect(row?.status).toBe("draft");
+    expect(enq.map((e) => e.id)).not.toContain(row?.id);
+  });
+
+  it("422s an unverified sender domain, keeping the draft", async () => {
+    const res = await post(tokenA, {
+      ...draftBody(),
+      from: "Other <hi@unverified-create.dev>",
+      send: true,
+    });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({
+      name: "validation_error",
+      message: expect.stringContaining("not verified"),
+    });
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(eq(schema.broadcasts.from, "Other <hi@unverified-create.dev>"));
+    expect(row?.status).toBe("draft");
+  });
+});
+
+describe("domain-scoped keys cannot cross domains on broadcasts", () => {
+  let scopedToken: string;
+  let fullToken: string;
+  let scopeTeam: string;
+  let enq: string[];
+  let scopedApp: ReturnType<typeof createApi>;
+  const fromOther = "Other <hi@other-scope.dev>";
+
+  const req = (token: string, method: string, path: string, body?: unknown) =>
+    scopedApp.request(path, {
+      method,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+
+  const draft = (from: string) => ({ from, subject: "hi", html: "<p>hi</p>" });
+
+  beforeAll(async () => {
+    const team = await makeSendableTeam("bc-scope");
+    scopeTeam = team.teamId;
+    fullToken = team.token;
+    const [acme] = await db
+      .select({ id: schema.domains.id })
+      .from(schema.domains)
+      .where(eq(schema.domains.teamId, scopeTeam));
+    if (!acme) throw new Error("seed missing");
+    await db.insert(schema.domains).values({
+      teamId: scopeTeam,
+      name: "other-scope.dev",
+      region: "us-east-1",
+      status: "verified",
+      verifiedAt: new Date(),
+    });
+    const key = generateApiKey();
+    scopedToken = key.token;
+    await db.insert(schema.apiKeys).values({
+      teamId: scopeTeam,
+      name: "scoped",
+      tokenPrefix: key.tokenPrefix,
+      keyHash: key.keyHash,
+      last4: key.last4,
+      domainId: acme.id,
+    });
+    enq = [];
+    scopedApp = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async (id) => {
+        enq.push(id);
+      },
+      appBaseUrl: "https://app.example.test",
+    });
+  });
+
+  it("403s a scoped key creating from another domain, staging nothing", async () => {
+    const before = await db
+      .select({ id: schema.broadcasts.id })
+      .from(schema.broadcasts)
+      .where(and(eq(schema.broadcasts.teamId, scopeTeam), eq(schema.broadcasts.from, fromOther)));
+    const res = await req(scopedToken, "POST", "/broadcasts", draft(fromOther));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ statusCode: 403, name: "restricted_api_key" });
+    const after = await db
+      .select({ id: schema.broadcasts.id })
+      .from(schema.broadcasts)
+      .where(and(eq(schema.broadcasts.teamId, scopeTeam), eq(schema.broadcasts.from, fromOther)));
+    expect(after.length).toBe(before.length);
+  });
+
+  it("403s a scoped key using send-on-create from another domain", async () => {
+    const res = await req(scopedToken, "POST", "/broadcasts", {
+      ...draft(fromOther),
+      send: true,
+    });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ statusCode: 403, name: "restricted_api_key" });
+    expect(enq).toHaveLength(0);
+  });
+
+  it("403s a scoped key sending from another domain, leaving it unsent", async () => {
+    const [bc] = await db
+      .insert(schema.broadcasts)
+      .values({ teamId: scopeTeam, from: fromOther, subject: "s", html: "<p>hi</p>" })
+      .returning({ id: schema.broadcasts.id });
+    if (!bc) throw new Error("insert failed");
+    const res = await req(scopedToken, "POST", `/broadcasts/${bc.id}/send`, {});
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ statusCode: 403, name: "restricted_api_key" });
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(eq(schema.broadcasts.id, bc.id));
+    expect(row?.status).toBe("draft");
+    expect(enq).not.toContain(bc.id);
+  });
+
+  it("lets the scoped key send from its own domain", async () => {
+    const [bc] = await db
+      .insert(schema.broadcasts)
+      .values({ teamId: scopeTeam, from: "Acme <hi@acme.dev>", subject: "s", html: "<p>hi</p>" })
+      .returning({ id: schema.broadcasts.id });
+    if (!bc) throw new Error("insert failed");
+    const res = await req(scopedToken, "POST", `/broadcasts/${bc.id}/send`, {});
+    expect(res.status).toBe(200);
+    expect(enq).toContain(bc.id);
+  });
+
+  it("leaves a full, unscoped key free to cross domains", async () => {
+    const created = await req(fullToken, "POST", "/broadcasts", draft(fromOther));
+    expect(created.status).toBe(200);
+    const { id } = (await created.json()) as { id: string };
+    const sent = await req(fullToken, "POST", `/broadcasts/${id}/send`, {});
+    expect(sent.status).toBe(200);
+    expect(enq).toContain(id);
+  });
+});
+
+describe("broadcasts API pacing", () => {
+  const ACCOUNT = { max24h: 10, sentLast24h: 0, maxSendRate: 14 };
+  type Read = {
+    id: string;
+    status?: string;
+    sent_count?: number | null;
+    finishes_at?: string | null;
+    estimated?: true;
+    warning?: { code: string; days: number; message: string };
+  };
+  const read = async (res: Response) => (await res.json()) as Read;
+  let account: typeof ACCOUNT | null = ACCOUNT;
+  let paced: ReturnType<typeof createApi>;
+
+  const request = (token: string, method: string, path: string, body?: unknown) =>
+    paced.request(path, {
+      method,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+
+  // A sendable team with its verified domain's id and `n` subscribed contacts.
+  async function seed(slug: string, contacts: number) {
+    const team = await makeSendableTeam(slug);
+    const [domain] = await db
+      .select({ id: schema.domains.id })
+      .from(schema.domains)
+      .where(eq(schema.domains.teamId, team.teamId));
+    if (!domain) throw new Error("domain missing");
+    if (contacts > 0) {
+      await db.insert(schema.contacts).values(
+        Array.from({ length: contacts }, (_, i) => ({
+          teamId: team.teamId,
+          email: `${slug}-${i}@example.com`,
+        })),
+      );
+    }
+    return { ...team, domainId: domain.id };
+  }
+
+  beforeAll(() => {
+    paced = createApi({
+      db,
+      keyring: EnvKeyring.fromBase64(randomBytes(32).toString("base64")),
+      isCloud: true,
+      enqueueEmailSend: async () => {},
+      enqueueBroadcastSend: async () => {},
+      appBaseUrl: "https://app.example.test",
+      // A ten-a-day account at the default 30% reserve: broadcasts get 7.
+      pacing: {
+        regionAccount: async () => account,
+        reservePercent: async () => 30,
+        rateCeiling: async () => 14,
+        horizonDays: async () => 24,
+      },
+    });
+  });
+
+  it("an audience inside the room goes out at once: finishes_at, no warning", async () => {
+    const { token, broadcastId } = await seed("bc-pace-fits", 5);
+    const res = await request(token, "POST", `/broadcasts/${broadcastId}/send`, {});
+    expect(res.status).toBe(200);
+    const body = await read(res);
+    expect(body).toMatchObject({ id: broadcastId, estimated: true });
+    expect(typeof body.finishes_at).toBe("string");
+    expect(body.warning).toBeUndefined();
+  });
+
+  it("an audience past the room is paced: the warning names the count and the finish", async () => {
+    const { token, broadcastId } = await seed("bc-pace-paced", 12);
+    const res = await request(token, "POST", `/broadcasts/${broadcastId}/send`, {});
+    expect(res.status).toBe(200);
+    const body = await read(res);
+    expect(body.warning).toMatchObject({ code: "paced", days: 2 });
+    expect(body.warning?.message).toMatch(
+      /^12 recipients exceed the broadcast capacity available now; sending is paced and finishes about \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00Z\. Transactional email is unaffected\.$/,
+    );
+    // The instant carried is unrounded; the message rounds up to the quarter hour.
+    expect(new Date(body.finishes_at ?? 0).getTime()).toBeGreaterThan(Date.now() + 20 * 3_600_000);
+    expect((await statusRow(broadcastId))?.status).toBe("scheduled");
+  });
+
+  it("send-on-create carries the same fields", async () => {
+    const { token } = await seed("bc-pace-create", 12);
+    const res = await request(token, "POST", "/broadcasts", { ...draftBody(), send: true });
+    expect(res.status).toBe(200);
+    const body = await read(res);
+    expect(body).toMatchObject({ estimated: true, warning: { code: "paced" } });
+  });
+
+  it("422 broadcast_too_large past the horizon, leaving the draft", async () => {
+    // Three a day against two hundred: months past the horizon.
+    const { token, broadcastId } = await seed("bc-pace-huge", 200);
+    account = { ...ACCOUNT, max24h: 5 };
+    const res = await request(token, "POST", `/broadcasts/${broadcastId}/send`, {});
+    account = ACCOUNT;
+    expect(res.status).toBe(422);
+    expect(await res.json()).toEqual({
+      statusCode: 422,
+      name: "broadcast_too_large",
+      message:
+        "This audience of 200 needs more than 24 days of sending capacity. Split it into smaller segments or contact support.",
+    });
+    expect((await statusRow(broadcastId))?.status).toBe("draft");
+  }, 30_000);
+
+  it("without SES's numbers the send goes through with no estimate", async () => {
+    const { token, broadcastId } = await seed("bc-pace-blind", 12);
+    account = null;
+    const res = await request(token, "POST", `/broadcasts/${broadcastId}/send`, {});
+    account = ACCOUNT;
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ id: broadcastId, finishes_at: null, estimated: true });
+  });
+
+  it("a broadcast going out reads sent_count and finishes_at; a later send queues behind it; stop the rest", async () => {
+    const { teamId, token, broadcastId, domainId } = await seed("bc-pace-live", 0);
+    await db
+      .update(schema.broadcasts)
+      .set({ status: "sending", scheduledAt: new Date() })
+      .where(eq(schema.broadcasts.id, broadcastId));
+    const row = (over: Partial<typeof schema.emails.$inferInsert>) => ({
+      teamId,
+      domainId,
+      broadcastId,
+      from: "Acme <hi@acme.dev>",
+      to: ["r@example.com"],
+      subject: "s",
+      ...over,
+    });
+    await db
+      .insert(schema.emails)
+      .values([
+        row({ latestStatus: "sent", sentAt: new Date() }),
+        row({ latestStatus: "delivered", sentAt: new Date() }),
+        ...Array.from({ length: 7 }, () => row({ latestStatus: "queued" })),
+        row({ latestStatus: "queued_quota" }),
+      ]);
+
+    const got = await read(await request(token, "GET", `/broadcasts/${broadcastId}`));
+    expect(got).toMatchObject({ status: "queued", sent_count: 2, sent_at: null });
+    expect(typeof got.finishes_at).toBe("string");
+    const listed = (await (await request(token, "GET", "/broadcasts")).json()) as {
+      data: { id: string; sent_count: number | null; finishes_at: string | null }[];
+    };
+    expect(listed.data.find((b) => b.id === broadcastId)).toMatchObject({
+      sent_count: 2,
+      finishes_at: got.finishes_at,
+    });
+
+    // Its wave fills the region's room: a new send starts once it has aged out.
+    const other = await seed("bc-pace-behind", 3);
+    const behind = await read(
+      await request(other.token, "POST", `/broadcasts/${other.broadcastId}/send`, {}),
+    );
+    expect(behind.warning).toMatchObject({ code: "queued_behind" });
+    expect(behind.warning?.message).toMatch(
+      /^Other sends are ahead; this one starts about \S+ and finishes about \S+\.$/,
+    );
+
+    const canceled = await request(token, "POST", `/broadcasts/${broadcastId}/cancel`);
+    expect(canceled.status).toBe(200);
+    expect(await canceled.json()).toEqual({
+      object: "broadcast",
+      id: broadcastId,
+      canceled_remaining: 8,
+    });
+    const rows = await db
+      .select({ status: schema.emails.latestStatus })
+      .from(schema.emails)
+      .where(eq(schema.emails.broadcastId, broadcastId));
+    expect(rows.filter((r) => r.status === "canceled")).toHaveLength(8);
+    expect(await (await request(token, "GET", `/broadcasts/${broadcastId}`)).json()).toMatchObject({
+      status: "canceled",
+      sent_count: 2,
+      finishes_at: null,
+    });
+
+    const again = await request(token, "POST", `/broadcasts/${broadcastId}/cancel`);
+    expect(again.status).toBe(400);
+    expect(await again.json()).toMatchObject({
+      name: "invalid_parameter",
+      message: "Only queued broadcasts can be canceled",
+    });
+  });
+
+  async function statusRow(id: string) {
+    const [row] = await db
+      .select({ status: schema.broadcasts.status })
+      .from(schema.broadcasts)
+      .where(eq(schema.broadcasts.id, id));
+    return row;
+  }
+});
+
+describe("broadcasts from a template", () => {
+  const from = "Acme <hi@acme.dev>";
+  let templateId: string;
+
+  beforeAll(async () => {
+    const created = await call(tokenA, "POST", "/templates", {
+      name: "Newsletter",
+      alias: "newsletter",
+      subject: "News for {{{FIRST_NAME|you}}}",
+      html: "<p>Hello {{{FIRST_NAME|there}}}</p>",
+      text: "Hello {{{FIRST_NAME|there}}}",
+    });
+    templateId = (await json(created)).id;
+  });
+
+  const read = async (id: string) =>
+    (await (await call(tokenA, "GET", `/broadcasts/${id}`)).json()) as {
+      subject: string;
+      html: string | null;
+      text: string | null;
+      preview_text: string | null;
+    };
+
+  it("422s a template with no published version", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", { from, template: { id: "newsletter" } });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({ name: "template_not_published" });
+  });
+
+  it("copies the newest published version, keeping merge fields for each contact", async () => {
+    await call(tokenA, "POST", `/templates/${templateId}/publish`);
+    // A later edit to the draft must not reach the broadcast.
+    await call(tokenA, "PATCH", `/templates/${templateId}`, { html: "<p>edited</p>" });
+    const res = await call(tokenA, "POST", "/broadcasts", { from, template: { id: "newsletter" } });
+    expect(res.status).toBe(200);
+    expect(await read((await json(res)).id)).toMatchObject({
+      subject: "News for {{{FIRST_NAME|you}}}",
+      html: "<p>Hello {{{FIRST_NAME|there}}}</p>",
+      text: "Hello {{{FIRST_NAME|there}}}",
+    });
+  });
+
+  it("lets subject and preview_text override, and takes a tag or version", async () => {
+    await call(tokenA, "POST", `/templates/${templateId}/publish`, { tags: ["production"] });
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      subject: "Mine",
+      preview_text: "peek",
+      template: { id: templateId, tag: "production" },
+    });
+    expect(res.status).toBe(200);
+    expect(await read((await json(res)).id)).toMatchObject({
+      subject: "Mine",
+      preview_text: "peek",
+      html: "<p>edited</p>",
+    });
+
+    const v1 = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId, version: 1 },
+    });
+    expect((await read((await json(v1)).id)).html).toBe("<p>Hello {{{FIRST_NAME|there}}}</p>");
+  });
+
+  it("does not follow the template once created", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId, tag: "production" },
+    });
+    const id = (await json(res)).id;
+    await call(tokenA, "PUT", `/templates/${templateId}/tags/production`, { version: 1 });
+    expect((await read(id)).html).toBe("<p>edited</p>");
+  });
+
+  it("404s an unknown template, version or tag, and another team's template", async () => {
+    for (const template of [
+      { id: "missing" },
+      { id: "newsletter", version: 42 },
+      { id: "newsletter", tag: "nope" },
+    ]) {
+      const res = await call(tokenA, "POST", "/broadcasts", { from, template });
+      expect(res.status, JSON.stringify(template)).toBe(404);
+    }
+    const foreign = await call(tokenB, "POST", "/broadcasts", {
+      from,
+      template: { id: templateId },
+    });
+    expect(foreign.status).toBe(404);
+  });
+
+  it("422s a template with html or text, or with both version and tag", async () => {
+    const withHtml = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      html: "<p>x</p>",
+      template: { id: "newsletter" },
+    });
+    expect(withHtml.status).toBe(422);
+    const both = await call(tokenA, "POST", "/broadcasts", {
+      from,
+      template: { id: "newsletter", version: 1, tag: "production" },
+    });
+    expect(both.status).toBe(422);
+  });
+
+  it("422s a create with neither a template nor a subject", async () => {
+    const res = await call(tokenA, "POST", "/broadcasts", { from, html: "<p>x</p>" });
+    expect(res.status).toBe(422);
+  });
+});

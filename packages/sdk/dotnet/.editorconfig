@@ -1,0 +1,5 @@
+root = true
+
+[*.cs]
+# Tests group short initializer members on one line.
+csharp_new_line_before_members_in_object_initializers = false

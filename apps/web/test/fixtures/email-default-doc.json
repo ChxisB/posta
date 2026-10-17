@@ -1,0 +1,42 @@
+{
+  "type": "doc",
+  "content": [
+    { "type": "heading", "attrs": { "level": 1, "textAlign": "left" }, "content": [{ "type": "text", "text": "Welcome aboard" }] },
+    { "type": "heading", "attrs": { "level": 2, "textAlign": "left" }, "content": [{ "type": "text", "text": "A smaller heading" }] },
+    {
+      "type": "paragraph",
+      "attrs": { "textAlign": "left" },
+      "content": [
+        { "type": "text", "text": "Hi " },
+        { "type": "variable", "attrs": { "id": "FIRST_NAME", "label": "First name", "fallback": "there" } },
+        { "type": "text", "text": ", this is " },
+        { "type": "text", "text": "bold", "marks": [{ "type": "bold" }] },
+        { "type": "text", "text": ", " },
+        { "type": "text", "text": "italic", "marks": [{ "type": "italic" }] },
+        { "type": "text", "text": " and a " },
+        { "type": "text", "text": "link", "marks": [{ "type": "link", "attrs": { "href": "https://example.com/docs", "target": "_blank" } }] },
+        { "type": "text", "text": "." }
+      ]
+    },
+    { "type": "button", "attrs": { "text": "Open the dashboard", "url": "https://example.com/start", "variant": "filled", "borderRadius": "smooth", "alignment": "left", "buttonColor": null, "textColor": null } },
+    { "type": "button", "attrs": { "text": "Read the guide", "url": "https://example.com/guide", "variant": "outlined", "borderRadius": "round", "alignment": "center", "buttonColor": null, "textColor": null } },
+    { "type": "button", "attrs": { "text": "Custom colours", "url": "https://example.com/custom", "variant": "filled", "borderRadius": "sharp", "alignment": "left", "buttonColor": "#7046e8", "textColor": "#ffffff" } },
+    { "type": "horizontalRule" },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "First" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Second" }] }] }
+    ] },
+    { "type": "orderedList", "attrs": { "start": 1 }, "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "One" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Two" }] }] }
+    ] },
+    { "type": "blockquote", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "A quoted line." }] }] },
+    { "type": "spacer", "attrs": { "height": 24 } },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Unsubscribe", "marks": [{ "type": "link", "attrs": { "href": "UNSUBSCRIBE_URL", "isUrlVariable": true } }] }
+      ]
+    }
+  ]
+}

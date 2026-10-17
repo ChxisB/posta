@@ -1,77 +1,25 @@
 # Changelog
 
-Notable changes to Posta, newest first.
+Notable changes to Posta, newest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [semantic versioning](https://semver.org).
+
+The SDKs in `packages/sdk` and the CLI in `packages/cli` are versioned on their own and keep their own changelogs.
 
 ## Unreleased
 
-### AWS SES
+The first release of Posta as an email platform you host on your own AWS SES. It replaces the earlier Posta mail server, released as 0.1.0 on 2026-09-23, whose code and changelog are in the git history.
 
-- Outgoing mail is delivered through AWS SES (SESv2 raw sending) instead of direct SMTP, with one chosen region per domain. Each region has an SNS topic feeding one shared SQS queue; delivery, delay, bounce, complaint and rejection events update message history, and hard bounces and complaints suppress the recipient. Set `POSTA_DELIVERY_PROVIDER=smtp` to keep the previous direct delivery.
-- Posta generates a 2048-bit DKIM key for each domain, uploads it to SES and publishes a custom MAIL FROM subdomain. Sending is paced per region against the SES quota.
-- Incoming mail can be received through SES: a domain's MX points to `inbound-smtp.<region>.amazonaws.com`, SES stores each message in an S3 bucket, and a worker ingests it through the same routes, spam handling and endpoints as mail received over SMTP. No public port 25 is needed. SES's spam and virus verdicts are kept with each message. A domain can send from one region and receive in another, which lets regions that cannot receive still send.
-- Domains in a region with no inbound bucket, and every existing domain, are still received by Posta's SMTP server. `POSTA_INBOUND_PROVIDER=smtp` turns SES receiving off for newly connected domains.
-- CloudFormation templates for the first region and for each additional region, and a least-privilege runtime IAM policy, are in `infra/aws`. SES allows one active receipt rule set per region and CloudFormation cannot activate it, so the guide gives the command; see `doc/config/aws-ses.md`.
+### Added
 
-## 0.1.0 – 2026-09-23
-
-This is Posta's first release: a self-hosted platform for sending and receiving email from your own apps, written in TypeScript on Bun and PostgreSQL. It runs from source, as the README describes. There's no container image yet; see Known issues.
-
-### Sending
-
-- An SMTP server and an HTTP send API (`POST /api/v1/send/message`) that accepts JSON or a raw message. Every mail server has its own credentials.
-- IP pools, with rules that pick a pool by sender or recipient.
-- Per-server send limits, so one noisy app can't damage the sending reputation of the others.
-- Outbound SMTP pipelines each conversation with the receiving server. A temporary rejection (4xx) is retried later; a permanent one (5xx) fails the message.
-
-### Receiving
-
-- Inbound routing: mail for your domains is handed to an HTTP endpoint or forwarded over SMTP, according to routes you set for each address.
-- Spam scoring with Rspamd or SpamAssassin, and attachment scanning with ClamAV.
-
-### Deliverability
-
-- For each domain, Posta generates the SPF, DKIM and MX records and checks the DNS until they resolve. Outgoing mail is DKIM-signed.
-- When a receiving server rejects an address permanently, Posta adds it to the mail server's suppression list, and later messages to it are held instead of sent. The list can be viewed, added to and cleared through the API; there's no dashboard page for it yet.
-- Optional open and click tracking for each domain, served from a tracking domain of your own.
-
-### Visibility
-
-- Full delivery history: every attempt, the remote server's response and the bounce reason.
-- Release held messages and retry failed deliveries from the dashboard or the API.
-- Signed webhooks for `MessageSent`, `MessageDelayed`, `MessageDeliveryFailed` and `MessageHeld`, retried with backoff.
-
-### Running it
-
-- A dashboard for organisations, mail servers, users and IP pools. A setup wizard walks through creating an organisation, a mail server, a domain and its DNS records, and credentials.
-- The first account to sign up becomes the administrator. Nobody else can sign in until an administrator adds their email under Administration → Users. Sign-in uses Clerk, and no webhook is needed.
-- A setup screen at `/` on a fresh installation. It checks that the API, the database and the Clerk keys are ready before the admin account is created, and forwards to sign-in after that.
-- The worker picks up a message as soon as it's queued, using PostgreSQL `LISTEN`/`NOTIFY`.
-- Received HTML messages are shown in a sandboxed frame.
-- `.env.example` puts SMTP on port 2525, which doesn't need root. Use 25 in production.
-- `packages/bench`: a delivery benchmark with open-loop load generation and latency measured at each stage.
-
-### Known issues
-
-These are known and not yet fixed.
-
-Sending and receiving:
-
-- Bounces that arrive after the receiving server has accepted a message go to the sender's own address, not to Posta. The envelope sender is the message's From address rather than a Posta return path, so these bounces don't update the message or the suppression list. Only rejections during the SMTP conversation do.
-- On the send API, a sender or recipient written with a display name, such as `"Ada" <ada@example.com>`, is passed to the receiving server with the name still attached, and DKIM signing and tracking are skipped for that message. Use bare addresses for now.
-- Outbound SMTP connections aren't closed after a delivery, and aren't reused for the next one.
-- Message timestamps are stored to within about a minute (±64 seconds).
-- Mail servers are created without a permalink, so SMTP `AUTH CRAM-MD5`, whose username is `organisation/server`, never matches. Use `AUTH PLAIN` or `AUTH LOGIN`.
-
-Running it:
-
-- On a fresh database, start the API first and the SMTP server and worker once it's up. Started together, they race to create the tables and one of them exits with `relation "credentials" already exists`. Starting it again fixes it.
-- The worker logs a `relation "messages" does not exist` error from its partition maintenance task. It's harmless: messages are stored in tables that don't use partitions yet.
-- There's no container image. The `Dockerfile` and the `posta` service in `docker-compose.yml` are out of date and don't build. `docker compose up -d postgres` still works for the database.
-
-Dashboard:
-
-- The organisation page shows the organisation's permalink in place of its name, because the request for its details fails.
-- Organisation statistics fail to load.
-- The HTML and plain-text tabs on a message show the raw multipart body, boundaries included.
-- Errors from the API are shown only as "API error", without the reason.
-- The domain DNS setup page shows the DKIM record without its key.
+- A Resend-compatible API: send, batch, get and cancel emails, with the same request and response shapes as Resend. `Idempotency-Key` dedupes retried sends.
+- API keys with the `po_` prefix, created and revoked from the dashboard.
+- Domains with guided DNS verification, and DKIM managed by SES or brought by you.
+- Contacts with segments, topics, CSV import and bulk endpoints, and broadcasts sent to all contacts, a segment or a topic.
+- Templates with merge fields, one-click unsubscribe (RFC 8058) with a hosted page, and a suppression list fed by hard bounces and complaints.
+- Template versions and tags. A template is a draft until `POST /templates/{id}/publish` freezes it as the next numbered version, and tags such as `production` point at a version and can move. `POST /emails`, `POST /emails/batch` and `POST /broadcasts` take `template: { id, version?, tag?, variables? }` in place of `html` and `text`, and `subject` is optional with a template. New routes list, read and delete versions and set and delete tags, and the MCP server, the Node SDK and the CLI follow. The dashboard editor has a Publish button, a chip showing where the template stands, and a Versions dialog to manage tags, delete versions and load an old version into the editor.
+- Signed webhooks in the Standard Webhooks format, with a delivery log.
+- An SMTP relay on port 2587 that authenticates with an API key.
+- Receiving (beta): mail to any address on a verified domain, through an MX the instance runs, with Resend's `emails.receiving` API and the `email.received` webhook.
+- A dashboard in English and Brazilian Portuguese, and an MCP server for AI agents.
+- A Docker image, `ghcr.io/chxisb/posta`, and a setup wizard, `npx @tack-labs/posta-setup`, that writes the `.env`, creates the AWS resources and starts the stack.
+- A CLI, `@tack-labs/posta-cli`, that migrates contacts, segments, topics, templates, webhooks, domains and suppressions from Resend.
+- SDKs for Node, Python, Ruby, PHP, Go, Java, .NET, Elixir and Rust.

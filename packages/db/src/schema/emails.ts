@@ -1,0 +1,247 @@
+import { isNotNull, isNull, sql } from "drizzle-orm";
+import {
+  type AnyPgColumn,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { broadcasts } from "./broadcasts.js";
+import { bytea } from "./custom-types.js";
+import { domains } from "./domains.js";
+import { inboxes, inboxThreads } from "./inboxes.js";
+import { teams } from "./teams.js";
+import { topics } from "./topics.js";
+
+/**
+ * Status values are ordered: updates apply only when the incoming status ranks
+ * higher than the stored one (compare-and-set in @posta/core), so
+ * out-of-order SES events can never regress a delivered email to "sent".
+ *
+ * "failed" is strictly terminal: retryable send errors keep the email in
+ * "queued" (the job requeues); only permanent, non-retryable failure sets
+ * "failed": a failed email can therefore never later be delivered.
+ *
+ * "canceled" is terminal and ranks highest so applyStatusCas can never
+ * regress it: a scheduled email flips to it before its send job runs, and
+ * the send handler's queued-only guard then skips it.
+ */
+export const emailStatusEnum = pgEnum("email_status", [
+  "queued_quota",
+  "queued",
+  "sent",
+  "delivery_delayed",
+  "delivered",
+  "opened",
+  "clicked",
+  "bounced",
+  "complained",
+  "suppressed",
+  "failed",
+  "canceled",
+]);
+
+/**
+ * Event vocabulary is deliberately a separate, unordered enum: it grows with
+ * provider events (e.g. rendering_failure) that have no place in the ordered
+ * status ladder above. "prefetched" is a tracking-image fetch a machine made
+ * before anyone opened (Apple Mail Privacy Protection, Gmail's prefetch, a
+ * security scanner): kept as its own type so it never lifts the status and so
+ * the record outlives the purge that nulls event payloads. "unsubscribed" is
+ * an opt-out made through this email's unsubscribe link (scope and method in
+ * the payload); an outcome for the audience, never a status of the delivery.
+ */
+export const emailEventTypeEnum = pgEnum("email_event_type", [
+  "queued",
+  "queued_quota",
+  "sent",
+  "delivery_delayed",
+  "delivered",
+  "opened",
+  "clicked",
+  "bounced",
+  "complained",
+  "suppressed",
+  "rendering_failure",
+  "failed",
+  "prefetched",
+  "unsubscribed",
+]);
+
+/**
+ * Why a queued_quota row waits: null for the team's plan or SES's own
+ * capacity, "warmup" for the sending domain's warm-up cap, "review" for a
+ * team the content monitor holds (the drain sends it once the hold is
+ * released). The rest wait for an operator on the review list, which the
+ * drain never releases: "screening" when the judge could not answer for a
+ * young sending domain, "destination" for mail to a destination new to the
+ * team that the judge read as phishing, "media" for content the judge could
+ * not read. Never shown to the team.
+ */
+export const emailParkReasonEnum = pgEnum("email_park_reason", [
+  "warmup",
+  "review",
+  "screening",
+  "destination",
+  "media",
+]);
+
+/**
+ * Lifecycle split (compliance by schema): the plaintext columns here are
+ * metadata and live on the events/metadata retention clock; the body*
+ * columns are content (AES-256-GCM ciphertext with a per-email wrapped DEK)
+ * and are nulled by the retention purge (bodyPurgedAt) without touching the row.
+ */
+export const emails = pgTable(
+  "emails",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    domainId: uuid("domain_id").references(() => domains.id, { onDelete: "set null" }),
+    apiKeyId: uuid("api_key_id"),
+    broadcastId: uuid("broadcast_id").references(() => broadcasts.id, { onDelete: "set null" }),
+    // No FK: the contact may be deleted later and per-broadcast stats must
+    // survive it.
+    contactId: uuid("contact_id"),
+    // SET NULL (unlike broadcasts' RESTRICT): a historical email must never
+    // block topic deletion.
+    topicId: uuid("topic_id").references(() => topics.id, { onDelete: "set null" }),
+    sesMessageId: text("ses_message_id"),
+    from: text("from").notNull(),
+    to: jsonb("to").$type<string[]>().notNull(),
+    cc: jsonb("cc").$type<string[]>(),
+    bcc: jsonb("bcc").$type<string[]>(),
+    replyTo: jsonb("reply_to").$type<string[]>(),
+    subject: text("subject").notNull(),
+    tags: jsonb("tags").$type<Record<string, string>>(),
+    headers: jsonb("headers").$type<Record<string, string>>(),
+    // Content, not metadata: holds ciphertext (same envelope scheme as the
+    // body columns), so it belongs on the content retention clock.
+    attachments: text("attachments"),
+    // What screening read from a held email (text, links, file facts, small
+    // re-encoded previews), sealed like attachments; written only for mail
+    // parked for review and purged with the body.
+    media: text("media"),
+    latestStatus: emailStatusEnum("latest_status").notNull().default("queued"),
+    parkReason: emailParkReasonEnum("park_reason"),
+    bodyCiphertext: bytea("body_ciphertext"),
+    bodyIv: bytea("body_iv"),
+    bodyWrappedDek: bytea("body_wrapped_dek"),
+    bodyKeyVersion: integer("body_key_version"),
+    bodyPurgedAt: timestamp("body_purged_at", { withTimezone: true }),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    // An operator released it from the review list: no screening reason
+    // stops it again.
+    screenReleasedAt: timestamp("screen_released_at", { withTimezone: true }),
+    // When it was last parked (null for mail parked before this was kept): a
+    // release of "everything shown" takes only mail parked before the
+    // operator looked.
+    parkedAt: timestamp("parked_at", { withTimezone: true }),
+    // Sent from an inbox, in one of its threads.
+    inboxId: uuid("inbox_id").references((): AnyPgColumn => inboxes.id, { onDelete: "set null" }),
+    threadId: uuid("thread_id").references((): AnyPgColumn => inboxThreads.id, {
+      onDelete: "set null",
+    }),
+    // An agent inbox's first mail to some recipient: the worker samples it for the content monitor.
+    firstContact: boolean("first_contact").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("emails_team_created_idx").on(t.teamId, t.createdAt),
+    // The SES event join key must be unique when present.
+    uniqueIndex("emails_ses_message_id_idx")
+      .on(t.sesMessageId)
+      .where(sql`${t.sesMessageId} is not null`),
+    // Partial index drives the retention purge scan (rows whose body still exists).
+    index("emails_body_unpurged_idx").on(t.createdAt).where(isNull(t.bodyPurgedAt)),
+    // Events-health window: sends in the last hours, without scanning the table.
+    index("emails_sent_at_idx").on(t.sentAt).where(isNotNull(t.sentAt)),
+    // Accept counts a team's parked rows whenever its daily quota is exhausted.
+    index("emails_team_quota_parked_idx")
+      .on(t.teamId)
+      .where(sql`${t.latestStatus} = 'queued_quota'`),
+    // The quota drain's two passes: transactional rows (broadcast_id null)
+    // oldest first, then one broadcast's parked rows oldest first. Leading
+    // with broadcast_id keeps pass 1 off the (far larger) pace-parked bulk
+    // backlog.
+    index("emails_parked_broadcast_idx")
+      .on(t.broadcastId, t.createdAt, t.id)
+      .where(sql`${t.latestStatus} = 'queued_quota'`),
+    // The send reconcile sweep walks queued rows oldest first every 15
+    // minutes; without this it reads the whole table twice per run.
+    index("emails_queued_created_idx").on(t.createdAt).where(sql`${t.latestStatus} = 'queued'`),
+    // Metadata retention deletes by age across every team.
+    index("emails_created_idx").on(t.createdAt),
+    // The Emails page's source tabs: a team's transactional log and its
+    // broadcast copies, each newest first without walking the other.
+    index("emails_team_tx_created_idx")
+      .on(t.teamId, t.createdAt, t.id)
+      .where(isNull(t.broadcastId)),
+    index("emails_team_bulk_created_idx")
+      .on(t.teamId, t.createdAt, t.id)
+      .where(isNotNull(t.broadcastId)),
+    // The review list: rows waiting on a hold or an operator, across teams.
+    index("emails_review_list_idx")
+      .on(t.createdAt)
+      .where(sql`${t.latestStatus} = 'queued_quota' and ${t.parkReason} <> 'warmup'`),
+    // The cap banner counts a team's parked transactional rows only.
+    index("emails_team_tx_held_idx")
+      .on(t.teamId)
+      .where(sql`${t.latestStatus} = 'queued_quota' and ${t.broadcastId} is null`),
+    // The dashboard filters a team's list by status within a date window.
+    index("emails_team_status_created_idx").on(t.teamId, t.latestStatus, t.createdAt),
+    // Fan-out idempotency spine: re-running a broadcast fan-out can never
+    // insert (and thus never send) a second email to the same contact.
+    uniqueIndex("emails_broadcast_contact_idx")
+      .on(t.broadcastId, t.contactId)
+      .where(sql`${t.broadcastId} is not null`),
+    // The set-null foreign key fires on every inbox delete.
+    index("emails_inbox_idx").on(t.inboxId).where(sql`${t.inboxId} is not null`),
+    // A thread's outbound messages, oldest first.
+    index("emails_thread_created_idx")
+      .on(t.threadId, t.createdAt)
+      .where(sql`${t.threadId} is not null`),
+  ],
+);
+
+export const emailEvents = pgTable(
+  "email_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    emailId: uuid("email_id")
+      .notNull()
+      .references(() => emails.id, { onDelete: "cascade" }),
+    type: emailEventTypeEnum("type").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    // Durable idempotency key: SNS delivers at-least-once and queue-level
+    // dedupe cannot cover post-completion redeliveries, so the SNS MessageId
+    // is recorded here and enforced unique. Null for worker-originated events.
+    snsMessageId: text("sns_message_id"),
+    // SES bounce class ("Permanent" | "Transient" | "Undetermined") kept as a
+    // column: the payload retention purge nulls `data`, and the platform
+    // breaker's 7-day hard-bounce count must outlive it.
+    bounceType: text("bounce_type"),
+    // Raw provider payload subset (bounce diagnostics, click URL, user agent...).
+    data: jsonb("data").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("email_events_email_idx").on(t.emailId, t.occurredAt),
+    uniqueIndex("email_events_sns_message_id_idx")
+      .on(t.snsMessageId)
+      .where(sql`${t.snsMessageId} is not null`),
+    // Partial index drives the retention strip scan (rows whose provider payload still exists).
+    index("email_events_data_unstripped_idx").on(t.occurredAt).where(isNotNull(t.data)),
+    // Events-health: SES-originated rows by arrival time, and their latest one.
+    index("email_events_sns_created_idx").on(t.createdAt).where(isNotNull(t.snsMessageId)),
+  ],
+);

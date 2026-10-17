@@ -1,0 +1,16 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  # Both ship prebuilt binaries; their build scripts are unnecessary.
+  '@parcel/watcher': false
+  '@swc/core': false
+  esbuild: true
+# Supply-chain: only install package versions published at least 24h ago
+# (absorbs the zero-day-malware window; pnpm 11 default made explicit).
+minimumReleaseAge: 1440
+strictPeerDependencies: false
+overrides:
+  "esbuild@<0.25.0": ">=0.25.0"
+  # Stack-exhaustion advisory in <8 (GHSA via mailparser→html-to-text).
+  "deepmerge-ts@<8.0.0": ">=8.0.0"

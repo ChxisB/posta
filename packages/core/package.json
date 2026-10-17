@@ -1,29 +1,109 @@
 {
   "name": "@posta/core",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./audit-actions": {
+      "types": "./src/audit-actions.ts",
+      "default": "./src/audit-actions.ts"
+    },
+    "./support-view-reasons": {
+      "types": "./src/support-view-reasons.ts",
+      "default": "./src/support-view-reasons.ts"
+    },
+    "./content-reveal": {
+      "types": "./src/content-reveal.ts",
+      "default": "./src/content-reveal.ts"
+    },
+    "./bounce-guidance": {
+      "types": "./src/bounce-guidance.ts",
+      "default": "./src/bounce-guidance.ts"
+    },
+    "./deliverability": {
+      "types": "./src/deliverability.ts",
+      "default": "./src/deliverability.ts"
+    },
+    "./error-tracking": {
+      "types": "./src/error-tracking.ts",
+      "default": "./src/error-tracking.ts"
+    },
+    "./error-tracking-node": {
+      "types": "./src/error-tracking-node.ts",
+      "default": "./src/error-tracking-node.ts"
+    },
+    "./file-type": {
+      "types": "./src/file-type.ts",
+      "default": "./src/file-type.ts"
+    },
+    "./domain-status": {
+      "types": "./src/domain-status.ts",
+      "default": "./src/domain-status.ts"
+    },
+    "./docs-links": {
+      "types": "./src/docs-links.ts",
+      "default": "./src/docs-links.ts"
+    },
+    "./html": {
+      "types": "./src/html.ts",
+      "default": "./src/html.ts"
+    },
+    "./broadcast-content": {
+      "types": "./src/broadcast-content.ts",
+      "default": "./src/broadcast-content.ts"
+    },
+    "./customer-text": {
+      "types": "./src/customer-text.ts",
+      "default": "./src/customer-text.ts"
+    },
+    "./open-classifier": {
+      "types": "./src/open-classifier.ts",
+      "default": "./src/open-classifier.ts"
+    },
+    "./org-domain": {
+      "types": "./src/org-domain.ts",
+      "default": "./src/org-domain.ts"
+    },
+    "./plans": {
+      "types": "./src/plans.ts",
+      "default": "./src/plans.ts"
+    },
+    "./mail-preferences": {
+      "types": "./src/mail-preferences.ts",
+      "default": "./src/mail-preferences.ts"
+    },
+    "./receiving-protocol": {
+      "types": "./src/receiving/protocol.ts",
+      "default": "./src/receiving/protocol.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc --build",
     "typecheck": "tsc --noEmit",
-    "test": "bun test ./src",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "test": "vitest run"
   },
   "dependencies": {
-    "bun": "latest",
-    "js-yaml": "^4.1.0",
-    "pino": "^9.6.0",
-    "pino-gelf": "^2.0.0",
-    "postgres": "^3.4.9",
-    "zod": "^3.24.0"
+    "@posta/config": "workspace:*",
+    "@posta/db": "workspace:*",
+    "@sentry/core": "^11.1.0",
+    "@sentry/node": "^11.1.0",
+    "drizzle-orm": "^0.45.2",
+    "mailparser": "^3.9.26",
+    "mmdb-lib": "3.0.3",
+    "tldts": "^7.4.10",
+    "zod": "^4.6.3"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "@types/bun": "latest",
-    "@types/js-yaml": "^4.0.9"
-  },
-  "author": "Chris Beckett <chrisssyyyb@gmail.com>",
-  "license": "MIT"
+    "@electric-sql/pglite": "^0.3.14",
+    "@posta/test-utils": "workspace:*",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^22.20.5",
+    "@types/nodemailer": "^8.0.1",
+    "nodemailer": "^10.0.9",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
 }

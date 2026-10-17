@@ -1,0 +1,37 @@
+{
+  "name": "@posta/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "SKIP_ENV_VALIDATION=1 tsx scripts/generate-openapi.ts",
+    "dev": "next dev -p ${DOCS_PORT:-3002}",
+    "prebuild": "SKIP_ENV_VALIDATION=1 tsx scripts/generate-openapi.ts",
+    "build": "next build",
+    "start": "next start -p ${DOCS_PORT:-3002}",
+    "postinstall": "fumadocs-mdx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "fumadocs-core": "^16.15.9",
+    "fumadocs-mdx": "^15.4.0",
+    "fumadocs-openapi": "^11.4.2",
+    "fumadocs-ui": "^16.15.9",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "shiki": "^4.4.3"
+  },
+  "devDependencies": {
+    "@posta/api": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}

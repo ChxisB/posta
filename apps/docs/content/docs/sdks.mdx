@@ -1,0 +1,288 @@
+---
+title: SDKs
+description: Official Posta SDKs for nine languages, published under MIT.
+---
+
+Every SDK mirrors the shape of the corresponding official Resend SDK, so
+migrating is mostly a find-and-replace: swap the import/class and point the
+base URL at Posta. All SDKs are MIT-licensed and live in the main
+repository, under [`packages/sdk`](https://github.com/ChxisB/posta/tree/main/packages/sdk).
+
+Since the API is Resend wire-compatible, the official Resend SDKs also work:
+point them at Posta via their base-URL option (e.g. `RESEND_BASE_URL`).
+From 0.9.0, every Posta SDK also covers
+[received mail and inboxes](#receiving-and-inboxes).
+
+## Base URL
+
+<DeploymentTabs>
+<DeploymentTab deployment="cloud">
+
+`api.posta.example`: what every example on this page uses, and the default from SDK 0.5.0: with no base URL configured, an SDK talks to Cloud.
+
+</DeploymentTab>
+<DeploymentTab deployment="self-hosted">
+
+Your instance's API origin (e.g. `https://api.acme.dev`, or
+`http://localhost:3001` locally). Every SDK takes it through the same option
+the examples pass the Cloud URL to (`baseUrl` / `base_url` / `BaseURL`
+depending on the language's conventions) and the Node SDK also reads the
+`POSTA_BASE_URL` environment variable. See
+[Self-hosting](/self-hosting) for deploying the instance itself.
+
+Every SDK refuses a plain `http://` base URL unless the host is loopback
+(`localhost`, `127.0.0.1`, `::1`): an API key sent over cleartext to another
+machine is an API key on the wire. An instance reached over plain HTTP on a
+private network needs the per-SDK opt-in. Node `allowInsecureHttp`, Python
+`allow_insecure_http`, Go `AllowInsecureHTTP`, Ruby `allow_insecure_http`,
+PHP the `allowInsecureHttp` option, Rust `allow_insecure_http()`, Java the
+three-argument constructor, .NET `AllowInsecureHttp`, Elixir
+`allow_insecure_http`, or, better, a TLS reverse proxy in front of it.
+
+</DeploymentTab>
+</DeploymentTabs>
+
+## Node.js / TypeScript
+
+[`@tack-labs/posta` on npm](https://www.npmjs.com/package/@tack-labs/posta): Node 18+.
+
+```sh
+npm install @tack-labs/posta
+```
+
+```ts
+import { Posta } from "@tack-labs/posta";
+
+const ms = new Posta("po_123", { baseUrl: "https://api.posta.example" });
+
+const { data, error } = await ms.emails.send({
+  from: "Acme <onboarding@acme.dev>",
+  to: "success@simulator.amazonses.com",
+  subject: "Hello from Posta",
+  html: "<strong>It works!</strong>",
+});
+```
+
+## Python
+
+[`posta-sdk` on PyPI](https://pypi.org/project/posta-sdk/): Python 3.9+.
+
+```sh
+pip install posta-sdk
+```
+
+```python
+import posta
+
+posta.api_key = "po_123"
+posta.base_url = "https://api.posta.example"
+
+email = posta.Emails.send({
+    "from": "Acme <onboarding@acme.dev>",
+    "to": "success@simulator.amazonses.com",
+    "subject": "Hello from Posta",
+    "html": "<strong>It works!</strong>",
+})
+```
+
+## Go
+
+[`posta-go`](https://github.com/ChxisB/posta/tree/main/packages/sdk/go): Go 1.21+.
+
+```sh
+go get github.com/ChxisB/posta/packages/sdk/go
+```
+
+```go
+client := posta.NewClient("po_123")
+client.BaseURL = "https://api.posta.example"
+
+sent, err := client.Emails.Send(&posta.SendEmailRequest{
+    From:    "Acme <onboarding@acme.dev>",
+    To:      []string{"success@simulator.amazonses.com"},
+    Subject: "Hello from Posta",
+    Html:    "<strong>It works!</strong>",
+})
+```
+
+## Ruby
+
+[`posta` on RubyGems](https://rubygems.org/gems/posta): Ruby 3.0+.
+
+```sh
+gem install posta
+```
+
+```ruby
+require "posta"
+
+Posta.api_key  = "po_123"
+Posta.base_url = "https://api.posta.example"
+
+email = Posta::Emails.send(
+  from: "Acme <onboarding@acme.dev>",
+  to: "success@simulator.amazonses.com",
+  subject: "Hello from Posta",
+  html: "<strong>It works!</strong>"
+)
+```
+
+## PHP
+
+[`chxisb/posta-php` on Packagist](https://packagist.org/packages/chxisb/posta-php): PHP 8.1+.
+
+```sh
+composer require chxisb/posta-php
+```
+
+```php
+use Posta\Posta;
+
+$ms = Posta::client('po_123', 'https://api.posta.example');
+
+$email = $ms->emails->send([
+    'from' => 'Acme <onboarding@acme.dev>',
+    'to' => 'success@simulator.amazonses.com',
+    'subject' => 'Hello from Posta',
+    'html' => '<strong>It works!</strong>',
+]);
+```
+
+## Rust
+
+[`posta` on crates.io](https://crates.io/crates/posta): async
+(`tokio` + `reqwest`).
+
+```toml
+[dependencies]
+posta = "0.9"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+```
+
+```rust
+use posta::{Posta, SendEmailOptions};
+
+let ms = Posta::with_base_url("po_123", "https://api.posta.example");
+
+let sent = ms.emails.send(&SendEmailOptions {
+    from: "Acme <onboarding@acme.dev>".into(),
+    to: "success@simulator.amazonses.com".into(),
+    subject: "Hello from Posta".into(),
+    html: Some("<strong>It works!</strong>".into()),
+    ..Default::default()
+}).await?;
+```
+
+## Java
+
+[`io.github.tack-labs:posta-java` on Maven Central](https://central.sonatype.com/artifact/io.github.tack-labs/posta-java). Java 11+.
+
+```xml
+<dependency>
+  <groupId>io.github.tack-labs</groupId>
+  <artifactId>posta-java</artifactId>
+  <version>0.9.0</version>
+</dependency>
+```
+
+```java
+Posta ms = new Posta("po_123", "https://api.posta.example");
+
+CreateEmailResponse sent = ms.emails().send(
+    CreateEmailOptions.builder()
+        .from("Acme <onboarding@acme.dev>")
+        .to("success@simulator.amazonses.com")
+        .subject("Hello from Posta")
+        .html("<strong>It works!</strong>")
+        .build());
+```
+
+## .NET
+
+[`Posta` on NuGet](https://www.nuget.org/packages/Posta): targets net8.0.
+
+```sh
+dotnet add package Posta
+```
+
+```csharp
+using Posta;
+
+var client = new PostaClient("po_123", "https://api.posta.example");
+
+var res = await client.EmailSendAsync(new EmailMessage
+{
+    From = "Acme <onboarding@acme.dev>",
+    To = "success@simulator.amazonses.com",
+    Subject = "Hello from Posta",
+    Html = "<strong>It works!</strong>",
+});
+```
+
+## Elixir
+
+[`posta` on Hex](https://hex.pm/packages/posta): Elixir 1.15+.
+
+```elixir
+# mix.exs
+def deps do
+  [{:posta, "~> 0.9"}]
+end
+```
+
+```elixir
+config :posta, Posta.Client,
+  api_key: System.get_env("POSTA_API_KEY"),
+  base_url: "https://api.posta.example"
+
+{:ok, email} =
+  Posta.Emails.send(%{
+    from: "Acme <onboarding@acme.dev>",
+    to: "success@simulator.amazonses.com",
+    subject: "Hello from Posta",
+    html: "<strong>It works!</strong>"
+  })
+```
+
+## Receiving and inboxes
+
+From 0.9.0, every SDK reads [received mail](/concepts/receiving) and works
+with [inboxes](/concepts/inboxes), with the same tree in each language's
+idiom (the names below are Node's):
+
+| Resource | Methods |
+| --- | --- |
+| `emails.receiving` | `list` (with `wait`, `since`, `inboxId`, `to`, `from`, `subjectContains`, `unread`, `includeQuarantined`), `get`, `reply`, `forward`, `remove` |
+| `emails.receiving.attachments` | `list`, `get` |
+| `inboxes` | `create`, `list`, `get` (by id or address), `update`, `remove` |
+| `inboxes.safety` | `get`, `update` |
+| `inboxes.codes` | `latest` (with `from`, `wait`, `maxAge`) |
+| `inboxes.quarantine` | `list`, `release` (with `trustSender`) |
+| `inboxes.labels` | `list`, `create`, `update`, `remove` |
+| `inboxes.threads` | `list`, `search`, `get`, `update`, `remove` |
+| `inboxes.threads.emails` | `list`, `get`, `reply`, `forward` |
+| `inboxes.drafts` | `list`, `create`, `get`, `update`, `remove`, `send`, `reject` |
+
+```ts
+import { Posta } from "@tack-labs/posta";
+
+const ms = new Posta("po_123");
+
+// Wait up to 30 seconds for the next email delivered to an inbox.
+const { data: page } = await ms.emails.receiving.list({ inboxId: "7eeb9517-aed7-40d7-ad65-500be42ed147", wait: 30 });
+
+// The newest verification code or sign-in link it received.
+const { data: code } = await ms.inboxes.codes.latest("7eeb9517-aed7-40d7-ad65-500be42ed147", { wait: 30 });
+```
+
+- Reply, forward and draft sends take an idempotency key (in Node
+  `{ idempotencyKey }`, in Go `WithIdempotencyKey`, and each language's
+  equivalent). Pass one to make a retry safe: the SDK sends none on its own.
+- A reply or forward the inbox's rules hold answers a draft instead of the
+  sent email, and the SDKs say which: in Node the result carries
+  `kind: "sent"` or `kind: "draft"`, and each language has its equivalent.
+- Unknown fields and enum values are kept or ignored, never an error, so a
+  newer API doesn't break an older SDK.
+- Domains gain `receiving_catch_all`, API keys `inbox_id`, webhooks
+  `inbox_ids`, and the webhook event types `email.received` and the inbox
+  events.

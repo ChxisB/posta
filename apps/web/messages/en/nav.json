@@ -1,0 +1,13 @@
+{
+  "emails": "Emails",
+  "inboxes": "Inboxes",
+  "broadcasts": "Broadcasts",
+  "audience": "Audience",
+  "metrics": "Metrics",
+  "domains": "Domains",
+  "logs": "Logs",
+  "apiKeys": "API keys",
+  "webhooks": "Webhooks",
+  "templates": "Templates",
+  "settings": "Settings"
+}

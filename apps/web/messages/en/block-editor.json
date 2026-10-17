@@ -1,0 +1,173 @@
+{
+  "toolbar": {
+    "variables": "Variables",
+    "formatting": "Formatting",
+    "h1": "Heading 1",
+    "h2": "Heading 2",
+    "bulletList": "Bullet list",
+    "orderedList": "Numbered list",
+    "alignLeft": "Align left",
+    "alignCenter": "Align center",
+    "alignRight": "Align right",
+    "clear": "Clear formatting"
+  },
+  "panel": {
+    "link": "Link",
+    "linkPrompt": "Link URL (leave empty to remove)",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "apply": "Apply",
+    "removeLink": "Remove link"
+  },
+  "picker": {
+    "search": "Search fields…",
+    "fallback": "Fallback (optional)",
+    "empty": "No fields match."
+  },
+  "slash": {
+    "group": "Blocks",
+    "text": {
+      "title": "Text",
+      "desc": "Plain paragraph text."
+    },
+    "heading1": {
+      "title": "Heading 1",
+      "desc": "Large section heading."
+    },
+    "heading2": {
+      "title": "Heading 2",
+      "desc": "Medium section heading."
+    },
+    "heading3": {
+      "title": "Heading 3",
+      "desc": "Small section heading."
+    },
+    "bulletList": {
+      "title": "Bullet list",
+      "desc": "A simple bulleted list."
+    },
+    "orderedList": {
+      "title": "Numbered list",
+      "desc": "A numbered list."
+    },
+    "image": {
+      "title": "Image",
+      "desc": "Full-width image."
+    },
+    "button": {
+      "title": "Button",
+      "desc": "A call-to-action button."
+    },
+    "divider": {
+      "title": "Divider",
+      "desc": "A horizontal rule between sections."
+    },
+    "spacer": {
+      "title": "Spacer",
+      "desc": "Vertical breathing room."
+    },
+    "blockquote": {
+      "title": "Quote",
+      "desc": "Set text apart as a quote."
+    },
+    "columns": {
+      "title": "Columns",
+      "desc": "Side-by-side layout columns."
+    },
+    "section": {
+      "title": "Section",
+      "desc": "Group content in a styled box."
+    }
+  },
+  "rail": {
+    "label": "Blocks",
+    "search": "Search blocks",
+    "group": {
+      "text": "Text",
+      "media": "Media and buttons",
+      "layout": "Layout"
+    },
+    "add": "Add {block}",
+    "added": "{block} added.",
+    "none": "Nothing matches \"{query}\".",
+    "hint": "Adds after the block you are in. You can also type / in the email.",
+    "needsEdit": "Open the Edit view to add blocks."
+  },
+  "ph": {
+    "body": "Write something, or / for blocks",
+    "heading": "Heading {level}"
+  },
+  "varpop": {
+    "variable": "Variable",
+    "fallback": "Default",
+    "fallbackPlaceholder": "e.g. John"
+  },
+  "suggest": {
+    "header": "Variables",
+    "navigate": "Navigate",
+    "empty": "No fields match."
+  },
+  "handle": {
+    "label": "Block actions",
+    "title": "Drag to move this block, or open its actions",
+    "announce": {
+      "moved": "Moved to position {position} of {total}",
+      "duplicated": "Block duplicated",
+      "deleted": "Block deleted",
+      "added": "Paragraph added below"
+    }
+  },
+  "shortcuts": {
+    "open": "Shortcuts",
+    "title": "Keyboard shortcuts",
+    "space": "Space",
+    "groups": {
+      "insert": "Insert",
+      "write": "Write",
+      "text": "Text",
+      "blocks": "Blocks",
+      "page": "Template"
+    },
+    "notes": {
+      "insert": "Type these at the start of an empty line.",
+      "blocks": "Each one acts on the whole block the cursor is in: a list or a set of columns moves as one."
+    },
+    "actions": {
+      "slashMenu": "Open the block menu",
+      "heading1Rule": "Heading 1",
+      "heading2Rule": "Heading 2",
+      "heading3Rule": "Heading 3",
+      "bulletRule": "Bullet list",
+      "orderedRule": "Numbered list",
+      "quoteRule": "Quote",
+      "dividerRule": "Divider",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "code": "Inline code",
+      "lineBreak": "Line break",
+      "undo": "Undo",
+      "redo": "Redo",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list",
+      "quote": "Quote",
+      "alignLeft": "Align left",
+      "alignCenter": "Align centre",
+      "alignRight": "Align right",
+      "moveBlockUp": "Move block up",
+      "moveBlockDown": "Move block down",
+      "duplicateBlock": "Duplicate block",
+      "deleteBlock": "Delete block",
+      "insertParagraphAfter": "Add a paragraph after the block",
+      "save": "Save",
+      "saveAndClose": "Save and close",
+      "showShortcuts": "Show shortcuts"
+    }
+  }
+}

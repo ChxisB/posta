@@ -1,149 +1,81 @@
-# Posta
+<p align="center">
+  <img src="apps/web/public/logo/posta-banner.svg" alt="Posta" width="560">
+</p>
 
-**Transactional email you run yourself.** Posta is a self-hosted mail delivery platform: an SMTP server, an HTTP send API, an AWS SES delivery worker and a dashboard, written in TypeScript on Bun and PostgreSQL. Each domain can send from its own AWS region, and receive through SES in the same or another region, or on Posta’s own SMTP server.
+<p align="center"><b>The open-source email platform. Send one. Send a million.</b></p>
 
-It's free and MIT-licensed. No message caps, no licence key, no phone-home.
+Self-host on your own AWS SES, or use the hosted cloud. Resend-compatible API, migrating
+means changing two environment variables, not rewriting your integration.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.webp">
-  <img alt="The dashboard for a mail server called Transactional: 38 outgoing messages and 3 bounced, a queue of three messages waiting to be retried, and a list of recent deliveries." src="docs/screenshots/dashboard-light.webp">
-</picture>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset=".github/screenshots/emails-light.png">
+    <img src=".github/screenshots/emails.png" alt="The Posta dashboard: the Emails page, with each send's delivery status" width="900">
+  </picture>
+</p>
+
+## Features
+
+| Feature | Status | Notes |
+| --- | --- | --- |
+| Emails API (Resend-compatible) | ✅ | Send, batch, get, cancel: same request/response shapes as Resend. |
+| Idempotency | ✅ | `Idempotency-Key` header dedupes retried sends. |
+| API keys | ✅ | Create and revoke `po_` keys from the dashboard, with last-used tracking. |
+| Suppression list | ✅ | Hard bounces and complaints suppressed automatically; review and remove per address, or manage via `/suppressions` (batch add/remove up to 1000). |
+| Metrics | ✅ | Daily sends with bounce and complaint rates tracked against SES thresholds. |
+| Webhooks (Standard Webhooks) | ✅ | Signed event deliveries (`webhook-*` and `svix-*` headers) with per-endpoint event selection, a delivery log, and bring-your-own `whsec_` secret. |
+| Domains + BYODKIM | ✅ | Guided DNS verification; bring your own DKIM key or let SES manage it. |
+| Contacts | ✅ | Team-wide contacts with subscribe state, segments, topics, CSV import, and bulk `POST /contacts/batch`. |
+| One-click unsubscribe (RFC 8058) | ✅ | `List-Unsubscribe` headers plus a hosted unsubscribe page. |
+| Broadcasts | ✅ | Compose, schedule, and send to all contacts, a segment, or a topic; cancel while scheduled. |
+| Templates + merge fields | ✅ | Reusable templates with per-contact merge fields; `/templates` API with per-team aliases. |
+| API request logs | ✅ | Every API request recorded with request/response bodies, secrets redacted. |
+| SMTP relay | ✅ | Drop-in SMTP on port 2587; authenticate with an API key. |
+| Receiving | Beta | Mail to any address on a verified domain, through an MX the instance runs (`PROCESS=mx`); Resend's `emails.receiving` API, `forward()` included, and the `email.received` webhook. |
+| Dashboard | ✅ | Full dashboard, in English. |
+| Self-host (Docker) | ✅ | Compose file plus a setup wizard; sends through your own AWS SES. |
+| Migrate from Resend | ✅ | `npx @tack-labs/posta-cli migrate --from resend` moves contacts, segments, topics, templates, webhooks, domains and suppressions; read-only against Resend, safe to re-run before cutover. |
+| Content monitoring | ✅ | Optional outbound judge via [TypeSafe Jev](https://typesafe.ai). Off by default on self-host. |
+
+The hosted monitor uses [TypeSafe](https://typesafe.ai)'s Jev, a System One model built for typed decisions in software. A new team's mail in its first window and its broadcasts, and any team's mail to a destination it has never used, are scored before SES takes them and wait for the verdict, about half a second; everything else is sampled after it is sent, and sending never waits on it. Self-hosters leave it off unless they set `ABUSE_JUDGE=typesafe`.
 
 ## A look around
 
-The screenshots follow your GitHub theme, so you'll see Posta in light or dark mode to match.
+<table>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/template-editor.png" alt="The template editor: a welcome email in the block editor, with the subject, preview text and email theme in the side panel"><br><sub><b>Templates</b>: a block editor with merge fields and an email theme.</sub></td>
+    <td width="50%"><img src=".github/screenshots/metrics.png" alt="The Metrics page: daily sends, the deliverability rate and the account score, with bounce and complaint rates tracked against SES thresholds"><br><sub><b>Metrics</b>: sends over time and your rates against the SES thresholds.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/audience.png" alt="The Audience page: contact totals with a growth chart, and a table of contacts with their segments and subscription status"><br><sub><b>Audience</b>: contacts, segments and topics in one place.</sub></td>
+    <td width="50%"><img src=".github/screenshots/webhook-detail.png" alt="A webhook endpoint: its URL, signing secret and subscribed events, above a log of every delivery with the response and attempt count"><br><sub><b>Webhooks</b>: signed deliveries, with a log of every attempt.</sub></td>
+  </tr>
+</table>
 
-### Every message, in and out
+## Run it locally
 
-The messages list shows everything a mail server has accepted and where each message got to. Temporary failures are retried with backoff, and a hard bounce puts the address on a suppression list.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/messages-dark.webp">
-  <img alt="The messages list: order confirmations, receipts, password resets and sign-in codes, most marked Delivered and one marked Retrying." src="docs/screenshots/messages-light.webp">
-</picture>
-
-### A setup screen on first run
-
-A fresh installation opens on a setup screen. It checks that the API, the database and the Clerk keys are ready, then has you create the admin account. Once that account exists, `/` goes straight to sign-in.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/setup-screen-dark.webp">
-  <img alt="The setup screen, headed Set up Posta, with the Posta API, Database and Sign-in checks passed, the Admin account still to create, and a Create the admin account button. Beside it, the five steps that follow, from naming your organisation to getting SMTP or API credentials." src="docs/screenshots/setup-screen-light.webp">
-</picture>
-
-### From nothing to a verified sending domain
-
-The setup wizard creates an organisation, a mail server, a domain and its DNS records, and the credentials your app sends with. Progress saves as you go, so you can stop and come back.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/setup-wizard-dark.webp">
-  <img alt="The setup wizard on its first step, Create the organisation, with the eight steps listed down the side: Organization, Server, Domain, DNS, Credentials, Direction, Test send and Summary." src="docs/screenshots/setup-wizard-light.webp">
-</picture>
-
-## What it does
-
-- **Sending.** An SMTP server and an HTTP API, with separate credentials for every mail server.
-- **Receiving.** Routes hand mail for your domains to an HTTP endpoint or forward it over SMTP. Spam scoring comes from Rspamd or SpamAssassin, and ClamAV scans attachments.
-- **Deliverability.** AWS SES signs and delivers outgoing mail. Posta provisions each domain in its chosen region and shows its DKIM, SPF, return-path and inbound MX records. SES can also receive a domain’s mail: it stores each message in S3 and Posta ingests it into the same routes as SMTP. SNS/SQS delivery events update message history; hard bounces and complaints go on the originating server’s suppression list.
-- **Control.** Choose an AWS region per domain. Region quotas and send rates are independent; Posta coordinates rate limits across workers and retries temporary failures. Legacy direct SMTP delivery and IP pools remain available with `POSTA_DELIVERY_PROVIDER=smtp`.
-- **Visibility.** A delivery history with the remote server's response to each attempt. Held messages can be released and failed ones retried. Signed webhooks fire for `MessageSent`, `MessageDelayed`, `MessageDeliveryFailed` and `MessageHeld`.
-- **Tracking.** Optional open and click tracking, served from a tracking domain of your own.
-
-The [changelog](CHANGELOG.md) has the full list.
-
-## Quick start
-
-You need Bun 1.3 or newer, PostgreSQL 16 (the Compose file runs one), an AWS account with SES access, and a free [Clerk](https://dashboard.clerk.com) application for signing in to the dashboard. Follow [AWS setup](doc/config/aws-ses.md) to provision SES, SNS and SQS in your chosen regions, then fill in the AWS values in `.env`.
+One command, in an empty directory, no clone needed:
 
 ```sh
-git clone https://github.com/ChxisB/posta.git
-cd posta
-bun install
-docker compose up -d postgres
-cp .env.example .env     # then set Clerk keys and the AWS values from the setup guide
-bun run start            # the API on 5001, SMTP on 2525 and the delivery worker
-bun run start:frontend   # the dashboard on http://localhost:3000
+npx @tack-labs/posta-setup
 ```
 
-Open http://localhost:3000. The setup screen checks that the API, the database and the Clerk keys are ready, then has you create the admin account. After that, only people an administrator adds can sign in. The setup wizard then takes you through to a domain and an API key.
+The wizard creates `.env` (secrets generated for you), optionally provisions
+the AWS resources (IAM user, SNS event topic, SES configuration set), and
+starts the prebuilt image with `docker compose up -d`. Every step is offered,
+skippable, and safe to re-run. Prefer doing it by hand? The manual curl path
+and everything else (from-source build, SES/SNS event pipeline, Docker-less
+development) is in [SELF_HOSTING.md](SELF_HOSTING.md).
 
-## Sending an email
+Dashboard at http://localhost:3000, API at http://localhost:3001.
 
-### Over HTTP
+## License
 
-Pass your mail server's API key in the `X-Server-API-Key` header:
+[MIT](LICENSE) © Chris Beckett. That covers the platform, the SDKs in `packages/sdk`
+(npm: `@tack-labs/posta`, PyPI: `posta-sdk`) and the CLI.
 
-```sh
-curl http://localhost:5001/api/v1/send \
-  -H "X-Server-API-Key: $POSTA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "from": "orders@acme.example",
-    "to": ["maya.patel@example.com"],
-    "subject": "Order #10482 confirmed",
-    "plain_body": "Thanks for your order. We will email you again when it ships.",
-    "html_body": "<p>Thanks for your order. We will email you again when it ships.</p>",
-    "tag": "order-confirmation"
-  }'
-```
+The Posta name, wordmark, and logos are not licensed under the MIT License.
 
-Posta queues one message for each recipient and returns their IDs:
+## Community
 
-```json
-{
-  "status": "success",
-  "time": 0.059,
-  "flags": {},
-  "data": {
-    "message_id": "<f4d8c8d2-5c58-443c-9297-b8c1de8d3ca5@posta>",
-    "messages": {
-      "maya.patel@example.com": { "id": 43, "token": "56937f6f5c19471b" }
-    }
-  }
-}
-```
-
-The same endpoint accepts `cc`, `bcc`, `reply_to`, custom `headers` and `attachments`. To send a message you've already built, `POST /api/v1/send/raw` takes `mail_from`, a `rcpt_to` array and the base64-encoded message as `data`.
-
-### Over SMTP
-
-Point any SMTP client at Posta. The username can be anything, and the password is one of the mail server's SMTP credentials.
-
-```js
-import nodemailer from 'nodemailer';
-
-const transporter = nodemailer.createTransport({
-  host: 'localhost',
-  port: 2525, // 25 in production
-  auth: { user: 'posta', pass: process.env.POSTA_SMTP_KEY },
-});
-
-await transporter.sendMail({
-  from: 'Acme <orders@acme.example>',
-  to: 'chloe.martin@example.fr',
-  subject: 'Your order has shipped',
-  text: 'Good news: your order is on its way.',
-});
-```
-
-## How it fits together
-
-```
-your app ── HTTP ──▶ API ────┐
-         ── SMTP ──▶ SMTP ───┴─▶ PostgreSQL ── LISTEN/NOTIFY ──▶ worker ──▶ AWS SES ──▶ recipient
-                                                                   └──────▶ your webhooks
-```
-
-The API and the SMTP server store each message and queue it in PostgreSQL. The worker picks it up as soon as it's queued and sends it through the sender domain’s SES region. SES events arrive through SNS/SQS, update delivery history and trigger webhooks. Incoming messages arrive over SMTP or, for domains received by SES, through S3 and SNS/SQS, and follow the same routes either way. Each mail server keeps its messages in a PostgreSQL schema of its own.
-
-## Configuration
-
-Posta reads its settings from environment variables or a YAML file. See [AWS SES and multi-region setup](doc/config/aws-ses.md), [the configuration guide](doc/config/configuration.md) and the [full list of environment variables](doc/config/environment-variables.md).
-
-## Contributing
-
-Bug reports, fixes and features are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers how the code is laid out, running the tests and opening a pull request.
-
-## Licence
-
-[MIT](LICENSE) © Chris Beckett
+Questions, ideas and roadmap talk live in the [Discussions](https://github.com/ChxisB/posta/discussions).

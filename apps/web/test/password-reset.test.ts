@@ -1,0 +1,283 @@
+import type { SystemMailMessage } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import type { SimpleEmail } from "@posta/ses";
+import { createTestDb } from "@posta/test-utils";
+import { eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createAuth } from "@/server/auth";
+import {
+  buildResetEmail,
+  passwordRecoveryEnabled,
+  RESET_EMAIL_THROTTLE_MS,
+  type SystemMailDeps,
+  sendPasswordResetEmail,
+} from "@/server/system-mail";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+function stubRecoveryEnv() {
+  vi.stubEnv("AUTH_EMAIL_FROM", "Posta <no-reply@mail.example.com>");
+  vi.stubEnv("AWS_ACCESS_KEY_ID", "test-key");
+  vi.stubEnv("AWS_SECRET_ACCESS_KEY", "test-secret");
+  vi.stubEnv("AWS_DEFAULT_CHAIN", "");
+}
+
+describe("passwordRecoveryEnabled", () => {
+  it("requires SES credentials AND a sender address", () => {
+    vi.stubEnv("AUTH_EMAIL_FROM", "");
+    vi.stubEnv("AWS_ACCESS_KEY_ID", "");
+    vi.stubEnv("AWS_SECRET_ACCESS_KEY", "");
+    vi.stubEnv("AWS_DEFAULT_CHAIN", "");
+    expect(passwordRecoveryEnabled()).toBe(false);
+
+    vi.stubEnv("AUTH_EMAIL_FROM", "no-reply@mail.example.com");
+    expect(passwordRecoveryEnabled()).toBe(false);
+
+    vi.stubEnv("AWS_ACCESS_KEY_ID", "k");
+    vi.stubEnv("AWS_SECRET_ACCESS_KEY", "s");
+    expect(passwordRecoveryEnabled()).toBe(true);
+
+    vi.stubEnv("AUTH_EMAIL_FROM", "");
+    expect(passwordRecoveryEnabled()).toBe(false);
+  });
+
+  it("accepts the explicit default-provider-chain opt-in instead of keys", () => {
+    vi.stubEnv("AUTH_EMAIL_FROM", "no-reply@mail.example.com");
+    vi.stubEnv("AWS_ACCESS_KEY_ID", "");
+    vi.stubEnv("AWS_SECRET_ACCESS_KEY", "");
+    vi.stubEnv("AWS_DEFAULT_CHAIN", "true");
+    expect(passwordRecoveryEnabled()).toBe(true);
+  });
+});
+
+describe("buildResetEmail", () => {
+  beforeEach(stubRecoveryEnv);
+
+  it("localizes and carries the reset link in html and text", () => {
+    const en = buildResetEmail({
+      to: "ada@example.com",
+      url: "https://app.example.com/api/auth/reset-password/tok?callbackURL=%2Freset",
+      locale: "en",
+    });
+    expect(en.subject).toBe("Reset your Posta password");
+    expect(en.from).toBe("Posta <no-reply@mail.example.com>");
+    expect(en.text).toContain("Hi,");
+    expect(en.text).toContain("https://app.example.com/api/auth/reset-password/tok");
+    expect(en.text).toContain("30");
+    expect(en.html).toContain("reset-password/tok");
+  });
+});
+
+describe("sendPasswordResetEmail", () => {
+  let db: Db;
+  let close: () => Promise<void>;
+  let sent: SimpleEmail[];
+  let deps: SystemMailDeps;
+  const user = { id: "u1", email: "ada@example.com", name: "Ada" };
+
+  beforeEach(async () => {
+    stubRecoveryEnv();
+    ({ db, close } = await createTestDb());
+    await db.insert(schema.user).values({ id: user.id, name: user.name, email: user.email });
+    sent = [];
+    deps = {
+      send: async (message) => {
+        sent.push(message);
+      },
+    };
+  });
+
+  afterEach(async () => {
+    await close();
+  });
+
+  /** Mimics the verification row Better Auth writes before invoking the hook. */
+  async function requestReset(token: string, request?: Request) {
+    await db.insert(schema.verification).values({
+      id: `v-${token}`,
+      identifier: `reset-password:${token}`,
+      value: user.id,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    });
+    await sendPasswordResetEmail(
+      db,
+      { user, url: `https://x.com/r/${token}`, token },
+      request,
+      deps,
+    );
+  }
+
+  it("sends once, then silently skips repeats inside the throttle window", async () => {
+    await requestReset("tok1");
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]?.to).toBe(user.email);
+
+    await requestReset("tok2");
+    // The send is detached, so the skip shows in what comes next: a stray
+    // tok2 would land before tok3, once the window has passed.
+    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
+    await db.update(schema.verification).set({ createdAt: beforeWindow });
+    await requestReset("tok3");
+    await vi.waitFor(() => expect(sent).toHaveLength(2));
+    expect(sent[1]?.text).toContain("/r/tok3");
+  });
+
+  it("sends again once the previous request left the throttle window", async () => {
+    await requestReset("tok1");
+    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
+    await db
+      .update(schema.verification)
+      .set({ createdAt: beforeWindow })
+      .where(eq(schema.verification.id, "v-tok1"));
+
+    await requestReset("tok2");
+    await vi.waitFor(() => expect(sent).toHaveLength(2));
+  });
+
+  it("does nothing without a sender configured", async () => {
+    vi.stubEnv("AUTH_EMAIL_FROM", "");
+    await requestReset("tok1");
+    // Proven by the next send that does go out once a sender is back.
+    stubRecoveryEnv();
+    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
+    await db.update(schema.verification).set({ createdAt: beforeWindow });
+    await requestReset("tok2");
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]?.text).toContain("/r/tok2");
+  });
+
+  it("writes in English, the only language shipped, whatever was stored or asked", async () => {
+    // A stored language, a cookie and Accept-Language from when others shipped.
+    await db.update(schema.user).set({ locale: "pt-BR" }).where(eq(schema.user.id, user.id));
+    await requestReset(
+      "tok1",
+      new Request("https://x.com", {
+        headers: { cookie: "NEXT_LOCALE=pt-BR", "accept-language": "pt-BR,pt;q=0.9,en;q=0.5" },
+      }),
+    );
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]?.subject).toBe("Reset your Posta password");
+
+    const beforeWindow = new Date(Date.now() - RESET_EMAIL_THROTTLE_MS - 1000);
+    await db.update(schema.verification).set({ createdAt: beforeWindow });
+    await db.update(schema.user).set({ locale: null }).where(eq(schema.user.id, user.id));
+    await requestReset(
+      "tok2",
+      new Request("https://x.com", { headers: { "accept-language": "de" } }),
+    );
+    await vi.waitFor(() => expect(sent).toHaveLength(2));
+    expect(sent[1]?.subject).toBe("Reset your Posta password");
+  });
+
+  it("prints no part of the account's name, whatever it says", async () => {
+    // A name stored before names refused phone numbers.
+    const name = "Ada Lovelace, call 0800 555 0199";
+    await db.insert(schema.verification).values({
+      id: "v-named",
+      identifier: "reset-password:named",
+      value: user.id,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    });
+    await sendPasswordResetEmail(
+      db,
+      { user: { ...user, name }, url: "https://x.com/r/named", token: "named" },
+      undefined,
+      deps,
+    );
+    await vi.waitFor(() => expect(sent).toHaveLength(1));
+    const mail = sent[0];
+    for (const part of [mail?.subject, mail?.text, mail?.html]) {
+      expect(part).not.toMatch(/Ada|Lovelace|0800|555/);
+    }
+    expect(mail?.text).toMatch(/^Hi,$/m);
+  });
+});
+
+describe("request-password-reset endpoint", () => {
+  it("answers unknown and known emails with the identical response", async () => {
+    stubRecoveryEnv();
+    vi.stubEnv("BETTER_AUTH_SECRET", "0".repeat(32));
+    vi.stubEnv("APP_BASE_URL", "http://localhost:3000");
+    const { db, close } = await createTestDb();
+    try {
+      await db.insert(schema.user).values({ id: "u1", name: "Ada", email: "ada@example.com" });
+      const sent: SimpleEmail[] = [];
+      const auth = createAuth(db, {
+        send: async (message) => {
+          sent.push(message);
+        },
+      });
+      const post = (email: string) =>
+        auth.handler(
+          new Request("http://localhost:3000/api/auth/request-password-reset", {
+            method: "POST",
+            headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+            body: JSON.stringify({ email }),
+          }),
+        );
+
+      const known = await post("ada@example.com");
+      const unknown = await post("nobody@example.com");
+      expect(known.status).toBe(200);
+      expect(unknown.status).toBe(200);
+      expect(await unknown.json()).toEqual(await known.json());
+
+      await vi.waitFor(() => expect(sent).toHaveLength(1));
+      expect(sent[0]?.to).toBe("ada@example.com");
+      expect(sent[0]?.html).toContain("/reset-password/");
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe("password changed receipt", () => {
+  it("follows a completed reset and points at a fresh reset, never a bad token", async () => {
+    stubRecoveryEnv();
+    vi.stubEnv("BETTER_AUTH_SECRET", "test-secret-test-secret-test-secret-1234");
+    vi.stubEnv("APP_BASE_URL", "http://localhost:3000");
+    vi.stubEnv("ALLOW_SIGNUP", "true");
+    const { db, close } = await createTestDb();
+    try {
+      const sent: SystemMailMessage[] = [];
+      const auth = createAuth(db, { send: async (m) => void sent.push(m) });
+      await auth.api.signUpEmail({
+        body: { name: "Ada", email: "ada@example.com", password: "correct horse battery" },
+        headers: new Headers({ "accept-language": "en-US" }),
+      });
+      sent.length = 0;
+      await auth.api.requestPasswordReset({ body: { email: "ada@example.com", redirectTo: "/x" } });
+      await vi.waitFor(() => expect(sent).toHaveLength(1));
+      const token = sent[0]?.text.match(/reset-password\/([^?\s]+)/)?.[1] ?? "";
+      await expect(
+        auth.api.resetPassword({ body: { newPassword: "another horse battery", token: "nope" } }),
+      ).rejects.toBeTruthy();
+      expect(sent.map((m) => m.kind)).toEqual(["password_reset"]);
+      // Over HTTP, from a browser reading Portuguese: the receipt is still English.
+      const reset = await auth.handler(
+        new Request("http://localhost:3000/api/auth/reset-password", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            origin: "http://localhost:3000",
+            "accept-language": "pt-BR",
+          },
+          body: JSON.stringify({ newPassword: "another horse battery", token }),
+        }),
+      );
+      expect(reset.status).toBe(200);
+      await vi.waitFor(() => expect(sent).toHaveLength(2));
+      expect(sent.map((m) => m.kind)).toEqual(["password_reset", "password_changed"]);
+      expect(sent[1]).toMatchObject({
+        to: "ada@example.com",
+        subject: "Your Posta password was changed",
+      });
+      expect(sent[1]?.text).toContain("http://localhost:3000/forgot-password");
+    } finally {
+      await close();
+    }
+  });
+});

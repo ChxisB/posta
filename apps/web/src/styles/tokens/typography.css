@@ -1,0 +1,21 @@
+/* Posta type: Geist for everything (headings carry weight, not a second
+   family; the wordmark is an outlined SVG); JetBrains Mono for data. Both are
+   bundled through @fontsource in the root layout, never fetched from a CDN;
+   the system grotesque stands in until Geist has loaded. */
+:root {
+  --po-font-sans:
+    "Geist Variable", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial,
+    sans-serif;
+  --po-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --po-fs-micro: 11px; /* uppercase metadata labels; letter-spacing .08em */
+  --po-fs-badge: 12px; /* status badges, pills */
+  --po-fs-label: 13px; /* table headers and cells, form labels, timestamps */
+  --po-fs-ui: 14px; /* nav, buttons */
+  --po-fs-body: 15px; /* body copy, input values */
+  --po-fs-input-touch: 16px; /* text fields on touch screens only (DESIGN.md Controls) */
+  --po-fs-section: 17px; /* card section headings */
+  --po-fs-h2: 22px; /* card titles, drawer titles */
+  --po-fs-h1: 30px; /* page titles */
+  --po-fs-kpi: 40px; /* metric numbers (digits style) */
+  --po-fs-price: 44px; /* plan prices (digits style) */
+}

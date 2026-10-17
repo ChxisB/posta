@@ -1,0 +1,291 @@
+import { PLAN_TEAM_LIMIT, SUSPENSION_REASONS } from "@posta/core";
+import type { Db } from "@posta/db";
+import { schema } from "@posta/db";
+import { createTestDb, REAL_NAMES, REFUSED_NAMES } from "@posta/test-utils";
+import { eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getActiveMembership } from "@/server/membership";
+import { createCaller } from "@/server/routers";
+import type { Context } from "@/server/trpc";
+
+// The request language server-side refusals are written in (NEXT_LOCALE).
+const locale = vi.hoisted(() => ({ cookie: undefined as string | undefined }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: () => (locale.cookie ? { value: locale.cookie } : undefined),
+  }),
+}));
+
+let db: Db;
+let close: () => Promise<void>;
+
+beforeEach(async () => {
+  ({ db, close } = await createTestDb());
+});
+
+afterEach(async () => {
+  vi.unstubAllEnvs();
+  locale.cookie = undefined;
+  await close();
+});
+
+async function insertUser(id: string, email: string): Promise<void> {
+  await db.insert(schema.user).values({ id, name: id, email });
+}
+
+function callerFor(userId: string, overrides: Partial<Context> = {}) {
+  return createCaller({
+    db,
+    session: { user: { id: userId, email: `${userId}@example.com`, name: userId } },
+    teamId: null,
+    role: null,
+    ...overrides,
+  });
+}
+
+describe("team.createTeam", () => {
+  it("creates the team and an owner membership", async () => {
+    await insertUser("u1", "u1@example.com");
+    const { teamId } = await callerFor("u1").team.createTeam({ name: "Acme Inc" });
+
+    const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, teamId));
+    expect(team?.name).toBe("Acme Inc");
+    expect(team?.slug).toBe("acme-inc");
+
+    const members = await db
+      .select()
+      .from(schema.teamMembers)
+      .where(eq(schema.teamMembers.teamId, teamId));
+    expect(members).toHaveLength(1);
+    expect(members[0]?.userId).toBe("u1");
+    expect(members[0]?.role).toBe("owner");
+  });
+
+  it("refuses a name that could read as a link or hide characters; real names in any script are fine", async () => {
+    await insertUser("u1", "u1@example.com");
+    for (const name of REFUSED_NAMES) {
+      await expect(callerFor("u1").team.createTeam({ name }), name).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+      });
+    }
+    expect(await db.select().from(schema.teams)).toEqual([]);
+    for (const name of REAL_NAMES) {
+      const { teamId } = await callerFor("u1").team.createTeam({ name });
+      const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, teamId));
+      expect(team?.name, name).toBe(name);
+    }
+  });
+
+  it("creates a team named after a brand and flags it for the operator, naming the brand", async () => {
+    await insertUser("u1", "u1@example.com");
+    const flagOf = async (name: string) => {
+      const { teamId } = await callerFor("u1").team.createTeam({ name });
+      const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, teamId));
+      expect(team?.name, name).toBe(name);
+      return db
+        .select({ reason: schema.teamFlags.reason, detail: schema.teamFlags.detail })
+        .from(schema.teamFlags)
+        .where(eq(schema.teamFlags.teamId, teamId));
+    };
+    expect(await flagOf("Rnicrosoft 0ffice 365")).toEqual([
+      { reason: "brand", detail: { brand: "Microsoft" } },
+    ]);
+    expect(await flagOf("Vivo")).toEqual([{ reason: "brand", detail: { brand: "Vivo" } }]);
+    expect(await flagOf("Vivo Bem Nutrição")).toEqual([]);
+    expect(await flagOf("Acme Inc")).toEqual([]);
+  });
+
+  it("suffixes the slug when the name collides", async () => {
+    await insertUser("u1", "u1@example.com");
+    await insertUser("u2", "u2@example.com");
+    const first = await callerFor("u1").team.createTeam({ name: "Acme" });
+    const second = await callerFor("u2").team.createTeam({ name: "Acme" });
+
+    expect(second.teamId).not.toBe(first.teamId);
+    const [team] = await db.select().from(schema.teams).where(eq(schema.teams.id, second.teamId));
+    expect(team?.slug).toMatch(/^acme-[0-9a-f]{6}$/);
+  });
+
+  it("creates a second, distinct team for an already-onboarded user", async () => {
+    await insertUser("u1", "u1@example.com");
+    const { teamId } = await callerFor("u1").team.createTeam({ name: "Acme" });
+    const second = await callerFor("u1", { teamId, role: "owner" }).team.createTeam({
+      name: "Other",
+    });
+    expect(second.teamId).not.toBe(teamId);
+    const memberships = await db
+      .select()
+      .from(schema.teamMembers)
+      .where(eq(schema.teamMembers.userId, "u1"));
+    expect(memberships).toHaveLength(2);
+  });
+
+  it("caps owned teams per user on cloud; memberships elsewhere do not count", async () => {
+    vi.stubEnv("IS_CLOUD", "true");
+    await insertUser("u1", "u1@example.com");
+    await insertUser("u2", "u2@example.com");
+    const theirs = await callerFor("u2").team.createTeam({ name: "Theirs" });
+    await db.insert(schema.teamMembers).values({ teamId: theirs.teamId, userId: "u1" });
+    for (let i = 0; i < PLAN_TEAM_LIMIT.free; i++) {
+      await callerFor("u1").team.createTeam({ name: `Team ${i}` });
+    }
+    await expect(callerFor("u1").team.createTeam({ name: "One more" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    vi.stubEnv("IS_CLOUD", "");
+    await expect(callerFor("u1").team.createTeam({ name: "Self-host" })).resolves.toBeTruthy();
+  });
+
+  it("the ladder's team caps climb with the plan", () => {
+    expect(PLAN_TEAM_LIMIT.starter).toBeGreaterThan(PLAN_TEAM_LIMIT.free);
+    expect(PLAN_TEAM_LIMIT.starter).toBeLessThan(PLAN_TEAM_LIMIT.pro);
+    expect(PLAN_TEAM_LIMIT.pro).toBeLessThan(PLAN_TEAM_LIMIT.scale);
+  });
+
+  it("owning a paid team raises the cap; being a member of one does not", async () => {
+    vi.stubEnv("IS_CLOUD", "true");
+    await insertUser("u1", "u1@example.com");
+    await insertUser("u2", "u2@example.com");
+    // u1 is a member of u2's Scale team: no effect on u1's own cap.
+    const theirs = await callerFor("u2").team.createTeam({ name: "Theirs" });
+    await db.update(schema.teams).set({ plan: "scale" }).where(eq(schema.teams.id, theirs.teamId));
+    await db.insert(schema.teamMembers).values({ teamId: theirs.teamId, userId: "u1" });
+    const first = await callerFor("u1").team.createTeam({ name: "Mine" });
+    for (let i = 1; i < PLAN_TEAM_LIMIT.free; i++) {
+      await callerFor("u1").team.createTeam({ name: `Team ${i}` });
+    }
+    await expect(callerFor("u1").team.createTeam({ name: "One more" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    // One of u1's own teams goes Pro: room for more.
+    await db.update(schema.teams).set({ plan: "pro" }).where(eq(schema.teams.id, first.teamId));
+    for (let i = PLAN_TEAM_LIMIT.free; i < PLAN_TEAM_LIMIT.pro; i++) {
+      await callerFor("u1").team.createTeam({ name: `Team ${i}` });
+    }
+    await expect(callerFor("u1").team.createTeam({ name: "Past pro" })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+    vi.stubEnv("IS_CLOUD", "");
+  });
+
+  it("selects the new team via the cookie setter", async () => {
+    await insertUser("u1", "u1@example.com");
+    const cookies: string[] = [];
+    const { teamId } = await callerFor("u1", {
+      setActiveTeamCookie: (id) => cookies.push(id),
+    }).team.createTeam({ name: "Acme" });
+    expect(cookies).toEqual([teamId]);
+  });
+
+  it("rejects unauthenticated callers", async () => {
+    const caller = createCaller({ db, session: null, teamId: null, role: null });
+    await expect(caller.team.createTeam({ name: "Acme" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("refuses anyone in a team suspended for phishing or held for review, owner or member; other suspensions do not count", async () => {
+    await insertUser("owner", "owner@example.com");
+    await insertUser("member", "member@example.com");
+    await insertUser("outsider", "outsider@example.com");
+    const { teamId } = await callerFor("owner").team.createTeam({ name: "Phish" });
+    await db.insert(schema.teamMembers).values({ teamId, userId: "member", role: "member" });
+
+    // Every reason the schema has, so `review` is covered once it exists.
+    const silent: readonly string[] = ["phishing", "review"];
+    for (const reason of SUSPENSION_REASONS) {
+      await db
+        .update(schema.teams)
+        .set({ suspendedAt: new Date(), suspensionReason: reason })
+        .where(eq(schema.teams.id, teamId));
+      for (const user of ["owner", "member"]) {
+        if (!silent.includes(reason)) {
+          await callerFor(user).team.createTeam({ name: `Allowed ${reason}` });
+          continue;
+        }
+        await expect(
+          callerFor(user).team.createTeam({ name: "Again" }),
+          `${reason} ${user}`,
+        ).rejects.toMatchObject({
+          code: "PRECONDITION_FAILED",
+          message:
+            "This isn't available for this team right now. Contact support if you need help.",
+        });
+      }
+    }
+    await db
+      .update(schema.teams)
+      .set({ suspendedAt: new Date(), suspensionReason: "phishing" })
+      .where(eq(schema.teams.id, teamId));
+    // A cookie naming a language that is no longer shipped still gets English.
+    locale.cookie = "pt-BR";
+    await expect(callerFor("owner").team.createTeam({ name: "Again" })).rejects.toMatchObject({
+      message: "This isn't available for this team right now. Contact support if you need help.",
+    });
+    await callerFor("outsider").team.createTeam({ name: "Clean" });
+    expect(await db.select().from(schema.teams).where(eq(schema.teams.name, "Again"))).toEqual([]);
+  });
+});
+
+describe("team.switch", () => {
+  it("round-trips: sets the cookie and the resolver honors it", async () => {
+    await insertUser("u1", "u1@example.com");
+    const a = await callerFor("u1").team.createTeam({ name: "Alpha" });
+    const b = await callerFor("u1").team.createTeam({ name: "Beta" });
+
+    const cookies: string[] = [];
+    await callerFor("u1", { setActiveTeamCookie: (id) => cookies.push(id) }).team.switch({
+      teamId: b.teamId,
+    });
+    expect(cookies).toEqual([b.teamId]);
+    expect((await getActiveMembership(db, "u1", b.teamId))?.teamId).toBe(b.teamId);
+    expect((await getActiveMembership(db, "u1", a.teamId))?.teamId).toBe(a.teamId);
+  });
+
+  it("forbids switching to a team the user is not a member of", async () => {
+    await insertUser("u1", "u1@example.com");
+    await insertUser("u2", "u2@example.com");
+    await callerFor("u1").team.createTeam({ name: "Mine" });
+    const theirs = await callerFor("u2").team.createTeam({ name: "Theirs" });
+
+    const cookies: string[] = [];
+    await expect(
+      callerFor("u1", { setActiveTeamCookie: (id) => cookies.push(id) }).team.switch({
+        teamId: theirs.teamId,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(cookies).toEqual([]);
+  });
+});
+
+describe("team.list", () => {
+  it("lists all memberships with plan and role plus the active team", async () => {
+    await insertUser("u1", "u1@example.com");
+    const a = await callerFor("u1").team.createTeam({ name: "Alpha" });
+    const b = await callerFor("u1").team.createTeam({ name: "Beta" });
+
+    const result = await callerFor("u1", { teamId: a.teamId, role: "owner" }).team.list();
+    expect(result.activeTeamId).toBe(a.teamId);
+    expect(result.teams.map((t) => t.teamId)).toEqual([a.teamId, b.teamId]);
+    expect(result.teams[0]).toMatchObject({ teamName: "Alpha", plan: "free", role: "owner" });
+  });
+});
+
+describe("getActiveMembership cookie fallback", () => {
+  it("ignores a cookie for a team the user is not a member of", async () => {
+    await insertUser("u1", "u1@example.com");
+    await insertUser("u2", "u2@example.com");
+    const mine = await callerFor("u1").team.createTeam({ name: "Mine" });
+    const theirs = await callerFor("u2").team.createTeam({ name: "Theirs" });
+
+    const resolved = await getActiveMembership(db, "u1", theirs.teamId);
+    expect(resolved?.teamId).toBe(mine.teamId);
+  });
+
+  it("ignores a cookie that references no team at all", async () => {
+    await insertUser("u1", "u1@example.com");
+    const mine = await callerFor("u1").team.createTeam({ name: "Mine" });
+    const resolved = await getActiveMembership(db, "u1", "nonexistent-id");
+    expect(resolved?.teamId).toBe(mine.teamId);
+  });
+});

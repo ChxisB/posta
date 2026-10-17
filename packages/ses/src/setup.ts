@@ -1,0 +1,753 @@
+import {
+  AttachUserPolicyCommand,
+  CreateAccessKeyCommand,
+  type CreateAccessKeyCommandOutput,
+  CreatePolicyCommand,
+  CreatePolicyVersionCommand,
+  CreateUserCommand,
+  DeleteAccessKeyCommand,
+  DeletePolicyCommand,
+  DeletePolicyVersionCommand,
+  DeleteUserCommand,
+  DetachUserPolicyCommand,
+  GetPolicyCommand,
+  type GetPolicyCommandOutput,
+  GetPolicyVersionCommand,
+  type GetPolicyVersionCommandOutput,
+  IAMClient,
+  ListAccessKeysCommand,
+  type ListAccessKeysCommandOutput,
+  ListPolicyVersionsCommand,
+  type ListPolicyVersionsCommandOutput,
+} from "@aws-sdk/client-iam";
+import { CreateBucketCommand, HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CreateConfigurationSetCommand,
+  CreateConfigurationSetEventDestinationCommand,
+  DeleteConfigurationSetCommand,
+  GetAccountCommand,
+  type GetAccountCommandOutput,
+  PutAccountPricingAttributesCommand,
+  PutAccountSuppressionAttributesCommand,
+  SESv2Client,
+} from "@aws-sdk/client-sesv2";
+import {
+  CreateTopicCommand,
+  type CreateTopicCommandOutput,
+  DeleteTopicCommand,
+  SetTopicAttributesCommand,
+  SNSClient,
+  SubscribeCommand,
+} from "@aws-sdk/client-sns";
+import {
+  CreateQueueCommand,
+  type CreateQueueCommandOutput,
+  DeleteQueueCommand,
+  GetQueueAttributesCommand,
+  type GetQueueAttributesCommandOutput,
+  GetQueueUrlCommand,
+  type GetQueueUrlCommandOutput,
+  SetQueueAttributesCommand,
+  SQSClient,
+} from "@aws-sdk/client-sqs";
+import {
+  httpsOrigin,
+  SES_EVENT_TYPES,
+  SES_IAM_POLICY,
+  SETUP_NAMES,
+  snsTopicPolicy,
+  sqsQueuePolicy,
+} from "./setup-constants.js";
+
+export * from "./setup-constants.js";
+
+export function setupPolicyArn(accountId: string): string {
+  return `arn:aws:iam::${accountId}:policy/${SETUP_NAMES.policy}`;
+}
+
+export function setupTopicArn(region: string, accountId: string): string {
+  return `arn:aws:sns:${region}:${accountId}:${SETUP_NAMES.topic}`;
+}
+
+type SetupIamCommand =
+  | CreatePolicyCommand
+  | GetPolicyCommand
+  | GetPolicyVersionCommand
+  | ListPolicyVersionsCommand
+  | CreatePolicyVersionCommand
+  | DeletePolicyVersionCommand
+  | CreateUserCommand
+  | AttachUserPolicyCommand
+  | CreateAccessKeyCommand
+  | ListAccessKeysCommand
+  | DeleteAccessKeyCommand
+  | DetachUserPolicyCommand
+  | DeleteUserCommand
+  | DeletePolicyCommand;
+
+type SetupSnsCommand =
+  | CreateTopicCommand
+  | SetTopicAttributesCommand
+  | SubscribeCommand
+  | DeleteTopicCommand;
+
+type SetupSqsCommand =
+  | CreateQueueCommand
+  | GetQueueUrlCommand
+  | GetQueueAttributesCommand
+  | SetQueueAttributesCommand
+  | DeleteQueueCommand;
+
+type SetupSesCommand =
+  | CreateConfigurationSetCommand
+  | CreateConfigurationSetEventDestinationCommand
+  | DeleteConfigurationSetCommand
+  | PutAccountSuppressionAttributesCommand
+  | GetAccountCommand
+  | PutAccountPricingAttributesCommand;
+
+/**
+ * Structural subsets of the AWS clients so tests inject fakes
+ * (mirrors SesAccountClient in account.ts).
+ */
+export interface SetupIamClient {
+  send(command: SetupIamCommand): Promise<unknown>;
+}
+export interface SetupSnsClient {
+  send(command: SetupSnsCommand): Promise<unknown>;
+}
+export interface SetupSqsClient {
+  send(command: SetupSqsCommand): Promise<unknown>;
+}
+export interface SetupSesClient {
+  send(command: SetupSesCommand): Promise<unknown>;
+}
+
+export interface SetupClients {
+  iam: SetupIamClient;
+  sns: SetupSnsClient;
+  sqs: SetupSqsClient;
+  ses: SetupSesClient;
+}
+
+/**
+ * Real clients on the SDK default provider chain: the setup CLI runs with the
+ * operator's own admin credentials (profile/env), never the app's send key.
+ * The SQS client follows the events queue, which lives in the first region
+ * an install was set up in when a later region is added.
+ */
+export function createSetupClients(region: string, queueRegion = region): SetupClients {
+  return {
+    iam: new IAMClient({ region }),
+    sns: new SNSClient({ region }),
+    sqs: new SQSClient({ region: queueRegion }),
+    ses: new SESv2Client({ region }),
+  };
+}
+
+/**
+ * The queue's region and ARN from its standard URL
+ * (https://sqs.<region>.amazonaws.com/<account>/<name>); null for any other
+ * shape, which the add-region flow then leaves to the operator.
+ */
+export function parseSqsQueueUrl(url: string): { region: string; arn: string } | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  const host = /^sqs\.([a-z0-9-]+)\.amazonaws\.com$/.exec(parsed.hostname);
+  const path = /^\/(\d{12})\/([\w-]+)$/.exec(parsed.pathname);
+  const region = host?.[1];
+  const account = path?.[1];
+  const name = path?.[2];
+  if (!region || !account || !name) return null;
+  return { region, arn: `arn:aws:sqs:${region}:${account}:${name}` };
+}
+
+export interface SetupInput {
+  region: string;
+  accountId: string;
+  /** Events always land in an SQS queue the worker polls; an https URL is pushed to as well. */
+  appBaseUrl?: string | null | undefined;
+  onStep?: ((line: string) => void) | undefined;
+  /**
+   * Adding a region: subscribe its topic to this existing events queue
+   * (another region's) instead of creating one, and keep the topics its
+   * policy already allows alongside the new one.
+   */
+  existingQueue?: { url: string; topicArns: readonly string[] } | undefined;
+}
+
+export interface SetupResult {
+  accessKeyId: string;
+  secretAccessKey: string;
+  topicArn: string | null;
+  /** The events queue every deployment polls; null only when events were skipped (topicArn null too). */
+  queueUrl: string | null;
+}
+
+/** Plan lines for the events part alone (SNS route + configuration set). */
+export function eventsPlan(input: Pick<SetupInput, "region" | "appBaseUrl">): string[] {
+  const origin = httpsOrigin(input.appBaseUrl);
+  return [
+    `SNS topic ${SETUP_NAMES.topic} in ${input.region}, delivering to SQS queue ${SETUP_NAMES.queue} (the worker polls it)${origin ? `, also subscribed to ${origin}/ses/events` : ""}`,
+    `SES configuration set ${SETUP_NAMES.configurationSet} publishing ${SES_EVENT_TYPES.length} event types to the topic`,
+  ];
+}
+
+/** Plan lines for adding a region to an install that already has one. */
+export function addRegionPlan(input: {
+  region: string;
+  queueUrl: string;
+  appBaseUrl?: string | null | undefined;
+}): string[] {
+  const origin = httpsOrigin(input.appBaseUrl);
+  return [
+    `IAM user ${SETUP_NAMES.user} and policy ${SETUP_NAMES.policy}: kept (IAM is global; the policy document is brought up to date), no new access key`,
+    `SNS topic ${SETUP_NAMES.topic} in ${input.region}, delivering into the existing events queue ${input.queueUrl}${origin ? `, also subscribed to ${origin}/ses/events` : ""}`,
+    `SES configuration set ${SETUP_NAMES.configurationSet} in ${input.region} publishing ${SES_EVENT_TYPES.length} event types to the topic`,
+    `SES account-level suppression in ${input.region}: bounces only`,
+    `.env: ${input.region} appended to AWS_REGIONS and the topic ARN to SNS_TOPIC_ARNS (AWS_REGION and SQS_QUEUE_URL unchanged)`,
+  ];
+}
+
+/** Human-readable plan of what runSetup creates with the same input. */
+export function setupPlan(input: Pick<SetupInput, "region" | "appBaseUrl">): string[] {
+  return [
+    `IAM policy ${SETUP_NAMES.policy} (minimal SES send + identity actions)`,
+    `IAM user ${SETUP_NAMES.user} with the policy attached`,
+    `Access key for ${SETUP_NAMES.user}: a NEW key on every run`,
+    ...eventsPlan(input),
+  ];
+}
+
+function errorName(error: unknown): string {
+  return (error as { name?: string }).name ?? "";
+}
+
+/** Awaits the send, swallowing only the given already-exists/not-found error names. */
+async function ignoring(promise: Promise<unknown>, names: string[]): Promise<void> {
+  try {
+    await promise;
+  } catch (error) {
+    if (!names.includes(errorName(error))) throw error;
+  }
+}
+
+/** IAM's cap on versions per managed policy. */
+const IAM_POLICY_VERSION_LIMIT = 5;
+
+/** GetPolicyVersion returns the document URL-encoded; compare structurally. */
+function isCurrentPolicyDocument(encoded: string | undefined): boolean {
+  if (!encoded) return false;
+  try {
+    return (
+      JSON.stringify(JSON.parse(decodeURIComponent(encoded))) === JSON.stringify(SES_IAM_POLICY)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * An adopted policy keeps the document it was created with, so an instance
+ * provisioned before an action or resource scope was added would stay short
+ * of it. Brings the default version up to SES_IAM_POLICY when it differs,
+ * dropping the oldest non-default version first when IAM's cap is reached.
+ * Returns true when a new version was published.
+ */
+export async function syncAdoptedPolicy(iam: SetupIamClient, policyArn: string): Promise<boolean> {
+  const policy = (await iam.send(
+    new GetPolicyCommand({ PolicyArn: policyArn }),
+  )) as GetPolicyCommandOutput;
+  const defaultVersionId = policy.Policy?.DefaultVersionId;
+  if (!defaultVersionId) return false;
+  const current = (await iam.send(
+    new GetPolicyVersionCommand({ PolicyArn: policyArn, VersionId: defaultVersionId }),
+  )) as GetPolicyVersionCommandOutput;
+  if (isCurrentPolicyDocument(current.PolicyVersion?.Document)) return false;
+
+  const listed = (await iam.send(
+    new ListPolicyVersionsCommand({ PolicyArn: policyArn }),
+  )) as ListPolicyVersionsCommandOutput;
+  const versions = listed.Versions ?? [];
+  if (versions.length >= IAM_POLICY_VERSION_LIMIT) {
+    const oldest = versions
+      .filter((v) => !v.IsDefaultVersion && v.VersionId)
+      .sort((a, b) => (a.CreateDate?.getTime() ?? 0) - (b.CreateDate?.getTime() ?? 0))[0];
+    if (oldest?.VersionId) {
+      await iam.send(
+        new DeletePolicyVersionCommand({ PolicyArn: policyArn, VersionId: oldest.VersionId }),
+      );
+    }
+  }
+  await iam.send(
+    new CreatePolicyVersionCommand({
+      PolicyArn: policyArn,
+      PolicyDocument: JSON.stringify(SES_IAM_POLICY),
+      SetAsDefault: true,
+    }),
+  );
+  return true;
+}
+
+/**
+ * Creates everything Posta needs in AWS. Re-runnable: resources that
+ * already exist are adopted, but every run mints a NEW access key.
+ */
+export async function runSetup(clients: SetupClients, input: SetupInput): Promise<SetupResult> {
+  const step = input.onStep ?? (() => {});
+
+  step(`IAM policy ${SETUP_NAMES.policy}`);
+  try {
+    await clients.iam.send(
+      new CreatePolicyCommand({
+        PolicyName: SETUP_NAMES.policy,
+        PolicyDocument: JSON.stringify(SES_IAM_POLICY),
+      }),
+    );
+  } catch (error) {
+    if (errorName(error) !== "EntityAlreadyExistsException") throw error;
+    if (await syncAdoptedPolicy(clients.iam, setupPolicyArn(input.accountId))) {
+      step(`IAM policy ${SETUP_NAMES.policy}: updated to the current document`);
+    }
+  }
+
+  step(`IAM user ${SETUP_NAMES.user}`);
+  await ignoring(clients.iam.send(new CreateUserCommand({ UserName: SETUP_NAMES.user })), [
+    "EntityAlreadyExistsException",
+  ]);
+  await clients.iam.send(
+    new AttachUserPolicyCommand({
+      UserName: SETUP_NAMES.user,
+      PolicyArn: setupPolicyArn(input.accountId),
+    }),
+  );
+
+  step("Access key");
+  let key: CreateAccessKeyCommandOutput;
+  try {
+    key = (await clients.iam.send(
+      new CreateAccessKeyCommand({ UserName: SETUP_NAMES.user }),
+    )) as CreateAccessKeyCommandOutput;
+  } catch (error) {
+    if (errorName(error) === "LimitExceededException") {
+      throw new Error(
+        `user ${SETUP_NAMES.user} already has the IAM maximum of 2 access keys: delete a stale one in the IAM console and re-run`,
+      );
+    }
+    throw error;
+  }
+  const accessKeyId = key.AccessKey?.AccessKeyId;
+  const secretAccessKey = key.AccessKey?.SecretAccessKey;
+  if (!accessKeyId || !secretAccessKey) throw new Error("CreateAccessKey returned no key material");
+
+  const events = await runEventsSetup(clients, input);
+  return { accessKeyId, secretAccessKey, topicArn: events.topicArn, queueUrl: events.queueUrl };
+}
+
+export interface EventsSetupResult {
+  topicArn: string;
+  /** The events queue every deployment polls. */
+  queueUrl: string;
+}
+
+/**
+ * The events part alone: SNS topic, the SQS queue the worker polls, the
+ * optional https push, and the SES configuration set. Needs no IAM changes
+ * (the queue policy grants the send user its reads), so a deployment that
+ * already has its access key can gain event ingestion without minting another
+ * one.
+ */
+export async function runEventsSetup(
+  clients: SetupClients,
+  input: SetupInput,
+): Promise<EventsSetupResult> {
+  const step = input.onStep ?? (() => {});
+  const origin = httpsOrigin(input.appBaseUrl);
+
+  step(`SNS topic ${SETUP_NAMES.topic}`);
+  // CreateTopic is idempotent: it returns the existing topic's ARN.
+  const topic = (await clients.sns.send(
+    new CreateTopicCommand({ Name: SETUP_NAMES.topic }),
+  )) as CreateTopicCommandOutput;
+  if (!topic.TopicArn) throw new Error("CreateTopic returned no ARN");
+  const topicArn = topic.TopicArn;
+  await clients.sns.send(
+    new SetTopicAttributesCommand({
+      TopicArn: topicArn,
+      AttributeName: "Policy",
+      AttributeValue: JSON.stringify(snsTopicPolicy(topicArn, input.accountId)),
+    }),
+  );
+
+  // The queue is the transport every deployment gets: it buffers through
+  // restarts and deploys and needs no inbound reachability, so switching the
+  // base URL later can never silently orphan the events. A same-account
+  // SNS→SQS subscription needs no confirmation handshake, across regions
+  // too, so an added region's topic joins the one existing queue.
+  let queueUrl: string;
+  let queueArn: string;
+  if (input.existingQueue) {
+    const queue = parseSqsQueueUrl(input.existingQueue.url);
+    if (!queue) throw new Error(`not a standard SQS queue URL: ${input.existingQueue.url}`);
+    queueUrl = input.existingQueue.url;
+    queueArn = queue.arn;
+    step(`SQS events queue ${queueArn} (existing, in ${queue.region})`);
+  } else {
+    step(`SQS events queue ${SETUP_NAMES.queue}`);
+    let created: string | undefined;
+    try {
+      const out = (await clients.sqs.send(
+        new CreateQueueCommand({ QueueName: SETUP_NAMES.queue }),
+      )) as CreateQueueCommandOutput;
+      created = out.QueueUrl;
+    } catch (error) {
+      // Attribute drift on an existing queue: adopt it instead of failing.
+      if (!["QueueNameExists", "QueueAlreadyExists"].includes(errorName(error))) throw error;
+      const existing = (await clients.sqs.send(
+        new GetQueueUrlCommand({ QueueName: SETUP_NAMES.queue }),
+      )) as GetQueueUrlCommandOutput;
+      created = existing.QueueUrl;
+    }
+    if (!created) throw new Error("CreateQueue returned no URL");
+    queueUrl = created;
+    const attrs = (await clients.sqs.send(
+      new GetQueueAttributesCommand({ QueueUrl: queueUrl, AttributeNames: ["QueueArn"] }),
+    )) as GetQueueAttributesCommandOutput;
+    const arn = attrs.Attributes?.QueueArn;
+    if (!arn) throw new Error("GetQueueAttributes returned no QueueArn");
+    queueArn = arn;
+  }
+  // Overwritten on every run, so re-runs heal a hand-edited policy; the
+  // topics of the other served regions stay allowed.
+  const topicArns = [...new Set([...(input.existingQueue?.topicArns ?? []), topicArn])];
+  await clients.sqs.send(
+    new SetQueueAttributesCommand({
+      QueueUrl: queueUrl,
+      Attributes: {
+        Policy: JSON.stringify(sqsQueuePolicy(queueArn, topicArns, input.accountId)),
+      },
+    }),
+  );
+  await clients.sns.send(
+    new SubscribeCommand({ TopicArn: topicArn, Protocol: "sqs", Endpoint: queueArn }),
+  );
+  if (origin) {
+    // Lower-latency push on top of the queue; the app dedupes the two
+    // deliveries on the SNS MessageId. Re-subscribing the same endpoint
+    // returns the existing subscription.
+    await clients.sns.send(
+      new SubscribeCommand({
+        TopicArn: topicArn,
+        Protocol: "https",
+        Endpoint: `${origin}/ses/events`,
+      }),
+    );
+  }
+
+  step(`SES configuration set ${SETUP_NAMES.configurationSet}`);
+  await ignoring(
+    clients.ses.send(
+      new CreateConfigurationSetCommand({
+        ConfigurationSetName: SETUP_NAMES.configurationSet,
+      }),
+    ),
+    ["AlreadyExistsException"],
+  );
+  await ignoring(
+    clients.ses.send(
+      new CreateConfigurationSetEventDestinationCommand({
+        ConfigurationSetName: SETUP_NAMES.configurationSet,
+        EventDestinationName: SETUP_NAMES.eventDestination,
+        EventDestination: {
+          Enabled: true,
+          MatchingEventTypes: [...SES_EVENT_TYPES],
+          SnsDestination: { TopicArn: topicArn },
+        },
+      }),
+    ),
+    ["AlreadyExistsException"],
+  );
+
+  // SES's account-level suppression list is regional and shared by every
+  // team on the instance. A hard-bounced mailbox is dead for everyone, so
+  // SES may stop those account-wide; a spam report is about one sender's
+  // mail, and Posta already suppresses it for that team alone: left
+  // on the SES list it would also block an unrelated team's receipt or a
+  // password reset to the same person.
+  step("SES account-level suppression: bounces only (complaints are per team)");
+  await clients.ses.send(
+    new PutAccountSuppressionAttributesCommand({ SuppressedReasons: ["BOUNCE"] }),
+  );
+
+  return { topicArn, queueUrl };
+}
+
+/**
+ * Since 2026-07-21 an SES account × region with no prior sending starts on
+ * the Essentials pricing plan; nothing Posta uses needs a plan.
+ */
+export const ESSENTIALS_WARNING =
+  "This region is on the SES Essentials pricing plan: $0.16 per 1,000 messages instead of the à la carte $0.10. Since 2026-07-21 an SES account × region with no prior sending starts on Essentials. Nothing Posta uses needs a plan, and cancelling a defaulted plan takes effect immediately.";
+
+/** The region's SES pricing plan (PricingAttributes.CurrentPlan); null when SES reports none. */
+export async function readPricingPlan(ses: SetupSesClient): Promise<string | null> {
+  const out = (await ses.send(new GetAccountCommand({}))) as GetAccountCommandOutput;
+  return out.PricingAttributes?.CurrentPlan ?? null;
+}
+
+/** Moves the region to à la carte pricing (plan NONE). */
+export async function cancelPricingPlan(ses: SetupSesClient): Promise<void> {
+  await ses.send(new PutAccountPricingAttributesCommand({ Plan: "NONE" }));
+}
+
+/** Human-readable plan of what runTeardown deletes. */
+export function teardownPlan(region: string): string[] {
+  return [
+    `SES configuration set ${SETUP_NAMES.configurationSet} (and its event destination)`,
+    `SNS topic ${SETUP_NAMES.topic} in ${region} (and its subscriptions)`,
+    `SQS events queue ${SETUP_NAMES.queue}`,
+    `ALL access keys of IAM user ${SETUP_NAMES.user}: a running server using them stops sending`,
+    `IAM user ${SETUP_NAMES.user} and policy ${SETUP_NAMES.policy}`,
+  ];
+}
+
+/** Deletes everything runSetup created. Missing resources are tolerated. */
+export async function runTeardown(
+  clients: SetupClients,
+  input: { region: string; accountId: string; onStep?: ((line: string) => void) | undefined },
+): Promise<void> {
+  const step = input.onStep ?? (() => {});
+
+  step(`SES configuration set ${SETUP_NAMES.configurationSet}`);
+  await ignoring(
+    clients.ses.send(
+      new DeleteConfigurationSetCommand({ ConfigurationSetName: SETUP_NAMES.configurationSet }),
+    ),
+    ["NotFoundException"],
+  );
+
+  step(`SNS topic ${SETUP_NAMES.topic}`);
+  await ignoring(
+    clients.sns.send(
+      new DeleteTopicCommand({ TopicArn: setupTopicArn(input.region, input.accountId) }),
+    ),
+    ["NotFoundException"],
+  );
+
+  step(`SQS events queue ${SETUP_NAMES.queue}`);
+  try {
+    const existing = (await clients.sqs.send(
+      new GetQueueUrlCommand({ QueueName: SETUP_NAMES.queue }),
+    )) as GetQueueUrlCommandOutput;
+    if (existing.QueueUrl) {
+      await clients.sqs.send(new DeleteQueueCommand({ QueueUrl: existing.QueueUrl }));
+    }
+  } catch (error) {
+    if (errorName(error) !== "QueueDoesNotExist") throw error;
+  }
+
+  step(`IAM user ${SETUP_NAMES.user}`);
+  let keys: ListAccessKeysCommandOutput | null = null;
+  try {
+    keys = (await clients.iam.send(
+      new ListAccessKeysCommand({ UserName: SETUP_NAMES.user }),
+    )) as ListAccessKeysCommandOutput;
+  } catch (error) {
+    if (errorName(error) !== "NoSuchEntityException") throw error;
+  }
+  for (const key of keys?.AccessKeyMetadata ?? []) {
+    if (!key.AccessKeyId) continue;
+    await clients.iam.send(
+      new DeleteAccessKeyCommand({ UserName: SETUP_NAMES.user, AccessKeyId: key.AccessKeyId }),
+    );
+  }
+  await ignoring(
+    clients.iam.send(
+      new DetachUserPolicyCommand({
+        UserName: SETUP_NAMES.user,
+        PolicyArn: setupPolicyArn(input.accountId),
+      }),
+    ),
+    ["NoSuchEntityException"],
+  );
+  await ignoring(clients.iam.send(new DeleteUserCommand({ UserName: SETUP_NAMES.user })), [
+    "NoSuchEntityException",
+  ]);
+
+  step(`IAM policy ${SETUP_NAMES.policy}`);
+  // DeletePolicy refuses while non-default versions (from adopt-time updates) remain.
+  const policyArn = setupPolicyArn(input.accountId);
+  try {
+    const listed = (await clients.iam.send(
+      new ListPolicyVersionsCommand({ PolicyArn: policyArn }),
+    )) as ListPolicyVersionsCommandOutput;
+    for (const version of listed.Versions ?? []) {
+      if (version.IsDefaultVersion || !version.VersionId) continue;
+      await clients.iam.send(
+        new DeletePolicyVersionCommand({ PolicyArn: policyArn, VersionId: version.VersionId }),
+      );
+    }
+    await clients.iam.send(new DeletePolicyCommand({ PolicyArn: policyArn }));
+  } catch (error) {
+    if (errorName(error) !== "NoSuchEntityException") throw error;
+  }
+}
+
+/** Default bucket names the storage step offers; the prompts allow overrides. */
+export const STORAGE_BUCKET_DEFAULTS = {
+  storage: "posta-storage",
+  backup: "posta-backups",
+} as const;
+
+type StorageCommand = HeadBucketCommand | CreateBucketCommand;
+
+/** Structural subset of S3Client so tests inject fakes (mirrors SetupClients). */
+export interface StorageClient {
+  send(command: StorageCommand): Promise<unknown>;
+}
+
+export interface StorageCredentials {
+  endpoint: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
+/**
+ * Real S3 client against the custom endpoint. region "auto" + forcePathStyle
+ * suit Cloudflare R2 (no bucket-subdomain DNS): the storage step's primary
+ * target; endpoints that need a real region fail the bucket calls and land on
+ * the step's warn-and-skip path.
+ */
+export function createStorageClient(credentials: StorageCredentials): StorageClient {
+  return new S3Client({
+    endpoint: credentials.endpoint,
+    region: "auto",
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+    },
+  });
+}
+
+/**
+ * Adopts the bucket when it exists, creates it when HeadBucket says 404.
+ * Anything else (bad credentials, unreachable endpoint, 403 on someone
+ * else's bucket) propagates so the caller warns and skips rather than
+ * creating against the wrong target.
+ */
+export async function ensureBucket(
+  client: StorageClient,
+  bucket: string,
+): Promise<"exists" | "created"> {
+  try {
+    await client.send(new HeadBucketCommand({ Bucket: bucket }));
+    return "exists";
+  } catch (error) {
+    const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+    const missing = ["NotFound", "NoSuchBucket"].includes(errorName(error)) || status === 404;
+    if (!missing) throw error;
+    await client.send(new CreateBucketCommand({ Bucket: bucket }));
+    return "created";
+  }
+}
+
+/**
+ * The .env entries the storage step produces. The S3_STORAGE_* pair is
+ * written only when the public URL is known: boot validation rejects the
+ * bucket without its URL, and the URL exists only after the operator enables
+ * public access by hand (the S3 API cannot).
+ */
+export function storageEnvEntries(input: {
+  credentials: StorageCredentials;
+  backupBucket: string;
+  storageBucket: string;
+  publicUrl: string;
+}): Record<string, string> {
+  const entries: Record<string, string> = {
+    S3_ENDPOINT: input.credentials.endpoint,
+    S3_ACCESS_KEY_ID: input.credentials.accessKeyId,
+    S3_SECRET_ACCESS_KEY: input.credentials.secretAccessKey,
+    S3_BACKUP_BUCKET: input.backupBucket,
+  };
+  if (input.publicUrl) {
+    entries.S3_STORAGE_BUCKET = input.storageBucket;
+    entries.S3_STORAGE_PUBLIC_URL = input.publicUrl;
+  }
+  return entries;
+}
+
+/** The .env entries a setup run produces, in the order they should print. */
+export function setupEnvEntries(region: string, result: SetupResult): Record<string, string> {
+  const entries: Record<string, string> = {
+    AWS_REGION: region,
+    AWS_ACCESS_KEY_ID: result.accessKeyId,
+    AWS_SECRET_ACCESS_KEY: result.secretAccessKey,
+  };
+  if (result.topicArn) {
+    entries.SNS_TOPIC_ARNS = result.topicArn;
+    entries.SES_CONFIGURATION_SET = SETUP_NAMES.configurationSet;
+  }
+  if (result.queueUrl) entries.SQS_QUEUE_URL = result.queueUrl;
+  return entries;
+}
+
+/**
+ * A dotenv-safe rendering of a value. CR/LF never survive (a line break would
+ * start a new line, and with it a new key), and anything outside the
+ * characters compose reads verbatim is quoted: single quotes when possible
+ * (nothing is interpolated inside them), double quotes otherwise.
+ */
+export function quoteEnvValue(value: string): string {
+  const flat = value.replace(/[\r\n]/g, "");
+  if (/^[\w@%+=:,./-]*$/.test(flat)) return flat;
+  if (!flat.includes("'")) return `'${flat}'`;
+  // ponytail: a "$" inside double quotes is left for compose to interpolate;
+  // write it as "$$" here if a value ever needs both quote kinds and a "$".
+  return `"${flat.replace(/[\\"]/g, "\\$&")}"`;
+}
+
+/** Inverse of quoteEnvValue for the two quote styles it writes. */
+export function unquoteEnvValue(raw: string): string {
+  const quote = raw[0];
+  if ((quote === "'" || quote === '"') && raw.length >= 2 && raw.endsWith(quote)) {
+    const inner = raw.slice(1, -1);
+    return quote === '"' ? inner.replace(/\\([\\"])/g, "$1") : inner;
+  }
+  return raw;
+}
+
+/**
+ * Rewrites `KEY=...` lines in a dotenv file, appending keys it does not have
+ * yet. Matching tolerates the dotenv variants a hand-edited file accumulates:
+ * leading whitespace, `export `, spaces around `=`, an empty value, so an
+ * existing line is always replaced in place instead of duplicated at the end.
+ * The first occurrence of a key wins; later duplicates of a managed key are
+ * removed. Comments and unmanaged lines pass through untouched.
+ */
+export function upsertEnv(content: string, entries: Record<string, string>): string {
+  const wanted = new Map(Object.entries(entries));
+  const replaced = new Set<string>();
+  const out: string[] = [];
+  for (const line of content.split("\n")) {
+    const key = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=/.exec(line)?.[1];
+    const value = key === undefined ? undefined : wanted.get(key);
+    if (key === undefined || value === undefined) {
+      out.push(line);
+    } else if (!replaced.has(key)) {
+      replaced.add(key);
+      out.push(`${key}=${quoteEnvValue(value)}`);
+    }
+  }
+  const missing = [...wanted].filter(([key]) => !replaced.has(key));
+  if (missing.length > 0) {
+    while (out.length > 0 && out[out.length - 1] === "") out.pop();
+    for (const [key, value] of missing) out.push(`${key}=${quoteEnvValue(value)}`);
+    out.push("");
+  }
+  return out.join("\n");
+}

@@ -1,0 +1,125 @@
+{
+  "appName": "Posta",
+  "meta": {
+    "title": "Posta · The open-source email platform",
+    "description": "Open-source, Resend-compatible email API on AWS SES. Self-host for free or use the cloud: 100 emails a day free, no card. Migrate from Resend with two env vars."
+  },
+  "copy": "Copy",
+  "copied": "Copied",
+  "close": "Close",
+  "info": "More information",
+  "exportCsv": "Export CSV",
+  "cancel": "Cancel",
+  "openNav": "Open navigation",
+  "sidebar": "Sidebar",
+  "signOut": "Log out",
+  "nameRule": "Names can't contain links, email addresses, phone numbers, line breaks or hidden characters, and can be up to {max} characters long.",
+  "accountMenu": {
+    "onboarding": "Onboarding",
+    "appearance": "Appearance",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  },
+  "teamSwitcher": {
+    "teams": "Teams",
+    "switch": "Switch team",
+    "create": "Create team",
+    "nameLabel": "Team name",
+    "submit": "Create",
+    "error": "Could not create the team. Try again.",
+    "limit": "You already own the maximum number of teams for your plan."
+  },
+  "select": {
+    "searchPlaceholder": "Search…",
+    "noResults": "No results."
+  },
+  "plan": {
+    "free": "Free",
+    "starter": "Starter",
+    "pro": "Pro",
+    "scale": "Scale",
+    "system": "System"
+  },
+  "commandPalette": {
+    "placeholder": "Type a command or jump to a resource…",
+    "navigate": "Navigate",
+    "actions": "Actions",
+    "createApiKey": "Create API key",
+    "addDomain": "Add domain",
+    "noResults": "No results.",
+    "hintNavigate": "navigate",
+    "hintOpen": "open",
+    "hintClose": "close"
+  },
+  "status": {
+    "queued": "Queued",
+    "queued_quota": "Waiting",
+    "sent": "Sent",
+    "delivery_delayed": "Delivery delayed",
+    "delivered": "Delivered",
+    "opened": "Opened",
+    "clicked": "Clicked",
+    "bounced": "Bounced",
+    "complained": "Complained",
+    "suppressed": "Suppressed",
+    "failed": "Failed",
+    "canceled": "Canceled",
+    "verified": "Verified",
+    "pending": "Pending",
+    "partial": "Partial"
+  },
+  "band": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "needs_attention": "Needs attention",
+    "at_risk": "At risk"
+  },
+  "unsavedWarn": "You have unsaved changes. Leave this page?",
+  "draftRecovered": "Recovered unsaved changes ({time}).",
+  "draftRestore": "Restore",
+  "draftDiscard": "Discard",
+  "draftDiscardConfirm": "Discard the recovered draft? This can't be undone.",
+  "confirmTitle": "Are you sure?",
+  "confirm": "Confirm",
+  "notFound": {
+    "title": "No such page.",
+    "body": "Wrong address, or the page moved.",
+    "cta": "Go to the dashboard",
+    "docs": "Documentation"
+  },
+  "errorPage": {
+    "title": "Something broke.",
+    "body": "The error is on our side. Reload, or try again in a moment.",
+    "retry": "Try again",
+    "cta": "Go to the dashboard"
+  },
+  "trackedLink": {
+    "disabledTitle": "This link was disabled.",
+    "disabledBody": "It came in an email sent through Posta, and it no longer leads anywhere.",
+    "confirmTitle": "Check where this link goes.",
+    "confirmBody": "It came in an email sent through Posta and leads to {host}. Its sender can no longer be confirmed, so continue only if you trust that site.",
+    "confirmCta": "Continue to {host}"
+  },
+  "confirmWord": "DELETE",
+  "typeToConfirm": "Type {word} to confirm",
+  "loadError": {
+    "gone": "It no longer exists, or it belongs to another team.",
+    "ours": "The error is on our side. Try again in a moment.",
+    "retry": "Try again",
+    "back": "Back to {to}"
+  },
+  "supportView": {
+    "banner": "Support view of {team} · read-only",
+    "endsIn": "ends in {left}",
+    "end": "End session",
+    "back": "Back to console",
+    "readOnly": "Read-only support view: nothing can be changed here."
+  },
+  "suspensionLock": {
+    "deleteTeam": "This team is suspended and can't be deleted. Contact support.",
+    "deleteDomain": "This team is suspended, so its domains can't be deleted. Contact support.",
+    "invite": "This team is suspended, so no one new can join it. Contact support.",
+    "unavailable": "This isn't available for this team right now. Contact support if you need help."
+  },
+  "beta": "Beta"
+}

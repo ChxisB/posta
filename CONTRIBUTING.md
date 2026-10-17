@@ -1,115 +1,120 @@
 # Contributing to Posta
 
-Thanks for helping out. Posta is a self-hosted mail delivery platform: an SMTP server, an HTTP API, a delivery worker and a dashboard, written in TypeScript on Bun and PostgreSQL. Bug reports, fixes and new features are all welcome.
+Thanks for helping out. Posta is an email platform you can host yourself. It sends through your own AWS SES account and has a Resend-compatible API, a dashboard, an SMTP relay, inbound mail, and SDKs for nine languages. It is written in TypeScript on Node and PostgreSQL. Bug reports, fixes and new features are all welcome.
 
 For anything bigger than a small fix, please open an issue first so we can agree on the approach before you write the code.
 
 ## What you need
 
-- Bun 1.3 or newer
-- PostgreSQL 16. The Compose file in the repo runs one.
-- A free [Clerk](https://dashboard.clerk.com) application, for signing in to the dashboard
+- Node 24 (`.nvmrc` pins it; Node 22 is the oldest that runs)
+- pnpm 11 (`corepack enable` picks up the version in `package.json`)
+- PostgreSQL 17 to run the apps. The tests don't need it.
+- Docker, if you'd rather run the whole stack with Compose
 
 ## Getting set up
 
 ```sh
 git clone https://github.com/ChxisB/posta.git
 cd posta
-bun install
-docker compose up -d postgres
+pnpm install
 cp .env.example .env
 ```
 
-Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` in `.env`. The defaults cover everything else for local development, including SMTP on port 2525 so you don't need root.
+In `.env`, fill `MASTER_ENCRYPTION_KEY` and `BETTER_AUTH_SECRET` (each from `openssl rand -base64 32`). The comments in `.env.example` explain the rest. You can leave AWS unset until you want to send real mail.
 
 ## Running it
 
+The quickest way is Compose, which builds the image from your checkout:
+
 ```sh
-bun run start            # the API on 5001, SMTP on 2525 and the delivery worker
-bun run start:frontend   # the dashboard on http://localhost:3000
+docker compose up --build -d
 ```
 
-`bun run start` also creates the database tables. To run one process on its own, use `start:web`, `start:smtp` or `start:worker`.
+To run the processes on their own instead, start a Postgres. The Compose one doesn't publish a port, so run a separate container:
 
-The first account you create becomes the administrator.
+```sh
+docker run -d --name posta-dev-db -p 5432:5432 \
+  -e POSTGRES_USER=posta -e POSTGRES_PASSWORD=posta -e POSTGRES_DB=posta \
+  postgres:17-alpine
+```
+
+Set `DATABASE_URL=postgres://posta:posta@localhost:5432/posta` in `.env`. The processes read their settings from the environment, not from the file, so load it into each terminal with `set -a && . ./.env && set +a`. Then:
+
+```sh
+pnpm --filter @posta/db db:migrate
+pnpm --filter @posta/api dev      # the API on 3001
+pnpm --filter @posta/worker dev   # the job worker
+pnpm --filter @posta/web dev      # the dashboard on http://localhost:3000
+```
+
+Run each of the last three in its own terminal. `@posta/smtp` (the relay), `@posta/mx` (inbound mail) and `@posta/docs` (the documentation site, on 3002) start the same way when you need them.
 
 ## How the code is laid out
 
-It's a Bun workspace, with Turborepo running tasks across packages.
+It's a pnpm workspace, with Turborepo running tasks across packages.
 
-| Package                 | What it does                                                                                 |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `packages/core`         | Configuration, the main database schema and migrations, DNS checks, logging and shared types  |
-| `packages/message-db`   | Each mail server's message store: messages, deliveries, suppressions, webhooks and statistics |
-| `packages/smtp-server`  | Receives mail over SMTP                                                                      |
-| `packages/smtp-client`  | Delivers outbound mail over SMTP and HTTP endpoints                                          |
-| `packages/worker`       | Works the delivery queue, handles bounces and runs scheduled tasks                            |
-| `packages/web-server`   | The HTTP API (Elysia): the send API and the dashboard's API                                   |
-| `packages/frontend`     | The dashboard and the first-run setup screen (Next.js)                                       |
-| `packages/bench`        | Delivery latency benchmark                                                                   |
+| Package               | What it does                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| `apps/api`            | The HTTP API (Hono, with an OpenAPI spec) and the MCP server                                |
+| `apps/web`            | The dashboard (Next.js), the operator console and the hosted unsubscribe pages              |
+| `apps/worker`         | Background jobs: sending, broadcasts, SES events, webhooks, inbound mail, scheduled tasks   |
+| `apps/smtp`           | The SMTP relay, for apps that send over SMTP instead of the API                             |
+| `apps/mx`             | Receives inbound mail on port 25                                                            |
+| `apps/docs`           | The documentation site (Fumadocs)                                                           |
+| `packages/core`       | Shared business logic                                                                       |
+| `packages/db`         | The Drizzle schema and migrations                                                           |
+| `packages/config`     | Environment parsing and shared settings                                                     |
+| `packages/queue`      | The job queue, on pg-boss                                                                   |
+| `packages/ses`        | The SES client, and the AWS steps of the setup wizard                                       |
+| `packages/billing`    | Stripe billing, for hosted deployments                                                      |
+| `packages/i18n`       | Locale handling shared by the apps                                                          |
+| `packages/setup`      | The setup wizard, published as `@tack-labs/posta-setup`                                     |
+| `packages/cli`        | The migration CLI, published as `@tack-labs/posta-cli`                                      |
+| `packages/sdk`        | The SDKs (Node, Python, Ruby, PHP, Go, Java, .NET, Elixir, Rust), each a project of its own |
+| `packages/test-utils` | Test helpers, including an in-process Postgres                                              |
+
+The API mirrors Resend's, so code written for Resend works against Posta. Keep its route names, methods and response fields as they are; add Posta's own fields beside them.
 
 ## Tests
 
-The tests run against a real PostgreSQL, the same way CI does. They expect user and password `postgres`, a `posta_test` database, and the server listening on both 5432 and 5433 (the message store tests use 5433). One container published on both ports covers it:
+The tests use Vitest and run against PGlite, a Postgres that runs in the test process, so you don't need a database server:
 
 ```sh
-docker compose stop postgres   # it also wants 5432
-docker run -d --name posta-test-db \
-  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=posta_test \
-  -p 5432:5432 -p 5433:5432 postgres:16-alpine
+pnpm typecheck
+pnpm test
 ```
 
-Then:
+To run one package, use `pnpm --filter @posta/core test`. The web and API suites are the largest; if they time out on a busy laptop, run them on their own. The CLI's suite takes several minutes.
 
-```sh
-bun run typecheck
-bun run test --concurrency=1
-```
+The SDKs aren't part of the workspace. Each one has its own toolchain, and its tests run from its directory: `pnpm test` in `packages/sdk/node`, `pytest` in `packages/sdk/python`, `go test ./...` in `packages/sdk/go`, and so on.
 
-The frontend's tests use Vitest; the rest use `bun test`. To run a single package, use `bun run --cwd packages/worker test`.
-
-Bun loads a package's own `.env` when you run its tests. If you've created one, its database URL applies to the tests too.
+`scripts/e2e/receiving/run.mts` is an end-to-end test of inbound mail. It needs Docker and openssl, and CI doesn't run it.
 
 ## Style
 
-Format with Prettier using the repo's `.prettierrc`. Don't commit anything that fails `bun run typecheck`.
+Format and lint with Biome: `pnpm lint` checks, and `pnpm lint:fix` fixes what it can. Don't commit anything that fails `pnpm lint` or `pnpm typecheck`.
+
+If you change the database schema in `packages/db`, run `pnpm db:generate` and commit the migration it writes to `packages/db/drizzle`. CI fails when the schema and the migrations disagree.
+
+Posta ships in English only. Dashboard copy lives in `apps/web/messages/en`, and each docs page is one `page.mdx`.
 
 ## Commits and pull requests
 
-- Write commit messages as [Conventional Commits](https://www.conventionalcommits.org): `feat(worker): …`, `fix(web-server): …`, `perf: …`, `docs: …`.
+- Write commit messages as [Conventional Commits](https://www.conventionalcommits.org): `feat(worker): …`, `fix(api): …`, `perf: …`, `docs: …`.
 - Keep each pull request to one change, and include tests for any change in behaviour.
-- Check that `bun run typecheck` and `bun run test --concurrency=1` pass before you open it. CI runs both on every push and pull request.
+- Check that `pnpm lint`, `pnpm typecheck` and `pnpm test` pass before you open it. CI runs them on every pull request and every push to `main`, along with the migration check, a secret scan and a Docker build.
 - For anything users will notice, add a line to [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
 ## Releasing
 
-Versions follow [semantic versioning](https://semver.org), and every package shares the root's version. To release, say, 0.2.0 from a green `main`:
+Versions follow [semantic versioning](https://semver.org).
 
-1. Set `"version": "0.2.0"` in the root `package.json` and in each `packages/*/package.json`, then run `bun install` so `bun.lock` picks up the change.
-2. In CHANGELOG.md, rename **Unreleased** to `## 0.2.0 – YYYY-MM-DD` and add an empty **Unreleased** above it.
-3. Commit, then tag and push:
-
-   ```sh
-   git commit -am "chore: release 0.2.0"
-   git tag v0.2.0
-   git push origin main v0.2.0
-   ```
-
-The tag starts the Release workflow. It checks that every `package.json` says 0.2.0, then publishes a GitHub Release whose notes are the 0.2.0 section of the changelog. If a check fails, nothing is published. Commit the fix, move the tag onto it with `git tag -f v0.2.0`, and push again with `git push origin main && git push -f origin v0.2.0`.
+- **The server.** Every push to `main` that passes CI publishes `ghcr.io/chxisb/posta:edge`. To release, say, 1.2.0, rename **Unreleased** in CHANGELOG.md to `## 1.2.0: YYYY-MM-DD`, add an empty **Unreleased** above it, commit, and push the tag `v1.2.0`. CI then publishes `:1.2.0`, `:1.2` and `:latest`, along with the matching `posta-backup` image.
+- **The CLI.** Bump `version` in `packages/cli/package.json`, then push a tag `cli-v<version>`. The release-cli workflow publishes it to npm through Trusted Publishing.
+- **The setup wizard.** Bump `version` in `packages/setup/package.json`, then run the release-setup workflow from the Actions tab.
 
 ## Licence
 
-Posta is released under the [MIT licence](LICENSE). By contributing, you agree that your contributions are released under it too.
+Posta is released under the [MIT licence](LICENSE), including the SDKs in `packages/sdk` and the CLI in `packages/cli`, which each carry their own copy of it. By contributing, you agree that your contributions are released under it too.
 
-The database tests need local PostgreSQL. To use the Compose database on port 5432, run:
-
-```sh
-docker compose up -d postgres
-docker compose exec postgres createdb -U postgres posta_test
-POSTA_MAIN_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_test \
-POSTA_MESSAGE_DB_URL=postgresql://postgres:postgres@localhost:5432/posta_test \
-POSTA_TEST_DB_BASE_URL=postgresql://postgres:postgres@localhost:5432 \
-POSTA_DELIVERY_PROVIDER=smtp bun run test
-```
-
-The AWS regression tests inject SES, SQS and S3 clients and require no AWS credentials, live sends or buckets. The v2 message-store tests use `POSTA_TEST_DB_BASE_URL` (default port 5433); they create their own test databases.
+The Posta name, wordmark and logos are not covered by the licence.

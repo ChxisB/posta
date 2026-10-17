@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -10,18 +10,12 @@
       "persistent": true
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "outputs": []
+      "dependsOn": ["^build"]
     },
     "test": {
-      "env": ["POSTA_MAIN_DB_URL", "POSTA_MESSAGE_DB_URL", "POSTA_TEST_DB_BASE_URL", "POSTA_DELIVERY_PROVIDER"],
-      "inputs": ["src/**", "package.json", "tsconfig.json"],
-      "outputs": []
+      "dependsOn": ["^build"]
     },
-    "lint": {
-      "outputs": []
-    },
-    "clean": {
+    "db:generate": {
       "cache": false
     }
   }

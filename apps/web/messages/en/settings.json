@@ -1,0 +1,589 @@
+{
+  "tabs": {
+    "settings": "Settings",
+    "usage": "Usage",
+    "billing": "Billing",
+    "ses": "SES",
+    "smtp": "SMTP",
+    "mcp": "MCP",
+    "unsubscribe": "Unsubscribe page",
+    "connectedApps": "Connected apps",
+    "notifications": "Notifications",
+    "audit": "Audit log"
+  },
+  "smtp": {
+    "title": "SMTP",
+    "intro": "Send emails using SMTP instead of the REST API.",
+    "subtitle": "Point your app's SMTP client at this deployment's relay.",
+    "host": "Host",
+    "port": "Port",
+    "portNote": "For encrypted/TLS use 587 or 2465.",
+    "user": "User",
+    "password": "Password",
+    "passwordNote": "Use any API key as the password.",
+    "passwordLink": "API keys",
+    "passwordTooltip": "The relay authenticates with any of your API keys: paste one in place of YOUR_API_KEY. Keys are never shown here.",
+    "tlsWarnTitle": "The SMTP relay is not running",
+    "tlsWarnBody": "This deployment has no TLS certificate for the relay, so the smtp service refuses to start and keeps restarting. Set <code>SMTP_TLS_CERT_PATH</code> and <code>SMTP_TLS_KEY_PATH</code>, or enable <code>SMTP_ALLOW_INSECURE_AUTH</code> only on a private, trusted network.",
+    "insecureNote": "TLS is not configured and <code>SMTP_ALLOW_INSECURE_AUTH</code> is on: clients authenticate without encryption. Set <code>SMTP_TLS_CERT_PATH</code> and <code>SMTP_TLS_KEY_PATH</code> to require STARTTLS.",
+    "docs": "SMTP documentation"
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe page",
+    "subtitle": "Customize the hosted page recipients see when they unsubscribe.",
+    "brandName": "Brand name",
+    "brandNamePlaceholder": "Your organization",
+    "message": "Custom message",
+    "messagePlaceholder": "Shown above the unsubscribe confirmation.",
+    "successMessage": "Success message",
+    "successMessagePlaceholder": "Shown after someone unsubscribes or saves their preferences.",
+    "showLogo": "Show your logo",
+    "showLogoNote": "Your team logo replaces the Posta wordmark at the top of the page.",
+    "showLogoMissing": "Upload a team logo in the Settings tab to enable this.",
+    "logoRadius": "Logo corner radius",
+    "logoRadiusOptions": {
+      "square": "Square",
+      "gentle": "Gentle",
+      "rounded": "Rounded",
+      "circle": "Circle"
+    },
+    "colors": "Colors",
+    "colorBackground": "Background",
+    "colorText": "Text",
+    "colorAccent": "Accent",
+    "colorDefault": "Default",
+    "colorInvalid": "Enter a 6-digit hex color like #46a3f9.",
+    "preview": "Preview",
+    "previewPreferences": "Preferences",
+    "previewSuccess": "Success",
+    "previewLanguage": "Preview language",
+    "poweredBy": "Powered by Posta",
+    "poweredByNote": "A small line under the page, linking to Posta.",
+    "poweredByLocked": "Always shown on the Free plan; paid plans can turn it off.",
+    "redirectUrl": "Redirect URL",
+    "redirectUrlNote": "Where to send recipients after they unsubscribe. Leave blank to keep them on the confirmation page.",
+    "redirectUrlInvalid": "Enter an http(s) URL.",
+    "save": "Save",
+    "saved": "Saved",
+    "error": "Could not save."
+  },
+  "ses": {
+    "title": "Connect your AWS SES",
+    "subtitle": "Your instance sends through your own SES account.",
+    "setup": {
+      "stepTitle": "Create AWS resources",
+      "connected": "AWS resources connected.",
+      "viewInstructions": "View instructions",
+      "recommended": "Recommended",
+      "cliTitle": "Run the setup CLI",
+      "cliNote": "Run it anywhere Node 18+ and YOUR AWS admin credentials live: your laptop or the server. It creates everything and prints the <code>.env</code> lines to paste if Posta runs elsewhere.",
+      "cfnButton": "Create the stack in CloudFormation",
+      "scriptTitle": "Alternative: paste this script",
+      "scriptNote": "Paste into a terminal where the AWS CLI has admin credentials. It creates the IAM user, policy, SNS topic, SQS events queue, and configuration set, then prints your <code>.env</code> lines.",
+      "eventsSkipped": "<code>APP_BASE_URL</code> is not a public https URL, so the script skips the https push; events still arrive through the SQS queue. Set it and reload to add the push.",
+      "cfnNote": "One click: opens the CloudFormation review page with the hosted template; the same stack as <code>infra/posta-ses.cfn.yaml</code>. From a terminal instead:",
+      "manualTitle": "Manual: console steps",
+      "step1": "Create a policy: IAM console → Policies → Create policy → JSON; paste this document.",
+      "step1Link": "Open the policy editor",
+      "step2": "Create a user named <code>posta</code> and attach the policy.",
+      "step2Link": "Open user creation",
+      "step3": "Create an access key for the user and paste it into <code>.env</code>.",
+      "step4": "Optional events: SNS topic + configuration set; the script above automates this part; see <code>SELF_HOSTING.md</code>."
+    },
+    "credentials": {
+      "title": "Credentials",
+      "set": "set",
+      "notSet": "not set",
+      "keysConfigured": "configured",
+      "keysChain": "not set, the default provider chain will be attempted",
+      "snsNote": "not set, event ingestion is disabled",
+      "configSetNote": "not set, SES publishes no events",
+      "authEmailNote": "not set, password recovery is hidden"
+    },
+    "test": {
+      "title": "Test connection",
+      "button": "Test connection",
+      "note": "runs <code>GetAccount</code> from the instance: read-only, nothing is sent",
+      "sendingEnabled": "Sending enabled",
+      "sendingDisabled": "Sending disabled",
+      "production": "Production access",
+      "sandbox": "Sandbox",
+      "quotaMax": "Per-24h max",
+      "quotaSent": "Sent last 24h",
+      "quotaRate": "Max send rate",
+      "ratePerSecond": "msgs/s",
+      "sandboxTitle": "Your SES account is in sandbox.",
+      "sandboxBody": "Recipients must be verified until AWS grants production access.",
+      "sandboxLink": "Request production access",
+      "requestTemplate": "Use case: transactional email (account notifications, receipts, password resets) sent through Posta, a self-hosted sending platform we operate on our own infrastructure.\n\nRecipients: our own users. List subscriptions follow double-opt-in guidance before any sending.\n\nBounce and complaint handling: SES delivery events are ingested via SNS; hard bounces and complaints are suppressed automatically and are never mailed again.\n\nExpected volume: [VOLUME] emails/day, ramping up gradually.",
+      "requestTemplateNote": "Replace <code>[VOLUME]</code>, then paste it into the AWS production access request form.",
+      "rateHint": "SES_MAX_SEND_RATE={envRate} in .env · this region's account max {accountRate}/s: the worker sends at the lower of the two.",
+      "errors": {
+        "credentials": "AWS rejected the credentials: check <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> in <code>.env</code>.",
+        "unreachable": "SES did not respond: check <code>AWS_REGION</code> / <code>AWS_REGIONS</code> and the network path."
+      },
+      "disabledHint": "Set your AWS credentials first.",
+      "committedPerDay": "Committed per day"
+    },
+    "next": {
+      "title": "Next steps",
+      "addDomain": "Add a sending domain",
+      "selfHosting": "Event ingestion and the full checklist live in <code>SELF_HOSTING.md</code>."
+    },
+    "events": {
+      "title": "Events",
+      "connected": "Events connected.",
+      "unhealthy": "Delivery events are not arriving: {sent, plural, one {# email was} other {# emails were}} sent in the last 2 hours and SES reported nothing back. Check the SNS subscription (missing or pending confirmation) or the SQS queue setting.",
+      "bannerAction": "Open SES settings",
+      "lastEvent": "Last event received",
+      "never": "never"
+    }
+  },
+  "team": {
+    "title": "Team",
+    "name": "Team name",
+    "id": "ID",
+    "save": "Save",
+    "saved": "Saved",
+    "plan": "Plan",
+    "error": "Could not save.",
+    "logo": {
+      "label": "Logo",
+      "upload": "Upload logo",
+      "replace": "Replace logo",
+      "remove": "Remove",
+      "hint": "PNG, JPEG, or WebP, up to 2 MB. Shown wherever your team appears.",
+      "error": "Could not update the logo.",
+      "removeTitle": "Remove logo",
+      "removeBody": "The team goes back to its initial. You can upload a logo again any time."
+    }
+  },
+  "plans": {
+    "free": "Free",
+    "starter": "Starter",
+    "pro": "Pro",
+    "scale": "Scale",
+    "system": "System"
+  },
+  "members": {
+    "title": "Members",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "pageOf": "Page 1 to {pages} of {total} members",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "actions": "Actions",
+    "remove": "Remove",
+    "removeTitle": "Remove member",
+    "removeBody": "{email} loses access to this team immediately, including any connected apps authorized for it.",
+    "leave": "Leave team",
+    "leaveTitle": "Leave team",
+    "leaveBody": "You lose access to this team immediately. An owner can invite you back.",
+    "error": "Could not update members: {reason}"
+  },
+  "invitations": {
+    "invite": {
+      "trigger": "Invite member",
+      "title": "Invite a member",
+      "email": "Email",
+      "emailPlaceholder": "name@company.com",
+      "role": "Role",
+      "submit": "Create invite",
+      "error": "Could not create the invitation."
+    },
+    "refused": {
+      "daily": "This team reached its limit of {limit} invitations a day. Try again tomorrow.",
+      "dailyMember": "You reached your limit of {limit} invitations a day. Try again tomorrow.",
+      "hourly": "Too many invitations this hour. Try again later.",
+      "duplicate": "This address already has a pending invitation. Resend or revoke it from the list.",
+      "cooldown": "This invitation was just sent. Wait a couple of minutes before resending.",
+      "maxSends": "This invitation was already sent {max} times. Revoke it and invite again.",
+      "noSender": "No email sender is configured; share the invitation link instead.",
+      "sendFailed": "The invitation email could not be sent. Try again in a moment.",
+      "disposable": "Invite a permanent email address. Temporary inboxes can't join a team."
+    },
+    "created": {
+      "title": "Invitation link",
+      "sentTitle": "Invitation sent",
+      "emailedBody": "We emailed {email}. You can also share this link: it works once and expires in 3 days.",
+      "bodyTtl": "Share this link with {email}. It works once and expires in 3 days.",
+      "noSender": "This instance has no email sender configured, so the link is the only way in.",
+      "done": "Done",
+      "sendFailed": "The invitation email could not be sent. Share the link instead."
+    },
+    "pending": {
+      "title": "Pending invitations",
+      "email": "Email",
+      "expires": "Expires",
+      "expired": "Expired",
+      "resend": "Resend",
+      "revoke": "Revoke",
+      "actions": "Actions",
+      "resendError": "Could not resend: {reason}",
+      "pageOf": "Page 1 to {pages} of {total} invitations",
+      "revokeTitle": "Revoke invitation",
+      "revokeBody": "The link sent to {email} stops working. You can invite them again any time."
+    },
+    "accept": {
+      "title": "Join the team",
+      "loading": "Checking your session…",
+      "signInPrompt": "Sign in or create an account to accept this invitation.",
+      "signIn": "Sign in",
+      "signUp": "Create account",
+      "body": "Accept this invitation as {email}?",
+      "submit": "Accept invitation",
+      "invalid": "This invitation is no longer valid.",
+      "emailMismatch": "This invitation was sent to a different email address. Sign in with the invited account to accept it.",
+      "invitedBy": "{inviter} invited you to join {team} as {role}.",
+      "invitedByUnknown": "You have been invited to join {team} as {role}.",
+      "forEmail": "This invitation is for {email}.",
+      "expired": "This invitation has expired. Ask a team owner to send a new one.",
+      "accepted": "This invitation has already been used."
+    }
+  },
+  "instance": {
+    "title": "Instance",
+    "subtitle": "Applies to this whole deployment, every team.",
+    "rateLabel": "SES send rate (messages/second)",
+    "retentionLabel": "Email body retention (days)",
+    "reserveLabel": "Transactional reserve (% of the sending quota)",
+    "reserveNote": "The transactional reserve is set from <link>Console → Regions</link>.",
+    "save": "Save",
+    "saved": "Saved",
+    "error": "Could not save.",
+    "updates": "Product updates from Posta: <link>subscribe at app.posta.example/updates</link>. This instance never contacts posta.example on its own."
+  },
+  "usage": {
+    "sentToday": "Emails sent today",
+    "resetsMidnightUtc": "Resets at midnight UTC",
+    "unlimited": "Unlimited",
+    "history": "Daily history",
+    "empty": "0 days recorded.",
+    "day": "Day (UTC)",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "bounced": "Bounced",
+    "complained": "Complained",
+    "sentThisPeriod": "Emails sent this period",
+    "renewsOn": "Renews on {date}",
+    "receivedToday": "Emails received today",
+    "receivedThisPeriod": "Emails received this period",
+    "sentAndReceivedToday": "Emails sent and received today",
+    "receivedShared": "Counts toward the same daily limit as sending. Resets at midnight UTC.",
+    "receivedDay": "Free up to {allowance} a day; past that, senders retry later. Resets at midnight UTC.",
+    "receivedMonth": "Free up to {allowance} this period; past that, every {per} count as 1 email.",
+    "received": "Received"
+  },
+  "billing": {
+    "plan": "Plan",
+    "status": {
+      "none": "No subscription",
+      "active": "Active",
+      "trialing": "Trial",
+      "past_due": "Past due",
+      "unpaid": "Unpaid",
+      "canceled": "Canceled",
+      "incomplete": "Incomplete"
+    },
+    "cap": "Sending quota",
+    "capPerDay": "{n} emails / day",
+    "capPerMonth": "{n} emails / month",
+    "renewsOn": "Renews on",
+    "manage": "Manage billing",
+    "manageHint": "Plans change here. Invoices, payment method, tax ID and cancellation live in the billing portal.",
+    "readOnly": "Only owners and admins can change billing.",
+    "systemNotice": "This is the instance's own team: it sends the account mail and product updates, is never billed and has no sending cap. Its plan is set by the operator.",
+    "pastDue": "Payment failed: update your card to keep your plan.",
+    "updateCard": "Update payment method",
+    "usageTitle": "Usage",
+    "overage": "Overage",
+    "overageCopy": "{price} per 1,000 emails past the quota.",
+    "overSoFar": "{n, plural, one {# email} other {# emails}} over quota so far, about {amount}.",
+    "plansTitle": "Plans",
+    "comparePlans": "Compare plans",
+    "fromPrice": "from {price}",
+    "volume": "Emails a month",
+    "sliderHint": "Move the slider to compare plans",
+    "emailsADay": "emails a day",
+    "emailsAMonth": "emails a month",
+    "current": "Current",
+    "perMonth": "/ month",
+    "overagePer1k": "{price} per 1,000 past the quota",
+    "choose": "Choose",
+    "switch": "Switch",
+    "freeHint": "To return to Free, cancel in the billing portal; the plan runs until the period ends.",
+    "pendingChange": "Moves to {plan} on {date}.",
+    "switchedNow": "You're on {plan} now.",
+    "stayOn": "You stay on {plan}.",
+    "keepPlan": "Keep {plan}",
+    "switchAtPeriodEnd": "Switch at period end",
+    "changeHint": "Moving up applies now, with the difference prorated on your next invoice. Moving down applies when the period renews.",
+    "upgradesHeld": "Upgrades are unavailable for this team right now. Contact support if you need help.",
+    "upgradesHeldLive": "Upgrades are unavailable for this team right now. You can still cancel or move to a smaller plan. Contact support if you need help.",
+    "features": {
+      "domains": "{n, plural, one {# sending domain} other {# sending domains}}",
+      "domainsUnlimited": "Unlimited sending domains",
+      "contacts": "Unlimited contacts, segments and topics",
+      "contactsLimit": "Up to {n, number} contacts",
+      "broadcasts": "Broadcasts: newsletters and campaigns, personalized per contact",
+      "integrations": "Webhooks and API keys",
+      "agents": "MCP server, CLI and nine SDKs"
+    },
+    "checkoutSuccess": "Thanks. Your plan updates as soon as Stripe confirms the payment: usually within a few seconds.",
+    "checkoutCancel": "Checkout canceled. Your plan is unchanged.",
+    "error": "Something went wrong with Stripe. Try again."
+  },
+  "mcp": {
+    "title": "MCP server",
+    "intro": "Let AI agents send email and manage your audience over the Model Context Protocol.",
+    "subtitle": "Every tool call goes through the same rules as the REST API: verified domains, suppressions, quotas and team scoping.",
+    "serverUrl": "Server URL",
+    "serverUrlNote": "Streamable HTTP endpoint. Clients sign in with your Posta account through OAuth: no API keys and nothing secret to paste.",
+    "connectTitle": "Connect a client",
+    "notes": {
+      "claudeCode": "Then run <code>/mcp</code> inside Claude Code and pick posta to sign in.",
+      "claudeDesktop": "Add to <code>claude_desktop_config.json</code>, or skip the file: Settings → Connectors → Add custom connector, and paste the server URL.",
+      "cursor": "Save as <code>.cursor/mcp.json</code> in the project, or <code>~/.cursor/mcp.json</code> for every project.",
+      "vscode": "Save as <code>.vscode/mcp.json</code> in the workspace, then start the server from the editor's MCP view."
+    },
+    "authNote": "On first connect the browser opens a consent screen where you pick the team and permissions the client gets. The grant appears under <link>Connected apps</link>, where any member can revoke it.",
+    "toolsTitle": "Tools",
+    "toolsIntro": "A client only sees the tools its granted permissions cover.",
+    "table": {
+      "tool": "Tool",
+      "permission": "Permission"
+    },
+    "readOnly": "read-only",
+    "docs": "MCP documentation"
+  },
+  "connectedApps": {
+    "title": "Connected apps",
+    "intro": "Apps and MCP clients authorized through OAuth to act on this team.",
+    "empty": "No apps connected yet. Authorize an MCP client and its grant appears here.",
+    "table": {
+      "app": "App",
+      "user": "Authorized by",
+      "scopes": "Permissions",
+      "granted": "Granted",
+      "menu": "Grant actions"
+    },
+    "you": "you",
+    "allTeams": "All teams",
+    "scopesCount": "{count, plural, one {# permission} other {# permissions}}",
+    "revoke": "Revoke access",
+    "revokeAllTeamsForbidden": "This grant also covers teams you do not administer. Only its holder can revoke it.",
+    "revokeConfirm": {
+      "title": "Revoke access",
+      "body": "{name} loses access to this team at its next token refresh, within 15 minutes.",
+      "confirm": "Revoke access"
+    }
+  },
+  "danger": {
+    "title": "Danger zone",
+    "deleteTeam": "Delete team",
+    "deleteTeamBody": "Permanently delete {name} with all its contacts, emails, domains, API keys, templates, broadcasts and members. This cannot be undone.",
+    "deleteAccount": "Delete my account",
+    "deleteAccountBody": "Permanently delete your account and sign you out everywhere. Teams you are the only owner of must be deleted or handed over first. This cannot be undone.",
+    "deleteAccountError": "Could not delete the account. Delete or hand over the teams you own, sign in again, and retry.",
+    "hint": "Deletions are immediate and irreversible."
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Who changed what in this team. Entries are permanent.",
+    "when": "When",
+    "who": "Who",
+    "action": "Action",
+    "target": "Target",
+    "actors": {
+      "api_key": "API key",
+      "oauth": "Connected app",
+      "stripe": "Stripe",
+      "system": "System",
+      "operator": "Posta",
+      "deletedUser": "Deleted user"
+    },
+    "actions": {
+      "api_key_created": "Created API key",
+      "api_key_revoked": "Revoked API key",
+      "api_key_renamed": "Renamed API key",
+      "domain_created": "Added domain",
+      "domain_verified": "Verified domain",
+      "domain_deleted": "Deleted domain",
+      "domain_receiving_enabled": "Enabled receiving",
+      "domain_receiving_disabled": "Disabled receiving",
+      "domain_catch_all_enabled": "Catch-all turned on",
+      "domain_catch_all_disabled": "Catch-all turned off",
+      "inbox_created": "Inbox created",
+      "inbox_deleted": "Inbox deleted",
+      "inbox_safety_updated": "Inbox safety rules changed",
+      "inbox_email_released": "Email released from quarantine",
+      "inbox_draft_approved": "Draft approved and sent",
+      "received_email_deleted": "Received email deleted",
+      "webhook_created": "Created webhook",
+      "webhook_updated": "Updated webhook",
+      "webhook_secret_rotated": "Rotated webhook signing secret",
+      "webhook_deleted": "Deleted webhook",
+      "member_invited": "Invited member",
+      "member_joined": "Joined the team",
+      "member_removed": "Removed member",
+      "member_role_changed": "Changed member role",
+      "member_left": "Left the team",
+      "invitation_revoked": "Revoked invitation",
+      "invitation_resent": "Resent invitation",
+      "team_created": "Created team",
+      "team_deleted": "Deleted team",
+      "instance_settings_updated": "Updated instance settings",
+      "billing_checkout_started": "Started checkout",
+      "billing_portal_opened": "Opened billing portal",
+      "billing_subscription_updated": "Subscription changed",
+      "billing_plan_changed": "Changed plan",
+      "billing_overage_toggled": "Toggled overage billing",
+      "team_type_changed": "Changed team type",
+      "team_limits_updated": "Adjusted team limits",
+      "team_broadcasts_paused": "Paused broadcasts",
+      "team_broadcasts_resumed": "Resumed broadcasts",
+      "team_suspended": "Suspended team",
+      "team_reinstated": "Reinstated team",
+      "team_held_for_review": "Sending paused pending review",
+      "team_ses_tenant_updated": "Updated SES tenant status",
+      "team_ses_tenant_update_failed": "SES tenant status update failed",
+      "team_fraud_refunded": "Canceled subscription and refunded as fraud",
+      "team_fraud_refund_failed": "Stripe cancel and refund failed",
+      "console_flag_opened": "Flagged team",
+      "console_flag_cleared": "Cleared flag",
+      "console_flag_reopened": "Reopened flag",
+      "region_breaker_opened": "Paused broadcasts in region",
+      "region_breaker_closed": "Resumed broadcasts in region",
+      "region_quota_requested": "Requested SES quota increase",
+      "instance_monitor_settings_updated": "Updated monitoring settings",
+      "instance_reserve_updated": "Changed the transactional reserve",
+      "monitor_override_set": "Set monitor sampling override",
+      "monitor_override_cleared": "Cleared monitor sampling override",
+      "monitor_broadcasts_paused": "Content monitor paused broadcasts",
+      "monitor_broadcasts_resumed": "Resumed broadcasts after monitor pause",
+      "warmup_trust_granted": "Lifted new-domain warm-up",
+      "warmup_trust_revoked": "Restored new-domain warm-up",
+      "screening_released": "Released emails waiting for review",
+      "screening_canceled": "Canceled emails waiting for review",
+      "content_revealed": "Read message content",
+      "content_accessed": "An operator read message content",
+      "support_view_started": "Support view started",
+      "support_view_ended": "Support view ended"
+    },
+    "empty": "Nothing recorded yet.",
+    "loadMore": "Load more",
+    "loadError": "Could not load the audit log.",
+    "retry": "Retry",
+    "forbidden": "Only owners and admins can read the audit log."
+  },
+  "notifications": {
+    "title": "Email notifications",
+    "intro": "What Posta emails you as an owner of your teams. Each switch applies to every team you own.",
+    "always": "Always sent: mail about your own account (password reset, verification, the welcome, a password change, an app granted access) and the security receipts for API keys and webhook secrets.",
+    "groups": {
+      "domains": "Domains",
+      "team": "Team",
+      "broadcasts": "Broadcasts",
+      "sending": "Sending health",
+      "webhooks": "Webhooks",
+      "inboxes": "Inboxes",
+      "billing": "Billing"
+    },
+    "items": {
+      "domain_verified": {
+        "label": "Domain verified",
+        "note": "A sending domain's DNS records check out."
+      },
+      "domain_lost": {
+        "label": "Domain lost its verification",
+        "note": "A record disappeared, or SES gave up on the domain."
+      },
+      "member_joined": {
+        "label": "Member joined",
+        "note": "Someone accepted an invitation to a team you own."
+      },
+      "broadcast_sent": {
+        "label": "Broadcast sent",
+        "note": "The recipient count once a broadcast has gone out."
+      },
+      "broadcast_held_quota": {
+        "label": "Broadcast waiting for the quota",
+        "note": "Part of a broadcast is parked over the quota."
+      },
+      "broadcast_held": {
+        "label": "Broadcast delayed",
+        "note": "A broadcast is waiting to send and resumes on its own."
+      },
+      "quota": {
+        "label": "Sending quota",
+        "note": "Nearing, reaching and running past your plan's cap."
+      },
+      "deliverability": {
+        "label": "Deliverability",
+        "note": "Bounce or complaint rates at risk, or sending paused."
+      },
+      "webhook_failing": {
+        "label": "Webhook endpoint failing",
+        "note": "Every recent delivery to an endpoint failed."
+      },
+      "webhook_auto_disabled": {
+        "label": "Webhook endpoint disabled",
+        "note": "An endpoint was switched off after failing for too long."
+      },
+      "webhook_backlog": {
+        "label": "Webhook backlog",
+        "note": "Deliveries to an endpoint are queuing up."
+      },
+      "inbox_attention": {
+        "label": "Inbox alerts",
+        "note": "Quarantine, drafts to approve and held sends, at most once a day."
+      },
+      "billing_payment_failed": {
+        "label": "Payment failed",
+        "note": "A charge for the plan was declined."
+      },
+      "billing_plan_activated": {
+        "label": "Plan activated",
+        "note": "A paid plan started."
+      },
+      "billing_plan_changed": {
+        "label": "Plan changed",
+        "note": "The team moved between paid plans."
+      },
+      "billing_cancel_scheduled": {
+        "label": "Cancellation scheduled",
+        "note": "The plan will end when the period closes."
+      },
+      "billing_cancel_reminder": {
+        "label": "Cancellation reminder",
+        "note": "Three days before a scheduled end."
+      },
+      "billing_downgraded": {
+        "label": "Back on Free",
+        "note": "The paid plan ended."
+      }
+    }
+  },
+  "supportAccess": {
+    "title": "Support access",
+    "intro": "At your request, an instance operator may open this dashboard read-only for up to 30 minutes. The content of sent emails, exports and secrets stay hidden, and the session is recorded in the audit log.",
+    "none": "No support session is live on {team}.",
+    "operator": "Operator",
+    "started": "Started",
+    "expires": "Ends",
+    "reason": "Reason",
+    "reference": "Reference",
+    "reasons": {
+      "support_ticket": "Support ticket",
+      "billing_dispute": "Billing dispute",
+      "other": "Other"
+    },
+    "end": "End session",
+    "ended": "Support session ended",
+    "error": "Could not end the session: {reason}"
+  }
+}

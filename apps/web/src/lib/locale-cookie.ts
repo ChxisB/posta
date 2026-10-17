@@ -1,0 +1,12 @@
+// Client-safe half of the locale plumbing: src/i18n/request.ts reads
+// next/headers and cannot be imported from client components, so the cookie
+// name and the languages live here and it imports them from here.
+export const LOCALES = ["en"] as const;
+export type AppLocale = (typeof LOCALES)[number];
+export const DEFAULT_LOCALE: AppLocale = "en";
+export const LOCALE_COOKIE = "NEXT_LOCALE";
+export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+export function isAppLocale(value: unknown): value is AppLocale {
+  return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
+}
