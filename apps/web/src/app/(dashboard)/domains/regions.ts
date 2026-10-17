@@ -9,6 +9,8 @@ import type { SesRegion } from "@posta/ses";
 export const DOMAIN_REGIONS = [
   "us-east-1",
   "eu-west-1",
+  "eu-west-2",
+  "eu-central-1",
   "sa-east-1",
   "ap-northeast-1",
 ] as const satisfies readonly SesRegion[];
@@ -29,6 +31,8 @@ export function regionName(code: string, t: (key: `regions.${DomainRegion}`) => 
 export const REGION_FLAGS: Record<DomainRegion, string> = {
   "us-east-1": "🇺🇸",
   "eu-west-1": "🇮🇪",
+  "eu-west-2": "🇬🇧",
+  "eu-central-1": "🇩🇪",
   "sa-east-1": "🇧🇷",
   "ap-northeast-1": "🇯🇵",
 };

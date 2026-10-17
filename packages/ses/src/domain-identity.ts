@@ -11,7 +11,14 @@ import {
 import type { TenantCommand } from "./tenants.js";
 
 /** SES regions offered for domain identities. */
-export const SES_REGIONS = ["us-east-1", "eu-west-1", "sa-east-1", "ap-northeast-1"] as const;
+export const SES_REGIONS = [
+  "us-east-1",
+  "eu-west-1",
+  "eu-west-2",
+  "eu-central-1",
+  "sa-east-1",
+  "ap-northeast-1",
+] as const;
 export type SesRegion = (typeof SES_REGIONS)[number];
 
 /** Single branded BYODKIM selector: every domain publishes `posta._domainkey`. */
