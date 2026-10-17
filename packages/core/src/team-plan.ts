@@ -62,7 +62,10 @@ export async function fetchBestOwnedPlan(db: Db, userId: string): Promise<Plan> 
  * quota this says how far the sold plans could go on a busy day.
  */
 export async function committedDailyVolume(db: Db, now: Date = new Date()): Promise<number> {
-  const rows = await db.select(QUOTA_COLUMNS).from(schema.teams);
+  const rows = await db
+    .select(QUOTA_COLUMNS)
+    .from(schema.teams)
+    .where(eq(schema.teams.isDemo, false));
   return Math.round(
     rows.reduce((sum, row) => {
       const quota = teamQuota(row, true, now);

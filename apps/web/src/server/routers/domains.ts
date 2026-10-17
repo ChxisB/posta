@@ -186,6 +186,39 @@ function receivingRecord(domain: { name: string; receivingEnabled: boolean }) {
   return mxHost && domain.receivingEnabled ? receivingDnsRecord(domain.name, mxHost) : null;
 }
 
+/** The seeded domains are in neither SES nor DNS: the checklist reads the stored status instead. */
+function demoRecords(domain: Awaited<ReturnType<typeof requireDomain>>) {
+  const verified = domain.status === "verified";
+  const receiving = receivingRecord(domain);
+  return {
+    provider: null,
+    records: [
+      ...dnsChecklist({ domain, verification: null, tracking: trackingCname(domain) }).map(
+        (row) => ({
+          ...row,
+          status:
+            row.group === "verification" || row.group === "sending"
+              ? verified
+                ? ("verified" as const)
+                : ("pending" as const)
+              : null,
+          live: verified ? ("found" as const) : ("missing" as const),
+        }),
+      ),
+      ...(receiving
+        ? [
+            {
+              group: "receiving" as const,
+              ...receiving,
+              status: null,
+              live: verified ? ("found" as const) : ("missing" as const),
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
 async function requireDomain(db: Db, teamId: string, id: string) {
   const [domain] = await db
     .select()
@@ -420,6 +453,7 @@ export function createDomainsRouter(deps: DomainsSesDeps = defaultSesDeps) {
 
     records: teamProcedure.input(z.object({ id: z.uuid() })).query(async ({ ctx, input }) => {
       const domain = await requireDomain(ctx.db, ctx.teamId, input.id);
+      if (ctx.isDemo) return demoRecords(domain);
       // The DKIM TXT derives from the stored selector + public key (BYODKIM
       // keys never rotate behind our back); SES is only asked for statuses.
       // Rows SES never checks (DMARC, tracking CNAME) have no stored gate, so a

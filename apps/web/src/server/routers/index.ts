@@ -6,6 +6,7 @@ import { billingRouter } from "./billing";
 import { broadcastsRouter } from "./broadcasts";
 import { connectedAppsRouter } from "./connected-apps";
 import { consoleRouter } from "./console";
+import { demoRouter } from "./demo";
 import { domainsRouter } from "./domains";
 import { emailRouter } from "./email";
 import { emailsRouter } from "./emails";
@@ -30,6 +31,7 @@ export const appRouter = router({
   broadcasts: broadcastsRouter,
   connectedApps: connectedAppsRouter,
   console: consoleRouter,
+  demo: demoRouter,
   email: emailRouter,
   emails: emailsRouter,
   domains: domainsRouter,

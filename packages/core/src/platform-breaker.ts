@@ -4,6 +4,7 @@ import type { RegionBreakerReason } from "@posta/db/schema";
 import { and, asc, desc, eq, gte, inArray, isNotNull, notInArray, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { MIN_PAUSE_COMPLAINTS, MIN_PAUSE_HARD_BOUNCES } from "./deliverability.js";
+import { notDemoTeam } from "./demo-team.js";
 import { NO_COMPLAINT_FEEDBACK_DOMAINS } from "./mailbox-providers.js";
 import { DAY_MS, utcDay } from "./utc-day.js";
 
@@ -88,7 +89,11 @@ export async function regionWindowCounts(
   opts: { now: Date; hours: number; teamIds?: string[]; since?: Date },
 ): Promise<Map<string, RegionWindowCounts>> {
   const since = opts.since ?? new Date(opts.now.getTime() - opts.hours * HOUR_MS);
-  const teamFilter = opts.teamIds ? inArray(schema.emails.teamId, opts.teamIds) : undefined;
+  // The demo workspace's traffic is not the instance's.
+  const teamFilter = and(
+    notDemoTeam(schema.emails.teamId),
+    opts.teamIds ? inArray(schema.emails.teamId, opts.teamIds) : undefined,
+  );
   const out = new Map<string, RegionWindowCounts>();
   const sent = await db
     .select({
@@ -173,6 +178,7 @@ export async function regionCounterTotals(
     .innerJoin(teamRegion, eq(teamRegion.teamId, c.teamId))
     .where(
       and(
+        notDemoTeam(c.teamId),
         gte(c.day, since),
         multiRegion.length > 0 ? notInArray(c.teamId, multiRegion) : undefined,
       ),
@@ -234,6 +240,7 @@ async function contributors(
     .innerJoin(schema.teams, eq(schema.teams.id, schema.emails.teamId))
     .where(
       and(
+        eq(schema.teams.isDemo, false),
         eq(schema.domains.region, region),
         gte(schema.emailEvents.createdAt, since),
         isNotNull(schema.emailEvents.snsMessageId),

@@ -245,6 +245,16 @@
       "accepted": "This invitation has already been used."
     }
   },
+  "demo": {
+    "title": "Demo data",
+    "subtitle": "Fills a separate Demo team with sample emails, contacts, templates and more, so you can look around. Nothing in it is sent, and your own data is not touched.",
+    "load": "Load demo data",
+    "reset": "Reset",
+    "remove": "Remove",
+    "removeTitle": "Remove the demo data?",
+    "removeBody": "The Demo team and everything in it is deleted. Your own teams are not affected.",
+    "failed": "Couldn't update the demo data. Try again."
+  },
   "instance": {
     "title": "Instance",
     "subtitle": "Applies to this whole deployment, every team.",

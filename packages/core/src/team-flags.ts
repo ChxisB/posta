@@ -11,6 +11,7 @@ import {
   GUARDRAIL_WINDOW_DAYS,
   MIN_GUARDRAIL_VOLUME,
 } from "./deliverability.js";
+import { notDemoTeam } from "./demo-team.js";
 import { imitatedBrandIn } from "./imitated-brands.js";
 import { fetchTeamStanding } from "./team-standing.js";
 import { DAY_MS, utcDay } from "./utc-day.js";
@@ -62,7 +63,7 @@ export async function computeTeamStandings(
   const active = await db
     .select({ teamId: c.teamId, sent30d: sql<number>`coalesce(sum(${c.sent}), 0)::int` })
     .from(c)
-    .where(gte(c.day, since))
+    .where(and(gte(c.day, since), notDemoTeam(c.teamId)))
     .groupBy(c.teamId)
     .having(sql`sum(${c.sent}) > 0`);
   const teamIds = active.map((t) => t.teamId);

@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import {
   type Keyring,
+  notDemoTeam,
   type ProbeKey,
   type ProbeSample,
   recordProbes,
@@ -199,7 +200,7 @@ export async function runInstanceProbes(db: Db, deps: ProbeDeps): Promise<ProbeS
     const [row] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.domains)
-      .where(eq(schema.domains.status, "verified"));
+      .where(and(eq(schema.domains.status, "verified"), notDemoTeam(schema.domains.teamId)));
     return { value: row?.n ?? 0, ok: true };
   });
 

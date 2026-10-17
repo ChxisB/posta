@@ -93,6 +93,10 @@ export const HEX_EXEMPT_FILES: Record<string, string> = {
     "the CSS named-colour table, used to tell whether text in an inbound email is invisible",
   "packages/core/src/inboxes/labels.ts":
     "the colours a customer's inbox labels are given by default, not ours",
+  "packages/core/src/demo/content.ts":
+    "the sample team's template and broadcast designs, which are emails in a customer's own colours",
+  "packages/core/src/demo/inbound.ts":
+    "the colours the sample team gave its inbox labels, which are a customer's choice, not ours",
   "apps/web/src/lib/email-theme.ts":
     "the email's own palette (its default look and presets), which is the sender's and never the dashboard's",
   "apps/web/src/lib/email-theme.test.ts":

@@ -123,6 +123,10 @@ export const teams = pgTable(
     suspensionNote: text("suspension_note"),
     // Operator override: none of the team's domains warm up.
     warmupTrustedAt: timestamp("warmup_trusted_at", { withTimezone: true }),
+    // Seeded sample workspace (packages/core/src/demo): it cannot send, the
+    // worker and the cross-team readers skip it, and deleting the row removes
+    // every table that cascades from teams.
+    isDemo: boolean("is_demo").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

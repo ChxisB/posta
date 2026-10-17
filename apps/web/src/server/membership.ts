@@ -21,6 +21,8 @@ export interface ActiveMembership {
   teamName: string;
   plan: TeamPlan;
   logoUrl: string | null;
+  /** The seeded sample workspace: it cannot send, and its real-world actions are refused. */
+  isDemo: boolean;
 }
 
 /** All memberships for a user, oldest first (the first one is the default team). */
@@ -32,6 +34,7 @@ export async function listMemberships(db: Db, userId: string): Promise<ActiveMem
       teamName: schema.teams.name,
       plan: schema.teams.plan,
       logoUrl: schema.teams.logoUrl,
+      isDemo: schema.teams.isDemo,
     })
     .from(schema.teamMembers)
     .innerJoin(schema.teams, eq(schema.teams.id, schema.teamMembers.teamId))

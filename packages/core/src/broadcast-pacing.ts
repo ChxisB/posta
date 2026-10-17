@@ -1,6 +1,7 @@
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, asc, eq, gte, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { notDemoTeam } from "./demo-team.js";
 import { resultRows } from "./driver-result.js";
 import {
   type LadderPlan,
@@ -56,7 +57,7 @@ export async function regionBulkCounts(
     })
     .from(e)
     .innerJoin(d, eq(d.id, e.domainId))
-    .where(gte(e.sentAt, new Date(now.getTime() - DAY_MS)))
+    .where(and(gte(e.sentAt, new Date(now.getTime() - DAY_MS)), notDemoTeam(e.teamId)))
     .groupBy(d.region);
   for (const row of sent) {
     out.set(row.region, { sent24h: row.bulk, allSent24h: row.all, queued: 0 });
@@ -92,6 +93,7 @@ export async function bulkSentBySlot(
       where ${e.sentAt} >= ${new Date(now.getTime() - DAY_MS).toISOString()}::timestamptz
         and ${e.broadcastId} is not null
         and ${d.region} = ${opts.region}
+        and ${notDemoTeam(e.teamId)}
       group by 1
       order by 1
     `),
@@ -251,6 +253,7 @@ export async function regionDailyPeaks(
       from ${e} join ${d} on ${d.id} = ${e.domainId}
       where ${e.sentAt} >= ${new Date(now.getTime() - days * DAY_MS).toISOString()}::timestamptz
         and ${d.region} = ${opts.region}
+        and ${notDemoTeam(e.teamId)}
       group by (${e.sentAt} at time zone 'UTC')::date
     `),
   );

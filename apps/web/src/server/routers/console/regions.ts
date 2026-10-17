@@ -14,6 +14,7 @@ import {
   committedDailyVolume,
   getInstanceSettings,
   holdRegion,
+  notDemoTeam,
   pacingHorizonDays,
   pausedRegions,
   planRegionSend,
@@ -123,7 +124,7 @@ export function createConsoleRegionsRouter(deps: ConsoleRegionDeps = defaultDeps
         ctx.db
           .select({ region: d.region, n: sql<number>`count(*)::int` })
           .from(d)
-          .where(eq(d.status, "verified"))
+          .where(and(eq(d.status, "verified"), notDemoTeam(d.teamId)))
           .groupBy(d.region),
         regionDailySends(ctx.db, { now, days: 7 }),
         Promise.all(
@@ -310,7 +311,7 @@ export function createConsoleRegionsRouter(deps: ConsoleRegionDeps = defaultDeps
         ctx.db
           .select({ n: sql<number>`count(distinct ${d.teamId})::int` })
           .from(d)
-          .where(and(eq(d.region, input.region), eq(d.status, "verified")))
+          .where(and(eq(d.region, input.region), eq(d.status, "verified"), notDemoTeam(d.teamId)))
           .then((r) => r[0]?.n ?? 0),
         regionDailySends(ctx.db, { now, days: 30 }),
         regionWindowCounts(ctx.db, { now, hours: 24 }),
@@ -321,7 +322,7 @@ export function createConsoleRegionsRouter(deps: ConsoleRegionDeps = defaultDeps
             dmarc: sql<number>`count(*) filter (where ${d.dmarcPolicy} is not null)::int`,
           })
           .from(d)
-          .where(and(eq(d.region, input.region), eq(d.status, "verified")))
+          .where(and(eq(d.region, input.region), eq(d.status, "verified"), notDemoTeam(d.teamId)))
           .then((r) => r[0] ?? { total: 0, dmarc: 0 }),
       ]);
       const w = week.get(input.region);

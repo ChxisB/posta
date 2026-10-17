@@ -4,6 +4,7 @@ import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, asc, eq, isNull, lt, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
+import { notDemoTeam } from "./demo-team.js";
 import { normalizeHostname, ownerDomain } from "./org-domain.js";
 import { DAY_MS } from "./utc-day.js";
 
@@ -415,7 +416,13 @@ export async function domainsAwaitingAge(
   const rows = await db
     .select({ id: d.id })
     .from(d)
-    .where(and(isNull(d.ageCheckedAt), lt(d.createdAt, new Date(now.getTime() - 2 * 3600_000))))
+    .where(
+      and(
+        notDemoTeam(d.teamId),
+        isNull(d.ageCheckedAt),
+        lt(d.createdAt, new Date(now.getTime() - 2 * 3600_000)),
+      ),
+    )
     .orderBy(asc(d.createdAt))
     .limit(limit);
   return rows.map((r) => r.id);

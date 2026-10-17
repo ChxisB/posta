@@ -1,5 +1,5 @@
 import { createPublicKey } from "node:crypto";
-import { PLAN_DOMAIN_LIMIT, SUSPENSION_REASONS } from "@posta/core";
+import { DEMO_TEAM_MESSAGE, PLAN_DOMAIN_LIMIT, SUSPENSION_REASONS } from "@posta/core";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import type { DkimVerificationStatus, DnsResolver, SesIdentityClient } from "@posta/ses";
@@ -1236,5 +1236,73 @@ describe("domains receiving", () => {
     // An instance that stops taking mail stops listing the record.
     vi.stubEnv("RECEIVING_MX_HOST", "");
     expect(await receivingRows(withApexMx([{ priority: 10, exchange: MX }]))).toEqual([]);
+  });
+});
+
+describe("demo team", () => {
+  async function demoCaller(deps: DomainsSesDeps) {
+    const teamId = await createTeam(db, "demo");
+    await db.update(schema.teams).set({ isDemo: true }).where(eq(schema.teams.id, teamId));
+    const factory = createCallerFactory(router({ domains: createDomainsRouter(deps) }));
+    const ctx: Context = {
+      db,
+      session: { user: { id: "u1", email: "u1@example.com", name: "u1" } },
+      teamId,
+      role: "owner",
+      isDemo: true,
+    };
+    return { teamId, caller: factory(ctx) };
+  }
+
+  it("refuses every domain change that would reach SES, DNS or the database row", async () => {
+    const { deps, calls } = fakeSes();
+    const { teamId, caller } = await demoCaller(deps);
+    const [domain] = await db
+      .insert(schema.domains)
+      .values({ teamId, name: "demo.example.test", region: "us-east-1", status: "verified" })
+      .returning({ id: schema.domains.id });
+    const id = domain?.id ?? "";
+    const refused = { code: "FORBIDDEN", message: DEMO_TEAM_MESSAGE };
+    await expect(
+      caller.domains.create({ name: "new.example.test", region: "us-east-1" }),
+    ).rejects.toMatchObject(refused);
+    await expect(caller.domains.verify({ id })).rejects.toMatchObject(refused);
+    await expect(caller.domains.delete({ id })).rejects.toMatchObject(refused);
+    expect(calls).toHaveLength(0);
+    expect(await db.select().from(schema.domains)).toHaveLength(1);
+  });
+
+  it("reads the DNS checklist from the stored status, without asking SES or DNS", async () => {
+    const { deps, calls } = fakeSes();
+    const failDns = () => {
+      throw new Error("no live lookups for the demo team");
+    };
+    deps.dns = { resolveTxt: failDns, resolveMx: failDns, resolveCname: failDns };
+    const { teamId, caller } = await demoCaller(deps);
+    const [domain] = await db
+      .insert(schema.domains)
+      .values({
+        teamId,
+        name: "demo.example.test",
+        region: "us-east-1",
+        status: "verified",
+        dkimSelector: "sel",
+        dkimPublicKey: "PUB",
+      })
+      .returning({ id: schema.domains.id });
+    const { records } = await caller.domains.records({ id: domain?.id ?? "" });
+    expect(calls).toHaveLength(0);
+    expect(records.length).toBeGreaterThan(0);
+    expect(records.filter((r) => r.group === "verification").map((r) => r.status)).toEqual(
+      records.filter((r) => r.group === "verification").map(() => "verified"),
+    );
+    expect(records.every((r) => r.live === "found")).toBe(true);
+  });
+
+  it("names only procedures that exist, so a renamed one cannot slip through", async () => {
+    const { appRouter } = await import("@/server/routers");
+    const { DEMO_BLOCKED } = await import("@/server/trpc");
+    const paths = new Set(Object.keys(appRouter._def.procedures));
+    expect([...DEMO_BLOCKED].filter((path) => !paths.has(path))).toEqual([]);
   });
 });

@@ -2,6 +2,7 @@ import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, eq, sql } from "drizzle-orm";
 import { isMailLocale, type MailLocale } from "./account-mail.js";
+import { notDemoTeam } from "./demo-team.js";
 import { mailPreferenceOf } from "./mail-preferences.js";
 import { findSenderDomainOwner, type SystemMailKind } from "./system-mail.js";
 
@@ -76,6 +77,8 @@ export async function listTeamOwners(
     .where(
       and(
         eq(schema.teamMembers.teamId, teamId),
+        // The demo workspace's owner is a real person, who hears nothing about it.
+        notDemoTeam(schema.teamMembers.teamId),
         eq(schema.teamMembers.role, "owner"),
         preference ? sql`not (${schema.user.mailOptOuts} ? ${preference})` : undefined,
       ),

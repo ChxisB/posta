@@ -27,7 +27,7 @@ export async function alertLinkedTeams(
     })
     .from(l)
     .innerJoin(schema.teams, eq(schema.teams.id, l.teamId))
-    .where(isNull(l.alertedAt))
+    .where(and(isNull(l.alertedAt), eq(schema.teams.isDemo, false)))
     .orderBy(asc(l.createdAt));
   let sent = 0;
   for (const link of pending) {

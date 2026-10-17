@@ -12,6 +12,9 @@
     "lint:fix": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "setup:aws": "tsx scripts/aws-setup/index.ts",
+    "demo:seed": "pnpm --filter @posta/worker demo seed",
+    "demo:reset": "pnpm --filter @posta/worker demo reset",
+    "demo:remove": "pnpm --filter @posta/worker demo remove",
     "test": "turbo run test",
     "db:generate": "pnpm --filter @posta/db db:generate"
   },

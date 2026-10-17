@@ -6,10 +6,16 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { acceptEmail } from "../src/accept-email.js";
 import { EnvKeyring } from "../src/crypto/keyring.js";
+import { assertNotDemo, DemoTeamError } from "../src/demo-team.js";
 import { type QuotaTeamRow, teamQuota } from "../src/plans.js";
 import { readPeriodUsage, reservePeriodQuota, reserveQuota } from "../src/quota.js";
 import { committedDailyVolume } from "../src/team-plan.js";
-import { fetchTeamStanding, isTeamSuspended } from "../src/team-standing.js";
+import {
+  fetchTeamStanding,
+  isTeamSuspended,
+  sendRefusal,
+  sendRefusalError,
+} from "../src/team-standing.js";
 
 let db: Db;
 let close: () => Promise<void>;
@@ -192,6 +198,7 @@ describe("team standing", () => {
       suspended: null,
       broadcastsPausedByOperatorAt: null,
       dailySendCeiling: null,
+      isDemo: false,
     });
 
     const at = new Date("2026-09-14T10:00:00Z");
@@ -210,7 +217,30 @@ describe("team standing", () => {
       suspended: { at, reason: "reputation", note: "spiky" },
       broadcastsPausedByOperatorAt: at,
       dailySendCeiling: 300,
+      isDemo: false,
     });
     expect(await fetchTeamStanding(db, "00000000-0000-0000-0000-000000000000")).toBeNull();
+  });
+});
+
+describe("demo team", () => {
+  it("assertNotDemo passes a real team and throws for the demo one", async () => {
+    const real = await createTeam(db, "not-demo");
+    const demo = await createTeam(db, "is-demo");
+    await db.update(schema.teams).set({ isDemo: true }).where(eq(schema.teams.id, demo));
+
+    await expect(assertNotDemo(db, real)).resolves.toBeUndefined();
+    await expect(assertNotDemo(db, demo)).rejects.toBeInstanceOf(DemoTeamError);
+    await expect(assertNotDemo(db, demo)).rejects.toMatchObject({ code: "demo_team" });
+  });
+
+  it("sendRefusal refuses a demo team before anything else", async () => {
+    const demo = await createTeam(db, "demo-refusal");
+    await db.update(schema.teams).set({ isDemo: true }).where(eq(schema.teams.id, demo));
+
+    const refusal = await sendRefusal(db, demo);
+    expect(refusal).toEqual({ reason: "demo_team" });
+    expect(refusal && sendRefusalError(refusal).code).toBe("demo_team");
+    expect(await sendRefusal(db, await createTeam(db, "real-refusal"))).toBeNull();
   });
 });

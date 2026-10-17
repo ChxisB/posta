@@ -1,6 +1,7 @@
 import {
   associateDomainTenant,
   isTeamSuspended,
+  notDemoTeam,
   recordTenantAudit,
   recordTenantStatus,
   syncTenantSendingStatus,
@@ -13,7 +14,7 @@ import {
   type SesTenantClient,
   setTenantSendingStatus,
 } from "@posta/ses";
-import { asc, isNull, or, sql } from "drizzle-orm";
+import { and, asc, isNull, or, sql } from "drizzle-orm";
 
 export interface SyncTenantsDeps {
   clientForRegion: (region: string) => SesIdentityClient;
@@ -42,9 +43,12 @@ export async function syncTenants(
     .select({ id: d.id, teamId: d.teamId, name: d.name, region: d.region })
     .from(d)
     .where(
-      or(
-        isNull(d.sesTenantAssociatedAt),
-        sql`${d.sesTenantConfigSet} is distinct from ${deps.configurationSet ?? null}`,
+      and(
+        notDemoTeam(d.teamId),
+        or(
+          isNull(d.sesTenantAssociatedAt),
+          sql`${d.sesTenantConfigSet} is distinct from ${deps.configurationSet ?? null}`,
+        ),
       ),
     )
     .orderBy(asc(d.createdAt));

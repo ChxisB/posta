@@ -1,6 +1,7 @@
 import {
   computeTeamStandings,
   graduateWarmupDomains,
+  notDemoTeam,
   pruneTeamStandings,
   pruneWarmupUsage,
   recordProbes,
@@ -9,7 +10,7 @@ import {
 } from "@posta/core";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 /**
  * Refresh every active team's standing (score, guardrail, 7-day rates) and
@@ -34,7 +35,7 @@ export async function runSafetyFlags(
     const [row] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.contacts)
-      .where(eq(schema.contacts.unsubscribed, true));
+      .where(and(eq(schema.contacts.unsubscribed, true), notDemoTeam(schema.contacts.teamId)));
     await recordProbes(db, [{ probe: "contacts_unsubscribed", value: row?.n ?? 0, ok: true }], now);
   } catch (err) {
     console.warn("safety.flags: contacts_unsubscribed probe failed", err);

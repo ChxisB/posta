@@ -429,6 +429,7 @@ function acceptRejection(result: Exclude<AcceptEmailResult, { ok: true }>): {
         status: 422 as const,
         body: errorBody(422, "all_recipients_suppressed", "All recipients are suppressed"),
       };
+    case "demo_team":
     case "team_suspended":
     case "sending_paused":
       return { status: 403 as const, body: refusalBody(result) };
@@ -471,8 +472,8 @@ const sharedSenderRefusal = acceptRejection({
 
 /**
  * Wire body for a team sendRefusal holds; keys still authenticate so the
- * caller learns why. `sending_paused` is a Posta-specific error outside
- * Resend's SDK union (see docs/resend-compatibility.md, known deltas).
+ * caller learns why. `sending_paused` and `demo_team` are Posta-specific
+ * errors outside Resend's SDK union (see docs/resend-compatibility.md, known deltas).
  */
 function refusalBody(refusal: SendRefusal) {
   const { code, message } = sendRefusalError(refusal);
@@ -4335,7 +4336,9 @@ export function createApi(deps: ApiDeps): OpenAPIHono<Env> {
         if (rejection.retryAfterSec) c.header("retry-after", String(rejection.retryAfterSec));
         // The team's admission refuses the whole batch, not the item it met first.
         const teamRefusal =
-          err.result.reason === "team_suspended" || err.result.reason === "sending_paused";
+          err.result.reason === "demo_team" ||
+          err.result.reason === "team_suspended" ||
+          err.result.reason === "sending_paused";
         return c.json(
           teamRefusal
             ? rejection.body

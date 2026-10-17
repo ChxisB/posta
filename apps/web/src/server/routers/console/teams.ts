@@ -250,7 +250,7 @@ export const consoleTeamsRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const filters: (SQL | undefined)[] = [];
+      const filters: (SQL | undefined)[] = [eq(t.isDemo, false)];
       if (input.search) filters.push(searchWhere(input.search));
       if (input.type) filters.push(sql`${t.plan}::text = ${input.type}`);
       if (input.region) filters.push(sql`${teamRegion} = ${input.region}`);

@@ -1116,6 +1116,70 @@ function DangerSection() {
   );
 }
 
+/** Sample data to look around in: the instance operator's, on self-host (the server refuses anyone else). */
+function DemoDataSection() {
+  const t = useTranslations("settings");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const operator = useQuery(trpc.system.operator.queryOptions());
+  const status = useQuery(
+    trpc.demo.status.queryOptions(undefined, { enabled: !!operator.data?.isOperator }),
+  );
+  const done = () => window.location.assign("/emails");
+  const failed = () => toast(t("demo.failed"), "danger");
+  const load = useMutation(trpc.demo.load.mutationOptions({ onSuccess: done, onError: failed }));
+  const remove = useMutation(
+    trpc.demo.remove.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.demo.status.queryFilter());
+        done();
+      },
+      onError: failed,
+    }),
+  );
+  if (!operator.data?.isOperator || !status.data) return null;
+  const busy = load.isPending || remove.isPending;
+  return (
+    <SectionCard title={t("demo.title")}>
+      <p
+        style={{ margin: "-8px 0 16px", color: "var(--po-muted)", fontSize: "var(--po-fs-label)" }}
+      >
+        {t("demo.subtitle")}
+      </p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="po-btn po-btn-primary"
+          disabled={busy}
+          onClick={() => load.mutate()}
+        >
+          <BtnSpinner on={load.isPending} />
+          {status.data.loaded ? t("demo.reset") : t("demo.load")}
+        </button>
+        {status.data.loaded ? (
+          <button
+            type="button"
+            className="po-btn po-btn-secondary"
+            disabled={busy}
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: t("demo.removeTitle"),
+                message: t("demo.removeBody"),
+                confirmLabel: t("demo.remove"),
+                danger: true,
+              });
+              if (ok) remove.mutate();
+            }}
+          >
+            <BtnSpinner on={remove.isPending} />
+            {t("demo.remove")}
+          </button>
+        ) : null}
+      </div>
+    </SectionCard>
+  );
+}
+
 export function SettingsSections({ showInstance }: { showInstance: boolean }) {
   return (
     // minmax(0, 1fr): an implicit auto track grows to the widest card's
@@ -1125,6 +1189,7 @@ export function SettingsSections({ showInstance }: { showInstance: boolean }) {
       <MembersSection />
       <SupportAccessSection />
       {showInstance ? <InstanceSection /> : null}
+      {showInstance ? <DemoDataSection /> : null}
       <DangerSection />
     </div>
   );

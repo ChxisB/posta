@@ -414,6 +414,7 @@ export function acceptFailure(result: Exclude<AcceptEmailResult, { ok: true }>):
         name: "all_recipients_suppressed",
         message: "All recipients are suppressed",
       };
+    case "demo_team":
     case "team_suspended":
     case "sending_paused": {
       const { code, message } = sendRefusalError(result);

@@ -363,6 +363,14 @@ export {
   type WindowCounts,
 } from "./deliverability.js";
 export {
+  DEMO_TEAM_ID,
+  DEMO_TEAM_SLUG,
+  removeDemoTeam,
+  type SeedDemoOptions,
+  seedDemoTeam,
+} from "./demo/index.js";
+export { assertNotDemo, DEMO_TEAM_MESSAGE, DemoTeamError, notDemoTeam } from "./demo-team.js";
+export {
   disposableDomains,
   isDisposableDomain,
   refreshDisposableDomains,
