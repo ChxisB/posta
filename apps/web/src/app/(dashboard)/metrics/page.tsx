@@ -537,7 +537,7 @@ export default function MetricsPage() {
       {data === undefined ? (
         <MetricsSkeleton />
       ) : neverSent ? (
-        <EmptyState area="metrics" headline={t("empty")} body={t.rich("emptyHint", codeRichTags)} />
+        <EmptyState headline={t("empty")} body={t.rich("emptyHint", codeRichTags)} />
       ) : (
         <>
           <div className="po-kpi-card">

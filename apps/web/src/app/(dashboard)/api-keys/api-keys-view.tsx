@@ -195,7 +195,6 @@ export function ApiKeysView() {
 
       {keys && keys.length === 0 ? (
         <EmptyState
-          area="api-keys"
           headline={t("empty.headline")}
           body={t("empty.body")}
           cta={

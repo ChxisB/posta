@@ -279,7 +279,6 @@ export default function PropertiesPage() {
         </div>
       ) : isEmpty ? (
         <EmptyState
-          area="audience"
           headline={t("empty")}
           body={t("emptyHint")}
           cta={

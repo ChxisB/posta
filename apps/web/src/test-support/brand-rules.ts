@@ -224,8 +224,7 @@ export const EXCLAMATIONS_ALLOWED_IN: Record<string, string> = {
 /* ----------------------------------------------------------------- assets */
 
 /** Public files a source file names by path: /logo/…, /email/…, /og.png. The proxy's /favicon.ico matcher is not one. */
-const ASSET_PATH =
-  /\/(?:(?:logo|email|auth|empty-states)\/[\w./-]*?\.(?:svg|png|webp|jpe?g|ico)|og\.png)/g;
+const ASSET_PATH = /\/(?:(?:logo|email|auth)\/[\w./-]*?\.(?:svg|png|webp|jpe?g|ico)|og\.png)/g;
 
 export function assetRefs(text: string): string[] {
   return [...new Set([...text.matchAll(ASSET_PATH)].map((match) => match[0]))];

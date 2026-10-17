@@ -239,11 +239,7 @@ export default function LogsPage() {
             onAction={clearFilters}
           />
         ) : (
-          <EmptyState
-            area="logs"
-            headline={t("list.empty")}
-            body={t.rich("list.emptyHint", codeRichTags)}
-          />
+          <EmptyState headline={t("list.empty")} body={t.rich("list.emptyHint", codeRichTags)} />
         )
       ) : (
         <>

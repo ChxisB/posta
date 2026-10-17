@@ -187,7 +187,6 @@ export default function TopicsPage() {
             </div>
           ) : query.data.length === 0 ? (
             <EmptyState
-              area="audience"
               headline={t("empty")}
               body={t("emptyHint")}
               cta={

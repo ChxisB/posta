@@ -177,7 +177,6 @@ export function InboxesView() {
         />
       ) : nothing ? (
         <EmptyState
-          area="emails"
           headline={t("empty.title")}
           body={nowhere ? t("empty.noReceiving") : t("empty.body")}
           cta={nowhere ? undefined : createButton}

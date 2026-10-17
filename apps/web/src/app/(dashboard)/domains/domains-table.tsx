@@ -181,7 +181,6 @@ export function DomainsView() {
         </div>
       ) : domains.isSuccess && rows.length === 0 ? (
         <EmptyState
-          area="domains"
           headline={t("list.empty")}
           body={t("list.emptyBody")}
           cta={
