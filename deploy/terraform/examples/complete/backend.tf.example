@@ -1,0 +1,14 @@
+# Remote state is required for anything real: the state holds MASTER_ENCRYPTION_KEY
+# and the database password in clear text. Copy to backend.tf, create the bucket
+# first (versioned, encrypted with a KMS key, public access blocked, access limited
+# to the people who may read production secrets), then `terraform init -migrate-state`.
+terraform {
+  backend "s3" {
+    bucket       = "example-posta-tfstate"
+    key          = "posta/terraform.tfstate" # one key per stack, e.g. posta/eu-west-2/terraform.tfstate
+    region       = "us-east-1"
+    encrypt      = true
+    kms_key_id   = "alias/example-posta-tfstate"
+    use_lockfile = true # S3-native locking, Terraform 1.10+; before that use dynamodb_table
+  }
+}

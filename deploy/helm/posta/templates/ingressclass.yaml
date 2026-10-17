@@ -1,0 +1,34 @@
+{{- /* EKS Auto Mode's ALB controller works from an IngressClass whose parameters name an IngressClassParams. Cluster-scoped: one release per cluster should create it. */ -}}
+{{- if and .Values.ingress.enabled .Values.ingress.eksAutoMode.create }}
+{{- $class := .Values.ingress.className | default "alb" }}
+{{- $p := .Values.ingress.eksAutoMode }}
+apiVersion: eks.amazonaws.com/v1
+kind: IngressClassParams
+metadata:
+  name: {{ $class }}
+  labels:
+    {{- include "posta.labels" . | nindent 4 }}
+spec:
+  scheme: {{ $p.scheme }}
+  {{- with $p.certificateARNs }}
+  certificateARNs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $p.groupName }}
+  group:
+    name: {{ . }}
+  {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: {{ $class }}
+  labels:
+    {{- include "posta.labels" . | nindent 4 }}
+spec:
+  controller: eks.amazonaws.com/alb
+  parameters:
+    apiGroup: eks.amazonaws.com
+    kind: IngressClassParams
+    name: {{ $class }}
+{{- end }}

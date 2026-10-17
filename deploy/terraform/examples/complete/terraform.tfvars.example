@@ -1,0 +1,25 @@
+zone_name      = "example.com"
+dashboard_host = "mail.example.com"
+api_host       = "api.example.com"
+
+# Size of the stack: starter (default), growth or ha. Cost follows it; see
+# deploy/README.md, "Growing". Move up by changing this and applying.
+# tier = "growth"
+
+# One stack per region keeps each customer's data in theirs. A second region is
+# a second copy of this file with its own region, name (IAM names are
+# account-wide), hostnames and state key; see deploy/README.md, "More regions".
+# region = "eu-west-2"
+# name   = "posta-euw2"
+
+# Pin a release in production; `edge` follows main.
+# image_tag = "0.1.0"
+
+# docs_host        = "docs.example.com"
+# unsubscribe_host = "u.example.com"
+
+# Chart values merged over the example's, e.g. more workers (each divides the SES rate):
+# posta_values = {
+#   worker = { replicas = 2 }
+#   env    = { ALLOW_SIGNUP = "false" }
+# }

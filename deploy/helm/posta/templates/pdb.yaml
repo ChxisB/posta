@@ -1,0 +1,22 @@
+{{- if .Values.pdb.enabled }}
+{{- $root := . -}}
+{{- $components := include "posta.components" . | fromYaml -}}
+{{- range $name := keys $components | sortAlpha }}
+{{- $v := (get $components $name).values }}
+{{- if or (dig "autoscaling" "enabled" false $v) (gt (int $v.replicas) 1) }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "posta.fullname" $root }}-{{ $name }}
+  labels:
+    {{- include "posta.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "posta.selector" (dict "root" $root "component" $name) | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}

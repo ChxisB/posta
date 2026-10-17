@@ -1,0 +1,34 @@
+{{- $c := .Values.config -}}
+{{- $data := dict
+  "APP_BASE_URL" (required "config.appBaseUrl is required: the dashboard's public origin, e.g. https://mail.example.com" $c.appBaseUrl)
+  "PUBLIC_API_URL" $c.publicApiUrl
+  "UNSUBSCRIBE_BASE_URL" $c.unsubscribeBaseUrl
+  "PORT" $c.port
+  "SMTP_PORT" $c.smtpPort
+  "AWS_REGION" $c.awsRegion
+  "AWS_DEFAULT_CHAIN" $c.awsDefaultChain
+  "SQS_QUEUE_URL" $c.sqsQueueUrl
+  "SNS_TOPIC_ARNS" $c.snsTopicArns
+  "SES_CONFIGURATION_SET" $c.sesConfigurationSet
+  "TRUSTED_PROXIES" $c.trustedProxies
+  "WORKER_REPLICAS" (include "posta.workerReplicas" .)
+  "NODE_ENV" "production"
+-}}
+{{- if .Values.smtp.tls.secretName -}}
+{{- $_ := set $data "SMTP_TLS_CERT_PATH" "/tls/tls.crt" -}}
+{{- $_ := set $data "SMTP_TLS_KEY_PATH" "/tls/tls.key" -}}
+{{- end -}}
+{{- if .Values.smtp.allowInsecureAuth -}}{{- $_ := set $data "SMTP_ALLOW_INSECURE_AUTH" "true" -}}{{- end -}}
+{{- $data = merge (deepCopy .Values.env) $data -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "posta.fullname" . }}-config
+  labels:
+    {{- include "posta.labels" . | nindent 4 }}
+data:
+  {{- range $k, $v := $data }}
+  {{- if ne (toString $v) "" }}
+  {{ $k }}: {{ toString $v | quote }}
+  {{- end }}
+  {{- end }}

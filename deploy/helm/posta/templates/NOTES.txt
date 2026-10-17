@@ -1,0 +1,30 @@
+Posta {{ .Chart.AppVersion }} is deploying as {{ .Release.Name }} ({{ .Values.mode }} mode, image {{ include "posta.image" . }}).
+
+Dashboard: {{ .Values.config.appBaseUrl }}
+{{- if .Values.config.publicApiUrl }}
+API:       {{ .Values.config.publicApiUrl }}
+{{- end }}
+
+The first account to sign up is the admin; sign-up then closes to invitations.
+{{ if not .Values.secret.existingSecret }}
+The Secret was rendered from secret.values. For production, create it outside
+Helm and name it in secret.existingSecret; that also enables the pre-upgrade
+migration Job.
+{{- end }}
+{{- if and (not .Values.config.sqsQueueUrl) (not .Values.config.snsTopicArns) }}
+
+SES events are not wired: config.sqsQueueUrl / config.snsTopicArns are empty, so
+bounces and deliveries will not be recorded. See deploy/terraform/modules/ses.
+{{- end }}
+{{- if eq .Values.mode "all" }}
+
+mode "all" runs web, api and worker in one pod ({{ .Values.app.replicas }} replica(s)); use "split" to scale them apart.
+{{- end }}
+{{- if or .Values.smtp.enabled .Values.mx.enabled }}
+
+TCP listeners come up on load balancers; read their addresses with:
+  kubectl -n {{ .Release.Namespace }} get svc -l app.kubernetes.io/instance={{ .Release.Name }}
+{{- end }}
+
+A changed existing Secret does not roll the pods; run
+  kubectl -n {{ .Release.Namespace }} rollout restart deploy -l app.kubernetes.io/instance={{ .Release.Name }}

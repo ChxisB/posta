@@ -56,3 +56,18 @@ describe("infra/posta-ses.cfn.yaml", () => {
     expect(new Set(events)).toEqual(new Set(SES_EVENT_TYPES));
   });
 });
+
+describe("deploy/terraform/modules/ses", () => {
+  it("ships the wizard's IAM policy verbatim", () => {
+    const policy = JSON.parse(read("../../../deploy/terraform/modules/ses/policy.json"));
+    expect(policy).toEqual(JSON.parse(JSON.stringify(SES_IAM_POLICY)));
+  });
+
+  it("subscribes exactly the wizard's event types", () => {
+    const main = read("../../../deploy/terraform/modules/ses/main.tf");
+    const list = main.match(/event_types\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
+    expect(new Set([...list.matchAll(/"([A-Z_]+)"/g)].map((m) => m[1]))).toEqual(
+      new Set(SES_EVENT_TYPES),
+    );
+  });
+});

@@ -1,0 +1,73 @@
+{{- /* Needs an existing Secret: a hook runs before the release's own resources, and DATABASE_URL has to be there. */ -}}
+{{- if and .Values.migrations.hook .Values.secret.existingSecret }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "posta.fullname" . }}-migrate
+  labels:
+    {{- include "posta.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    # A failed Job stays for its logs; the next run replaces it.
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ int .Values.migrations.timeoutSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "posta.selector" (dict "root" . "component" "migrate") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- include "posta.podSecurityContext" . | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: {{ include "posta.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["migrate"]
+          securityContext:
+            {{- include "posta.containerSecurityContext" . | nindent 12 }}
+          # migrate reads DATABASE_URL and nothing else.
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.existingSecret }}
+                  key: DATABASE_URL
+            {{- with .Values.extraCA.configMapName }}
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/posta/ca/{{ $.Values.extraCA.key }}
+            {{- end }}
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          volumeMounts:
+            {{- include "posta.scratchMounts" . | nindent 12 }}
+            {{- if .Values.extraCA.configMapName }}
+            - name: extra-ca
+              mountPath: /etc/posta/ca
+              readOnly: true
+            {{- end }}
+      volumes:
+        {{- include "posta.scratchVolumes" . | nindent 8 }}
+        {{- if .Values.extraCA.configMapName }}
+        - name: extra-ca
+          configMap:
+            name: {{ .Values.extraCA.configMapName }}
+        {{- end }}
+{{- end }}

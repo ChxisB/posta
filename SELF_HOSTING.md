@@ -199,6 +199,12 @@ again); identities, the 24-hour quota, the send rate and the sandbox status
 are all per region; every region's events land in the one SQS queue, because
 SNS delivers across regions.
 
+A region here is where SES sends from, not where the data lives. One
+deployment has one database, one object store and one queue, in the region you
+deployed them to, and every team's contacts, logs and encrypted message bodies
+are stored there whichever SES region sent the mail. To keep a customer's data
+in a given region, run a separate deployment in that region.
+
 Run the wizard's `add-region` command where the `.env` lives: the deploy
 directory, or on the server through the image with short-lived admin
 credentials in the environment (nothing is stored):
@@ -745,6 +751,29 @@ sudo ufw allow 2587/tcp   # only if the SMTP relay is exposed
 sudo ufw allow 25/tcp     # only with the mx profile
 sudo ufw enable
 ```
+
+</details>
+
+<details>
+<summary><b>Kubernetes on AWS (Helm or Terraform)</b></summary>
+
+For a cluster instead of a single box. One Helm chart (`deploy/helm/posta`) defines
+how Posta runs; Terraform (`deploy/terraform`) can build the AWS around it (VPC, EKS
+Auto Mode, RDS Postgres, the SES wiring, an ACM certificate, DNS) and install that
+same chart, or you can run `helm install` against a cluster, Postgres and SES setup
+you already have. The pods use EKS Pod Identity, so no AWS access keys are stored.
+
+```sh
+cd deploy/terraform/examples/complete
+cp terraform.tfvars.example terraform.tfvars   # zone and hostnames
+cp backend.tf.example backend.tf               # remote encrypted state
+terraform init && terraform apply -target=module.eks && terraform apply
+```
+
+Terraform state holds the master encryption key and the database password, so
+use an encrypted remote backend. The full guide, the Helm-only path, the SMTP and
+inbound-mail load balancers, and what was not verified on a live cluster:
+[`deploy/README.md`](deploy/README.md).
 
 </details>
 

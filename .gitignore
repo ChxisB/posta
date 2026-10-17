@@ -22,3 +22,12 @@ build/
 .turbo/
 /AGENTS.md
 !.env.example
+
+# Terraform: state and local inputs never belong in git (state holds secrets)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+*.auto.tfvars
+deploy/terraform/examples/*/backend.tf

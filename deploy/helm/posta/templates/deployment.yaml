@@ -1,0 +1,185 @@
+{{- $root := . -}}
+{{- $fn := include "posta.fullname" . -}}
+{{- $components := include "posta.components" . | fromYaml -}}
+{{- range $name := keys $components | sortAlpha }}
+{{- $comp := get $components $name }}
+{{- $v := $comp.values }}
+{{- $process := $comp.process }}
+{{- $ownsWorker := or (eq $process "worker") (eq $process "all") }}
+{{- $autoscaled := dig "autoscaling" "enabled" false $v }}
+{{- $tls := dig "tls" "secretName" "" $v }}
+{{- $port := 0 }}
+{{- $path := "" }}
+{{- if eq $comp.probe "web" }}
+{{- $port = 3000 }}
+{{- $path = "/robots.txt" }}
+{{- else if or (eq $comp.probe "api") (eq $comp.probe "app") }}
+{{- $port = $root.Values.config.port }}
+{{- $path = "/health" }}
+{{- else if eq $comp.probe "docs" }}
+{{- $port = 3002 }}
+{{- $path = "/" }}
+{{- else if eq $comp.probe "tcp" }}
+{{- $port = (first $comp.ports).port }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-{{ $name }}
+  labels:
+    {{- include "posta.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  {{- if not $autoscaled }}
+  replicas: {{ int $v.replicas }}
+  {{- end }}
+  {{- if $ownsWorker }}
+  # The worker count is the SES rate divisor (WORKER_REPLICAS): a rollout may
+  # take a worker down but never add one beyond it.
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ ternary 0 1 $ownsWorker }}
+      maxUnavailable: {{ ternary 1 0 $ownsWorker }}
+  selector:
+    matchLabels:
+      {{- include "posta.selector" (dict "root" $root "component" $name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "posta.selector" (dict "root" $root "component" $name) | nindent 8 }}
+        app.kubernetes.io/version: {{ $root.Chart.AppVersion | quote }}
+        helm.sh/chart: {{ printf "%s-%s" $root.Chart.Name $root.Chart.Version }}
+      {{- if or (ne $process "mx") (not $root.Values.secret.existingSecret) $root.Values.podAnnotations }}
+      annotations:
+        {{- if ne $process "mx" }}
+        checksum/config: {{ include (print $root.Template.BasePath "/configmap.yaml") $root | sha256sum }}
+        {{- end }}
+        {{- if not $root.Values.secret.existingSecret }}
+        checksum/secret: {{ include (print $root.Template.BasePath "/secret.yaml") $root | sha256sum }}
+        {{- end }}
+        {{- with $root.Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "posta.serviceAccountName" $root }}
+      automountServiceAccountToken: false
+      # preStop pause + the supervisor's 35 s child-exit budget (scripts/start.mjs).
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        {{- include "posta.podSecurityContext" $root | nindent 8 }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and $root.Values.topologySpread (or $autoscaled (gt (int $v.replicas) 1)) }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "posta.selector" (dict "root" $root "component" $name) | nindent 14 }}
+      {{- end }}
+      {{- with $root.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "posta.image" $root | quote }}
+          imagePullPolicy: {{ $root.Values.image.pullPolicy }}
+          securityContext:
+            {{- include "posta.containerSecurityContext" $root | nindent 12 }}
+          {{- if not (has $process (list "docs" "mx")) }}
+          envFrom:
+            - configMapRef:
+                name: {{ $fn }}-config
+            - secretRef:
+                name: {{ include "posta.secretName" $root }}
+          {{- else if eq $process "docs" }}
+          envFrom:
+            - configMapRef:
+                name: {{ $fn }}-config
+          {{- end }}
+          env:
+            - name: PROCESS
+              value: {{ $process | quote }}
+            {{- if and $root.Values.extraCA.configMapName (ne $process "mx") }}
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/posta/ca/{{ $root.Values.extraCA.key }}
+            {{- end }}
+            {{- if eq $process "mx" }}
+            # The MX faces the internet: only its own variables, no app keys.
+            - name: MX_INGEST_URL
+              value: {{ printf "http://%s:%d/internal/mx" (include "posta.apiService" $root) (int $root.Values.config.port) | quote }}
+            - name: MX_INGEST_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "posta.secretName" $root }}
+                  key: MX_INGEST_SECRET
+            - name: MX_HOSTNAME
+              value: {{ required "mx.hostname is required when mx.enabled (the host the MX records point at)" $v.hostname | quote }}
+            {{- if $tls }}
+            - name: MX_TLS_CERT_PATH
+              value: /tls/tls.crt
+            - name: MX_TLS_KEY_PATH
+              value: /tls/tls.key
+            {{- end }}
+            {{- end }}
+          {{- if $comp.ports }}
+          ports:
+            {{- range $comp.ports }}
+            - name: {{ .name }}
+              containerPort: {{ int .port }}
+            {{- end }}
+          {{- end }}
+          {{- if $comp.probe }}
+          {{- include "posta.probes" (dict "port" $port "path" $path) | nindent 10 }}
+          {{- end }}
+          {{- if has $comp.probe (list "web" "api" "app") }}
+          # Let the load balancer drain before the process stops accepting.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "10"]
+          {{- end }}
+          resources:
+            {{- toYaml $v.resources | nindent 12 }}
+          volumeMounts:
+            {{- include "posta.scratchMounts" $root | nindent 12 }}
+            {{- if $tls }}
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            {{- end }}
+            {{- if $root.Values.extraCA.configMapName }}
+            - name: extra-ca
+              mountPath: /etc/posta/ca
+              readOnly: true
+            {{- end }}
+      volumes:
+        {{- include "posta.scratchVolumes" $root | nindent 8 }}
+        {{- if $tls }}
+        - name: tls
+          secret:
+            secretName: {{ $tls }}
+            defaultMode: 288 # 0440: readable through fsGroup, not by other users
+        {{- end }}
+        {{- if $root.Values.extraCA.configMapName }}
+        - name: extra-ca
+          configMap:
+            name: {{ $root.Values.extraCA.configMapName }}
+        {{- end }}
+{{- end }}

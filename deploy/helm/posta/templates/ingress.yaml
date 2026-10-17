@@ -1,0 +1,69 @@
+{{- if .Values.ingress.enabled }}
+{{- $fn := include "posta.fullname" . -}}
+{{- $appHost := required "config.appBaseUrl is required: the dashboard's public origin, e.g. https://mail.example.com" (include "posta.host" .Values.config.appBaseUrl) -}}
+{{- $apiHost := required "config.publicApiUrl is required with ingress.enabled: the API needs its own hostname (e.g. https://api.example.com)" (include "posta.host" .Values.config.publicApiUrl) -}}
+{{- if eq $appHost $apiHost }}{{ fail "config.publicApiUrl must be a different host from config.appBaseUrl: their paths overlap" }}{{ end -}}
+{{- $unsubHost := include "posta.host" .Values.config.unsubscribeBaseUrl -}}
+{{- $class := .Values.ingress.className | default (ternary "alb" "" .Values.ingress.eksAutoMode.create) -}}
+{{- $web := dict "service" (dict "name" (include "posta.webService" .) "port" (dict "number" 3000)) -}}
+{{- $api := dict "service" (dict "name" (include "posta.apiService" .) "port" (dict "number" (int .Values.config.port))) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fn }}
+  labels:
+    {{- include "posta.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $class }}
+  ingressClassName: {{ $class }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    # SNS delivers SES events to {APP_BASE_URL}/ses/events, which the api serves.
+    - host: {{ $appHost | quote }}
+      http:
+        paths:
+          - path: /ses/events
+            pathType: Exact
+            backend:
+              {{- toYaml $api | nindent 14 }}
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- toYaml $web | nindent 14 }}
+    - host: {{ $apiHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- toYaml $api | nindent 14 }}
+    {{- if and $unsubHost (ne $unsubHost $appHost) }}
+    - host: {{ $unsubHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- toYaml $web | nindent 14 }}
+    {{- end }}
+    {{- if .Values.docs.enabled }}
+    - host: {{ required "docs.host is required when docs.enabled and ingress.enabled" .Values.docs.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fn }}-docs
+                port:
+                  number: 3002
+    {{- end }}
+{{- end }}

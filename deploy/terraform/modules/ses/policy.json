@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:CreateEmailIdentity",
+        "ses:GetEmailIdentity",
+        "ses:DeleteEmailIdentity",
+        "ses:PutEmailIdentityMailFromAttributes",
+        "ses:PutEmailIdentityDkimSigningAttributes"
+      ],
+      "Resource": "arn:aws:ses:*:*:identity/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["ses:SendEmail", "ses:SendRawEmail", "ses:GetAccount"],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:CreateTenant",
+        "ses:GetTenant",
+        "ses:DeleteTenant",
+        "ses:CreateTenantResourceAssociation",
+        "ses:DeleteTenantResourceAssociation",
+        "ses:UpdateReputationEntityCustomerManagedStatus"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["cloudwatch:GetMetricData"],
+      "Resource": "*"
+    }
+  ]
+}
