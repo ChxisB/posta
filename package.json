@@ -16,9 +16,9 @@
     "db:generate": "pnpm --filter @posta/db db:generate"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
+    "@biomejs/biome": "^2.6.2",
     "tsx": "^4.23.13",
-    "turbo": "^2.11.7",
+    "turbo": "^2.11.10",
     "typescript": "^7.0.2"
   }
 }
