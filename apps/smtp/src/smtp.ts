@@ -197,7 +197,7 @@ async function handleMessage(
     if (result.reason === "sending_paused") {
       throw smtpError(451, `4.7.1 ${sendRefusalError(result).message}`);
     }
-    if (result.reason === "team_suspended") {
+    if (result.reason === "team_suspended" || result.reason === "demo_team") {
       throw smtpError(550, sendRefusalError(result).message);
     }
     if (result.reason === "quota_backlog_full") {

@@ -1,5 +1,5 @@
 import { receivingEnabled } from "@posta/config";
-import { recordSupportViewRead, type WebhookEnqueue } from "@posta/core";
+import { DEMO_TEAM_MESSAGE, recordSupportViewRead, type WebhookEnqueue } from "@posta/core";
 import type { Db } from "@posta/db";
 import { getDb } from "@posta/db";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -39,6 +39,8 @@ export interface Context {
   session: AuthSession | null;
   teamId: string | null;
   role: SessionRole | null;
+  /** The active team is the seeded demo workspace. */
+  isDemo?: boolean;
   /** Set only while the session user's own live grant names the team; every mutation is refused. */
   supportView?: SupportViewContext | undefined;
   /** Persists the team selection (ACTIVE_TEAM_COOKIE). Absent outside HTTP requests (tests). */
@@ -122,7 +124,12 @@ export async function createContext({ headers }: { headers: Headers }): Promise<
     session.user.id,
     cookieStore.get(ACTIVE_TEAM_COOKIE)?.value,
   );
-  return { ...shared, teamId: membership?.teamId ?? null, role: membership?.role ?? null };
+  return {
+    ...shared,
+    teamId: membership?.teamId ?? null,
+    role: membership?.role ?? null,
+    isDemo: membership?.isDemo ?? false,
+  };
 }
 
 const t = initTRPC.context<Context>().create({ transformer: superjson });
@@ -156,7 +163,36 @@ const supportViewGuard = t.middleware(async ({ ctx, type, path, next }) => {
   return next();
 });
 
-export const publicProcedure = t.procedure.use(supportViewGuard);
+/**
+ * What the demo workspace may not do, by exact path: each reaches SES, DNS,
+ * Stripe, a mailbox or an invitee, none of which the sample data is real for.
+ * Sends are refused where they are accepted (sendRefusal), not here.
+ */
+export const DEMO_BLOCKED: ReadonlySet<string> = new Set([
+  "domains.create",
+  "domains.verify",
+  "domains.updateConfiguration",
+  "domains.setReceiving",
+  "domains.setCatchAll",
+  "domains.delete",
+  "billing.checkout",
+  "billing.changePlan",
+  "billing.setOverage",
+  "billing.portal",
+  "webhooks.testDelivery",
+  "settings.invitations.create",
+  "settings.invitations.resend",
+  "onboarding.sendFirstEmail",
+]);
+
+const demoGuard = t.middleware(({ ctx, type, path, next }) => {
+  if (ctx.isDemo && type === "mutation" && DEMO_BLOCKED.has(path)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: DEMO_TEAM_MESSAGE });
+  }
+  return next();
+});
+
+export const publicProcedure = t.procedure.use(supportViewGuard).use(demoGuard);
 
 export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.session) throw new TRPCError({ code: "UNAUTHORIZED" });

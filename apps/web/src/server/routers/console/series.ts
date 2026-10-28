@@ -1,3 +1,4 @@
+import { notDemoTeam } from "@posta/core";
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, gte, lte, sql } from "drizzle-orm";
@@ -41,7 +42,7 @@ export async function instanceCounterSeries(
         complained: total(h.complained),
       })
       .from(h)
-      .where(and(gte(h.hour, period.from), lte(h.hour, period.to)))
+      .where(and(gte(h.hour, period.from), lte(h.hour, period.to), notDemoTeam(h.teamId)))
       .groupBy(h.hour)
       .orderBy(h.hour);
     const byHour = new Map(rows.map((r) => [new Date(r.t).toISOString(), r]));
@@ -58,7 +59,9 @@ export async function instanceCounterSeries(
       complained: total(c.complained),
     })
     .from(c)
-    .where(and(gte(c.day, isoDay(period.from)), lte(c.day, isoDay(period.to))))
+    .where(
+      and(gte(c.day, isoDay(period.from)), lte(c.day, isoDay(period.to)), notDemoTeam(c.teamId)),
+    )
     .groupBy(c.day)
     .orderBy(c.day);
   const byDay = new Map(rows.map((r) => [r.t, r]));
@@ -131,7 +134,7 @@ export async function regionDailySends(
     .select({ region: teamRegion.region, t: sql<string>`${c.day}::text`, sent: total(c.sent) })
     .from(c)
     .innerJoin(teamRegion, sql`${teamRegion.teamId} = ${c.teamId}`)
-    .where(gte(c.day, isoDay(from)))
+    .where(and(gte(c.day, isoDay(from)), notDemoTeam(c.teamId)))
     .groupBy(teamRegion.region, c.day);
   const keys = dayKeys(from, opts.now);
   const out = new Map<string, { t: string; sent: number }[]>();

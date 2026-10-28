@@ -633,11 +633,7 @@ export function AudienceContactsView({ migrateToUrl }: { migrateToUrl: string | 
             }}
           />
         ) : (
-          <EmptyState
-            area="audience"
-            headline={t("contacts.empty")}
-            body={t("contacts.emptyHint")}
-          />
+          <EmptyState headline={t("contacts.empty")} body={t("contacts.emptyHint")} />
         )
       ) : (
         <>

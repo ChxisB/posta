@@ -196,7 +196,6 @@ export function WebhooksView() {
 
       {webhooks && webhooks.length === 0 ? (
         <EmptyState
-          area="webhooks"
           headline={t("empty.headline")}
           body={t("empty.body")}
           cta={

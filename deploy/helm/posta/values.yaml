@@ -1,0 +1,182 @@
+# Posta Helm chart. Everything here has a working default except the four
+# values marked REQUIRED; the Terraform modules in deploy/terraform fill them
+# from the AWS resources they create. Settings that mirror an environment
+# variable are documented in .env.example at the repo root.
+
+image:
+  repository: ghcr.io/chxisb/posta
+  # Empty: the chart's appVersion. Pin a version tag in production, or a
+  # digest below, which wins over the tag. `edge` follows main.
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+# split: web, api and worker as separate Deployments (scale and roll
+#   independently; the recommended production shape).
+# all: one Deployment running all three (PROCESS=all), like docker compose.
+mode: split
+
+config:
+  # REQUIRED. The origin browsers use for the dashboard; sign-in is only
+  # accepted from it. Ingress host for the dashboard follows it.
+  appBaseUrl: ""
+  # REQUIRED with ingress.enabled. The API cannot share the dashboard's host
+  # (their paths overlap), so it gets its own, e.g. https://api.example.com.
+  publicApiUrl: ""
+  # Optional own host for the hosted unsubscribe pages (served by the web process).
+  unsubscribeBaseUrl: ""
+  port: 3001 # the API's listen port (PORT)
+  smtpPort: 2587
+  awsRegion: us-east-1
+  # Use the AWS SDK's default credential chain (EKS Pod Identity or IRSA) instead
+  # of AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY. On: put no access keys in the Secret.
+  awsDefaultChain: true
+  # From the SES setup (deploy/terraform/modules/ses, or the setup wizard).
+  sqsQueueUrl: ""
+  snsTopicArns: ""
+  sesConfigurationSet: ""
+  # Proxies whose X-Forwarded-For is believed, as IPs or CIDRs. The default
+  # is every private range, which covers an ALB/NLB or ingress controller
+  # inside the VPC; narrow it to the VPC CIDR when you can. Left at the app's
+  # own default (loopback), every client would look like the load balancer.
+  trustedProxies: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
+# Any other non-secret variable from .env.example, e.g. ALLOW_SIGNUP: "false".
+env: {}
+
+# The Secret every app process reads (envFrom). Needs DATABASE_URL,
+# MASTER_ENCRYPTION_KEY and BETTER_AUTH_SECRET; any other key in it, such as
+# MX_INGEST_SECRET or a Stripe/OAuth credential, reaches the app as well.
+secret:
+  # Production: create the Secret yourself (Terraform's modules/posta does, or
+  # use External Secrets / sealed secrets) and name it here.
+  existingSecret: ""
+  # Quick start only: rendered into a Secret by this chart. Do not commit a
+  # values file that holds real secrets. Ignored when existingSecret is set.
+  values: {}
+
+# A CA bundle the app trusts for outbound TLS (NODE_EXTRA_CA_CERTS), from a
+# ConfigMap you create: RDS requires TLS and its certificates are not in
+# Node's store. With it, use sslmode=verify-full in DATABASE_URL.
+extraCA:
+  configMapName: ""
+  key: ca.pem
+
+serviceAccount:
+  create: true
+  name: ""
+  # EKS Pod Identity needs none (it binds by service account name); IRSA needs
+  # eks.amazonaws.com/role-arn here.
+  annotations: {}
+
+# Migrations always run when a process boots (advisory-locked, so replicas
+# starting together are safe). With hook on, `helm install/upgrade` also runs
+# them first as a Job, so a failing migration stops the release before any pod
+# rolls. Needs secret.existingSecret (the Secret must exist before the hook).
+migrations:
+  hook: true
+  timeoutSeconds: 1800 # helm/terraform's own --timeout must be longer
+
+# Applies to every workload below.
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpread: true # spread replicas over zones, softly
+pdb:
+  enabled: true # maxUnavailable 1 for workloads with at least two replicas
+
+# Starting points, not measurements. Memory limits only: CPU limits throttle
+# Node. The worker's footprint grows with SEND_CONCURRENCY.
+web:
+  replicas: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { memory: 1Gi }
+  autoscaling: { enabled: false, minReplicas: 2, maxReplicas: 6, targetCPUUtilizationPercentage: 70 }
+  service: { annotations: {} }
+api:
+  replicas: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { memory: 1Gi }
+  autoscaling: { enabled: false, minReplicas: 2, maxReplicas: 6, targetCPUUtilizationPercentage: 70 }
+  service: { annotations: {} }
+# Each worker paces SES at the account's rate divided by the replica count
+# (WORKER_REPLICAS, set from this number), and the rollout never runs more
+# than this many at once, so the combined rate stays at the SES limit.
+worker:
+  replicas: 1
+  resources:
+    requests: { cpu: 500m, memory: 768Mi }
+    limits: { memory: 1536Mi }
+# mode: all only. No autoscaling: the worker count must stay known.
+app:
+  replicas: 1
+  resources:
+    requests: { cpu: "1", memory: 1536Mi }
+    limits: { memory: 3Gi }
+
+# The SMTP relay (a TCP LoadBalancer). Needs a STARTTLS keypair in a
+# kubernetes.io/tls Secret (cert-manager can issue it), or allowInsecureAuth
+# on a private network.
+smtp:
+  enabled: false
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+  tls: { secretName: "" }
+  allowInsecureAuth: false
+  service:
+    type: LoadBalancer
+    annotations: {} # on EKS Auto Mode: aws-load-balancer-scheme: internet-facing
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+
+# The inbound MX (receiving, beta): public port 25 to the container's 2525. It
+# holds no database and reads only its own variables. Needs config in the
+# app Secret too: RECEIVING_MX_HOST and MX_INGEST_SECRET (32+ characters).
+mx:
+  enabled: false
+  replicas: 2
+  hostname: "" # greeting name; the host receiving domains' MX records point at
+  tls: { secretName: "" } # kubernetes.io/tls Secret; without it, no STARTTLS
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 1Gi } # it buffers up to 512 MiB of inbound mail
+  service:
+    type: LoadBalancer
+    port: 25
+    annotations: {}
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+
+# The documentation site; static, no database.
+docs:
+  enabled: false
+  host: "" # required when enabled and ingress.enabled
+  replicas: 1
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+  service: { annotations: {} }
+
+ingress:
+  enabled: true
+  # alb on EKS Auto Mode, nginx, traefik, ... Empty: the cluster's default class.
+  className: ""
+  # Controller annotations for the whole Ingress, e.g. ALB's ssl-redirect or
+  # wafv2-acl-arn. (Auto Mode ignores group.name here; set it below.)
+  annotations: {}
+  # [{ secretName: posta-tls, hosts: [mail.example.com, api.example.com] }]
+  # for controllers that terminate TLS from a Secret. Not used by ALB (ACM).
+  tls: []
+  # EKS Auto Mode needs an IngressClass plus IngressClassParams before any
+  # Ingress works; create: true renders both, named className (default "alb").
+  eksAutoMode:
+    create: false
+    scheme: internet-facing
+    certificateARNs: [] # ACM certificates for the HTTPS listener
+    groupName: "" # share one ALB across Ingresses

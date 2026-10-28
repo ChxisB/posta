@@ -274,6 +274,11 @@ SENTRY_TRACES_SAMPLE_RATE=0
 # this is true. Keep false when the dashboard is reachable from the internet.
 ALLOW_SIGNUP=false
 
+# Several stacks, one per region: list them all (this one included) as
+# region=url pairs and /signup offers the choice, sending people to the stack
+# they pick. Leave unset on a single stack.
+# REGION_STACKS=eu-west-2=https://eu.example.com,us-east-1=https://us.example.com
+
 # Hosted cloud only (ignored when IS_CLOUD=false): force branded tracking
 # subdomains on even without a TRACKING_EDGE_HOST, for a cloud that serves
 # customer hostnames on the app host itself. Setting TRACKING_EDGE_HOST already

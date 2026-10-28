@@ -1,0 +1,23 @@
+image: { tag: "0.1.0" }
+config:
+  appBaseUrl: https://mail.example.com
+  publicApiUrl: https://api.example.com
+  awsRegion: us-east-1
+  sqsQueueUrl: https://sqs.us-east-1.amazonaws.com/123456789012/posta-events
+  snsTopicArns: arn:aws:sns:us-east-1:123456789012:posta-events
+  sesConfigurationSet: posta
+  trustedProxies: 10.0.0.0/16
+secret: { existingSecret: posta-env }
+extraCA: { configMapName: posta-ca }
+serviceAccount: { name: posta }
+ingress:
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+  eksAutoMode:
+    create: true
+    scheme: internet-facing
+    certificateARNs: [arn:aws:acm:us-east-1:123456789012:certificate/abc]
+    groupName: posta
+docs: { enabled: false }

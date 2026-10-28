@@ -3,12 +3,13 @@ import {
   committedDailyVolume,
   DAY_MS,
   latestProbes,
+  notDemoTeam,
   PROBE_KEYS,
   PROBES,
   probeHistory,
 } from "@posta/core";
 import { schema } from "@posta/db";
-import { gte, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { periodSchema, previousPeriod, resolvePeriod } from "../../console/periods";
 import { servedRegionAccounts } from "../../console/ses-regions";
@@ -33,6 +34,7 @@ export const consoleOverviewRouter = router({
           suspended: sql<number>`count(*) filter (where ${t.suspendedAt} is not null)::int`,
         })
         .from(t)
+        .where(eq(t.isDemo, false))
         .then((rows) => rows[0]),
       ctx.db
         .select({
@@ -42,6 +44,7 @@ export const consoleOverviewRouter = router({
           total: sql<number>`count(*)::int`,
         })
         .from(d)
+        .where(notDemoTeam(d.teamId))
         .then((rows) => rows[0]),
       latestProbes(ctx.db),
       servedRegionAccounts(),
@@ -146,14 +149,14 @@ export const consoleOverviewRouter = router({
       const [before] = await ctx.db
         .select({ n: sql<number>`count(*)::int` })
         .from(t)
-        .where(sql`${t.createdAt} < ${period.from}`);
+        .where(and(eq(t.isDemo, false), sql`${t.createdAt} < ${period.from}`));
       const rows = await ctx.db
         .select({
           day: sql<string>`(${t.createdAt} at time zone 'UTC')::date::text`,
           n: sql<number>`count(*)::int`,
         })
         .from(t)
-        .where(gte(t.createdAt, period.from))
+        .where(and(eq(t.isDemo, false), gte(t.createdAt, period.from)))
         .groupBy(sql`1`)
         .orderBy(sql`1`);
       return { before: before?.n ?? 0, rows };

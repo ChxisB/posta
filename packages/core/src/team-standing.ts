@@ -9,6 +9,7 @@ import {
   PAUSE_BOUNCE_RATE,
   PAUSE_COMPLAINT_RATE,
 } from "./deliverability.js";
+import { DEMO_TEAM_MESSAGE } from "./demo-team.js";
 import { unsubscribeSuspendedMembers } from "./system-contacts.js";
 
 export type SuspensionReason = (typeof schema.suspensionReasonEnum.enumValues)[number];
@@ -41,6 +42,8 @@ export interface TeamStanding {
   suspended: { at: Date; reason: SuspensionReason; note: string | null } | null;
   broadcastsPausedByOperatorAt: Date | null;
   dailySendCeiling: number | null;
+  /** A seeded sample workspace: it never sends (see sendRefusal). */
+  isDemo: boolean;
 }
 
 /** The columns fetchTeamStanding reads, for callers that already select the team row. */
@@ -50,6 +53,7 @@ export const STANDING_COLUMNS = {
   suspensionNote: schema.teams.suspensionNote,
   broadcastsPausedByOperatorAt: schema.teams.broadcastsPausedByOperatorAt,
   dailySendCeiling: schema.teams.dailySendCeiling,
+  isDemo: schema.teams.isDemo,
 } as const;
 
 export function teamStandingOf(row: {
@@ -58,6 +62,7 @@ export function teamStandingOf(row: {
   suspensionNote: string | null;
   broadcastsPausedByOperatorAt: Date | null;
   dailySendCeiling: number | null;
+  isDemo: boolean;
 }): TeamStanding {
   return {
     suspended:
@@ -66,6 +71,7 @@ export function teamStandingOf(row: {
         : null,
     broadcastsPausedByOperatorAt: row.broadcastsPausedByOperatorAt,
     dailySendCeiling: row.dailySendCeiling,
+    isDemo: row.isDemo,
   };
 }
 
@@ -217,18 +223,21 @@ export function suspendedSendRefusal(reason: SuspensionReason): {
 
 /** Why a team may not take new mail right now. */
 export type SendRefusal =
+  | { reason: "demo_team" }
   | { reason: "team_suspended"; suspension: SuspensionReason }
   | { reason: "sending_paused"; pause: DeliverabilityReason };
 
 /**
  * The team-level admission every accept path applies (acceptEmail, and
- * broadcast initiation beside its broadcast-only holds): an operator
- * suspension, then the deliverability pause, a trailing rate at SES's own
+ * broadcast initiation beside its broadcast-only holds): the demo workspace,
+ * an operator suspension, then the deliverability pause, a trailing rate at SES's own
  * review line ("warning" never blocks). Null when the team may send.
  */
 export async function sendRefusal(db: Db, teamId: string): Promise<SendRefusal | null> {
-  const suspended = (await fetchTeamStanding(db, teamId))?.suspended;
-  if (suspended) return { reason: "team_suspended", suspension: suspended.reason };
+  const standing = await fetchTeamStanding(db, teamId);
+  if (standing?.isDemo) return { reason: "demo_team" };
+  if (standing?.suspended)
+    return { reason: "team_suspended", suspension: standing.suspended.reason };
   const health = await fetchDeliverabilityHealth(db, teamId);
   const pause = health.reasons.find((r) => r.tier === "paused");
   return pause ? { reason: "sending_paused", pause } : null;
@@ -240,9 +249,10 @@ export async function sendRefusal(db: Db, teamId: string): Promise<SendRefusal |
  * catalogs.
  */
 export function sendRefusalError(refusal: SendRefusal): {
-  code: "team_suspended" | "sending_paused";
+  code: "demo_team" | "team_suspended" | "sending_paused";
   message: string;
 } {
+  if (refusal.reason === "demo_team") return { code: "demo_team", message: DEMO_TEAM_MESSAGE };
   if (refusal.reason === "team_suspended") return suspendedSendRefusal(refusal.suspension);
   const { metric, rate, windowDays } = refusal.pause;
   const limit = metric === "bounce" ? PAUSE_BOUNCE_RATE : PAUSE_COMPLAINT_RATE;

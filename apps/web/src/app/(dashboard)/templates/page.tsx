@@ -134,7 +134,6 @@ export default function TemplatesPage() {
         />
       ) : items.length === 0 ? (
         <EmptyState
-          area="templates"
           headline={t("list.empty")}
           body={t("list.emptyHint")}
           cta={<NewTemplateButton />}

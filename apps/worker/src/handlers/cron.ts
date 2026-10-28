@@ -9,6 +9,7 @@ import {
   getInstanceSettings,
   isIdentitySharedByOtherDomains,
   nextUtcDayStart,
+  notDemoTeam,
   OPERATOR_PARK_REASONS,
   type PlanSnapshot,
   purgedEmailBodyColumns,
@@ -83,9 +84,11 @@ export async function reconcileWebhookDeliveries(
   const now = deps.now ?? new Date();
   const d = schema.webhookDeliveries;
   const e = schema.webhookEndpoints;
+  // The demo team's endpoints are fake: nothing of theirs is retried or armed.
+  const realEndpoints = db.select({ id: e.id }).from(e).where(notDemoTeam(e.teamId));
   await exhaustOpenDeliveries(
     db,
-    lt(d.createdAt, new Date(now.getTime() - WEBHOOK_MAX_AGE_MS)),
+    sql`${lt(d.createdAt, new Date(now.getTime() - WEBHOOK_MAX_AGE_MS))} and ${d.endpointId} in (${realEndpoints})`,
     asc(d.createdAt),
   );
 
@@ -102,7 +105,8 @@ export async function reconcileWebhookDeliveries(
       // correlated exists into a heap scan per endpoint when the backlog is deep.
       alarmed: sql<boolean>`(select min(${d.nextAttemptAt}) from ${d} where ${open}) < ${alarmBefore}`,
     })
-    .from(e);
+    .from(e)
+    .where(notDemoTeam(e.teamId));
   const stale = endpoints.flatMap((row) =>
     row.staleId ? [{ id: row.staleId, endpointId: row.endpointId }] : [],
   );
@@ -140,9 +144,12 @@ export async function reconcileStalledBroadcasts(
     .select({ id: b.id })
     .from(b)
     .where(
-      or(
-        and(eq(b.status, "scheduled"), lt(b.scheduledAt, staleBefore)),
-        and(eq(b.status, "sending"), lt(b.updatedAt, staleBefore), isNull(b.recipientCount)),
+      and(
+        notDemoTeam(b.teamId),
+        or(
+          and(eq(b.status, "scheduled"), lt(b.scheduledAt, staleBefore)),
+          and(eq(b.status, "sending"), lt(b.updatedAt, staleBefore), isNull(b.recipientCount)),
+        ),
       ),
     )
     .orderBy(asc(b.createdAt));
@@ -152,7 +159,7 @@ export async function reconcileStalledBroadcasts(
   const walked = await db
     .select({ id: b.id })
     .from(b)
-    .where(and(eq(b.status, "sending"), isNotNull(b.recipientCount)));
+    .where(and(notDemoTeam(b.teamId), eq(b.status, "sending"), isNotNull(b.recipientCount)));
   for (const broadcast of walked) {
     await deps.finalize?.(broadcast.id);
   }
@@ -287,6 +294,7 @@ export async function drainQuotaParked(db: Db, deps: DrainDeps): Promise<DrainRe
       .from(b)
       .where(
         and(
+          notDemoTeam(b.teamId),
           // Sent rows too: a broadcast completed before the status stayed
           // sending until its last row may still hold plan-parked rows.
           inArray(b.status, ["sending", "sent"]),
@@ -400,6 +408,7 @@ async function releaseParkedRows(
           // team releases only its transactional rows, and what screening
           // parked waits for the review list.
           isNull(schema.teams.suspendedAt),
+          eq(schema.teams.isDemo, false),
           or(isNull(schema.emails.broadcastId), isNull(schema.teams.broadcastsPausedByOperatorAt)),
           or(
             isNull(schema.emails.parkReason),
@@ -666,6 +675,7 @@ export async function reconcileStalledSends(
     .set({ latestStatus: "failed", sentAt: null })
     .where(
       and(
+        notDemoTeam(schema.emails.teamId),
         eq(schema.emails.latestStatus, "queued"),
         isNotNull(schema.emails.sentAt),
         isNull(schema.emails.sesMessageId),
@@ -687,6 +697,7 @@ export async function reconcileStalledSends(
   // A row scheduled for later is waiting by design, not lost; its job is due
   // with it and would only be re-enqueued every sweep until then.
   const stalled = and(
+    notDemoTeam(e.teamId),
     eq(e.latestStatus, "queued"),
     isNull(e.sentAt),
     lt(e.createdAt, staleBefore),
@@ -940,6 +951,7 @@ export async function reverifyDomains(db: Db, deps: ReverifyDomainsDeps): Promis
     .from(schema.domains)
     .where(
       and(
+        notDemoTeam(schema.domains.teamId),
         ne(schema.domains.status, "failed"),
         or(isNull(schema.domains.lastCheckedAt), lt(schema.domains.lastCheckedAt, staleBefore)),
       ),
@@ -1038,7 +1050,7 @@ export async function reapUnverifiedDomains(
   const stale = await db
     .select({ id: d.id })
     .from(d)
-    .where(and(isNull(d.verifiedAt), lt(d.createdAt, cutoff)))
+    .where(and(notDemoTeam(d.teamId), isNull(d.verifiedAt), lt(d.createdAt, cutoff)))
     .orderBy(asc(d.createdAt));
   let reaped = 0;
   for (const { id } of stale) {
@@ -1152,7 +1164,13 @@ export async function reapStaleTrackingSubdomains(
       setAt: d.trackingSubdomainSetAt,
     })
     .from(d)
-    .where(and(isNotNull(d.trackingSubdomain), isNotNull(d.trackingSubdomainSetAt)));
+    .where(
+      and(
+        notDemoTeam(d.teamId),
+        isNotNull(d.trackingSubdomain),
+        isNotNull(d.trackingSubdomainSetAt),
+      ),
+    );
   let verified = 0;
   let unset = 0;
   for (const row of rows) {

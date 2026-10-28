@@ -611,7 +611,13 @@ export type BatchRemoveSuppressionsOptions =
   | { ids: string[]; emails?: never };
 
 // ---- domains -------------------------------------------------------------
-export type DomainRegion = "us-east-1" | "eu-west-1" | "sa-east-1" | "ap-northeast-1";
+export type DomainRegion =
+  | "us-east-1"
+  | "eu-west-1"
+  | "eu-west-2"
+  | "eu-central-1"
+  | "sa-east-1"
+  | "ap-northeast-1";
 
 export interface DomainCapabilities {
   sending: string;

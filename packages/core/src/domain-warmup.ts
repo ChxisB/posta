@@ -9,6 +9,7 @@ import {
   monitorTier,
   teamMonitorRow,
 } from "./abuse-monitor.js";
+import { notDemoTeam } from "./demo-team.js";
 import { firstRow } from "./driver-result.js";
 import { SES_MAILBOX_SIMULATOR_DOMAIN } from "./mailbox-providers.js";
 import {
@@ -288,7 +289,7 @@ export async function graduateWarmupDomains(db: Db, now: Date = new Date()): Pro
       earnedAt: d.warmupTierAt,
     })
     .from(d)
-    .where(mayWarmUp(now));
+    .where(and(mayWarmUp(now), notDemoTeam(d.teamId)));
   const groups = new Map<string, typeof rows>();
   for (const row of rows) {
     const key = ownerDomain(row.name);

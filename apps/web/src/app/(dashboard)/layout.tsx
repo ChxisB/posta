@@ -1,15 +1,18 @@
+import { env } from "@posta/config";
 import { getDb } from "@posta/db";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialogHost } from "@/components/confirm-dialog";
 import { DeliverabilityBanner } from "@/components/deliverability-banner";
+import { DemoBanner } from "@/components/demo-banner";
 import { EventsHealthBanner } from "@/components/events-health-banner";
 import { SupportViewBanner } from "@/components/support-view-banner";
 import { TeamStandingBanner } from "@/components/team-standing-banner";
 import { ToastHost } from "@/components/toast";
 import { getAuth } from "@/server/auth";
-import { ACTIVE_TEAM_COOKIE, getActiveMembership } from "@/server/membership";
+import { isInstanceOperator } from "@/server/instance-operator";
+import { ACTIVE_TEAM_COOKIE, getActiveMembership, listMemberships } from "@/server/membership";
 import { resolveSupportView, SUPPORT_VIEW_COOKIE } from "@/server/support-view";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +32,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     : await getActiveMembership(db, session.user.id, cookieStore.get(ACTIVE_TEAM_COOKIE)?.value);
   const team = view ?? membership;
   if (!team) redirect("/onboarding");
+  // The sample workspace says so on every page, and offers the way out.
+  const demo = membership?.isDemo
+    ? {
+        backTeamId:
+          (await listMemberships(db, session.user.id)).find((m) => !m.isDemo)?.teamId ?? null,
+        canReset: !env.IS_CLOUD && (await isInstanceOperator(db, session.user.id)),
+      }
+    : null;
 
   return (
     <AppShell
@@ -43,6 +54,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             teamName={view.teamName}
             expiresAt={view.expiresAt}
           />
+        ) : demo ? (
+          <DemoBanner backTeamId={demo.backTeamId} canReset={demo.canReset} />
         ) : null
       }
     >

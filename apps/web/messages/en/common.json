@@ -115,6 +115,12 @@
     "back": "Back to console",
     "readOnly": "Read-only support view: nothing can be changed here."
   },
+  "demoBanner": {
+    "text": "Demo data. Nothing is sent.",
+    "reset": "Reset",
+    "back": "Back to my team",
+    "resetFailed": "Couldn't reset the demo data. Try again."
+  },
   "suspensionLock": {
     "deleteTeam": "This team is suspended and can't be deleted. Contact support.",
     "deleteDomain": "This team is suspended, so its domains can't be deleted. Contact support.",

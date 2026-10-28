@@ -1,0 +1,52 @@
+{{- $fn := include "posta.fullname" . -}}
+{{- $all := eq .Values.mode "all" -}}
+{{- /* Load balancer health checks: the dashboard has no /health, the API does. Controllers that ignore the annotation lose nothing. */ -}}
+{{- $web := dict "name" "web" "component" (ternary "app" "web" $all) "type" "ClusterIP" "port" 3000 "target" 3000
+      "annotations" (merge (deepCopy .Values.web.service.annotations) (dict "alb.ingress.kubernetes.io/healthcheck-path" "/robots.txt")) -}}
+{{- $api := dict "name" "api" "component" (ternary "app" "api" $all) "type" "ClusterIP" "port" (int .Values.config.port) "target" (int .Values.config.port)
+      "annotations" (merge (deepCopy .Values.api.service.annotations) (dict "alb.ingress.kubernetes.io/healthcheck-path" "/health")) -}}
+{{- $services := list $web $api -}}
+{{- if .Values.docs.enabled -}}
+{{- $services = append $services (dict "name" "docs" "component" "docs" "type" "ClusterIP" "port" 3002 "target" 3002
+      "annotations" (merge (deepCopy .Values.docs.service.annotations) (dict "alb.ingress.kubernetes.io/healthcheck-path" "/"))) -}}
+{{- end -}}
+{{- if .Values.smtp.enabled -}}
+{{- $s := .Values.smtp.service -}}
+{{- $services = append $services (dict "name" "smtp" "component" "smtp" "type" $s.type "port" (int .Values.config.smtpPort) "target" (int .Values.config.smtpPort)
+      "annotations" $s.annotations "class" $s.loadBalancerClass "ranges" $s.loadBalancerSourceRanges) -}}
+{{- end -}}
+{{- if .Values.mx.enabled -}}
+{{- $s := .Values.mx.service -}}
+{{- $services = append $services (dict "name" "mx" "component" "mx" "type" $s.type "port" (int $s.port) "target" 2525
+      "annotations" $s.annotations "class" $s.loadBalancerClass "ranges" $s.loadBalancerSourceRanges) -}}
+{{- end -}}
+{{- range $services }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-{{ .name }}
+  labels:
+    {{- include "posta.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ .name }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .type }}
+  {{- if .class }}
+  loadBalancerClass: {{ .class }}
+  {{- end }}
+  {{- if .ranges }}
+  loadBalancerSourceRanges:
+    {{- toYaml .ranges | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- include "posta.selector" (dict "root" $ "component" .component) | nindent 4 }}
+  ports:
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .target }}
+      protocol: TCP
+{{- end }}

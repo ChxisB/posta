@@ -284,7 +284,6 @@ export function ReceivedEmailsList() {
       />
     ) : (
       <EmptyState
-        area="emails"
         headline={t("received.empty")}
         body={t.rich("received.emptyHint", {
           link: (chunks) => (

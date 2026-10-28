@@ -10,6 +10,7 @@ import {
   encryptPayload,
 } from "./crypto/envelope.js";
 import type { Keyring } from "./crypto/keyring.js";
+import { notDemoTeam } from "./demo-team.js";
 
 /**
  * Standard Webhooks (the spec Resend/Svix implement): secrets are
@@ -592,6 +593,7 @@ function enabledEndpoints(db: Db, teamId: string) {
       and(
         eq(schema.webhookEndpoints.teamId, teamId),
         eq(schema.webhookEndpoints.status, "enabled"),
+        notDemoTeam(schema.webhookEndpoints.teamId),
       ),
     );
 }

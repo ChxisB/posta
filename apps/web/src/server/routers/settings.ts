@@ -7,6 +7,7 @@ import {
   isCloudDeployment,
   notificationsEmailFrom,
   receivingEnabled,
+  servedRegions,
 } from "@posta/config";
 import {
   accountLocale,
@@ -437,10 +438,12 @@ export function createSettingsRouter(
         ]);
         // Tenants are regional and outlive the domains that created them (a
         // tenant created before a failed association, or in a region whose
-        // last domain was deleted earlier), so try every region; a missing
-        // tenant is tolerated.
+        // last domain was deleted earlier), so try every known and served
+        // region; a missing tenant is tolerated.
         await Promise.allSettled(
-          SES_REGIONS.map((region) => deps.deleteSesTenant({ tenantName: ctx.teamId, region })),
+          [...new Set<string>([...SES_REGIONS, ...servedRegions()])].map((region) =>
+            deps.deleteSesTenant({ tenantName: ctx.teamId, region }),
+          ),
         );
         await recordAudit(ctx, {
           action: "team.deleted",

@@ -73,6 +73,8 @@ const REGION_RE = /^[a-z0-9][a-z0-9-]*$/;
 const REGION_HINTS: Record<SesRegion, string> = {
   "us-east-1": "N. Virginia",
   "eu-west-1": "Ireland",
+  "eu-west-2": "London",
+  "eu-central-1": "Frankfurt",
   "sa-east-1": "São Paulo",
   "ap-northeast-1": "Tokyo",
 };

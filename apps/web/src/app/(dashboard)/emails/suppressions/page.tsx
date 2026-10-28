@@ -210,11 +210,7 @@ export default function SuppressionsPage() {
             onAction={clearFilters}
           />
         ) : (
-          <EmptyState
-            area="emails"
-            headline={t("suppressions.empty")}
-            body={t("suppressions.emptyHint")}
-          />
+          <EmptyState headline={t("suppressions.empty")} body={t("suppressions.emptyHint")} />
         )
       ) : (
         <>

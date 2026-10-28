@@ -93,6 +93,10 @@ export const HEX_EXEMPT_FILES: Record<string, string> = {
     "the CSS named-colour table, used to tell whether text in an inbound email is invisible",
   "packages/core/src/inboxes/labels.ts":
     "the colours a customer's inbox labels are given by default, not ours",
+  "packages/core/src/demo/content.ts":
+    "the sample team's template and broadcast designs, which are emails in a customer's own colours",
+  "packages/core/src/demo/inbound.ts":
+    "the colours the sample team gave its inbox labels, which are a customer's choice, not ours",
   "apps/web/src/lib/email-theme.ts":
     "the email's own palette (its default look and presets), which is the sender's and never the dashboard's",
   "apps/web/src/lib/email-theme.test.ts":
@@ -224,8 +228,7 @@ export const EXCLAMATIONS_ALLOWED_IN: Record<string, string> = {
 /* ----------------------------------------------------------------- assets */
 
 /** Public files a source file names by path: /logo/…, /email/…, /og.png. The proxy's /favicon.ico matcher is not one. */
-const ASSET_PATH =
-  /\/(?:(?:logo|email|auth|empty-states)\/[\w./-]*?\.(?:svg|png|webp|jpe?g|ico)|og\.png)/g;
+const ASSET_PATH = /\/(?:(?:logo|email|auth)\/[\w./-]*?\.(?:svg|png|webp|jpe?g|ico)|og\.png)/g;
 
 export function assetRefs(text: string): string[] {
   return [...new Set([...text.matchAll(ASSET_PATH)].map((match) => match[0]))];

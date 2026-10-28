@@ -1,0 +1,4 @@
+mode: all
+config: { appBaseUrl: "https://mail.example.com", publicApiUrl: "https://api.example.com" }
+secret:
+  values: { DATABASE_URL: "postgres://u:p@h/posta", MASTER_ENCRYPTION_KEY: "abc", BETTER_AUTH_SECRET: "0123456789012345678901234567890123" }

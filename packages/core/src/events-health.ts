@@ -1,6 +1,7 @@
 import type { Db } from "@posta/db";
 import { schema } from "@posta/db";
 import { and, count, gte, isNotNull, lte, sql } from "drizzle-orm";
+import { notDemoTeam } from "./demo-team.js";
 
 const WINDOW_MS = 2 * 60 * 60 * 1000;
 /** A send this fresh may not have a delivery or bounce back yet; it is not judged. */
@@ -27,7 +28,13 @@ export async function sesEventsHealth(db: Db, now = new Date()): Promise<SesEven
   const [sent] = await db
     .select({ n: count() })
     .from(schema.emails)
-    .where(and(gte(schema.emails.sentAt, windowStart), lte(schema.emails.sentAt, judgeBefore)));
+    .where(
+      and(
+        notDemoTeam(schema.emails.teamId),
+        gte(schema.emails.sentAt, windowStart),
+        lte(schema.emails.sentAt, judgeBefore),
+      ),
+    );
   // Two bounded reads instead of one aggregate over every SES event ever
   // stored: the windowed count walks an index range, the newest event is a
   // backward index scan.

@@ -1,0 +1,29 @@
+{{- $root := . -}}
+{{- $components := include "posta.components" . | fromYaml -}}
+{{- range $name := keys $components | sortAlpha }}
+{{- $v := (get $components $name).values }}
+{{- if dig "autoscaling" "enabled" false $v }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "posta.fullname" $root }}-{{ $name }}
+  labels:
+    {{- include "posta.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "posta.fullname" $root }}-{{ $name }}
+  minReplicas: {{ int $v.autoscaling.minReplicas }}
+  maxReplicas: {{ int $v.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ int $v.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- end }}

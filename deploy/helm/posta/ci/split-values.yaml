@@ -1,0 +1,32 @@
+config:
+  appBaseUrl: https://mail.example.com
+  publicApiUrl: https://api.example.com
+  unsubscribeBaseUrl: https://u.example.com
+  sqsQueueUrl: https://sqs.us-east-1.amazonaws.com/123456789012/posta
+  snsTopicArns: arn:aws:sns:us-east-1:123456789012:posta
+  sesConfigurationSet: posta
+secret:
+  existingSecret: posta-env
+worker:
+  replicas: 2
+web:
+  autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 5, targetCPUUtilizationPercentage: 70 }
+ingress:
+  eksAutoMode:
+    create: true
+    certificateARNs: [arn:aws:acm:us-east-1:123456789012:certificate/abc]
+    groupName: posta
+smtp:
+  enabled: true
+  tls: { secretName: smtp-tls }
+  service:
+    annotations: { service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing }
+    loadBalancerClass: eks.amazonaws.com/nlb
+mx:
+  enabled: true
+  hostname: mx.example.com
+  tls: { secretName: mx-tls }
+docs:
+  enabled: true
+  host: docs.example.com
+serviceAccount: { name: posta }

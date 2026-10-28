@@ -34,6 +34,9 @@ means changing two environment variables, not rewriting your integration.
 | Receiving | Beta | Mail to any address on a verified domain, through an MX the instance runs (`PROCESS=mx`); Resend's `emails.receiving` API, `forward()` included, and the `email.received` webhook. |
 | Dashboard | ✅ | Full dashboard, in English. |
 | Self-host (Docker) | ✅ | Compose file plus a setup wizard; sends through your own AWS SES. |
+| Self-host (Kubernetes on AWS) | Beta | A Helm chart and Terraform modules (VPC, EKS, RDS, SES) in [`deploy/`](deploy/README.md). Validated offline; not yet applied to a real AWS account. |
+| Regions | ✅ | Domains in any of the SES regions Posta lists, London and Frankfurt included. Run one stack per region and `REGION_STACKS` lets people pick theirs at sign-up. |
+| Demo workspace | ✅ | `pnpm demo:seed` fills a demo team with lifelike emails, contacts and metrics. A demo team can never send. |
 | Migrate from Resend | ✅ | `npx @tack-labs/posta-cli migrate --from resend` moves contacts, segments, topics, templates, webhooks, domains and suppressions; read-only against Resend, safe to re-run before cutover. |
 | Content monitoring | ✅ | Optional outbound judge via [TypeSafe Jev](https://typesafe.ai). Off by default on self-host. |
 
@@ -68,6 +71,9 @@ and everything else (from-source build, SES/SNS event pipeline, Docker-less
 development) is in [SELF_HOSTING.md](SELF_HOSTING.md).
 
 Dashboard at http://localhost:3000, API at http://localhost:3001.
+
+Running on Kubernetes instead? [`deploy/README.md`](deploy/README.md) has the Helm chart
+and a Terraform example that builds the whole AWS stack.
 
 ## License
 

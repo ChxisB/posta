@@ -71,8 +71,8 @@ async function sendGuardTranslator() {
 }
 
 /**
- * PRECONDITION_FAILED while the team may not send (core sendRefusal: an
- * operator suspension, or trailing rates past SES's pause line) or the
+ * PRECONDITION_FAILED while the team may not send (core sendRefusal: the
+ * demo workspace, an operator suspension, or trailing rates past SES's pause line) or the
  * operator paused its broadcasts; read per call so the action bites at once.
  * The message is in the caller's locale.
  */
@@ -84,15 +84,17 @@ async function sendGuard(ctx: { db: Db; teamId: string }): Promise<TRPCError | n
   const { t, pct } = await sendGuardTranslator();
   const message = !refusal
     ? t("sendGuard.operatorPaused")
-    : refusal.reason === "team_suspended"
-      ? t(refusal.suspension === "review" ? "sendGuard.pendingReview" : "sendGuard.suspended")
-      : t(`sendGuard.${refusal.pause.metric}`, {
-          rate: pct.format(refusal.pause.rate),
-          limit: pct.format(
-            refusal.pause.metric === "bounce" ? PAUSE_BOUNCE_RATE : PAUSE_COMPLAINT_RATE,
-          ),
-          days: refusal.pause.windowDays,
-        });
+    : refusal.reason === "demo_team"
+      ? t("sendGuard.demoTeam")
+      : refusal.reason === "team_suspended"
+        ? t(refusal.suspension === "review" ? "sendGuard.pendingReview" : "sendGuard.suspended")
+        : t(`sendGuard.${refusal.pause.metric}`, {
+            rate: pct.format(refusal.pause.rate),
+            limit: pct.format(
+              refusal.pause.metric === "bounce" ? PAUSE_BOUNCE_RATE : PAUSE_COMPLAINT_RATE,
+            ),
+            days: refusal.pause.windowDays,
+          });
   return new TRPCError({ code: "PRECONDITION_FAILED", message });
 }
 

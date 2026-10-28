@@ -174,7 +174,6 @@ export default function BroadcastsPage() {
         />
       ) : items.length === 0 ? (
         <EmptyState
-          area="broadcasts"
           headline={t("list.empty")}
           body={t("list.emptyHint")}
           cta={<NewBroadcastButton />}

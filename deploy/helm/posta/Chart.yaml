@@ -1,0 +1,11 @@
+apiVersion: v2
+name: posta
+description: Posta, the email platform that sends through your own AWS SES account.
+type: application
+version: 0.1.0
+# The image tag when image.tag is unset: the first release tag. Pin a tag or
+# a digest in production; before that tag exists, set image.tag to edge.
+appVersion: "0.1.0"
+home: https://github.com/ChxisB/posta
+sources:
+  - https://github.com/ChxisB/posta

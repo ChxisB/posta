@@ -415,11 +415,7 @@ export default function EmailsPage() {
             onAction={clearFilters}
           />
         ) : (
-          <EmptyState
-            area="emails"
-            headline={t("list.empty")}
-            body={t.rich("list.emptyHint", codeRichTags)}
-          />
+          <EmptyState headline={t("list.empty")} body={t.rich("list.emptyHint", codeRichTags)} />
         )
       ) : (
         <>
