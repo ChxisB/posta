@@ -1,0 +1,11 @@
+# False positives in history: generated DKIM key variables, placeholder keys and
+# example tokens in deleted test files and the pt-BR inboxes doc.
+0a566b2d35355594801524da4da3ffe2c5997dac:apps/docs/content/docs/concepts/inboxes.pt-BR.mdx:generic-api-key:470
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:127
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:141
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:254
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:268
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:275
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/aws.test.ts:generic-api-key:295
+ba3a4d9239e54edd97e0db5d5f8969a67b3f7dd2:packages/aws/src/index.ts:generic-api-key:106
+667c469c1eac43fa73ce62a19cef6bf211f1c7d4:packages/frontend/src/app/page.tsx:curl-auth-header:410
