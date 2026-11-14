@@ -15,9 +15,9 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.3.14",
     "@posta/db": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "linkify-it": "^5.0.2",
-    "linkifyjs": "^4.3.3"
+    "drizzle-orm": "^0.45.4",
+    "linkify-it": "^6.1.0",
+    "linkifyjs": "^4.4.0"
   },
   "devDependencies": {
     "@types/linkify-it": "^5.0.0",
